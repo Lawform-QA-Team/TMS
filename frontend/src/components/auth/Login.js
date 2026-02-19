@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useAuth } from "@tms/contexts/AuthContext"
-import "./Login.css"
+import "@tms/components/auth/Login.css"
 
 export default function Page({ onSwitchToRegister }) {
   const [showPassword, setShowPassword] = useState(false)

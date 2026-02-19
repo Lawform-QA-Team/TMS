@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@tms/contexts/AuthContext';
-import './Login.css';
+import '@tms/components/auth/Login.css';
 
 const Register = ({ onSwitchToLogin }) => {
   const [formData, setFormData] = useState({

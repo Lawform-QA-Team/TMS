@@ -1,5 +1,5 @@
 // src/App.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '@tms/App.css';
 import {TestCaseApp} from '@tms/components/testcases';
 import PerformanceTestManager from '@tms/components/performance/PerformanceTestManager';
@@ -17,7 +17,22 @@ import ProtectedRoute from '@tms/components/auth/ProtectedRoute';
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
   const { user, logout } = useAuth();
+
+  // 사용자 메뉴 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setUserMenuOpen(false);
+      }
+    };
+    if (userMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [userMenuOpen]);
 
   // window 객체에 setActiveTab 등록 (다른 컴포넌트에서 호출 가능하도록)
   useEffect(() => {
@@ -126,106 +141,88 @@ function AppContent() {
     return user;
   };
 
+  const navItems = [
+    { id: 'dashboard', label: '대시보드', icon: '📊' },
+    { id: 'testcases', label: '테스트 케이스', icon: '🧪' },
+    ...(canAccessJira() ? [{ id: 'jira', label: '이슈', icon: '🔗' }] : []),
+    ...(canAccessAutomation() ? [{ id: 'automation', label: '자동화 테스트', icon: '🤖' }] : []),
+    ...(canAccessPerformance() ? [{ id: 'performance', label: '성능 테스트', icon: '⚡' }] : []),
+    ...(canAccessAutomation() ? [{ id: 'testscripts', label: '테스트 스크립트', icon: '📁' }] : []),
+    ...(canAccessFolders() ? [{ id: 'folders', label: '폴더 관리', icon: '📁' }] : []),
+  ];
+
   return (
     <ErrorBoundary>
-      <div className="App">
-        <nav className="navbar">
-          <div className="nav-brand">
-            <h1>LTMS</h1>
-            {user && (
-              <div className="nav-brand-right">
-                <NotificationBell />
-                <div className="user-info">
-                  <span>👤 {user.username}</span>
-                  {user.role === 'admin' && <span className="admin-badge">관리자</span>}
-                  {user.role === 'user' && <span className="user-badge">사용자</span>}
-                  {user.role === 'guest' && <span className="guest-badge">게스트</span>}
-                </div>
+      <div className="App app-layout">
+        <header className="app-header">
+          <h1 className="app-logo">LTMS</h1>
+          {user && (
+            <div className="app-header-right">
+              <NotificationBell />
+              <div className="user-menu" ref={userMenuRef}>
+                <button
+                  type="button"
+                  className="user-menu-trigger"
+                  onClick={() => setUserMenuOpen((v) => !v)}
+                  aria-expanded={userMenuOpen}
+                  aria-haspopup="true"
+                >
+                  <span className="user-info">
+                    <span>👤 {user.username}</span>
+                    {user.role === 'admin' && <span className="admin-badge">관리자</span>}
+                    {user.role === 'user' && <span className="user-badge">사용자</span>}
+                    {user.role === 'guest' && <span className="guest-badge">게스트</span>}
+                  </span>
+                  <span className="user-menu-chevron">{userMenuOpen ? '▲' : '▼'}</span>
+                </button>
+                {userMenuOpen && (
+                  <ul className="user-menu-dropdown" role="menu">
+                    <li role="none">
+                      <button type="button" role="menuitem" className="user-menu-item" onClick={() => { setActiveTab('profile'); setUserMenuOpen(false); }}>
+                        👤 프로필
+                      </button>
+                    </li>
+                    {canAccessSettings() && (
+                      <li role="none">
+                        <button type="button" role="menuitem" className="user-menu-item" onClick={() => { setActiveTab('settings'); setUserMenuOpen(false); }}>
+                          ⚙️ 설정
+                        </button>
+                      </li>
+                    )}
+                    <li role="none">
+                      <button type="button" role="menuitem" className="user-menu-item user-menu-item--logout" onClick={() => { handleLogout(); setUserMenuOpen(false); }}>
+                        🚪 로그아웃
+                      </button>
+                    </li>
+                  </ul>
+                )}
               </div>
-            )}
-          </div>
-          <div className="nav-links">
-            <button 
-              className={`nav-link ${activeTab === 'dashboard' ? 'active' : ''}`}
-              onClick={() => setActiveTab('dashboard')}
-            >
-              📊 대시보드
-            </button>
-            <button 
-              className={`nav-link ${activeTab === 'testcases' ? 'active' : ''}`}
-              onClick={() => setActiveTab('testcases')}
-            >
-              🧪 테스트 케이스
-            </button>
-            {canAccessJira() && (
-              <button 
-                className={`nav-link ${activeTab === 'jira' ? 'active' : ''}`}
-                onClick={() => setActiveTab('jira')}
-              >
-                🔗 이슈
-              </button>
-            )}
-            {canAccessAutomation() && (
-              <button 
-                className={`nav-link ${activeTab === 'automation' ? 'active' : ''}`}
-                onClick={() => setActiveTab('automation')}
-              >
-                🤖 자동화 테스트
-              </button>
-            )}
-            {canAccessPerformance() && (
-              <button 
-                className={`nav-link ${activeTab === 'performance' ? 'active' : ''}`}
-                onClick={() => setActiveTab('performance')}
-              >
-                ⚡ 성능 테스트
-              </button>
-            )}
-            {canAccessAutomation() && (
-              <button 
-                className={`nav-link ${activeTab === 'testscripts' ? 'active' : ''}`}
-                onClick={() => setActiveTab('testscripts')}
-              >
-                📁 테스트 스크립트
-              </button>
-            )}
-            {canAccessFolders() && (
-              <button 
-                className={`nav-link ${activeTab === 'folders' ? 'active' : ''}`}
-                onClick={() => setActiveTab('folders')}
-              >
-                📁 폴더 관리
-              </button>
-            )}
-            {canAccessSettings() && (
-              <button 
-                className={`nav-link ${activeTab === 'settings' ? 'active' : ''}`}
-                onClick={() => setActiveTab('settings')}
-              >
-                ⚙️ 설정
-              </button>
-            )}
-            {user && (
-              <button 
-                className={`nav-link ${activeTab === 'profile' ? 'active' : ''}`}
-                onClick={() => setActiveTab('profile')}
-              >
-                👤 프로필
-              </button>
-            )}
-            <button 
-              className="nav-link nav-logout"
-              onClick={handleLogout}
-              title="로그아웃"
-            >
-              🚪
-            </button>
-          </div>
-        </nav>
+            </div>
+          )}
+        </header>
 
-        <main className="main-content">
-          {renderContent()}
-        </main>
+        <div className="app-body">
+          <aside className="app-sidebar">
+            <nav className="sidebar-nav">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`sidebar-nav-item ${activeTab === item.id ? 'active' : ''}`}
+                  onClick={() => setActiveTab(item.id)}
+                >
+                  <span className="sidebar-nav-icon">{item.icon}</span>
+                  <span className="sidebar-nav-label">{item.label}</span>
+                  <span className="sidebar-nav-chevron">&gt;</span>
+                </button>
+              ))}
+            </nav>
+          </aside>
+
+          <main className="main-content">
+            {renderContent()}
+          </main>
+        </div>
       </div>
     </ErrorBoundary>
   );
