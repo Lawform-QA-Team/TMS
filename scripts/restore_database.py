@@ -6,6 +6,7 @@ local_backup.sql 파일을 사용하여 데이터베이스를 복구합니다.
 import os
 import sys
 import subprocess
+import tempfile
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -100,27 +101,38 @@ def restore_mysql(config, backup_file):
         connection.close()
         
         # 백업 파일 복구 (mysqldump 형식이므로 mysql 명령어 사용)
+        # 비밀번호를 명령줄에 넘기지 않기 위해 임시 설정 파일 사용 (경고 제거 + 보안)
         print("📥 백업 파일 복구 중...")
         print("   이 작업은 몇 분이 걸릴 수 있습니다...")
         
-        mysql_cmd = [
-            'mysql',
-            '-h', config['host'],
-            '-P', config['port'],
-            '-u', config['user'],
-            f"-p{config['password']}",
-            config['database']
-        ]
-        
-        with open(backup_file, 'r', encoding='utf-8') as f:
-            process = subprocess.Popen(
-                mysql_cmd,
-                stdin=f,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
-            stdout, stderr = process.communicate()
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.cnf', delete=False) as cnf:
+            cnf.write("[client]\n")
+            cnf.write(f"user={config['user']}\n")
+            cnf.write(f"password={config['password']}\n")
+            cnf.write(f"host={config['host']}\n")
+            cnf.write(f"port={config['port']}\n")
+            cnf_path = cnf.name
+        try:
+            os.chmod(cnf_path, 0o600)
+            mysql_cmd = [
+                'mysql',
+                f'--defaults-extra-file={cnf_path}',
+                config['database']
+            ]
+            with open(backup_file, 'r', encoding='utf-8') as f:
+                process = subprocess.Popen(
+                    mysql_cmd,
+                    stdin=f,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+                stdout, stderr = process.communicate()
+        finally:
+            try:
+                os.unlink(cnf_path)
+            except OSError:
+                pass
         
         if process.returncode != 0:
             print(f"❌ 데이터베이스 복구 실패: {stderr}")
