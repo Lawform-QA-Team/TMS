@@ -90,10 +90,6 @@ def delete_project(project_id):
 @testcases_bp.route('/testcases', methods=['GET', 'OPTIONS'])
 @guest_allowed
 def get_testcases():
-    if request.method == 'OPTIONS':
-        from utils.common_helpers import handle_options_request
-        return handle_options_request()
-    
     try:
         page = request.args.get('page', None, type=int)
         per_page = request.args.get('per_page', None, type=int)
@@ -374,7 +370,14 @@ def create_testcase():
                     test_case_name = ' > '.join([c for c in categories if c]) or f"테스트 케이스 #{tc.id}"
                 else:
                     test_case_name = f"테스트 케이스 #{tc.id}"
-                
+                new_assignee = User.query.get(tc.assignee_id)
+                new_assignee_display = new_assignee.get_display_name() if new_assignee else str(tc.assignee_id)
+                metadata = {
+                    'test_case_name': test_case_name,
+                    'old_assignee_id': None,
+                    'old_assignee_display': '(없음)',
+                    'new_assignee_display': new_assignee_display,
+                }
                 logger.info(f"🔔 알림 생성 파라미터: user_id={tc.assignee_id}, title='테스트 케이스 담당자 지정', message='{test_case_name}'")
                 
                 notification = notification_service.create_notification(
@@ -383,7 +386,8 @@ def create_testcase():
                     title='테스트 케이스 담당자 지정',
                     message=f"'{test_case_name}' 테스트 케이스의 담당자로 지정되었습니다.",
                     related_test_case_id=tc.id,
-                    priority='medium'
+                    priority='medium',
+                    metadata=metadata
                 )
                 logger.info(f"✅ 담당자 지정 알림 생성 성공: Notification ID {notification.id if notification else 'None'}")
             except Exception as e:
@@ -594,7 +598,16 @@ def update_testcase(id):
                         test_case_name = ' > '.join([c for c in categories if c]) or f"테스트 케이스 #{tc.id}"
                     else:
                         test_case_name = f"테스트 케이스 #{tc.id}"
-                    
+                    old_assignee = User.query.get(old_assignee_id) if old_assignee_id else None
+                    new_assignee = User.query.get(new_assignee_id) if new_assignee_id else None
+                    old_assignee_display = old_assignee.get_display_name() if old_assignee else '(없음)'
+                    new_assignee_display = new_assignee.get_display_name() if new_assignee else str(new_assignee_id)
+                    metadata = {
+                        'test_case_name': test_case_name,
+                        'old_assignee_id': old_assignee_id,
+                        'old_assignee_display': old_assignee_display,
+                        'new_assignee_display': new_assignee_display,
+                    }
                     logger.info(f"🔔 알림 생성 파라미터: user_id={new_assignee_id}, title='테스트 케이스 담당자 지정', message='{test_case_name}'")
                     
                     notification = notification_service.create_notification(
@@ -603,7 +616,8 @@ def update_testcase(id):
                         title='테스트 케이스 담당자 지정',
                         message=f"'{test_case_name}' 테스트 케이스의 담당자로 지정되었습니다.",
                         related_test_case_id=tc.id,
-                        priority='medium'
+                        priority='medium',
+                        metadata=metadata
                     )
                     logger.info(f"✅ 담당자 변경 알림 생성 성공: Notification ID {notification.id if notification else 'None'}")
                 except Exception as e:

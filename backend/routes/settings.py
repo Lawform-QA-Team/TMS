@@ -4,8 +4,6 @@ from flask import Blueprint, request, jsonify
 from models import db, SystemConfig
 from utils.cors import add_cors_headers
 from utils.auth_decorators import admin_required, user_required
-from utils.common_helpers import handle_options_request
-
 # AI TC 기본 프롬프트 키
 TC_PROMPT_CONFIG_KEY = 'tc_default_prompt'
 
@@ -92,9 +90,6 @@ settings_bp = Blueprint('settings', __name__)
 @user_required
 def get_tc_prompt():
     """AI TC 기본 프롬프트 조회 (로그인 사용자)"""
-    if request.method == 'OPTIONS':
-        return handle_options_request()
-
     row = SystemConfig.query.filter_by(key=TC_PROMPT_CONFIG_KEY).first()
     content = (row.value if row else None) or DEFAULT_TC_PROMPT
     response = jsonify({'content': content})
@@ -105,9 +100,6 @@ def get_tc_prompt():
 @admin_required
 def update_tc_prompt():
     """AI TC 기본 프롬프트 저장 (관리자 전용)"""
-    if request.method == 'OPTIONS':
-        return handle_options_request()
-
     data = request.get_json() or {}
     content = data.get('content', '').strip()
 

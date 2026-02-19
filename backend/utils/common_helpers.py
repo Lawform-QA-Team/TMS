@@ -75,30 +75,24 @@ def get_environment_folders(env):
         return [3, 6]
 
 def calculate_test_results(env_folders):
-    """환경별 테스트 결과 계산"""
+    """환경별 테스트 결과 계산 (단일 쿼리로 통합)"""
     try:
         from models import db
-        passed_tests = db.session.query(TestResult).join(TestCase).filter(
-            TestCase.folder_id.in_(env_folders),
-            TestResult.result == 'Pass'
-        ).count()
-        failed_tests = db.session.query(TestResult).join(TestCase).filter(
-            TestCase.folder_id.in_(env_folders),
-            TestResult.result == 'Fail'
-        ).count()
-        nt_tests = db.session.query(TestResult).join(TestCase).filter(
-            TestCase.folder_id.in_(env_folders),
-            TestResult.result == 'N/T'
-        ).count()
-        na_tests = db.session.query(TestResult).join(TestCase).filter(
-            TestCase.folder_id.in_(env_folders),
-            TestResult.result == 'N/A'
-        ).count()
-        blocked_tests = db.session.query(TestResult).join(TestCase).filter(
-            TestCase.folder_id.in_(env_folders),
-            TestResult.result == 'Block'
-        ).count()
-        return passed_tests, failed_tests, nt_tests, na_tests, blocked_tests
+        from sqlalchemy import func
+        results = db.session.query(
+            TestResult.result,
+            func.count(TestResult.id).label('count')
+        ).join(TestCase).filter(
+            TestCase.folder_id.in_(env_folders)
+        ).group_by(TestResult.result).all()
+        result_dict = {row.result: row.count for row in results}
+        return (
+            result_dict.get('Pass', 0),
+            result_dict.get('Fail', 0),
+            result_dict.get('N/T', 0),
+            result_dict.get('N/A', 0),
+            result_dict.get('Block', 0)
+        )
     except Exception:
         return 0, 0, 0, 0, 0
 

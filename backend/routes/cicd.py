@@ -18,10 +18,6 @@ cicd_bp = Blueprint('cicd', __name__)
 @guest_allowed
 def get_integrations():
     """CI/CD 통합 목록 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         integrations = CICDIntegration.query.order_by(CICDIntegration.created_at.desc()).all()
         data = [integration.to_dict() for integration in integrations]
@@ -38,10 +34,6 @@ def get_integrations():
 @guest_allowed
 def get_integration(id):
     """CI/CD 통합 상세 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         integration = CICDIntegration.query.get_or_404(id)
         data = integration.to_dict()
@@ -62,10 +54,6 @@ def get_integration(id):
 @user_required
 def create_integration():
     """CI/CD 통합 생성"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data = request.get_json()
         
@@ -113,10 +101,6 @@ def create_integration():
 @user_required
 def update_integration(id):
     """CI/CD 통합 수정"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         integration = CICDIntegration.query.get_or_404(id)
         data = request.get_json()
@@ -161,10 +145,6 @@ def update_integration(id):
 @user_required
 def delete_integration(id):
     """CI/CD 통합 삭제"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         integration = CICDIntegration.query.get_or_404(id)
         
@@ -183,10 +163,6 @@ def delete_integration(id):
 @cicd_bp.route('/cicd/webhook/github', methods=['POST', 'OPTIONS'])
 def github_webhook():
     """GitHub 웹훅 수신"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         # GitHub 이벤트 타입 확인
         event_type = request.headers.get('X-GitHub-Event')
@@ -248,10 +224,6 @@ def github_webhook():
 @cicd_bp.route('/cicd/webhook/jenkins', methods=['POST', 'OPTIONS'])
 def jenkins_webhook():
     """Jenkins 웹훅 수신"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         payload = request.get_json()
         
@@ -308,10 +280,6 @@ def jenkins_webhook():
 @guest_allowed
 def get_executions():
     """CI/CD 실행 기록 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         # 필터링 파라미터
         integration_id = request.args.get('integration_id', type=int)
@@ -341,10 +309,6 @@ def get_executions():
 @guest_allowed
 def get_execution(id):
     """CI/CD 실행 기록 상세 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         execution = CICDExecution.query.get_or_404(id)
         data = execution.to_dict()
@@ -361,10 +325,6 @@ def get_execution(id):
 @user_required
 def update_execution_results(id):
     """실행 결과 업데이트 (Celery 태스크에서 호출)"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data = request.get_json()
         test_results = data.get('test_results', [])
@@ -385,10 +345,6 @@ def update_execution_results(id):
 @user_required
 def test_integration(id):
     """CI/CD 통합 테스트 (수동 트리거)"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         integration = CICDIntegration.query.get_or_404(id)
         

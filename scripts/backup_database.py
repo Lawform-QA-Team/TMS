@@ -49,7 +49,7 @@ def get_db_config():
             "host": os.environ.get("DB_HOST", "localhost"),
             "port": os.environ.get("DB_PORT", "3306"),
             "user": os.environ.get("DB_USER", "root"),
-            "password": os.environ.get("DB_PASSWORD", "1q2w%2E%23E%24R"),
+            "password": os.environ.get("DB_PASSWORD", "1q2w#E$R"),
             "database": os.environ.get("DB_NAME", "test_management"),
         }
     return {"type": "sqlite"}

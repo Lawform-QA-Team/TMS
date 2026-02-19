@@ -19,10 +19,6 @@ queue_bp = Blueprint('queue', __name__)
 @user_required
 def queue_test_case_execution(id):
     """테스트 케이스를 큐에 추가하여 비동기 실행"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         test_case = TestCase.query.get_or_404(id)
         data = request.get_json() or {}
@@ -51,10 +47,6 @@ def queue_test_case_execution(id):
 @user_required
 def queue_batch_execution():
     """여러 테스트 케이스를 병렬로 실행"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data = request.get_json()
         test_case_ids = data.get('test_case_ids', [])
@@ -91,10 +83,6 @@ def queue_batch_execution():
 @guest_allowed
 def get_task_status(task_id):
     """태스크 상태 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         task = celery_app.AsyncResult(task_id)
         
@@ -132,10 +120,6 @@ def get_task_status(task_id):
 @user_required
 def cancel_task(task_id):
     """태스크 취소"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         celery_app.control.revoke(task_id, terminate=True)
         
@@ -154,10 +138,6 @@ def cancel_task(task_id):
 @guest_allowed
 def get_queue_stats():
     """큐 통계 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         # 활성 워커 정보
         inspect = celery_app.control.inspect()
@@ -196,10 +176,6 @@ def get_queue_stats():
 @guest_allowed
 def get_workers():
     """워커 목록 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         inspect = celery_app.control.inspect()
         active_workers = inspect.active()
@@ -230,10 +206,6 @@ def get_workers():
 @admin_required
 def purge_queue():
     """큐 비우기 (관리자만)"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data = request.get_json() or {}
         queue_name = data.get('queue_name', 'test_execution')

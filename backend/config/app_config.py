@@ -3,10 +3,33 @@ Flask 앱 설정 관리
 """
 import os
 from datetime import timedelta
+from urllib.parse import urlparse, quote_plus, unquote
 from dotenv import load_dotenv
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+
+def _normalize_mysql_url(url):
+    """MySQL URL에서 비밀번호를 디코딩해 pymysql이 올바르게 인증하도록 재조립"""
+    if not url or 'mysql' not in url:
+        return url
+    url = url.replace('mysql://', 'mysql+pymysql://') if url.startswith('mysql://') else url
+    try:
+        parsed = urlparse(url)
+        # 비밀번호가 % 인코딩되어 있으면 디코딩 (예: 1q2w%2E%23E%24R -> 1q2w#E$R)
+        netloc = parsed.netloc
+        if '@' in netloc:
+            auth, host = netloc.rsplit('@', 1)
+            if ':' in auth:
+                user, password = auth.split(':', 1)
+                password_decoded = unquote(password)
+                password_encoded = quote_plus(password_decoded)  # 특수문자만 다시 인코딩
+                netloc = f'{user}:{password_encoded}@{host}'
+        return f'{parsed.scheme}://{netloc}{parsed.path or ""}{parsed.query and "?" + parsed.query or ""}'
+    except Exception as e:
+        logger.warning(f"MySQL URL 정규화 중 오류, 원본 사용: {e}")
+        return url
 
 # .env 파일 로드 (backend/.env 우선, 기존 환경 변수 덮어쓰기)
 env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
@@ -37,35 +60,24 @@ def get_database_url():
         else:
             logger.info(f"Vercel 환경에서 데이터베이스 URL 사용: {database_url[:20]}...")
     else:
-        # 로컬 개발 환경
-        # 1. 환경 변수에서 DATABASE_URL 확인
-        database_url = os.environ.get('DATABASE_URL')
-        
-        # 2. DB_TYPE 환경 변수 확인 (sqlite 또는 mysql)
-        # 로컬 기본값은 mysql로 설정
+        # 로컬 개발 환경: MySQL 우선 (DB_TYPE=sqlite 일 때만 SQLite 사용)
         db_type = os.environ.get('DB_TYPE', 'mysql').lower()
         
-        if database_url and database_url.startswith('mysql'):
-            # 로컬에서도 MySQL URL이면 그대로 사용
-            logger.info("로컬 환경에서 MySQL DATABASE_URL 사용")
-        elif db_type == 'mysql':
-            # 로컬에서는 DATABASE_URL이 다른 DB여도 MySQL을 우선 사용
+        if db_type == 'mysql':
+            # 로컬에서는 무조건 MySQL 사용 (MYSQL_DATABASE_URL 또는 DB_* 변수)
             mysql_database_url = os.environ.get('MYSQL_DATABASE_URL')
             if mysql_database_url:
-                database_url = mysql_database_url.replace('mysql://', 'mysql+pymysql://')
+                database_url = _normalize_mysql_url(mysql_database_url)
                 logger.info("로컬 환경에서 MYSQL_DATABASE_URL 사용")
             else:
-                from urllib.parse import quote_plus
                 db_host = os.environ.get('DB_HOST', 'localhost')
                 db_port = os.environ.get('DB_PORT', '3306')
                 db_user = os.environ.get('DB_USER', 'root')
                 db_password = os.environ.get('DB_PASSWORD', '1q2w#E$R')
                 db_name = os.environ.get('DB_NAME', 'test_management')
-                # 비밀번호 URL 인코딩 (특수문자 처리)
-                encoded_password = quote_plus(db_password)
-                database_url = f'mysql+pymysql://{db_user}:{encoded_password}@{db_host}:{db_port}/{db_name}'
+                database_url = f'mysql+pymysql://{db_user}:{quote_plus(db_password)}@{db_host}:{db_port}/{db_name}'
                 logger.info(f"로컬 환경에서 MySQL 사용: {db_host}:{db_port}/{db_name}")
-        else:
+        elif db_type == 'sqlite':
             # SQLite 사용
             db_path = os.environ.get('DB_PATH', 'local.db')
             # 절대 경로 또는 상대 경로 처리
@@ -75,6 +87,15 @@ def get_database_url():
                 db_path = os.path.join(project_root, db_path)
             database_url = f'sqlite:///{db_path}'
             logger.info(f"로컬 환경에서 SQLite 사용: {db_path}")
+        else:
+            # DB_TYPE이 기타 값이면 로컬 기본으로 MySQL 사용
+            mysql_database_url = os.environ.get('MYSQL_DATABASE_URL')
+            if mysql_database_url:
+                database_url = _normalize_mysql_url(mysql_database_url)
+                logger.info("로컬 환경에서 MYSQL_DATABASE_URL 사용 (DB_TYPE 미지원 시 기본)")
+            else:
+                database_url = f"mysql+pymysql://{os.environ.get('DB_USER', 'root')}:{quote_plus(os.environ.get('DB_PASSWORD', '1q2w#E$R'))}@{os.environ.get('DB_HOST', 'localhost')}:{os.environ.get('DB_PORT', '3306')}/{os.environ.get('DB_NAME', 'test_management')}"
+                logger.info("로컬 환경에서 MySQL 사용 (DB_* 변수)")
     
     # URL 정규화 (중복 드라이버 제거)
     if database_url and database_url.startswith('mysql+pymysql+pymysql://'):

@@ -21,10 +21,6 @@ analytics_bp = Blueprint('analytics', __name__)
 @guest_allowed
 def get_test_trends():
     """시간대별 테스트 트렌드 분석"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         # 파라미터
         days = request.args.get('days', 30, type=int)  # 기본 30일
@@ -116,10 +112,6 @@ def get_test_trends():
 @guest_allowed
 def get_flaky_tests():
     """불안정한(Flaky) 테스트 감지"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         # 파라미터
         min_executions = request.args.get('min_executions', 5, type=int)  # 최소 실행 횟수
@@ -226,10 +218,6 @@ def get_flaky_tests():
 @guest_allowed
 def detect_regressions():
     """회귀 테스트 자동 감지 (최근에 실패하기 시작한 테스트)"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         # 파라미터
         days = request.args.get('days', 7, type=int)  # 최근 N일
@@ -332,10 +320,6 @@ def detect_regressions():
 @guest_allowed
 def analyze_execution_time():
     """실행 시간 분석 및 최적화 제안"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         # 파라미터
         days = request.args.get('days', 30, type=int)
@@ -432,10 +416,6 @@ def analyze_execution_time():
 @guest_allowed
 def analyze_test_coverage():
     """테스트 커버리지 분석"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         # 파라미터
         environment = request.args.get('environment')
@@ -535,10 +515,6 @@ def analyze_test_coverage():
 @guest_allowed
 def analyze_failure_patterns():
     """실패 패턴 분석"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         # 파라미터
         days = request.args.get('days', 30, type=int)
@@ -627,10 +603,6 @@ def analyze_failure_patterns():
 @guest_allowed
 def get_test_health():
     """테스트 건강도 종합 분석"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         # 파라미터
         days = request.args.get('days', 30, type=int)

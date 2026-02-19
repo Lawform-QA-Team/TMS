@@ -11,10 +11,6 @@ dashboard_extended_bp = Blueprint('dashboard_extended', __name__)
 # 대시보드 요약 목록 조회 (프론트엔드에서 사용)
 @dashboard_extended_bp.route('/dashboard-summaries', methods=['GET', 'OPTIONS'])
 def get_dashboard_summaries():
-    if request.method == 'OPTIONS':
-        from utils.common_helpers import handle_options_request
-        return handle_options_request()
-    
     try:
         # DashboardSummary 테이블이 있으면 사용, 없으면 실시간 계산
         try:
