@@ -49,7 +49,7 @@ def get_db_config():
             "host": os.environ.get("DB_HOST", "localhost"),
             "port": os.environ.get("DB_PORT", "3306"),
             "user": os.environ.get("DB_USER", "root"),
-            "password": os.environ.get("DB_PASSWORD", "1q2w#E$R"),
+            "password": os.environ.get("DB_PASSWORD", "1q2w%2E%23E%24R"),
             "database": os.environ.get("DB_NAME", "test_management"),
         }
     return {"type": "sqlite"}
@@ -125,6 +125,8 @@ def main():
         conn.close()
     except Exception as e:
         print(f"❌ MySQL 연결 실패: {e}")
+        if "1045" in str(e) or "Access denied" in str(e):
+            print("   → 비밀번호 불일치일 수 있습니다. backend/.env 의 MYSQL_DATABASE_URL 또는 DB_PASSWORD를 로컬 MySQL root 비밀번호에 맞게 수정하세요.")
         sys.exit(1)
 
     if not run_backup(config, output_path):
