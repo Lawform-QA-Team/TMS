@@ -490,7 +490,7 @@ def add_comment(issue_key):
                             user_id=user.id,
                             notification_type='mention',
                             title='JIRA 이슈 멘션 알림',
-                            message=f"JIRA 이슈 '{issue_key}' 댓글에서 멘션되었습니다: {comment_body[:50]}...",
+                            message=f"JIRA 이슈 '{issue_key}' 댓글에서 멘션되었습니다: {comment_body[:50]}",
                             related_test_case_id=None,  # JIRA 이슈는 테스트 케이스와 직접 연결되지 않을 수 있음
                             priority='medium'
                         )
