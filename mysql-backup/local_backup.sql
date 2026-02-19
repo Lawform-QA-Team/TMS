@@ -547,7 +547,7 @@ CREATE TABLE `NotificationSettings` (
 
 LOCK TABLES `NotificationSettings` WRITE;
 /*!40000 ALTER TABLE `NotificationSettings` DISABLE KEYS */;
-INSERT INTO `NotificationSettings` VALUES (1,3,'{\"mention\": {\"in_app\": true, \"email\": false, \"slack\": true}, \"assignment\": {\"in_app\": true, \"email\": false, \"slack\": true}, \"test_status_changed\": {\"in_app\": true, \"email\": false, \"slack\": false}}',0,1,1,'2026-02-11 14:47:55','https://hooks.slack.com/services/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');
+
 /*!40000 ALTER TABLE `NotificationSettings` ENABLE KEYS */;
 UNLOCK TABLES;
 
