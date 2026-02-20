@@ -154,7 +154,7 @@ const FolderManager = () => {
 
   const renderFolderTree = (nodes, level = 0) => {
     return nodes.map((node) => (
-      <div key={`${node.type}-${node.id}`} style={{ marginLeft: level * 20 }}>
+      <div key={`${node.type}-${node.id}`} >
         <div className="folder-node">
           <span className="folder-icon">
             {node.type === 'project' ? '🗂️' :

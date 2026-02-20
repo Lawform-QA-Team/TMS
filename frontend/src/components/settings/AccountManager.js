@@ -75,39 +75,35 @@ const AccountManager = () => {
   }, [currentUser]);
 
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (silent = false) => {
     try {
-      setLoading(true);
-      
-      // 토큰 유효성 검사
+      if (!silent) setLoading(true);
+
       if (!token) {
         setError('로그인이 필요합니다. 다시 로그인해주세요.');
         return;
       }
-      
       if (!currentUser) {
         setUsers([]);
         return;
       }
-      
+
       const url = (currentUser.role === 'admin') ? '/users' : '/users/list';
-      
       const response = await axios.get(url);
-      setUsers(response.data);
+      setUsers(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
-      // 오류는 조용히 처리
-      
-      // 403 에러 시 토큰 문제로 간주하고 로그아웃 제안
-      if (err.response?.status === 403) {
-        setError('권한이 없습니다. 다시 로그인해주세요.');
-        // 강제 로그아웃 실행
-        localStorage.removeItem('token');
-        window.location.reload();
-      } else {
-        setError('사용자 목록을 불러오는 중 오류가 발생했습니다.');
+      if (!silent) {
+        if (err.response?.status === 403) {
+          setError('권한이 없습니다. 다시 로그인해주세요.');
+          localStorage.removeItem('token');
+          window.location.reload();
+        } else {
+          setError('사용자 목록을 불러오는 중 오류가 발생했습니다.');
+        }
       }
+      throw err;
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -189,6 +185,44 @@ const AccountManager = () => {
     } catch (err) {
       alert('사용자 삭제 중 오류가 발생했습니다: ' + err.response?.data?.error || err.message);
     }
+  };
+
+  const [togglingUserId, setTogglingUserId] = useState(null);
+
+  const handleToggleActive = async (user) => {
+    if (togglingUserId !== null) return;
+    const newActive = !user.is_active;
+    setTogglingUserId(user.id);
+
+    // 낙관적 업데이트: 토글이 즉시 움직이도록 먼저 화면 반영
+    setUsers((prev) =>
+      prev.map((u) => (u.id === user.id ? { ...u, is_active: newActive } : u))
+    );
+
+    try {
+      await axios.put(`/users/${user.id}`, { is_active: newActive });
+      // 서버 반영 성공 후 목록만 조용히 다시 불러옴 (실패해도 화면은 유지)
+      fetchUsers(true).catch(() => {});
+    } catch (err) {
+      setUsers((prev) =>
+        prev.map((u) => (u.id === user.id ? { ...u, is_active: user.is_active } : u))
+      );
+      alert('상태 변경 중 오류가 발생했습니다: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setTogglingUserId(null);
+    }
+  };
+
+  const getRoleLabel = (role) => {
+    const labels = { admin: '관리자', user: '일반', guest: '게스트' };
+    return labels[role] || role || '일반';
+  };
+
+  const getDisplayName = (user) => {
+    if (user.last_name || user.first_name) {
+      return `${user.last_name || ''}${user.first_name || ''}`.trim();
+    }
+    return user.username || user.email || '-';
   };
 
   const handlePasswordChange = async () => {
@@ -325,127 +359,156 @@ const AccountManager = () => {
       </div>
 
       <div className="account-content">
-        {/* 현재 사용자 정보 */}
-        <div className="account-section">
+        {/* 내 계정 정보 - 사용자 목록과 동일한 테이블 형태 */}
+        <div className="account-section account-section-table">
           <h3>내 계정 정보</h3>
           {currentUser?.role === 'guest' && (
             <div className="guest-notice">
               <p>⚠️ 게스트 계정으로는 제한된 기능만 사용할 수 있습니다.</p>
             </div>
           )}
-          <div className="account-info">
-            <div className="info-item">
-              <label>ID:</label>
-              <span>{currentUser?.username}</span>
-            </div>
-            {currentUser?.first_name && currentUser?.last_name && (
-              <div className="info-item">
-                <label>이름:</label>
-                <span>{currentUser.last_name}{currentUser.first_name}</span>
-              </div>
-            )}
-            <div className="info-item">
-              <label>이메일:</label>
-              <span>{currentUser?.email}</span>
-            </div>
-            <div className="info-item">
-              <label>역할:</label>
-              <span className={`role-badge ${(currentUser?.role || 'user').toLowerCase()}`}>
-                {currentUser?.role || 'user'}
-              </span>
-            </div>
-            <div className="info-item">
-              <label>계정 상태:</label>
-              <span className={`status-badge ${currentUser?.is_active ? 'active' : 'inactive'}`}>
-                {currentUser?.is_active ? '활성' : '비활성'}
-              </span>
-            </div>
-            <div className="info-item">
-              <label>생성일:</label>
-              <span>{currentUser?.created_at ? formatUTCToKST(currentUser.created_at) : 'N/A'}</span>
-            </div>
-            <div className="info-item">
-              <label>마지막 로그인:</label>
-              <span>{currentUser?.last_login ? formatUTCToKST(currentUser.last_login) : '없음'}</span>
-            </div>
-          </div>
-          <div className="account-actions">
-            {currentUser?.role !== 'guest' && (
-              <>
-                <button 
-                  className="btn btn-primary"
-                  onClick={() => setShowProfileModal(true)}
-                >
-                  ✏️ 프로필 수정
-                </button>
-                <button 
-                  className="btn btn-secondary"
-                  onClick={() => setShowPasswordModal(true)}
-                >
-                  🔒 비밀번호 변경
-                </button>
-              </>
-            )}
-            {currentUser?.role === 'guest' && (
-              <div className="guest-info">
-                <p>게스트 계정은 읽기 전용입니다.</p>
-              </div>
-            )}
+          <div className="users-table-wrapper">
+            <table className="users-table">
+              <thead>
+                <tr>
+                  <th>이름</th>
+                  <th>계정(이메일)</th>
+                  <th>권한</th>
+                  <th>활성화/비활성화 상태</th>
+                  <th>추가정보</th>
+                  <th>추가기능</th>
+                </tr>
+              </thead>
+              <tbody>
+                {!currentUser ? (
+                  <tr>
+                    <td colSpan={6} className="col-empty">계정 정보를 불러오는 중...</td>
+                  </tr>
+                ) : (
+                  <tr>
+                    <td className="col-name">{getDisplayName(currentUser)}</td>
+                    <td className="col-email">{currentUser.email || '-'}</td>
+                    <td className="col-permissions">
+                      <span className={`role-badge role-badge-inline ${(currentUser.role || 'user').toLowerCase()}`}>
+                        {getRoleLabel(currentUser.role)}
+                      </span>
+                    </td>
+                    <td className="col-status">
+                      <span className={`status-badge ${currentUser.is_active ? 'active' : 'inactive'}`}>
+                        {currentUser.is_active ? 'ON' : 'OFF'}
+                      </span>
+                    </td>
+                    <td className="col-extra-info">
+                      <span className="extra-info-text">
+                        {currentUser?.created_at && (
+                          <>
+                            생성: {formatUTCToKST(currentUser.created_at)}
+                            {currentUser?.last_login && <br />}
+                          </>
+                        )}
+                        {currentUser?.last_login && <>마지막 로그인: {formatUTCToKST(currentUser.last_login)}</>}
+                        {!currentUser?.created_at && !currentUser?.last_login && '-'}
+                      </span>
+                    </td>
+                    <td className="col-actions">
+                      {currentUser?.role !== 'guest' && (
+                        <>
+                          <button
+                            type="button"
+                            className="btn-text btn-edit"
+                            onClick={() => setShowProfileModal(true)}
+                          >
+                            프로필 수정
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-text btn-password"
+                            onClick={() => setShowPasswordModal(true)}
+                          >
+                            비밀번호 변경
+                          </button>
+                        </>
+                      )}
+                      {currentUser?.role === 'guest' && (
+                        <span className="guest-readonly">읽기 전용</span>
+                      )}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        {/* 사용자 목록 (admin 역할만 볼 수 있음) */}
+        {/* 사용자 목록 - 테이블 형태 */}
         {canViewUsers() && (
-          <div className="account-section">
+          <div className="account-section account-section-table">
             <h3>사용자 목록</h3>
-            <div className="users-list">
-              {users.map(user => (
-                <div key={user.id} className="user-item">
-                  <div className="user-info">
-                    <div className="user-main">
-                      <div className="user-name">{user.username}</div>
-                      <div className="user-email">{user.email}</div>
-                    </div>
-                    <div className="user-details">
-                      {user.first_name && user.last_name && (
-                        <div className="user-fullname">{user.last_name}{user.first_name}</div>
-                      )}
-                      <div className="user-meta">
-                        <span className={`role-badge ${(user.role || 'user').toLowerCase()}`}>
-                          {user.role || 'user'}
+            <div className="users-table-wrapper">
+              <table className="users-table">
+                <thead>
+                  <tr>
+                    <th>이름</th>
+                    <th>계정(이메일)</th>
+                    <th>권한</th>
+                    <th>활성화/비활성화 상태</th>
+                    <th>추가기능</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map(user => (
+                    <tr key={user.id}>
+                      <td className="col-name">{getDisplayName(user)}</td>
+                      <td className="col-email">{user.email || '-'}</td>
+                      <td className="col-permissions">
+                        <span className={`role-badge role-badge-inline ${(user.role || 'user').toLowerCase()}`}>
+                          {getRoleLabel(user.role)}
                         </span>
-                        <span className={`status-badge ${user.is_active ? 'active' : 'inactive'}`}>
-                          {user.is_active ? '활성' : '비활성'}
-                        </span>
-                      </div>
-                      <div className="user-timestamps">
-                        <small>생성: {user.created_at ? formatUTCToKST(user.created_at) : 'N/A'}</small>
-                        {user.last_login && (
-                          <small>마지막 로그인: {formatUTCToKST(user.last_login)}</small>
+                      </td>
+                      <td className="col-status">
+                        {currentUser?.role === 'admin' && user.id !== currentUser?.id ? (
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={user.is_active}
+                            disabled={togglingUserId === user.id}
+                            className={`toggle-switch ${user.is_active ? 'on' : 'off'} ${togglingUserId === user.id ? 'toggle-busy' : ''}`}
+                            onClick={() => handleToggleActive(user)}
+                          >
+                            <span className="toggle-slider">
+                              {togglingUserId === user.id ? '...' : (user.is_active ? 'ON' : 'OFF')}
+                            </span>
+                          </button>
+                        ) : (
+                          <span className={`status-badge ${user.is_active ? 'active' : 'inactive'}`}>
+                            {user.is_active ? 'ON' : 'OFF'}
+                          </span>
                         )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="user-actions">
-                    {canEditUser(user) && (
-                      <button 
-                        className="btn btn-edit"
-                        onClick={() => openEditUserModal(user)}
-                      >
-                        ✏️ 수정
-                      </button>
-                    )}
-                    {canDeleteUser(user) && (
-                      <button 
-                        className="btn btn-delete"
-                        onClick={() => handleDeleteUser(user.id)}
-                      >
-                        🗑️ 삭제
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
+                      </td>
+                      <td className="col-actions">
+                        {canEditUser(user) && (
+                          <button
+                            type="button"
+                            className="btn-text btn-edit"
+                            onClick={() => openEditUserModal(user)}
+                          >
+                            수정
+                          </button>
+                        )}
+                        {canDeleteUser(user) && (
+                          <button
+                            type="button"
+                            className="btn-text btn-delete"
+                            onClick={() => handleDeleteUser(user.id)}
+                          >
+                            삭제
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
