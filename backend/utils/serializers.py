@@ -5,8 +5,18 @@ from datetime import datetime
 from models import TestCase, Folder, Project, User, TestResult
 
 
+def get_testcase_effective_project_id(tc):
+    """테스트 케이스의 유효 프로젝트 ID: tc.project_id 우선, 없으면 연결된 폴더의 project_id"""
+    if getattr(tc, 'project_id', None) is not None:
+        return tc.project_id
+    if getattr(tc, 'folder', None) and tc.folder:
+        return tc.folder.project_id
+    return None
+
+
 def serialize_testcase(tc, include_relations=False):
-    """테스트 케이스 직렬화"""
+    """테스트 케이스 직렬화. project_id는 테스트케이스 직접값 우선, 없으면 연결 폴더의 프로젝트로 연결."""
+    effective_project_id = get_testcase_effective_project_id(tc)
     data = {
         'id': tc.id,
         'name': tc.name,
@@ -14,6 +24,8 @@ def serialize_testcase(tc, include_relations=False):
         'test_type': tc.test_type,
         'script_path': tc.script_path,
         'folder_id': tc.folder_id,
+        'project_id': getattr(tc, 'project_id', None),
+        'effective_project_id': effective_project_id,
         'main_category': tc.main_category,
         'sub_category': tc.sub_category,
         'detail_category': tc.detail_category,
@@ -27,7 +39,11 @@ def serialize_testcase(tc, include_relations=False):
         'created_at': tc.created_at.isoformat() if tc.created_at else None,
         'updated_at': tc.updated_at.isoformat() if tc.updated_at else None
     }
-    
+    if tc.folder:
+        data['folder_name'] = tc.folder.folder_name
+    if effective_project_id:
+        proj = Project.query.get(effective_project_id)
+        data['project_name'] = proj.name if proj else None
     if include_relations:
         data.update({
             'creator_id': getattr(tc, 'creator_id', None),
@@ -35,16 +51,16 @@ def serialize_testcase(tc, include_relations=False):
             'creator_name': tc.creator.get_display_name() if hasattr(tc, 'creator') and tc.creator else None,
             'assignee_name': tc.assignee.get_display_name() if hasattr(tc, 'assignee') and tc.assignee else None,
         })
-    
     return data
 
 
 def serialize_folder(f):
-    """폴더 직렬화"""
+    """폴더 직렬화 (폴더가 속한 프로젝트 ID 포함)"""
     return {
         'id': f.id,
         'folder_name': f.folder_name,
         'parent_folder_id': f.parent_folder_id,
+        'project_id': getattr(f, 'project_id', None),
         'folder_type': f.folder_type,
         'environment': f.environment,
         'deployment_date': f.deployment_date.strftime('%Y-%m-%d') if f.deployment_date else None,

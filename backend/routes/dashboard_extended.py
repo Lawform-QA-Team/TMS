@@ -1,8 +1,9 @@
 from flask import Blueprint, request, jsonify
-from models import db, TestCase, Project
+from models import db, TestCase, Project, Folder
 from utils.cors import add_cors_headers
 from datetime import datetime
 from sqlalchemy import func, text
+from sqlalchemy.sql import case
 from utils.timezone_utils import get_kst_now
 
 # Blueprint 생성
@@ -10,36 +11,35 @@ dashboard_extended_bp = Blueprint('dashboard_extended', __name__)
 
 
 # 프로젝트별 테스트 케이스 통계 (대시보드 프로젝트 카드용)
+# 테스트케이스의 project_id 우선, 없으면 연결 폴더의 project_id로 프로젝트 연결
 @dashboard_extended_bp.route('/dashboard/project-stats', methods=['GET', 'OPTIONS'])
 def get_project_stats():
     try:
-        # 프로젝트별 result_status 카운트 (TestCase.project_id 기준, Project와 left join)
+        # 유효 프로젝트 ID = COALESCE(TestCase.project_id, Folder.project_id)
+        effective_project_id = case(
+            (TestCase.project_id.isnot(None), TestCase.project_id),
+            else_=Folder.project_id
+        )
         stats = (
             db.session.query(
-                TestCase.project_id,
-                Project.name.label('project_name'),
+                effective_project_id.label('project_id'),
                 TestCase.result_status,
                 func.count().label('count')
             )
-            .outerjoin(Project, TestCase.project_id == Project.id)
-            .group_by(TestCase.project_id, Project.name, TestCase.result_status)
+            .outerjoin(Folder, TestCase.folder_id == Folder.id)
+            .group_by(effective_project_id, TestCase.result_status)
             .all()
         )
-        # 프로젝트별로 그룹화
         by_project = {}
         for row in stats:
             pid = row.project_id
-            name = row.project_name or '(프로젝트 미지정)'
             if pid not in by_project:
-                by_project[pid] = {'project_id': pid, 'project_name': name, 'status_counts': {}}
+                by_project[pid] = {'status_counts': {}}
             by_project[pid]['status_counts'][row.result_status] = row.count
-        # 요약 리스트 생성 (프로젝트 목록에 없어도 테스트케이스만 있는 경우 포함)
         projects = Project.query.all()
         result = []
-        seen_ids = set()
         for p in projects:
             pid = p.id
-            seen_ids.add(pid)
             counts = by_project.get(pid, {}).get('status_counts', {}) or {}
             total = sum(counts.values())
             passed = counts.get('Pass', 0)
@@ -59,7 +59,7 @@ def get_project_stats():
                 'blocked': blocked,
                 'pass_rate': round(pass_rate, 2)
             })
-        # project_id가 null인 테스트 케이스 (프로젝트 미지정)
+        # 프로젝트 미지정 (TC.project_id도 폴더.project_id도 null인 경우)
         if None in by_project:
             counts = by_project[None]['status_counts']
             total = sum(counts.values())

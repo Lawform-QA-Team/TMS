@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from models import db, TestCase, TestResult, Screenshot
+from models import db, TestCase, TestResult, Screenshot, Folder
 from utils.cors import add_cors_headers
 from utils.timezone_utils import get_kst_now
 from utils.logger import get_logger
@@ -29,6 +29,11 @@ def manage_testcase(testcase_id):
         testcase = TestCase.query.get_or_404(testcase_id)
         
         if request.method == 'GET':
+            effective_project_id = testcase.project_id
+            if effective_project_id is None and testcase.folder_id:
+                folder = Folder.query.get(testcase.folder_id)
+                if folder:
+                    effective_project_id = folder.project_id
             data = {
                 'id': testcase.id,
                 'name': testcase.name,
@@ -36,6 +41,8 @@ def manage_testcase(testcase_id):
                 'test_type': testcase.test_type,
                 'script_path': testcase.script_path,
                 'folder_id': testcase.folder_id,
+                'project_id': testcase.project_id,
+                'effective_project_id': effective_project_id,
                 'main_category': testcase.main_category,
                 'sub_category': testcase.sub_category,
                 'detail_category': testcase.detail_category,
@@ -55,7 +62,12 @@ def manage_testcase(testcase_id):
             testcase.description = data.get('description', testcase.description)
             testcase.test_type = data.get('test_type', testcase.test_type)
             testcase.script_path = data.get('script_path', testcase.script_path)
-            testcase.folder_id = data.get('folder_id', testcase.folder_id)
+            new_folder_id = data.get('folder_id', testcase.folder_id)
+            if new_folder_id != testcase.folder_id and new_folder_id:
+                new_folder = Folder.query.get(new_folder_id)
+                if new_folder and new_folder.project_id is not None:
+                    testcase.project_id = new_folder.project_id
+            testcase.folder_id = new_folder_id
             db.session.commit()
             return jsonify({'status': 'success', 'message': 'Test case updated successfully'}), 200
         
