@@ -27,8 +27,25 @@ testcases_bp = Blueprint('testcases', __name__)
 # 기존 TCM API 엔드포인트들
 @testcases_bp.route('/projects', methods=['GET'])
 def get_projects():
+    from sqlalchemy.sql import case
+    from sqlalchemy import func
+    from models import Folder
     projects = Project.query.all()
-    data = [serialize_project(p) for p in projects]
+    # 프로젝트별 TC 개수 (유효 프로젝트 = TC.project_id 또는 Folder.project_id)
+    effective_project_id = case(
+        (TestCase.project_id.isnot(None), TestCase.project_id),
+        else_=Folder.project_id
+    )
+    count_subq = (
+        db.session.query(
+            effective_project_id.label('project_id'),
+            func.count(TestCase.id).label('cnt')
+        )
+        .outerjoin(Folder, TestCase.folder_id == Folder.id)
+        .group_by(effective_project_id)
+    ).subquery()
+    count_map = {row.project_id: row.cnt for row in db.session.query(count_subq).all()}
+    data = [serialize_project(p, test_case_count=count_map.get(p.id, 0)) for p in projects]
     response = jsonify(data)
     return add_cors_headers(response), 200
 

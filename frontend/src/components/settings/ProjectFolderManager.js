@@ -248,13 +248,14 @@ const ProjectFolderManager = () => {
               <tr>
                 <th>프로젝트명</th>
                 <th>설명</th>
+                <th>TC</th>
                 <th>추가기능</th>
               </tr>
             </thead>
             <tbody>
               {projects.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="col-empty">
+                  <td colSpan={4} className="col-empty">
                     등록된 프로젝트가 없습니다.
                     {canManageProjects() && (
                       <button type="button" className="btn btn-add-inline" onClick={() => setShowAddProjectModal(true)}>
@@ -268,6 +269,7 @@ const ProjectFolderManager = () => {
                   <tr key={project.id}>
                     <td className="col-name">{project.name}</td>
                     <td className="col-description">{project.description || '설명 없음'}</td>
+                    <td className="col-tc">{project.test_case_count ?? 0}</td>
                     <td className="col-actions">
                       {canManageProjects() && (
                         <>
@@ -338,19 +340,20 @@ const ProjectFolderManager = () => {
                 <th>타입</th>
                 <th>환경</th>
                 <th>배포일자</th>
+                <th>TC</th>
                 <th>추가기능</th>
               </tr>
             </thead>
             <tbody>
               {!selectedProjectId ? (
                 <tr>
-                  <td colSpan={5} className="col-empty">
+                  <td colSpan={6} className="col-empty">
                     위에서 프로젝트를 선택하세요.
                   </td>
                 </tr>
               ) : foldersForProject.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="col-empty">
+                  <td colSpan={6} className="col-empty">
                     이 프로젝트에 등록된 폴더가 없습니다.
                     {canManageFolders() && (
                       <button
@@ -380,6 +383,7 @@ const ProjectFolderManager = () => {
                     </td>
                     <td className="col-env">{folder.environment || '-'}</td>
                     <td className="col-date">{folder.deployment_date || '-'}</td>
+                    <td className="col-tc">{folder.test_case_count ?? 0}</td>
                     <td className="col-actions">
                       {canManageFolders() && (
                         <>

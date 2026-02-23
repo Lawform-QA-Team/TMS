@@ -68,13 +68,16 @@ def serialize_folder(f):
     }
 
 
-def serialize_project(p):
-    """프로젝트 직렬화"""
-    return {
+def serialize_project(p, test_case_count=None):
+    """프로젝트 직렬화. test_case_count를 넘기면 해당 프로젝트에 연결된 TC 개수 포함."""
+    data = {
         'id': p.id,
         'name': p.name,
         'description': p.description
     }
+    if test_case_count is not None:
+        data['test_case_count'] = test_case_count
+    return data
 
 
 def serialize_user(u, include_sensitive=False):

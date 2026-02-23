@@ -63,15 +63,25 @@ def add_feature_folders():
 @guest_allowed
 def get_folders():
     try:
+        from sqlalchemy import func
         folders = Folder.query.all()
+        # 폴더별 TC 개수 (TestCase.folder_id = 폴더 id)
+        count_rows = (
+            db.session.query(TestCase.folder_id, func.count(TestCase.id).label('cnt'))
+            .filter(TestCase.folder_id.isnot(None))
+            .group_by(TestCase.folder_id)
+            .all()
+        )
+        count_map = {row.folder_id: row.cnt for row in count_rows}
         data = [{
-            'id': f.id, 
-            'folder_name': f.folder_name, 
+            'id': f.id,
+            'folder_name': f.folder_name,
             'parent_folder_id': f.parent_folder_id,
             'folder_type': f.folder_type,
             'environment': f.environment,
             'deployment_date': f.deployment_date.strftime('%Y-%m-%d') if f.deployment_date else None,
             'project_id': f.project_id,
+            'test_case_count': count_map.get(f.id, 0),
             'created_at': f.created_at.isoformat() if f.created_at else None
         } for f in folders]
         

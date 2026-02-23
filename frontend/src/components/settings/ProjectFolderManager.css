@@ -157,6 +157,12 @@
   max-width: 400px;
 }
 
+.project-folder-manager .users-table .col-tc {
+  text-align: center;
+  white-space: nowrap;
+  width: 4em;
+}
+
 .project-folder-manager .users-table .col-empty {
   text-align: center;
   padding: 24px;
