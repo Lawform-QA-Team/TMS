@@ -308,7 +308,7 @@ const AutomationTestManager = () => {
             marginBottom: '10px',
             fontSize: '14px'
           }}>
-            👀 게스트 모드: 조회만 가능합니다.
+            게스트 모드: 조회만 가능합니다.
           </div>
         )}
         <div className="header-actions">

@@ -2,6 +2,7 @@
 슬랙 웹훅 메시지 폼(Block Kit) 전용 모듈.
 알림 타입별 payload 구조를 여기서만 관리합니다.
 """
+from typing import Optional
 # 알림 타입별 이모지 (폼에서만 사용)
 EMOJI_MAP = {
     "assignment": "👤",
@@ -64,12 +65,12 @@ def build_slack_payload(
     message: str,
     *,
     # assignment 전용
-    test_case_name: str | None = None,
-    old_assignee_display: str | None = None,
-    new_assignee_display: str | None = None,
+    test_case_name: Optional[str] = None,
+    old_assignee_display: Optional[str] = None,
+    new_assignee_display: Optional[str] = None,
     # 기본 알림 전용
-    username: str | None = None,
-    related_test_case_name: str | None = None,
+    username: Optional[str] = None,
+    related_test_case_name: Optional[str] = None,
 ):
     """
     알림 타입과 인자에 따라 슬랙 웹훅용 payload를 생성합니다.
