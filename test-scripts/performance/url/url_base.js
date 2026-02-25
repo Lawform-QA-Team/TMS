@@ -1,8 +1,17 @@
-import { loadAccountEnv } from '../Account/Account_env.js';
-
-const account = loadAccountEnv();
-const BASE_URL = account.baseUrl;
-console.log('account:', account);
+// k6: __ENV.BASE_URL / Node: process.env.BASE_URL (동적 import 미지원 환경 대응)
+let BASE_URL;
+if (typeof __ENV !== 'undefined' && __ENV.BASE_URL) {
+    BASE_URL = __ENV.BASE_URL;
+    console.log('BASE_URL:', BASE_URL);
+} else if (typeof process !== 'undefined' && process.env && process.env.BASE_URL) {
+    BASE_URL = process.env.BASE_URL;
+    console.log('BASE_URL:', BASE_URL);
+} else {
+    throw new Error(
+        'BASE_URL이 필요합니다. k6 실행 예: k6 run -e BASE_URL=https://대상주소 -e LOGIN_EMAIL=... -e LOGIN_PASSWORD=... 스크립트경로\n' +
+        '.env 사용 시: (test-scripts/performance 폴더에서) export $(grep -v "^#" .env | xargs) && k6 run ...'
+    );
+}
 
 // 로그인 관련 URL
 export const LOGIN_URLS = {
@@ -85,8 +94,8 @@ export const SETTING_URLS = {
 // 로그인 등 공통 셀렉터 (k6 browser 스크립트용)
 export const SELECTORS = {
     LOGIN: {
-        EMAIL_INPUT: 'input[type="email"]',
-        PASSWORD_INPUT: 'input[type="password"]',
+        EMAIL_INPUT: 'input[id="email"]',
+        PASSWORD_INPUT: 'input[id="password"]',
         SUBMIT_BUTTON: 'button[type="submit"]',
         LOGOUT: 'img[alt="이동"]'
     },

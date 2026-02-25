@@ -1,16 +1,24 @@
 import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js"
-import { URLS, SELECTORS } from '@performance/url/url_base';
-import { getFormattedTimestamp } from '@performance/common/utils';
+import { URLS, SELECTORS } from '../../../../url/url_base.js';
+import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
-import getCurrentLoginCredentials from '@performance/Account/Account_env'
+
+function getCredentials() {
+    const email = (typeof __ENV !== 'undefined' && (__ENV.LOGIN_EMAIL || __ENV.EMAIL)) || '';
+    const password = (typeof __ENV !== 'undefined' && (__ENV.LOGIN_PASSWORD || __ENV.PASSWORD)) || '';
+    if (!email || !password) {
+        throw new Error('로그인 계정 필요. k6 실행 시 -e LOGIN_EMAIL=... -e LOGIN_PASSWORD=... 또는 -e EMAIL=... -e PASSWORD=...');
+    }
+    return { EMAIL: email, PASSWORD: password };
+}
 
 export const options = {
     scenarios: {
         ui: {
             executor: 'shared-iterations',
+            vus: 1,
+            iterations: 1,
             options: {
-                vus: 1,
-                iterations: 1,
                 browser: {
                     type: 'chromium',
                 },
@@ -28,7 +36,7 @@ async function wait(ms) {
 
 export default async function() {
     const page = await browser.newPage();
-    const credentials = getCurrentLoginCredentials();
+    const credentials = getCredentials();
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
     try {
