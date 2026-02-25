@@ -2,6 +2,7 @@ import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporte
 import { URLS, SELECTORS } from '../../../../url/url_base_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
+import login_to_web from '../login/login_to_web.js';
 
 function getCredentials() {
     const email = (typeof __ENV !== 'undefined' && (__ENV.LOGIN_EMAIL || __ENV.EMAIL)) || '';
@@ -40,17 +41,11 @@ export default async function() {
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
     try {
-        await page.goto (URLS.LOGIN.HOME);
+        // 로그인 페이지 처리
+        await login_to_web(page);
+        await page.goto (URLS.DASHBOARD.HOME);
         let timestamp = getNewTimeStamp();
-        await page.screenshot({path: `screenshots/${timestamp}_login_home.png`});
-        await page.waitForSelector(SELECTORS.LOGIN.EMAIL_INPUT);
-        await page.type(SELECTORS.LOGIN.EMAIL_INPUT, credentials.EMAIL);
-        await page.waitForSelector(SELECTORS.LOGIN.PASSWORD_INPUT);
-        await page.type(SELECTORS.LOGIN.PASSWORD_INPUT, credentials.PASSWORD);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({path: `screenshots/${timestamp}_input_account.png`});
-        await page.waitForSelector(SELECTORS.LOGIN.SUBMIT_BUTTON);
-        await page.click(SELECTORS.LOGIN.SUBMIT_BUTTON);
+        await page.screenshot({path: `screenshots/${timestamp}_dashboard_home.png`});
 
     }
     finally {
@@ -61,6 +56,6 @@ export default async function() {
 export function handleSummary(data) {
     const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
     return {
-        [`Result/login_to_web_${timestamp}.html`]: htmlReport(data),
+        [`Result/dashboard_${timestamp}.html`]: htmlReport(data),
     };
 }
