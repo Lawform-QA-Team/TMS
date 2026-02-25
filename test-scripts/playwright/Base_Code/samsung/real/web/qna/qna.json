@@ -1,0 +1,53 @@
+{
+    "title": "1:1 문의",
+    "breadcrumb": {
+        "qna": "1:1 문의",
+        "create": "문의 등록",
+        "detail": "문의 조회",
+        "edit": "문의 수정"
+    },
+    "heading": {
+        "create": "문의 등록",
+        "detail": "문의 조회",
+        "edit": "문의 수정"
+    },
+    "filters": {
+        "status": "상태",
+        "statusOptions": {
+            "all": "전체",
+            "canceled": "취소",
+            "pending": "답변대기",
+            "answered": "답변완료"
+            },
+        "searchPlaceholder": "제목 입력"
+    },
+    "form": {
+      "titleLabel": "제목",
+      "titlePlaceholder": "제목을 입력해주세요",
+      "contentLabel": "내용",
+      "contentPlaceholder": "문의 내용을 입력해주세요"
+    },
+    "detail": {
+      "requestContent": "문의 내용",
+      "registrant": "등록자",
+      "registeredDate": "등록일자",
+      "answerContent": "답변 내용",
+      "answeredBy": "답변자",
+      "answeredDate": "답변일자"
+    },
+    "message": {
+      "registered": "문의가 등록되었습니다.",
+      "noId": "문의 ID가 없습니다.",
+      "submitFailed": "문의 처리에 실패했습니다.",
+      "notFound": "문의를 찾을 수 없습니다.",
+      "noEditPermission": "수정 권한이 없습니다",
+      "cannotEditAnswered": "답변이 완료된 문의는 수정할 수 없습니다",
+      "cancelConfirm": "문의를 취소하시겠습니까?",
+      "cancelSuccess": "문의가 취소되었습니다.",
+      "cancelFailed": "문의 취소에 실패했습니다."
+    },
+    "button": {
+      "register": "문의 등록"
+    }
+  }
+  

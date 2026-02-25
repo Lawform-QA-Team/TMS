@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { initializeDatabase, getAccount, getAccountsByEnv } from './db.js';
+import { initializeDatabase, getAccount, getAccountsByEnv } from '../../../../Account/db.js';
 
 let dotenvLoaded = false;
 let dbInitialized = false;
@@ -82,7 +82,7 @@ export async function loadAccountEnv(accountKey = null, env = null, role = null)
     await _ensureDotenvLoaded();
     _ensureDbInitialized();
 
-    const key = accountKey || process.env.ACCOUNT;
+    const key = accountKey || process.env.ACCOUNT || 'samsung';
     const selectedEnv = (env || process.env.ENV || 'DEV').toUpperCase();
     const selectedRole = role || process.env.ROLE || 'master';
     

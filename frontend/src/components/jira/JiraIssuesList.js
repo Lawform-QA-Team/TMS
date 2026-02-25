@@ -3,6 +3,7 @@ import axios from 'axios';
 import config from '@tms/config';
 import { useAuth } from '@tms/contexts/AuthContext';
 import PromptModal from '@tms/components/common/PromptModal';
+import { getUserDisplayName } from '@tms/utils/userDisplay';
 import '@tms/components/jira/JiraIssuesList.css';
 import '@tms/components/common/Modal.css';
 
@@ -52,6 +53,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
   const [commentIssueKey, setCommentIssueKey] = useState(null);
   const [mentionUsers, setMentionUsers] = useState([]);
   const [loadingMentionUsers, setLoadingMentionUsers] = useState(false);
+  const [allUsers, setAllUsers] = useState([]);
 
 
   // 이슈 목록 조회
@@ -225,6 +227,29 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
     }
   };
 
+  const fetchAllUsers = async () => {
+    try {
+      const response = await axios.get(`${config.apiUrl}/users/list`);
+      setAllUsers(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      console.error('전체 사용자 조회 오류:', err);
+      setAllUsers([]);
+    }
+  };
+
+  const getAssigneeDisplay = (assigneeEmail) => {
+    if (!assigneeEmail) return '';
+    const user = allUsers.find(u => u.email === assigneeEmail);
+    return getUserDisplayName(user) || assigneeEmail;
+  };
+
+  const getAssigneeDetail = (assigneeEmail) => {
+    if (!assigneeEmail) return '';
+    const user = allUsers.find(u => u.email === assigneeEmail);
+    const displayName = getUserDisplayName(user) || assigneeEmail;
+    return `${displayName} (${assigneeEmail})`;
+  };
+
   useEffect(() => {
     if (showCommentPrompt) {
       fetchMentionUsers();
@@ -366,6 +391,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
 
   useEffect(() => {
     fetchJiraIssues();
+    fetchAllUsers();
   }, [testCaseId]);
 
   if (loading) {
@@ -514,7 +540,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
         </div>
       )}
 
-      {/* 이슈 목록 */}
+      {/* 이슈 목록 (테이블 형태) */}
       <div className="jira-issues-list">
         {paginatedIssues.length === 0 ? (
           <div className="no-issues">
@@ -523,202 +549,186 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
             {!testCaseId && <p>필터 조건을 조정해보세요.</p>}
           </div>
         ) : (
-          paginatedIssues.map(issue => (
-            <div key={issue.id} className="jira-issue-card">
-              <div className="issue-header">
-                <div className="issue-key-section">
-                  <span className="issue-key">{issue.issue_key}</span>
-                  <span className={`issue-status status-${issue.status.toLowerCase().replace(' ', '-')}`}>
-                    {issue.status}
-                  </span>
-                </div>
-                <div className="issue-meta">
-                  <span className={`issue-type type-${issue.issue_type.toLowerCase()}`}>
-                    {issue.issue_type}
-                  </span>
-                  <span className={`issue-priority priority-${issue.priority.toLowerCase()}`}>
-                    {issue.priority}
-                  </span>
-                  <span className="issue-environment-badge">
-                    {issue.environment || 'dev'}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="issue-content">
-                <h3 className="issue-summary">{issue.summary}</h3>
-                {issue.description && (
-                  <p className="issue-description">{issue.description}</p>
-                )}
-                
-                
-                {/* 레이블 표시 */}
-                {issue.labels && (
-                  <div className="issue-labels">
-                    {JSON.parse(issue.labels).map((label, index) => (
-                      <span key={index} className="label-tag">
-                        {label}
-                        <button 
-                          className="label-remove-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeLabel(issue.issue_key, label);
-                          }}
-                          title="레이블 삭제"
-                        >
-                          ×
-                        </button>
+          <div className="jira-issues-table-wrapper">
+            <table className="jira-issues-table">
+              <thead>
+                <tr>
+                  <th>Key No.</th>
+                  <th>제목</th>
+                  <th>상태</th>
+                  <th>우선순위</th>
+                  <th>타입</th>
+                  <th>환경</th>
+                  <th>담당자</th>
+                  <th>연결 TestCase</th>
+                  <th>생성일</th>
+                  <th>수정일</th>
+                  <th>추가기능</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedIssues.map(issue => (
+                  <tr key={issue.id} className="jira-issue-row">
+                    <td className="col-key">
+                      <span className="issue-key">{issue.issue_key}</span>
+                    </td>
+                    <td className="col-summary">
+                      <span className="issue-summary-text">
+                        {issue.summary}
                       </span>
-                    ))}
-                  </div>
-                )}
-                
-                {/* 연결된 테스트 케이스 정보 */}
-                {(issue.test_case_id || issue.automation_test_id || issue.performance_test_id) && (
-                  <div className="linked-test-case">
-                    <span className="linked-label">연결된 테스트:</span>
-                    {issue.test_case_id && (
-                      <button 
-                        className="test-case-link"
-                        onClick={() => {
-                          if (window.setActiveTab) {
-                            window.setActiveTab('testcases');
-                          }
-                          // 테스트 케이스 상세 모달 열기
-                          setTimeout(() => {
-                            if (window.openTestCaseDetail) {
-                              window.openTestCaseDetail(issue.test_case_id);
-                            }
-                          }, 100);
-                        }}
-                        title="테스트 케이스로 이동"
-                      >
-                        테스트 케이스 #{issue.test_case_id}
-                      </button>
-                    )}
-                    {issue.automation_test_id && (
-                      <button 
-                        className="test-case-link"
-                        onClick={() => {
-                          if (window.setActiveTab) {
-                            window.setActiveTab('automation');
-                          }
-                        }}
-                        title="자동화 테스트로 이동"
-                      >
-                        자동화 테스트 #{issue.automation_test_id}
-                      </button>
-                    )}
-                    {issue.performance_test_id && (
-                      <button 
-                        className="test-case-link"
-                        onClick={() => {
-                          if (window.setActiveTab) {
-                            window.setActiveTab('performance');
-                          }
-                        }}
-                        title="성능 테스트로 이동"
-                      >
-                        성능 테스트 #{issue.performance_test_id}
-                      </button>
-                    )}
-                  </div>
-                )}
-                
-                {/* 담당자 표시 */}
-                {issue.assignee_email && (
-                  <div className="issue-assignee">
-                    <span className="assignee-label">담당자:</span>
-                    <span className="assignee-name">{issue.assignee_email}</span>
-                  </div>
-                )}
-              </div>
-              
-              <div className="issue-footer">
-                <div className="issue-info">
-                  <span className="issue-created">
-                    생성: {new Date(issue.created_at).toLocaleDateString()}
-                  </span>
-                  {issue.updated_at && (
-                    <span className="issue-updated">
-                      수정: {new Date(issue.updated_at).toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-                
-                <div className="issue-actions">
-                  <button 
-                    className="btn btn-primary btn-sm"
-                    onClick={() => showIssueDetail(issue)}
-                    title="상세보기"
-                  >
-                    상세보기
-                  </button>
-                  
-                  {/* 게스트는 상태 변경 불가 */}
-                  {user && (user.role === 'admin' || user.role === 'user') && (
-                    <>
-                      <select
-                        className="status-select"
-                        value={issue.status}
-                        onChange={(e) => updateIssueStatus(issue.issue_key, e.target.value)}
-                      >
-                        <option value="To Do">To Do</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Done">Done</option>
-                      </select>
-                      
-                      <button 
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => {
-                          setSelectedIssue(issue);
-                          setShowAssigneeModal(true);
-                        }}
-                        title="담당자 할당"
-                      >
-                        👤 담당자
-                      </button>
-                      
-                      <button 
-                        className="btn btn-warning btn-sm"
-                        onClick={() => {
-                          setSelectedIssue(issue);
-                          setShowLabelModal(true);
-                        }}
-                        title="레이블 추가"
-                      >
-                        🏷️ 레이블
-                      </button>
-                      
-                      <button 
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => {
-                          setCommentIssueKey(issue.issue_key);
-                          setShowCommentPrompt(true);
-                        }}
-                        title="댓글 추가"
-                      >
-                        💬 댓글
-                      </button>
-                    </>
-                  )}
-                  
-                  {/* 게스트는 읽기 전용 상태 표시 */}
-                  {user && user.role === 'guest' && (
-                    <span className="status-readonly" style={{ 
-                      padding: '4px 8px', 
-                      backgroundColor: '#e9ecef', 
-                      borderRadius: '4px',
-                      fontSize: '12px'
-                    }}>
-                      상태: {issue.status}
-                    </span>
-                  )}
-                  
-                </div>
-              </div>
-            </div>
-          ))
+                    </td>
+                    <td className="col-status">
+                      <span className={`issue-status status-${issue.status.toLowerCase().replace(' ', '-')}`}>
+                        {issue.status}
+                      </span>
+                    </td>
+                    <td className="col-priority">
+                      <span className={`issue-priority priority-${issue.priority.toLowerCase()}`}>
+                        {issue.priority}
+                      </span>
+                    </td>
+                    <td className="col-type">
+                      <span className={`issue-type type-${issue.issue_type.toLowerCase()}`}>
+                        {issue.issue_type}
+                      </span>
+                    </td>
+                    <td className="col-env">
+                      <span className="issue-environment-badge">
+                        {issue.environment || 'dev'}
+                      </span>
+                    </td>
+                    <td className="col-assignee">
+                      {getAssigneeDisplay(issue.assignee_email) || '-'}
+                    </td>
+                    <td className="col-linked-tests">
+                      {(issue.test_case_id || issue.automation_test_id || issue.performance_test_id) ? (
+                        <div className="linked-test-inline">
+                          {issue.test_case_id && (
+                            <button
+                              type="button"
+                              className="link-button"
+                              onClick={() => {
+                                if (window.setActiveTab) {
+                                  window.setActiveTab('testcases');
+                                }
+                                setTimeout(() => {
+                                  if (window.openTestCaseDetail) {
+                                    window.openTestCaseDetail(issue.test_case_id);
+                                  }
+                                }, 100);
+                              }}
+                              title="테스트 케이스로 이동"
+                            >
+                              TC #{issue.test_case_id}
+                            </button>
+                          )}
+                          {issue.automation_test_id && (
+                            <button
+                              type="button"
+                              className="link-button"
+                              onClick={() => {
+                                if (window.setActiveTab) {
+                                  window.setActiveTab('automation');
+                                }
+                              }}
+                              title="자동화 테스트로 이동"
+                            >
+                              AT #{issue.automation_test_id}
+                            </button>
+                          )}
+                          {issue.performance_test_id && (
+                            <button
+                              type="button"
+                              className="link-button"
+                              onClick={() => {
+                                if (window.setActiveTab) {
+                                  window.setActiveTab('performance');
+                                }
+                              }}
+                              title="성능 테스트로 이동"
+                            >
+                              PT #{issue.performance_test_id}
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        '-'
+                      )}
+                    </td>
+                    <td className="col-created">
+                      {issue.created_at ? new Date(issue.created_at).toLocaleDateString() : '-'}
+                    </td>
+                    <td className="col-updated">
+                      {issue.updated_at ? new Date(issue.updated_at).toLocaleDateString() : '-'}
+                    </td>
+                    <td className="col-actions">
+                      <div className="issue-actions-inline">
+                        <button
+                          type="button"
+                          className="btn btn-primary btn-sm"
+                          onClick={() => showIssueDetail(issue)}
+                          title="상세보기"
+                        >
+                          상세
+                        </button>
+                        {user && (user.role === 'admin' || user.role === 'user') && (
+                          <>
+                            <select
+                              className="status-select"
+                              value={issue.status}
+                              onChange={(e) => updateIssueStatus(issue.issue_key, e.target.value)}
+                            >
+                              <option value="To Do">To Do</option>
+                              <option value="In Progress">In Progress</option>
+                              <option value="Done">Done</option>
+                            </select>
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-sm"
+                              onClick={() => {
+                                setSelectedIssue(issue);
+                                setShowAssigneeModal(true);
+                              }}
+                              title="담당자 할당"
+                            >
+                              담당
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-warning btn-sm"
+                              onClick={() => {
+                                setSelectedIssue(issue);
+                                setShowLabelModal(true);
+                              }}
+                              title="레이블 추가"
+                            >
+                              레이블
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-sm"
+                              onClick={() => {
+                                setCommentIssueKey(issue.issue_key);
+                                setShowCommentPrompt(true);
+                              }}
+                              title="댓글 추가"
+                            >
+                              댓글
+                            </button>
+                          </>
+                        )}
+                        {user && user.role === 'guest' && (
+                          <span className="status-readonly">
+                            상태: {issue.status}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
@@ -942,7 +952,9 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                   <div className="detail-section">
                     <h4>담당자</h4>
                     <div className="assignee-detail">
-                      <span className="assignee-name">{selectedIssue.assignee_email}</span>
+                      <span className="assignee-name">
+                        {getAssigneeDetail(selectedIssue.assignee_email)}
+                      </span>
                     </div>
                   </div>
                 )}
