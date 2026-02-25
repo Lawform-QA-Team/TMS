@@ -348,6 +348,7 @@ def execute_performance_test(id):
     return add_cors_headers(response), 200
 
 @performance_bp.route('/performance-tests/<int:id>/results', methods=['GET'])
+@guest_allowed
 def get_performance_test_results(id):
     # TestExecution 테이블에서 성능 테스트 결과 조회
     executions = TestExecution.query.filter_by(performance_test_id=id).all()

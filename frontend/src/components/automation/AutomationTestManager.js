@@ -520,36 +520,36 @@ const AutomationTestManager = () => {
                       <div className="automation-action-buttons">
                         {user && (user.role === 'admin' || user.role === 'user') && (
                           <button 
-                           className="automation-btn automation-btn-execute automation-btn-icon"
+                            className="automation-btn automation-btn-execute"
                             onClick={() => handleExecuteTest(test.id)}
                             title="자동화 실행"
                           >
-                            🤖
+                            실행
                           </button>
                         )}
                         <button 
-                          className="automation-btn automation-btn-details automation-btn-icon"
+                          className="automation-btn automation-btn-details"
                           onClick={() => toggleTestDetails(test)}
                           title="상세보기"
                         >
-                          {selectedTest && selectedTest.id === test.id ? '📋' : '📄'}
+                          상세
                         </button>
                         {user && (user.role === 'admin' || user.role === 'user') && (
                           <button 
-                            className="automation-btn automation-btn-edit automation-btn-icon"
+                            className="automation-btn automation-btn-edit"
                             onClick={() => handleEditClick(test)}
                             title="수정"
                           >
-                            ✏️
+                            수정
                           </button>
                         )}
                         {user && user.role === 'admin' && (
                           <button 
-                            className="automation-btn automation-btn-delete automation-btn-icon"
+                            className="automation-btn automation-btn-delete"
                             onClick={() => handleDeleteTest(test.id)}
                             title="삭제"
                           >
-                            ✕
+                            삭제
                           </button>
                         )}
                       </div>
