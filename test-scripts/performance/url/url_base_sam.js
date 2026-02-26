@@ -86,16 +86,146 @@ export const SELECTORS = {
         PRIVACY: '//a[text()="개인정보 처리방침"]', // 개인정보처리방침
         TERMS: '//a[text()="이용약관"]', // 이용약관
     },
+
     // 로그인 셀렉터
     LOGIN: {
         EMAIL_INPUT: 'input[id="email"]',
         PASSWORD_INPUT: 'input[id="password"]',
         SUBMIT_BUTTON: 'button[type="submit"]',
     },
+
+    // 통계
+    DASHBOARD: {
+        EXCEL_DOWNLOAD: '//button[text()="엑셀 다운로드"]',
+    },
+
+    // 표준 양식 관리 셀렉터
+    AUTODOC: {
+        CATEGORY: '//button[text()="카테고리 관리"]',
+        UPDATE: '//button[text()="업데이트 추천"]',  // 미구현된 버튼
+        DOCUMENT: '//button[text()="표준 양식 등록"]',
+
+        SETTINGS: '//button[text()="표준 양식 설정"]',
+        INFO: '//button[text()="표준 양식 정보 작성"]',
+
+        // 표준 양식 등록 작성 필요
+
+        WRITE: '//button[text()="작성하기"]',
+        LOAD: '//button[text()="불러오기"]', // 중복이 가능해서 수정 필요
+    },
+
+    // AI 외부 데이터 관리
+    AI_DATE: {
+        // 탭
+        PRIVACY: '//button[text()="법령"]',
+        TERMS: '//button[text()="타사 문서"]',
+
+        ACTIVATE: 'button[role="switch"]',
+        TERMS: '//button[text()="보기"]',  // 중복이 가능해서 수정 필요
+        LIST: '//button[text()="목록"]',
+
+        WORD_INPUT: 'input[placeholder="구분을 입력해주세요"]',
+        URL_INPUT: 'input[placeholder="https://www.samsung.com/sec/i..."]',
+        EXTRACT: '//button[text()="텍스트 추출"]',
+        LIST: '//button[text()="목록"]',
+        REGISTER: '//button[text()="등록"]',
+    },
+
+    // AI 채팅 데이터 관리
+    AI_CHAT: {
+        LIST: '//button[text()="목록"]',
+        REGISTER: '//button[text()="채팅 데이터 등록"]',
+
+        QUESTION: 'input[placeholder="내용을 입력하세요"]',
+        ANSWER: 'textarea[placeholder="내용을 입력하세요"]',
+        AI_DRAFT: '//button[text()="AI 초안 작성"]',
+        CLOSE: '//button[text()="취소"]',
+        SAVE: '//button[text()="저장"]',
+
+        SUBMIT: '//button[text()="등록"]',
+    },
+
+    // 문서 업데이트 리포트
+    DOCUMENT_UPDATE: {
+        WEEK: '//button[.//span[text()="전체 업데이트 이력"]]',
+        CLOSE: '//button[text()="닫기"]',
+        CONFIRM: '//button[text()="확인"]',
+        VIEW_ORIGINAL: '//button[text()="원문보기"]',
+    },
     
-    
+    // 필터링 관리
+    FILTERING: {
+        REGISTER: '//button[text()="필터링 등록"]',
+
+        WORD_INPUT: 'input[placeholder="필터링 단어를 입력해 주세요"]',
+        REASON_INPUT: 'input[placeholder="필터링 사유를 입력해 주세요"]',
+        CLOSE: '//button[text()="닫기"]',
+        SAVE: '//button[text()="저장"]',
+    },
+
+    // 공지사항 관리
     NOTICE: {
-        REGISTER: '#notice-filters-register-btn', // 공지사항 등록 (id 셀렉터)        
+        REGISTER: '#notice-filters-register-btn', // 공지사항 등록 (id 셀렉터)
+        
+        LIST: '//button[text()="목록"]',
+        SAVE: '//button[text()="저장"]'
+    },
+
+    // 1:1 문의 관리
+    QNA: {
+        QNA_BACK: '//a[text()="1:1 문의 관리"]',
+        LIST: '//button[text()="목록"]',
+        SAVE: '//button[text()="저장"]',
+    },
+
+    // 약관 관리
+    TERMS: {
+        // 탭
+        PRIVACY: '//button[text()="개인정보처리방침"]',
+        TERMS: '//button[text()="이용약관"]',
+
+        REGISTER: '//button[text()="등록"]',
+
+        LIST: '//button[text()="목록"]',
+        SAVE: '//button[text()="저장"]',
+    },
+
+    // 사용자 관리
+    MEMBER: {
+        // 탭
+        SERVICE: '//button[text()="서비스"]',
+        BACKOFFICE: '//button[text()="백오피스"]',
+
+        // 인수인계
+        TRANSFER: '//button[text()="인수인계"]',
+
+        // 권한
+        MEMBER: '//span[text()="일반 사용자"]',
+        ADMIN: '//span[text()="일반 관리자"]',
+        MASTER: '//span[text()="최고 관리자"]',
+
+        // 활성화 여부
+        ACTIVE: '//span[text()="활성화"]',
+        INACTIVE: '//span[text()="비활성화"]',
+
+        // 작업
+        AUTH_MAIL: '//span[text()="가입 승인 메일 수신"]',
+        STATS_REPORT: '//span[text()="통계 리포트 메일 수신"]',
+        LOG_REPORT: '//span[text()="로그 및 이상 징후 리포팅 메일 수신"]',
+        DOCUMENT_UPDATE: '//span[text()="문서 업데이트 요약 메일 수신"]',
+
+        // 가입 승인
+        APPROVE: '//button[text()="승인"]',
+
+        // 사용자 정보 수정 저장
+        SAVE: '//button[text()="저장"]',
+    },
+
+    // 로그 조회
+    LOG: {
+        WEEK: '//button[.//span[text()="1주일"]]',
+        MONTH_1: '//button[.//span[text()="1개월"]]',
+        MONTH_3: '//button[.//span[text()="3개월"]]'
     }
 };
 
