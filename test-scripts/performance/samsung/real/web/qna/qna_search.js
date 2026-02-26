@@ -1,8 +1,8 @@
 import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js"
 import { browser } from 'k6/browser';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
-import { SELECTORS } from '../../../../url/url_base_sam.js';
-import { getCredentials, loginWithPage } from './login_helper.js';
+import { SELECTORS, URLS } from '../../../../url/url_base_sam.js';
+import { getCredentials, loginWithPage } from '../login/login_helper.js';
 
 export const options = {
     scenarios: {
@@ -33,14 +33,32 @@ export default async function() {
 
     try {
         await loginWithPage(page, credentials);
+        await wait(3000);
         const timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_login_success.png` });
-        console.log('URL:', await page.url());
-        await page.locator(SELECTORS.COMMON.LOGOUT).waitFor({ state: 'visible' });
-        await page.locator(SELECTORS.COMMON.LOGOUT).click();
-        const timestampAfter = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestampAfter}_logout_success.png` });
+        
+        await page.goto(URLS.SERVICE.QNA);
+        await page.waitForLoadState('load');
+        await wait(5000);
+        console.log('QNA URL:', await page.url());
+        await page.screenshot({ path: `screenshots/${timestamp}_qna.png` });
 
+        await page.waitForSelector(SELECTORS.COMMON.TABLE);
+        await page.click(SELECTORS.COMMON.TABLE);
+        await wait(5000);
+        await page.screenshot({ path: `screenshots/${timestamp}_qna_table.png` });
+
+        await page.goto(URLS.SERVICE.QNA);
+        await page.waitForLoadState('load');
+        await page.waitForSelector(SELECTORS.COMMON.PAGE_FIRST);
+        await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        await wait(5000);
+        await page.screenshot({ path: `screenshots/${timestamp}_qna_page_first.png` });
+
+        await page.waitForSelector(SELECTORS.COMMON.PAGE_LAST);
+        await page.click(SELECTORS.COMMON.PAGE_LAST);
+        await wait(5000);
+        await page.screenshot({ path: `screenshots/${timestamp}_qna_page_last.png` });
     } finally {
         await page.close();
     }
