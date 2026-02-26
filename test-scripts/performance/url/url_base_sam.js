@@ -2,10 +2,10 @@
 let BASE_URL;
 if (typeof __ENV !== 'undefined' && __ENV.BASE_URL) {
     BASE_URL = __ENV.BASE_URL;
-    console.log('BASE_URL:', BASE_URL);
+    // console.log('BASE_URL:', BASE_URL);
 } else if (typeof process !== 'undefined' && process.env && process.env.BASE_URL) {
     BASE_URL = process.env.BASE_URL;
-    console.log('BASE_URL:', BASE_URL);
+    // console.log('BASE_URL:', BASE_URL);
 } else {
     throw new Error(
         'BASE_URL이 필요합니다. k6 실행 예: k6 run -e BASE_URL=https://대상주소 -e LOGIN_EMAIL=... -e LOGIN_PASSWORD=... 스크립트경로\n' +
@@ -23,7 +23,7 @@ export const LOGIN_URLS = {
 // 표준 양식 관리
 export const AUTODOC_URLS = {
     AUTODOC: `${BASE_URL}/autodoc`,
-    CREATE: `${BASE_URL}/autodoc/document/list`,
+    CREATE: `${BASE_URL}/autodoc/document/list`, // 표준 양식 등록
     NEW: `${BASE_URL}/autodoc/tool?formType=`, // 신규 양식
 }
 
@@ -119,6 +119,12 @@ export const SELECTORS = {
         SETTING_TEAM: 'img[alt="구성원 관리"]',
         PROFILE: 'img[alt="회원 정보"]',
         SETUP: 'img[alt="설정"]'
+    },
+    NOTICE: {
+        REGISTER: '#notice-filters-register-btn', // 공지사항 등록 (id 셀렉터)
+        REGISTER_BUTTON: 'button[id="notice-filters-register-btn"]', // 동일 버튼 CSS
+        SEARCH: 'button[id="search-btn"]', //검색
+        INPUT: 'input[data-slot="input"]',
     }
 };
 
@@ -126,15 +132,14 @@ export const SELECTORS = {
 export const URLS = {
     BASE: BASE_URL,
     LOGIN: LOGIN_URLS,
-    CLM: CLM_URLS,
-    SEAL: SEAL_URLS,
-    ADVICE: ADVICE_URLS,
-    LITIGATION: LITIGATION_URLS,
-    BULK: BULK_URLS,
-    LAW: LAW_URLS,
-    PROJECT: PROJECT_URLS,
-    CONTRACT: CONTRACT_URLS,
-    SETTING: SETTING_URLS
+    AUTODOC: AUTODOC_URLS,
+    AI_DATE: AI_DATE_URLS,
+    AI_CHAT: AI_CHAT_URLS,
+    DOCUMENT_UPDATE: DOCUMENT_UPDATE_URLS,
+    FILTERING: FILTERING_URLS,
+    SERVICE: SERVICE_URLS,
+    MEMBER: MEMBER_URLS,
+    LOG: LOG_URLS,
 }; 
 
-console.log('URLS:', URLS);
+console.log('BASE_URL:', BASE_URL);

@@ -1,17 +1,8 @@
 import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js"
-import { URLS, SELECTORS } from '../../../../url/url_base_sam.js';
+import { URLS } from '../../../../url/url_base_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
-import login_to_web from '../login/login_to_web.js';
-
-function getCredentials() {
-    const email = (typeof __ENV !== 'undefined' && (__ENV.LOGIN_EMAIL || __ENV.EMAIL)) || '';
-    const password = (typeof __ENV !== 'undefined' && (__ENV.LOGIN_PASSWORD || __ENV.PASSWORD)) || '';
-    if (!email || !password) {
-        throw new Error('로그인 계정 필요. k6 실행 시 -e LOGIN_EMAIL=... -e LOGIN_PASSWORD=... 또는 -e EMAIL=... -e PASSWORD=...');
-    }
-    return { EMAIL: email, PASSWORD: password };
-}
+import { getCredentials, loginWithPage } from '../login/login_helper.js';
 
 export const options = {
     scenarios: {
@@ -41,14 +32,12 @@ export default async function() {
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
     try {
-        // 로그인 페이지 처리
-        await login_to_web(page);
-        await page.goto (URLS.DASHBOARD.HOME);
-        let timestamp = getNewTimeStamp();
-        await page.screenshot({path: `screenshots/${timestamp}_dashboard_home.png`});
+        await loginWithPage(page, credentials);
 
-    }
-    finally {
+        await page.goto(URLS.DASHBOARD.HOME);
+        let timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_dashboard_home.png` });
+    } finally {
         await page.close();
     }
 }
