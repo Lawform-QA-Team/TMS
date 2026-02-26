@@ -76,20 +76,26 @@ export const SELECTORS = {
     COMMON: {
         INPUT: 'input[data-slot="input"]', // 검색 필드 공통
         TABLE: 'tbody tr:first-child', // 테이블 첫 번째 행 선택
-
+        SEARCH: 'button[id="search-btn"]', //검색 버튼
+        PAGE_FIRST: 'button[aria-label="첫 페이지로 이동"]', // 첫 페이지로 이동 버튼
+        PAGE_LAST: 'button[aria-label="마지막 페이지로 이동"]', // 마지막 페이지로 이동 버튼
+        // header 셀렉터
+        LOGOUT: '//button[text()="로그아웃"]', // 로그아웃 버튼
+        LNG: 'button[aria-label="언어 선택"]', // 다국어 선택
+        //footer 셀렉터
+        PRIVACY: '//a[text()="개인정보 처리방침"]', // 개인정보처리방침
+        TERMS: '//a[text()="이용약관"]', // 이용약관
     },
     // 로그인 셀렉터
     LOGIN: {
         EMAIL_INPUT: 'input[id="email"]',
         PASSWORD_INPUT: 'input[id="password"]',
         SUBMIT_BUTTON: 'button[type="submit"]',
-        LOGOUT: '//button[text()="로그아웃"]',
     },
     
     
     NOTICE: {
-        REGISTER: '#notice-filters-register-btn', // 공지사항 등록 (id 셀렉터)
-        SEARCH: 'button[id="search-btn"]', //검색
+        REGISTER: '#notice-filters-register-btn', // 공지사항 등록 (id 셀렉터)        
     }
 };
 
