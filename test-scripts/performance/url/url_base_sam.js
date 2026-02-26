@@ -30,13 +30,13 @@ export const AUTODOC_URLS = {
 
 //AI 외부 데이터 관리
 export const AI_DATE_URLS = {
-    LAW: `${BASE_URL}/ai-external-data` || `${BASE_URL}/ai-external-data?tab=law`,
+    LAW: `${BASE_URL}/ai-external-data?tab=law`,
     COMPANY: `${BASE_URL}/ai-external-data?tab=company`
 }
 
 //AI 채팅 테이터 관리
 export const AI_CHAT_URLS ={
-    CHATLOG: `${BASE_URL}/ai-chat-log` || `${BASE_URL}/ai-chat-log?tab=chat-log`,
+    CHATLOG: `${BASE_URL}/ai-chat-log?tab=chat-log`,
     CHATDATA: `${BASE_URL}/ai-chat-log?tab=preset-chat`,
 }
 
@@ -60,7 +60,7 @@ export const SERVICE_URLS = {
 
 //사용자 관리
 export const MEMBER_URLS = {
-    BACKOFFICE: `${BASE_URL}/member` || `${BASE_URL}/member?tab=backoffice&page=1`, //사용자 관리 - 백오피스
+    BACKOFFICE: `${BASE_URL}/member?tab=backoffice&page=1`, //사용자 관리 - 백오피스
     SERVICE: `${BASE_URL}/member?tab=service&page=1`, //사용자 관리 - 서비스 관리
 }
 
@@ -71,6 +71,13 @@ export const LOG_URLS = {
 
 // 로그인 등 공통 셀렉터 (k6 browser 스크립트용)
 export const SELECTORS = {
+    // 공통 셀렉터
+    COMMON: {
+        INPUT: 'input[data-slot="input"]', // 검색 필드 공통
+        TABLE: 'tbody tr:first-child', // 테이블 첫 번째 행 선택
+
+    },
+    // 로그인 셀렉터
     LOGIN: {
         EMAIL_INPUT: 'input[id="email"]',
         PASSWORD_INPUT: 'input[id="password"]',
@@ -81,9 +88,7 @@ export const SELECTORS = {
     
     NOTICE: {
         REGISTER: '#notice-filters-register-btn', // 공지사항 등록 (id 셀렉터)
-        REGISTER_BUTTON: 'button[id="notice-filters-register-btn"]', // 동일 버튼 CSS
         SEARCH: 'button[id="search-btn"]', //검색
-        INPUT: 'input[data-slot="input"]',
     }
 };
 
