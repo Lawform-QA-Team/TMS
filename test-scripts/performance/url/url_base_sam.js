@@ -56,12 +56,13 @@ export const SERVICE_URLS = {
     QNA: `${BASE_URL}/qna`, //1:1 문의 관리
     PRIVACY: `${BASE_URL}/terms?tab=privacy`, //약관 관리 - 개인정보처리방침
     TERMS: `${BASE_URL}/terms?tab=terms`, //약관 관리 - 이용약관
+    IP: `${BASE_URL}/ip-management`  // IP 관리
 }
 
 //사용자 관리
 export const MEMBER_URLS = {
-    BACKOFFICE: `${BASE_URL}/member?tab=backoffice&page=1`, //사용자 관리 - 백오피스
-    SERVICE: `${BASE_URL}/member?tab=service&page=1`, //사용자 관리 - 서비스 관리
+    BACKOFFICE: `${BASE_URL}/members?tab=backoffice&page=1`, //사용자 관리 - 백오피스
+    SERVICE: `${BASE_URL}/members?tab=service&page=1`, //사용자 관리 - 서비스 관리
 }
 
 //로그 관리
