@@ -23,8 +23,9 @@ export const LOGIN_URLS = {
 // 표준 양식 관리
 export const AUTODOC_URLS = {
     AUTODOC: `${BASE_URL}/autodoc`,
-    CREATE: `${BASE_URL}/autodoc/document/list`, // 표준 양식 등록
+    CREATE: `${BASE_URL}/autodoc/document/list`,
     NEW: `${BASE_URL}/autodoc/tool?formType=`, // 신규 양식
+    CATEGORY: `${BASE_URL}/autodoc/categories` // 카테고리
 }
 
 //AI 외부 데이터 관리
