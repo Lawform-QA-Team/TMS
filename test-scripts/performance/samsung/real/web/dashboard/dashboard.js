@@ -45,21 +45,25 @@ export default async function() {
 
         //통계 필터 적용
         //구분 - 접속수, 데이터 선택 - 수탁사명, 조회 단위 - 일
-        await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_CATEGORY);
-        //options 값 모두 가져오기
-        const options = await page.$$(SELECTORS.ADMIN.DASHBOARD.SELECT_CATEGORY + '> options');
-        //옵션값 배열로 변환
+        await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_CATEGORY); // 구분
+        // select 안의 option 요소들 가져오기
+        const options = await page.$$(SELECTORS.ADMIN.DASHBOARD.SELECT_CATEGORY + ' > option');
         const values = [];
         for (const opt of options) {
-            values.push(await opt.getAttribute('value'));
+            const value = await opt.getAttribute('value');
+            if (value !== null && value !== undefined && value !== '') {
+                values.push(value);
+            }
         }
-        // 랜덤 values 선택
-        const randomValue = values[Math.floor(Math.random() * values.length)];
 
-        // values 선택
-        await page.selectOption(SELECTORS.ADMIN.DASHBOARD.SELECT_CATEGORY, randomValue);
+        if (values.length > 0) {
+            const randomValue = values[Math.floor(Math.random() * values.length)];
+            await page.selectOption(SELECTORS.ADMIN.DASHBOARD.SELECT_CATEGORY, randomValue);
+        }
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_select_gategory.png` });
+
+        // await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_CATEGORY); // 데이터 선택
 
     } finally {
         await page.close();

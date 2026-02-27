@@ -20,6 +20,10 @@ export function getCredentials() {
  * 주어진 page에 로그인 수행 (스크린샷 포함).
  * 각 스크립트에서 page = await browser.newPage() 후 호출.
  */
+async function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export async function loginWithPage(page, credentials) {
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
@@ -37,4 +41,5 @@ export async function loginWithPage(page, credentials) {
 
     await page.waitForSelector(SELECTORS.FEATURES.LOGIN.BUTTON_SUBMIT);
     await page.click(SELECTORS.FEATURES.LOGIN.BUTTON_SUBMIT);
+    await wait(5000);
 }
