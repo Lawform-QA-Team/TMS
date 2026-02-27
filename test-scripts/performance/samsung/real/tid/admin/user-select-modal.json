@@ -1,0 +1,8 @@
+{
+  "buttonClose": "admin-user-select-modal-button-close",
+  "buttonConfirm": "admin-user-select-modal-button-confirm",
+  "buttonSearch": "admin-user-select-modal-button-search",
+  "input": "admin-user-select-modal-input",
+  "pagination": "admin-user-select-modal-pagination",
+  "tableList": "admin-user-select-modal-table-list"
+}

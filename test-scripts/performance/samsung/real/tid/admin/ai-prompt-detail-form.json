@@ -1,0 +1,6 @@
+{
+  "buttonActivate": "admin-ai-prompt-detail-form-button-activate",
+  "buttonCancel": "admin-ai-prompt-detail-form-button-cancel",
+  "buttonSubmit": "admin-ai-prompt-detail-form-button-submit",
+  "textareaContent": "admin-ai-prompt-detail-form-textarea-content"
+}

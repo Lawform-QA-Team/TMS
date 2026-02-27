@@ -1,0 +1,12 @@
+{
+  "buttonAiDraft": "admin-ai-preset-chat-button-ai-draft",
+  "buttonCancel": "admin-ai-preset-chat-button-cancel",
+  "buttonClose": "admin-ai-preset-chat-button-close",
+  "buttonRegister": "admin-ai-preset-chat-button-register",
+  "buttonSave": "admin-ai-preset-chat-button-save",
+  "buttonSubmit": "admin-ai-preset-chat-button-submit",
+  "input": "admin-ai-preset-chat-input",
+  "inputSearch": "admin-ai-preset-chat-input-search",
+  "pagination": "admin-ai-preset-chat-pagination",
+  "textarea": "admin-ai-preset-chat-textarea"
+}

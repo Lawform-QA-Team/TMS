@@ -1,7 +1,7 @@
 import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js"
 import { browser } from 'k6/browser';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
-import { SELECTORS } from '../../../../url/url_base_sam.js';
+import { SELECTORS } from '../../url_base_sam.js';
 import { getCredentials, loginWithPage } from './login_helper.js';
 
 export const options = {

@@ -1,0 +1,8 @@
+{
+  "button": "admin-user-activity-table-button",
+  "inputSearch": "admin-user-activity-table-input-search",
+  "pagination": "admin-user-activity-table-pagination",
+  "selectEvent": "admin-user-activity-table-select-event",
+  "selectStatus": "admin-user-activity-table-select-status",
+  "tableList": "admin-user-activity-table-table-list"
+}

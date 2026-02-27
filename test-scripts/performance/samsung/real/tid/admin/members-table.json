@@ -1,0 +1,8 @@
+{
+  "buttonHandoverClick": "admin-members-table-button-handover-click",
+  "inputSearch": "admin-members-table-input-search",
+  "pagination": "admin-members-table-pagination",
+  "selectApprovalStatus": "admin-members-table-select-approval-status",
+  "selectRole": "admin-members-table-select-role",
+  "tableList": "admin-members-table-table-list"
+}

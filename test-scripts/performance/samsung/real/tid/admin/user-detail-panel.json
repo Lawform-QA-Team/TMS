@@ -1,0 +1,9 @@
+{
+  "buttonAutoApprove": "admin-user-detail-panel-button-auto-approve",
+  "buttonClose": "admin-user-detail-panel-button-close",
+  "buttonSave": "admin-user-detail-panel-button-save",
+  "checkbox": "admin-user-detail-panel-checkbox",
+  "radio": "admin-user-detail-panel-radio",
+  "radio1": "admin-user-detail-panel-radio1",
+  "radio2": "admin-user-detail-panel-radio2"
+}

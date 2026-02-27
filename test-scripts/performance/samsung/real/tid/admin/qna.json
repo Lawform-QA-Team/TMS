@@ -1,0 +1,8 @@
+{
+  "buttonList": "admin-qna-button-list",
+  "buttonSave": "admin-qna-button-save",
+  "editor": "admin-qna-editor",
+  "editor1": "admin-qna-editor1",
+  "inputSearch": "admin-qna-input-search",
+  "selectAnswerStatus": "admin-qna-select-answer-status"
+}

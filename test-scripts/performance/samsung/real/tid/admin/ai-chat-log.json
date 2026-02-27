@@ -1,0 +1,9 @@
+{
+  "buttonList": "admin-ai-chat-log-button-list",
+  "buttonRegister": "admin-ai-chat-log-button-register",
+  "checkbox": "admin-ai-chat-log-checkbox",
+  "checkbox1": "admin-ai-chat-log-checkbox1",
+  "inputSearch": "admin-ai-chat-log-input-search",
+  "pagination": "admin-ai-chat-log-pagination",
+  "tableList": "admin-ai-chat-log-table-list"
+}

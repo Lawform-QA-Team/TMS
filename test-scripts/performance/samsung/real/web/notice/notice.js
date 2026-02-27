@@ -1,5 +1,6 @@
 import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js"
-import { URLS, SELECTORS } from '../../../../url/url_base_sam.js';
+import { URLS } from '../../url_base_sam.js';
+import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
@@ -47,19 +48,18 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_notice.png` });
 
         // 공지사항 등록 메뉴 진입 (id 셀렉터 우선, 실패 시 button 셀렉터)
-        const registerSelector = SELECTORS.NOTICE.REGISTER;
-        await page.waitForSelector(registerSelector, { state: 'visible', timeout: 1000 });
-        await page.click(registerSelector);
+        await page.waitForSelector(SELECTORS.ADMIN.NOTICE.REGISTER);
+        await page.click(SELECTORS.ADMIN.NOTICE.REGISTER);
         await wait(1000);
         console.log('NOTICE REGISTER SUCCESS URL:', await page.url());
         await page.screenshot({ path: `screenshots/${timestamp}_register.png` });
 
         // 공지사항 검색
         await page.goto(URLS.SERVICE.NOTICE);
-        await page.waitForSelector(SELECTORS.COMMON.INPUT);
-        await page.type(SELECTORS.COMMON.INPUT, '공지사항');
-        await page.waitForSelector(SELECTORS.COMMON.SEARCH);
-        await page.click(SELECTORS.COMMON.SEARCH);
+        await page.waitForSelector(SELECTORS.ADMIN.NOTICE.INPUT_SEARCH);
+        await page.type(SELECTORS.ADMIN.NOTICE.INPUT_SEARCH, '공지사항');
+        await page.waitForSelector(SELECTORS.ADMIN.NOTICE.SEARCH);
+        await page.click(SELECTORS.ADMIN.NOTICE.SEARCH);
         await wait(5000);
         await page.screenshot({ path: `screenshots/${timestamp}_search.png` });
     } finally {

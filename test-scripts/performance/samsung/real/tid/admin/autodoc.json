@@ -1,0 +1,18 @@
+{
+  "button": "admin-autodoc-button",
+  "button1": "admin-autodoc-button1",
+  "buttonCategoryManagement": "admin-autodoc-button-category-management",
+  "buttonClose": "admin-autodoc-button-close",
+  "buttonRefresh": "admin-autodoc-button-refresh",
+  "buttonRegister": "admin-autodoc-button-register",
+  "buttonRegisterCategory": "admin-autodoc-button-register-category",
+  "buttonSave": "admin-autodoc-button-save",
+  "buttonToggleChat": "admin-autodoc-button-toggle-chat",
+  "buttonToggleChat1": "admin-autodoc-button-toggle-chat1",
+  "buttonUpdateRecommend": "admin-autodoc-button-update-recommend",
+  "input": "admin-autodoc-input",
+  "inputSearch": "admin-autodoc-input-search",
+  "pagination": "admin-autodoc-pagination",
+  "select": "admin-autodoc-select",
+  "tableList": "admin-autodoc-table-list"
+}

@@ -1,0 +1,6 @@
+{
+  "buttonLogout": "web-navbar-button-logout",
+  "buttonNewsClick": "web-navbar-button-news-click",
+  "buttonToggleLocale": "web-navbar-button-toggle-locale",
+  "input": "web-navbar-input"
+}

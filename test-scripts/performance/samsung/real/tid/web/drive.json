@@ -1,0 +1,9 @@
+{
+  "buttonSearch": "web-drive-button-search",
+  "datepicker": "web-drive-datepicker",
+  "datepickerStart": "web-drive-datepicker-start",
+  "input": "web-drive-input",
+  "pagination": "web-drive-pagination",
+  "selectCategory": "web-drive-select-category",
+  "tableList": "web-drive-table-list"
+}

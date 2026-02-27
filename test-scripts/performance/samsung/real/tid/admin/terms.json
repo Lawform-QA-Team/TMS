@@ -1,0 +1,14 @@
+{
+  "buttonList": "admin-terms-button-list",
+  "buttonRegister": "admin-terms-button-register",
+  "buttonSearch": "admin-terms-button-search",
+  "buttonSubmit": "admin-terms-button-submit",
+  "datepicker": "admin-terms-datepicker",
+  "datepickerRevisionDate": "admin-terms-datepicker-revision-date",
+  "datepickerStart": "admin-terms-datepicker-start",
+  "editorContent": "admin-terms-editor-content",
+  "pagination": "admin-terms-pagination",
+  "radioIsVisible": "admin-terms-radio-is-visible",
+  "radioVisibilityN": "admin-terms-radio-visibility-n",
+  "tableList": "admin-terms-table-list"
+}

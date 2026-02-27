@@ -1,0 +1,13 @@
+{
+  "buttonClose": "notice-button-close",
+  "buttonList": "notice-button-list",
+  "buttonSubmit": "notice-button-submit",
+  "buttonViewHistory": "notice-button-view-history",
+  "editor": "notice-editor",
+  "editorContent": "notice-editor-content",
+  "inputTitle": "notice-input-title",
+  "pagination": "notice-pagination",
+  "radioIsVisible": "notice-radio-is-visible",
+  "radioVisibilityN": "notice-radio-visibility-n",
+  "tableList": "notice-table-list"
+}

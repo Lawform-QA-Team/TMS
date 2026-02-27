@@ -1,0 +1,19 @@
+{
+  "buttonClose": "admin-ai-external-data-button-close",
+  "buttonDelete": "admin-ai-external-data-button-delete",
+  "buttonExtractText": "admin-ai-external-data-button-extract-text",
+  "buttonGoBack": "admin-ai-external-data-button-go-back",
+  "buttonList": "admin-ai-external-data-button-list",
+  "buttonPreview": "admin-ai-external-data-button-preview",
+  "buttonRegister": "admin-ai-external-data-button-register",
+  "buttonSubmit": "admin-ai-external-data-button-submit",
+  "buttonView": "admin-ai-external-data-button-view",
+  "checkbox": "admin-ai-external-data-checkbox",
+  "checkbox1": "admin-ai-external-data-checkbox1",
+  "inputCategory": "admin-ai-external-data-input-category",
+  "inputSearch": "admin-ai-external-data-input-search",
+  "inputUrl": "admin-ai-external-data-input-url",
+  "pagination": "admin-ai-external-data-pagination",
+  "switch": "admin-ai-external-data-switch",
+  "tableList": "admin-ai-external-data-table-list"
+}

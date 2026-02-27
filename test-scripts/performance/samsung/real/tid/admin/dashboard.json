@@ -1,0 +1,14 @@
+{
+  "buttonExcelDownload": "admin-dashboard-button-excel-download",
+  "datepicker": "admin-dashboard-datepicker",
+  "pagination": "admin-dashboard-pagination",
+  "select": "admin-dashboard-select",
+  "select1": "admin-dashboard-select1",
+  "select2": "admin-dashboard-select2",
+  "select3": "admin-dashboard-select3",
+  "select4": "admin-dashboard-select4",
+  "selectCategory": "admin-dashboard-select-category",
+  "selectDataSelect": "admin-dashboard-select-data-select",
+  "selectQueryUnit": "admin-dashboard-select-query-unit",
+  "tableList": "admin-dashboard-table-list"
+}

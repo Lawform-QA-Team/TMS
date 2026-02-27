@@ -1,0 +1,12 @@
+{
+  "button": "admin-document-update-report-button",
+  "button1": "admin-document-update-report-button1",
+  "buttonClose": "admin-document-update-report-button-close",
+  "buttonConfirm": "admin-document-update-report-button-confirm",
+  "buttonHistoryClick": "admin-document-update-report-button-history-click",
+  "buttonViewOriginal": "admin-document-update-report-button-view-original",
+  "checkbox": "admin-document-update-report-checkbox",
+  "checkbox1": "admin-document-update-report-checkbox1",
+  "datepicker": "admin-document-update-report-datepicker",
+  "pagination": "admin-document-update-report-pagination"
+}

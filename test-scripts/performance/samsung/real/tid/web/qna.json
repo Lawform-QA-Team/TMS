@@ -1,0 +1,12 @@
+{
+  "buttonCancel": "web-qna-button-cancel",
+  "buttonClickCancel": "web-qna-button-click-cancel",
+  "buttonClickGoToList": "web-qna-button-click-go-to-list",
+  "buttonClickSubmit": "web-qna-button-click-submit",
+  "buttonCreateQna": "web-qna-button-create-qna",
+  "editor": "web-qna-editor",
+  "editor1": "web-qna-editor1",
+  "input": "web-qna-input",
+  "inputSearch": "web-qna-input-search",
+  "selectStatus": "web-qna-select-status"
+}
