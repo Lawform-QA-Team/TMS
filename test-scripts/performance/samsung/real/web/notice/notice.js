@@ -33,32 +33,33 @@ export default async function() {
 
     try {
         await loginWithPage(page, credentials);
-        await wait(5000);
+        await wait(3000);
         let timestamp = getNewTimeStamp();
+        console.log('LOGIN SUCCESS URL:', await page.url());
         await page.screenshot({ path: `screenshots/${timestamp}_login_success.png` });
 
         // 공지사항 페이지 이동
-        console.log('NOTICE URL:', URLS.SERVICE.NOTICE);
         await page.goto(URLS.SERVICE.NOTICE);
         await page.waitForLoadState('load');
         await wait(5000); // SPA가 필터/버튼을 렌더할 시간 확보
+        console.log('NOTICE URL:', await page.url());
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_notice.png` });
 
         // 공지사항 등록 메뉴 진입 (id 셀렉터 우선, 실패 시 button 셀렉터)
-        console.log('NOTICE REGISTER PAGE:', await page.url());
         const registerSelector = SELECTORS.NOTICE.REGISTER;
         await page.waitForSelector(registerSelector, { state: 'visible', timeout: 1000 });
         await page.click(registerSelector);
         await wait(1000);
+        console.log('NOTICE REGISTER SUCCESS URL:', await page.url());
         await page.screenshot({ path: `screenshots/${timestamp}_register.png` });
 
         // 공지사항 검색
         await page.goto(URLS.SERVICE.NOTICE);
-        await page.waitForSelector(SELECTORS.NOTICE.INPUT);
-        await page.type(SELECTORS.NOTICE.INPUT, '공지사항');
-        await page.waitForSelector(SELECTORS.NOTICE.SEARCH);
-        await page.click(SELECTORS.NOTICE.SEARCH);
+        await page.waitForSelector(SELECTORS.COMMON.INPUT);
+        await page.type(SELECTORS.COMMON.INPUT, '공지사항');
+        await page.waitForSelector(SELECTORS.COMMON.SEARCH);
+        await page.click(SELECTORS.COMMON.SEARCH);
         await wait(5000);
         await page.screenshot({ path: `screenshots/${timestamp}_search.png` });
     } finally {
@@ -69,6 +70,6 @@ export default async function() {
 export function handleSummary(data) {
     const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
     return {
-        [`Result/login_to_web_${timestamp}.html`]: htmlReport(data),
+        [`Result/notice_${timestamp}.html`]: htmlReport(data),
     };
 }
