@@ -2,6 +2,7 @@ import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporte
 import { URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
+import { selectComboboxOption } from '../../../../common/combobox_helper.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 
@@ -78,69 +79,28 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.EXCEL);
         await page.click(SELECTORS.ADMIN.DASHBOARD.EXCEL);
 
-        //통계 필터 적용
+        //통계 필터 적용 (combobox: button + role="combobox")
         //구분 - 접속수, 데이터 선택 - 수탁사명, 조회 단위 - 일
         await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_CATEGORY); // 구분
-        // select 안의 option 요소들 가져오기
-        const options = await page.$$(SELECTORS.ADMIN.DASHBOARD.SELECT_CATEGORY + ' > option');
-        const values = [];
-        for (const opt of options) {
-            const value = await opt.getAttribute('value');
-            if (value !== null && value !== undefined && value !== '') {
-                values.push(value);
-            }
-        }
-        console.log('values', values);
-
-        if (values.length > 0) {
-            const randomValue = values[Math.floor(Math.random() * values.length)];
-            await page.selectOption(SELECTORS.ADMIN.DASHBOARD.SELECT_CATEGORY, randomValue);
-        }
+        await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_CATEGORY);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_select_gategory.png` });
 
         await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT); // 데이터 선택
-
-        const options2 = await page.$$(SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT + ' > option');
-        const values2 = [];
-        for (const opt of options2) {
-            const value2 = await opt.getAttribute('value');
-            if (value2 !== null && value2 !== undefined && value2 !== '') {
-                values2.push(value2);
-            }
-        }
-        console.log('values2', values2);
-        if (values2.length > 0) {
-            const randomValue2 = values2[Math.floor(Math.random() * values2.length)];
-            await page.selectOption(SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT, randomValue2);
-        }
-        console.log('randomValue2', randomValue2);
+        await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_select_gategory2.png` });
 
         await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT); // 조회 단위
-        
-        const options3 = await page.$$(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT + ' > option');
-        const values3 = [];
-        for (const opt of options3) {
-            const value3 = await opt.getAttribute('value');
-            if (value3 !== null && value3 !== undefined && value3 !== '') {
-                values3.push(value3);
-            }
-        }
-        console.log('values3', values3);
-        let randomValue3 = null;
-        if (values3.length > 0) {
-            randomValue3 = values3[Math.floor(Math.random() * values3.length)];
-            await page.selectOption(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT, randomValue3);
-        }
-        console.log('randomValue3', randomValue3);
+        const randomValue3 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
+        console.log('randomValue3 (조회 단위)', randomValue3);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_select_gategory3.png` });
         await wait(5000);
 
-        // 조회 단위에 따른 기간 선택 (randomValue3 = 조회 단위: 일/월/분기/반기)
-        if (randomValue3 === '일') {
+        // 조회 단위에 따른 기간 선택 (randomValue3 = 조회 단위: 일/월/분기/반기/년도)
+        const queryUnit = (randomValue3 || '').trim();
+        if (queryUnit.includes('일')) {
             await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.DATEPICKER);
             const startDate = getRandomDate(365);
             const end = new Date(startDate);
@@ -150,7 +110,7 @@ export default async function() {
             timestamp = getNewTimeStamp();
             await page.screenshot({ path: `screenshots/${timestamp}_datepicker.png` });
         }
-        else if (randomValue3 === '월') {
+        else if (queryUnit.includes('월')) {
             await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.DATEPICKER);
             // 월 단위: 월 선택 캘린더에서 연도·월 클릭 (1~12월 그리드)
             const d = new Date();
@@ -161,91 +121,36 @@ export default async function() {
             timestamp = getNewTimeStamp();
             await page.screenshot({ path: `screenshots/${timestamp}_datepicker_month.png` });
         }
-        else if (randomValue3 === '분기') {
+        else if (queryUnit.includes('분기')) {
             await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT);
-            const options_year = await page.$$(SELECTORS.ADMIN.DASHBOARD.SELECT + ' > option');
-            const values_year = [];
-            for (const opt of options_year) {
-                const values_year = await opt.getAttribute('value');
-                if (values_year !== null && values_year !== undefined && values_year !== '') {
-                    values_year.push(values_year);
-                }
-            }
-            if (values_year.length > 0) {
-                const randomValue_year = values_year[Math.floor(Math.random() * values_year.length)];
-                await page.selectOption(SELECTORS.ADMIN.DASHBOARD.SELECT, randomValue_year);
-            }
+            const randomValue_year = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT);
             timestamp = getNewTimeStamp();
-            await page.screenshot({ path: `screenshots/${timestamp}_select_year_${randomValue_year}.png` });
+            await page.screenshot({ path: `screenshots/${timestamp}_select_year_${randomValue_year || 'unknown'}.png` });
 
             await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_1);
-            const options_quarter = await page.$$(SELECTORS.ADMIN.DASHBOARD.SELECT_1 + ' > option');
-            const values_quarter = [];
-            for (const opt of options_quarter) {
-                const values_quarter = await opt.getAttribute('value');
-                if (values_quarter !== null && values_quarter !== undefined && values_quarter !== '') {
-                    values_quarter.push(values_quarter);
-                }
-            }
-            if (values_quarter.length > 0) {
-                const randomValue_quarter = values_quarter[Math.floor(Math.random() * values_quarter.length)];
-                await page.selectOption(SELECTORS.ADMIN.DASHBOARD.SELECT_1, randomValue_quarter);
-            }
+            const randomValue_quarter = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_1);
             timestamp = getNewTimeStamp();
-            await page.screenshot({ path: `screenshots/${timestamp}_select_quarter_${randomValue_quarter}.png` });
+            await page.screenshot({ path: `screenshots/${timestamp}_select_quarter_${randomValue_quarter || 'unknown'}.png` });
         }
-        else if (randomValue3 === '반기') {
+        else if (queryUnit.includes('반기')) {
             await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_2);
-            const options_year2 = await page.$$(SELECTORS.ADMIN.DASHBOARD.SELECT_2 + ' > option');
-            const values_year2 = [];
-            for (const opt of options_year2) {
-                const values_year2 = await opt.getAttribute('value');
-                if (values_year2 !== null && values_year2 !== undefined && values_year2 !== '') {
-                    values_year2.push(values_year2);
-                }
-            }
-            if (values_year2.length > 0) {
-                const randomValue_year2 = values_year2[Math.floor(Math.random() * values_year2.length)];
-                await page.selectOption(SELECTORS.ADMIN.DASHBOARD.SELECT_2, randomValue_year2);
-            }
+            const randomValue_year2 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_2);
             timestamp = getNewTimeStamp();
-            await page.screenshot({ path: `screenshots/${timestamp}_select_year2_${randomValue_year2}.png` });
+            await page.screenshot({ path: `screenshots/${timestamp}_select_year2_${randomValue_year2 || 'unknown'}.png` });
             await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_3);
-            const options_half = await page.$$(SELECTORS.ADMIN.DASHBOARD.SELECT_3 + ' > option');
-            const values_half = [];
-            for (const opt of options_half) {
-                const values_half = await opt.getAttribute('value');
-                if (values_half !== null && values_half !== undefined && values_half !== '') {
-                    values_half.push(values_half);
-                }
-            }
-            if (values_half.length > 0) {
-                const randomValue_half = values_half[Math.floor(Math.random() * values_half.length)];
-                await page.selectOption(SELECTORS.ADMIN.DASHBOARD.SELECT_3, randomValue_half);
-            }
+            const randomValue_half = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_3);
             timestamp = getNewTimeStamp();
-            await page.screenshot({ path: `screenshots/${timestamp}_select_half_${randomValue_half}.png` });            
-            
+            await page.screenshot({ path: `screenshots/${timestamp}_select_half_${randomValue_half || 'unknown'}.png` });
         }
-        else if (randomValue3 === '년도') {
+        else if (queryUnit.includes('년도') || queryUnit.includes('연')) {
             await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_4);
-            const options_year3 = await page.$$(SELECTORS.ADMIN.DASHBOARD.SELECT_4 + ' > option');
-            const values_year3 = [];
-            for (const opt of options_year3) {
-                const values_year3 = await opt.getAttribute('value');
-                if (values_year3 !== null && values_year3 !== undefined && values_year3 !== '') {
-                    values_year3.push(values_year3);
-                }
-            }
-            if (values_year3.length > 0) {
-                const randomValue_year3 = values_year3[Math.floor(Math.random() * values_year3.length)];
-                await page.selectOption(SELECTORS.ADMIN.DASHBOARD.SELECT_4, randomValue_year3);
-            }
+            const randomValue_year3 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_4);
             timestamp = getNewTimeStamp();
-            await page.screenshot({ path: `screenshots/${timestamp}_select_year_${randomValue_year3}.png` });
+            await page.screenshot({ path: `screenshots/${timestamp}_select_year_${randomValue_year3 || 'unknown'}.png` });
         }
         
-        
+        await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.BUTTON_SEARCH);
+        await page.click(SELECTORS.ADMIN.DASHBOARD.BUTTON_SEARCH);
         
     } finally {
         await page.close();
