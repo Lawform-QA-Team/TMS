@@ -80,14 +80,14 @@ export const SELECTORS = {
             EXCEL: '[data-tid="admin-dashboard-button-excel-download"]',
             DATEPICKER: '[data-tid="admin-dashboard-datepicker"]',
             PAGINATION: '[data-tid="admin-dashboard-pagination"]',
-            SELECT: '[data-tid="admin-dashboard-select"]',
-            SELECT_1: '[data-tid="admin-dashboard-select1"]',
-            SELECT_2: '[data-tid="admin-dashboard-select2"]',
-            SELECT_3: '[data-tid="admin-dashboard-select3"]',
-            SELECT_4: '[data-tid="admin-dashboard-select4"]',
-            SELECT_CATEGORY: '[data-tid="admin-dashboard-select-category"]',
-            SELECT_DATA_SELECT: '[data-tid="admin-dashboard-select-data-select"]',
-            SELECT_QUERY_UNIT: '[data-tid="admin-dashboard-select-query-unit"]',
+            SELECT: '[data-tid="admin-dashboard-select"]', // 조회 단위 : 년 (분기 선택)
+            SELECT_1: '[data-tid="admin-dashboard-select1"]', // 조회 단위 : 분기
+            SELECT_2: '[data-tid="admin-dashboard-select2"]', // 조회 단위 년 (반기 선택)
+            SELECT_3: '[data-tid="admin-dashboard-select3"]', //조회 단위 : 반기
+            SELECT_4: '[data-tid="admin-dashboard-select4"]', //조회 단위 : 기간
+            SELECT_CATEGORY: '[data-tid="admin-dashboard-select-category"]', // 구분
+            SELECT_DATA_SELECT: '[data-tid="admin-dashboard-select-data-select"]', // 데이터 선택 
+            SELECT_QUERY_UNIT: '[data-tid="admin-dashboard-select-query-unit"]', // 조회 단위
             TABLE_LIST: '[data-tid="admin-dashboard-table-list"]',
         },
         DOCUMENT_UPDATE_REPORT: {

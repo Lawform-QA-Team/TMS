@@ -27,6 +27,25 @@ async function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/** YYYY-MM-DD 형식의 임의 날짜 생성 (과거 N일 이내) */
+function getRandomDate(daysBack = 365) {
+    const d = new Date();
+    d.setDate(d.getDate() - Math.floor(Math.random() * daysBack));
+    return d.toISOString().slice(0, 10);
+}
+
+/** 기간 선택: datepicker 내부 input에 시작일/종료일 채우기 */
+async function selectDateRange(page, startDate, endDate) {
+    const wrap = SELECTORS.ADMIN.DASHBOARD.DATEPICKER;
+    const inputs = await page.$$(`${wrap} input`);
+    if (inputs.length >= 2) {
+        await page.locator(`${wrap} input`).first().fill(startDate);
+        await page.locator(`${wrap} input`).nth(1).fill(endDate);
+    } else if (inputs.length === 1) {
+        await page.locator(`${wrap} input`).fill(startDate);
+    }
+}
+
 export default async function() {
     const page = await browser.newPage();
     const credentials = getCredentials();
@@ -63,8 +82,150 @@ export default async function() {
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_select_gategory.png` });
 
-        // await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_CATEGORY); // 데이터 선택
+        await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT); // 데이터 선택
 
+        const options2 = await page.$$(SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT + ' > option');
+        const values2 = [];
+        for (const opt of options2) {
+            const value2 = await opt.getAttribute('value');
+            if (value2 !== null && value2 !== undefined && value2 !== '') {
+                values2.push(value2);
+            }
+        }
+        if (values2.length > 0) {
+            const randomValue2 = values2[Math.floor(Math.random() * values2.length)];
+            await page.selectOption(SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT, randomValue2);
+        }
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_select_gategory2.png` });
+
+        await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT); // 조회 단위
+        
+        const options3 = await page.$$(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT + ' > option');
+        const values3 = [];
+        for (const opt of options3) {
+            const value3 = await opt.getAttribute('value');
+            if (value3 !== null && value3 !== undefined && value3 !== '') {
+                values3.push(value3);
+            }
+        }
+        if (values3.length > 0) {
+            const randomValue3 = values3[Math.floor(Math.random() * values3.length)];
+            await page.selectOption(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT, randomValue3);
+        }
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_select_gategory3.png` });
+
+        // 조회 단위에 따른 기간 선택 (randomValue3 = 조회 단위: 일/월/분기/반기)
+        if (randomValue3 === '일') {
+            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.DATEPICKER);
+            const startDate = getRandomDate(365);
+            const end = new Date(startDate);
+            end.setDate(end.getDate() + 7);
+            const endDate = end.toISOString().slice(0, 10);
+            await selectDateRange(page, startDate, endDate);
+            timestamp = getNewTimeStamp();
+            await page.screenshot({ path: `screenshots/${timestamp}_datepicker.png` });
+        }
+        else if (randomValue3 === '월') {
+            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.DATEPICKER);
+            // 월 단위: 임의 월의 1일 ~ 말일
+            const d = new Date();
+            d.setMonth(d.getMonth() - Math.floor(Math.random() * 12));
+            const y = d.getFullYear(), m = d.getMonth();
+            const startDate = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+            const lastDay = new Date(y, m + 1, 0).getDate();
+            const endDate = `${y}-${String(m + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+            await selectDateRange(page, startDate, endDate);
+            timestamp = getNewTimeStamp();
+            await page.screenshot({ path: `screenshots/${timestamp}_datepicker.png` });
+        }
+        else if (randomValue3 === '분기') {
+            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT);
+            const options_year = await page.$$(SELECTORS.ADMIN.DASHBOARD.SELECT + ' > option');
+            const values_year = [];
+            for (const opt of options_year) {
+                const values_year = await opt.getAttribute('value');
+                if (values_year !== null && values_year !== undefined && values_year !== '') {
+                    values_year.push(values_year);
+                }
+            }
+            if (values_year.length > 0) {
+                const randomValue_year = values_year[Math.floor(Math.random() * values_year.length)];
+                await page.selectOption(SELECTORS.ADMIN.DASHBOARD.SELECT, randomValue_year);
+            }
+            timestamp = getNewTimeStamp();
+            await page.screenshot({ path: `screenshots/${timestamp}_select_year_${randomValue_year}.png` });
+
+            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_1);
+            const options_quarter = await page.$$(SELECTORS.ADMIN.DASHBOARD.SELECT_1 + ' > option');
+            const values_quarter = [];
+            for (const opt of options_quarter) {
+                const values_quarter = await opt.getAttribute('value');
+                if (values_quarter !== null && values_quarter !== undefined && values_quarter !== '') {
+                    values_quarter.push(values_quarter);
+                }
+            }
+            if (values_quarter.length > 0) {
+                const randomValue_quarter = values_quarter[Math.floor(Math.random() * values_quarter.length)];
+                await page.selectOption(SELECTORS.ADMIN.DASHBOARD.SELECT_1, randomValue_quarter);
+            }
+            timestamp = getNewTimeStamp();
+            await page.screenshot({ path: `screenshots/${timestamp}_select_quarter_${randomValue_quarter}.png` });
+        }
+        else if (randomValue3 === '반기') {
+            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_2);
+            const options_year2 = await page.$$(SELECTORS.ADMIN.DASHBOARD.SELECT_2 + ' > option');
+            const values_year2 = [];
+            for (const opt of options_year2) {
+                const values_year2 = await opt.getAttribute('value');
+                if (values_year2 !== null && values_year2 !== undefined && values_year2 !== '') {
+                    values_year2.push(values_year2);
+                }
+            }
+            if (values_year2.length > 0) {
+                const randomValue_year2 = values_year2[Math.floor(Math.random() * values_year2.length)];
+                await page.selectOption(SELECTORS.ADMIN.DASHBOARD.SELECT_2, randomValue_year2);
+            }
+            timestamp = getNewTimeStamp();
+            await page.screenshot({ path: `screenshots/${timestamp}_select_year2_${randomValue_year2}.png` });
+            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_3);
+            const options_half = await page.$$(SELECTORS.ADMIN.DASHBOARD.SELECT_3 + ' > option');
+            const values_half = [];
+            for (const opt of options_half) {
+                const values_half = await opt.getAttribute('value');
+                if (values_half !== null && values_half !== undefined && values_half !== '') {
+                    values_half.push(values_half);
+                }
+            }
+            if (values_half.length > 0) {
+                const randomValue_half = values_half[Math.floor(Math.random() * values_half.length)];
+                await page.selectOption(SELECTORS.ADMIN.DASHBOARD.SELECT_3, randomValue_half);
+            }
+            timestamp = getNewTimeStamp();
+            await page.screenshot({ path: `screenshots/${timestamp}_select_half_${randomValue_half}.png` });            
+            
+        }
+        else if (randomValue3 === '년도') {
+            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_4);
+            const options_year3 = await page.$$(SELECTORS.ADMIN.DASHBOARD.SELECT_4 + ' > option');
+            const values_year3 = [];
+            for (const opt of options_year3) {
+                const values_year3 = await opt.getAttribute('value');
+                if (values_year3 !== null && values_year3 !== undefined && values_year3 !== '') {
+                    values_year3.push(values_year3);
+                }
+            }
+            if (values_year3.length > 0) {
+                const randomValue_year3 = values_year3[Math.floor(Math.random() * values_year3.length)];
+                await page.selectOption(SELECTORS.ADMIN.DASHBOARD.SELECT_4, randomValue_year3);
+            }
+            timestamp = getNewTimeStamp();
+            await page.screenshot({ path: `screenshots/${timestamp}_select_year_${randomValue_year3}.png` });
+        }
+        
+        
+        
     } finally {
         await page.close();
     }
