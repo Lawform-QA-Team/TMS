@@ -34,7 +34,7 @@ function getRandomDate(daysBack = 365) {
     return d.toISOString().slice(0, 10);
 }
 
-/** 기간 선택: datepicker 내부 input에 시작일/종료일 채우기 */
+/** 기간 선택: datepicker 내부 input에 시작일/종료일 채우기 (일 단위용) */
 async function selectDateRange(page, startDate, endDate) {
     const wrap = SELECTORS.ADMIN.DASHBOARD.DATEPICKER;
     const inputs = await page.$$(`${wrap} input`);
@@ -44,6 +44,22 @@ async function selectDateRange(page, startDate, endDate) {
     } else if (inputs.length === 1) {
         await page.locator(`${wrap} input`).fill(startDate);
     }
+}
+
+/** 월 선택 캘린더에서 연도·월 선택 (팝업 열린 뒤 N월 버튼 클릭) */
+async function selectMonthInPicker(page, year, month) {
+    await page.locator(SELECTORS.ADMIN.DASHBOARD.DATEPICKER).click();
+    await wait(300);
+    // 연도 입력이 있으면 먼저 채움 (선택 사항)
+    const yearInput = page.locator('input[type="number"], input[placeholder*="년"]').first();
+    if (await yearInput.isVisible().catch(() => false)) {
+        await yearInput.fill(String(year));
+        await wait(200);
+    }
+    // "N월" 버튼 클릭 (exact로 1월/10월 구분)
+    const monthLabel = `${month}월`;
+    await page.getByText(monthLabel, { exact: true }).click();
+    await wait(200);
 }
 
 export default async function() {
@@ -109,12 +125,14 @@ export default async function() {
                 values3.push(value3);
             }
         }
+        let randomValue3 = null;
         if (values3.length > 0) {
-            const randomValue3 = values3[Math.floor(Math.random() * values3.length)];
+            randomValue3 = values3[Math.floor(Math.random() * values3.length)];
             await page.selectOption(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT, randomValue3);
         }
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_select_gategory3.png` });
+        await wait(5000);
 
         // 조회 단위에 따른 기간 선택 (randomValue3 = 조회 단위: 일/월/분기/반기)
         if (randomValue3 === '일') {
@@ -129,16 +147,14 @@ export default async function() {
         }
         else if (randomValue3 === '월') {
             await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.DATEPICKER);
-            // 월 단위: 임의 월의 1일 ~ 말일
+            // 월 단위: 월 선택 캘린더에서 연도·월 클릭 (1~12월 그리드)
             const d = new Date();
             d.setMonth(d.getMonth() - Math.floor(Math.random() * 12));
-            const y = d.getFullYear(), m = d.getMonth();
-            const startDate = `${y}-${String(m + 1).padStart(2, '0')}-01`;
-            const lastDay = new Date(y, m + 1, 0).getDate();
-            const endDate = `${y}-${String(m + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-            await selectDateRange(page, startDate, endDate);
+            const y = d.getFullYear();
+            const m = d.getMonth() + 1; // 1~12
+            await selectMonthInPicker(page, y, m);
             timestamp = getNewTimeStamp();
-            await page.screenshot({ path: `screenshots/${timestamp}_datepicker.png` });
+            await page.screenshot({ path: `screenshots/${timestamp}_datepicker_month.png` });
         }
         else if (randomValue3 === '분기') {
             await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT);
