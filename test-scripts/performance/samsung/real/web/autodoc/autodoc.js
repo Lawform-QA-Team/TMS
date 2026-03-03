@@ -44,12 +44,12 @@ export default async function() {
 
         // 표준 양식 테이블 페이지네이션
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
+        await page.click(SELECTORS.COMMON.PAGE_LAST); // 마지막 페이지 이동
         await wait(5000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_pagination_last.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        await page.click(SELECTORS.COMMON.PAGE_FIRST); // 첫 페이지 이동
 
         // 표준 양식 검색
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH);
@@ -77,7 +77,8 @@ export default async function() {
         // 표준 양식 테이블 클릭
         await page.goto(URLS.AUTODOC.AUTODOC);
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
-        await page.click(`${SELECTORS.ADMIN.AUTODOC.TABLE_LIST} tbody tr:first-child`);
+        // await page.click(`${SELECTORS.ADMIN.AUTODOC.TABLE_LIST} tbody tr:first-child`);
+        await page.click(SELECTORS.COMMON.TABLE);
         await wait(5000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table.png` });
@@ -88,6 +89,7 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_UPDATE_RECOMMEND);
 
         // 카테고리 관리 진입
+        await page.goto(URLS.AUTODOC.AUTODOC);
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_CATEGORY_MANAGEMENT);
         await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_CATEGORY_MANAGEMENT);
         await wait(5000);
@@ -105,7 +107,7 @@ export default async function() {
         // await wait(5000);
 
         // 카테고리 검색
-        await page.goto(URLS.AUTODOC.CATEGORY);
+        // await page.goto(URLS.AUTODOC.CATEGORY);
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH);
         await page.type(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH, '카테고리');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
@@ -127,12 +129,25 @@ export default async function() {
 
         // 카테고리 테이블 클릭
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
-        await page.click(`${SELECTORS.ADMIN.AUTODOC.TABLE_LIST} tbody tr:first-child`);
+        // await page.click(`${SELECTORS.ADMIN.AUTODOC.TABLE_LIST} tbody tr:first-child`);
+        await page.click(SELECTORS.COMMON.TABLE);
         await wait(5000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_table.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_CLOSE);
         await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_CLOSE);
+
+        // 카테고리 수정
+        await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
+        // await page.click(`${SELECTORS.ADMIN.AUTODOC.TABLE_LIST} tbody tr:first-child`);
+        await page.click(SELECTORS.COMMON.TABLE);
+        await wait(2000);
+        await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT);
+        await page.type(SELECTORS.ADMIN.AUTODOC.INPUT, '카테고리 수정');
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_edite_gategory.png` });
+        await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
+
     } finally {
         await page.close();
     }
