@@ -78,6 +78,9 @@ export default async function() {
         //엑셀 다운로드
         await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.EXCEL);
         await page.click(SELECTORS.ADMIN.DASHBOARD.EXCEL);
+        await wait(5000);
+        await page.screenshot({ path: `screenshots/${timestamp}_excel_download.png` });
+        await page.keyboard.press('Enter');
 
         //통계 필터 적용 (combobox: button + role="combobox")
         //구분 - 접속수, 데이터 선택 - 수탁사명, 조회 단위 - 일
