@@ -90,6 +90,7 @@ export default async function() {
                 values.push(value);
             }
         }
+        console.log('values', values);
 
         if (values.length > 0) {
             const randomValue = values[Math.floor(Math.random() * values.length)];
@@ -108,10 +109,12 @@ export default async function() {
                 values2.push(value2);
             }
         }
+        console.log('values2', values2);
         if (values2.length > 0) {
             const randomValue2 = values2[Math.floor(Math.random() * values2.length)];
             await page.selectOption(SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT, randomValue2);
         }
+        console.log('randomValue2', randomValue2);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_select_gategory2.png` });
 
@@ -125,11 +128,13 @@ export default async function() {
                 values3.push(value3);
             }
         }
+        console.log('values3', values3);
         let randomValue3 = null;
         if (values3.length > 0) {
             randomValue3 = values3[Math.floor(Math.random() * values3.length)];
             await page.selectOption(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT, randomValue3);
         }
+        console.log('randomValue3', randomValue3);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_select_gategory3.png` });
         await wait(5000);

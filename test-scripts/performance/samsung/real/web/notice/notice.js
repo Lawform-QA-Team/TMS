@@ -58,8 +58,8 @@ export default async function() {
         await page.goto(URLS.SERVICE.NOTICE);
         await page.waitForSelector(SELECTORS.ADMIN.NOTICE.INPUT_SEARCH);
         await page.type(SELECTORS.ADMIN.NOTICE.INPUT_SEARCH, '공지사항');
-        await page.waitForSelector(SELECTORS.ADMIN.NOTICE.SEARCH);
-        await page.click(SELECTORS.ADMIN.NOTICE.SEARCH);
+        await page.waitForSelector(SELECTORS.COMMON.SEARCH);
+        await page.click(SELECTORS.COMMON.SEARCH);
         await wait(5000);
         await page.screenshot({ path: `screenshots/${timestamp}_search.png` });
     } finally {

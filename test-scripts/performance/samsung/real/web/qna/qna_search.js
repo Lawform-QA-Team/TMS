@@ -1,7 +1,8 @@
 import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js"
 import { browser } from 'k6/browser';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
-import { SELECTORS, URLS } from '../../../../url/url_base_sam.js';
+import { SELECTORS } from '../../selector_sam.js';
+import { URLS } from '../../url_base_sam.js';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 
 export const options = {
@@ -50,7 +51,7 @@ export default async function() {
 
         await page.goto(URLS.SERVICE.QNA);
         await page.waitForLoadState('load');
-        
+
         await page.waitForSelector(SELECTORS.COMMON.PAGE_LAST);
         await page.click(SELECTORS.COMMON.PAGE_LAST);
         await wait(5000);
