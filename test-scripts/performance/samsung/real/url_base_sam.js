@@ -29,7 +29,7 @@ export const AUTODOC_URLS = {
 }
 
 //AI 외부 데이터 관리
-export const AI_DATE_URLS = {
+export const AI_DATA_URLS = {
     LAW: `${BASE_URL}/ai-external-data?tab=law`,
     COMPANY: `${BASE_URL}/ai-external-data?tab=company`
 }
@@ -77,7 +77,7 @@ export const URLS = {
     BASE: BASE_URL,
     LOGIN: LOGIN_URLS,
     AUTODOC: AUTODOC_URLS,
-    AI_DATE: AI_DATE_URLS,
+    AI_DATA: AI_DATA_URLS,
     AI_CHAT: AI_CHAT_URLS,
     DOCUMENT_UPDATE: DOCUMENT_UPDATE_URLS,
     FILTERING: FILTERING_URLS,
