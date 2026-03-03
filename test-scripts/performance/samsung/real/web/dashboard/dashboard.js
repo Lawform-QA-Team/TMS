@@ -91,8 +91,8 @@ export default async function() {
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_select_gategory2.png` });
 
-        await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT); // 조회 단위
-        const randomValue3 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
+        await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT); // 조회 단위
+        const randomValue3 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT);
         console.log('randomValue3 (조회 단위)', randomValue3);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_select_gategory3.png` });
@@ -122,29 +122,29 @@ export default async function() {
             await page.screenshot({ path: `screenshots/${timestamp}_datepicker_month.png` });
         }
         else if (queryUnit.includes('분기')) {
-            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT);
-            const randomValue_year = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT);
+            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
+            const randomValue_year = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
             timestamp = getNewTimeStamp();
             await page.screenshot({ path: `screenshots/${timestamp}_select_year_${randomValue_year || 'unknown'}.png` });
 
-            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_1);
-            const randomValue_quarter = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_1);
+            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
+            const randomValue_quarter = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
             timestamp = getNewTimeStamp();
             await page.screenshot({ path: `screenshots/${timestamp}_select_quarter_${randomValue_quarter || 'unknown'}.png` });
         }
         else if (queryUnit.includes('반기')) {
-            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_2);
-            const randomValue_year2 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_2);
+            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
+            const randomValue_year2 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
             timestamp = getNewTimeStamp();
             await page.screenshot({ path: `screenshots/${timestamp}_select_year2_${randomValue_year2 || 'unknown'}.png` });
-            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_3);
-            const randomValue_half = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_3);
+            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
+            const randomValue_half = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
             timestamp = getNewTimeStamp();
             await page.screenshot({ path: `screenshots/${timestamp}_select_half_${randomValue_half || 'unknown'}.png` });
         }
         else if (queryUnit.includes('년도') || queryUnit.includes('연')) {
-            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_4);
-            const randomValue_year3 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_4);
+            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
+            const randomValue_year3 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
             timestamp = getNewTimeStamp();
             await page.screenshot({ path: `screenshots/${timestamp}_select_year_${randomValue_year3 || 'unknown'}.png` });
         }

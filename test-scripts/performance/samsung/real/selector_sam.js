@@ -7,6 +7,8 @@ export const SELECTORS = {
         PAGE_FIRST: 'button[aria-label="첫 페이지로 이동"]',
         PAGE_LAST: 'button[aria-label="마지막 페이지로 이동"]',
         SEARCH: 'button[id="search-btn"]', // 검색 버튼
+        PRIVACY: '//a[text()="개인정보 처리방침"]', // 개인정보처리방침
+        TERMS: '//a[text()="이용약관"]', // 이용약관
     },
 
     // 관리자(admin) 영역 셀렉터 (tid/admin/*.json 기반)
@@ -87,11 +89,11 @@ export const SELECTORS = {
             TABLE_LIST: '[data-tid="eca215d6"]',
         },
         DASHBOARD: {
-            BUTTON_SEARCH: '[data-tid="f277b3cc"]',
-            EXCEL: '[data-tid="af3387a9"]',
-            DATEPICKER: '[data-tid="98f34024"]',
+            BUTTON_SEARCH: '[data-tid="f277b3cc"]', //통계 검색 버튼
+            EXCEL: '[data-tid="af3387a9"]', // 엑셀 다운로드 버튼
+            DATEPICKER: '[data-tid="98f34024"]', // 조회 일자 datepicker
             PAGINATION: '[data-tid="314da712"]',
-            SELECT: '[data-tid="4492d4fd"]',
+            SELECT: '[data-tid="4492d4fd"]', // 조회 단위 combobox
             SELECT_1: '[data-tid="eb0a0d09"]',
             SELECT_2: '[data-tid="e05af5d2"]',
             SELECT_3: '[data-tid="c75ecffa"]',
@@ -99,11 +101,11 @@ export const SELECTORS = {
             SELECT_5: '[data-tid="f83968fb"]',
             SELECT_6: '[data-tid="373b4038"]',
             SELECT_7: '[data-tid="01fe55a8"]',
-            SELECT_CATEGORY: '[data-tid="1ee325dd"]',
-            SELECT_DATA_SELECT: '[data-tid="33e4f23d"]',
-            SELECT_QUERY_UNIT: '[data-tid="c7498be0"]',
-            SELECT_QUERY_UNIT_1: '[data-tid="01f2efab"]',
-            TABLE_LIST: '[data-tid="5a7867e6"]',
+            SELECT_CATEGORY: '[data-tid="1ee325dd"]', // 구분 combobox
+            SELECT_DATA_SELECT: '[data-tid="33e4f23d"]', // 데이터 선택 combobox
+            SELECT_QUERY_UNIT: '[data-tid="c7498be0"]', // 조회 일자 : 년 combobox
+            SELECT_QUERY_UNIT_1: '[data-tid="01f2efab"]', // 조회 일자 : 분기, 반기 combobox
+            TABLE_LIST: '[data-tid="5a7867e6"]', // 통계 결과 테이블
         },
         DOCUMENT_UPDATE_REPORT: {
             BUTTON: '[data-tid="4e792fcd"]',
