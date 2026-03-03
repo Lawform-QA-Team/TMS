@@ -50,15 +50,19 @@ export default async function() {
 
         await page.goto(URLS.SERVICE.QNA);
         await page.waitForLoadState('load');
+        
+        await page.waitForSelector(SELECTORS.COMMON.PAGE_LAST);
+        await page.click(SELECTORS.COMMON.PAGE_LAST);
+        await wait(5000);
+        await page.screenshot({ path: `screenshots/${timestamp}_qna_page_last.png` });
+
+        
         await page.waitForSelector(SELECTORS.COMMON.PAGE_FIRST);
         await page.click(SELECTORS.COMMON.PAGE_FIRST);
         await wait(5000);
         await page.screenshot({ path: `screenshots/${timestamp}_qna_page_first.png` });
 
-        await page.waitForSelector(SELECTORS.COMMON.PAGE_LAST);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(5000);
-        await page.screenshot({ path: `screenshots/${timestamp}_qna_page_last.png` });
+        
     } finally {
         await page.close();
     }
