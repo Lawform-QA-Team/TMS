@@ -1,13 +1,13 @@
 {
-  "buttonClose": "notice-button-close",
-  "buttonList": "notice-button-list",
-  "buttonSubmit": "notice-button-submit",
-  "buttonViewHistory": "notice-button-view-history",
-  "editor": "notice-editor",
-  "editorContent": "notice-editor-content",
-  "inputTitle": "notice-input-title",
-  "pagination": "notice-pagination",
-  "radioIsVisible": "notice-radio-is-visible",
-  "radioVisibilityN": "notice-radio-visibility-n",
-  "tableList": "notice-table-list"
+  "buttonClose": "ed6daf3d",
+  "buttonList": "e16d1a8a",
+  "buttonSubmit": "071981a5",
+  "buttonViewHistory": "94272a6a",
+  "editor": "760b729d",
+  "editorContent": "25531ba0",
+  "inputTitle": "764744f9",
+  "pagination": "8c0def75",
+  "radioIsVisible": "3ce3c364",
+  "radioVisibilityN": "0b3d81b9",
+  "tableList": "f207522c"
 }

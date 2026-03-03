@@ -1,12 +1,12 @@
 {
-  "buttonAiDraft": "admin-ai-preset-chat-button-ai-draft",
-  "buttonCancel": "admin-ai-preset-chat-button-cancel",
-  "buttonClose": "admin-ai-preset-chat-button-close",
-  "buttonRegister": "admin-ai-preset-chat-button-register",
-  "buttonSave": "admin-ai-preset-chat-button-save",
-  "buttonSubmit": "admin-ai-preset-chat-button-submit",
-  "input": "admin-ai-preset-chat-input",
-  "inputSearch": "admin-ai-preset-chat-input-search",
-  "pagination": "admin-ai-preset-chat-pagination",
-  "textarea": "admin-ai-preset-chat-textarea"
+  "buttonAiDraft": "23aacfca",
+  "buttonCancel": "41afe01c",
+  "buttonClose": "fefde07b",
+  "buttonRegister": "392eafb7",
+  "buttonSave": "3e51bc6d",
+  "buttonSubmit": "e232a4f3",
+  "input": "90d6473d",
+  "inputSearch": "8b8a8ce6",
+  "pagination": "4a171fd2",
+  "textarea": "54130b95"
 }

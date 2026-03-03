@@ -1,11 +1,11 @@
 {
-  "buttonClose": "admin-filtering-button-close",
-  "buttonRegisterClick": "admin-filtering-button-register-click",
-  "buttonSubmit": "admin-filtering-button-submit",
-  "input": "admin-filtering-input",
-  "input1": "admin-filtering-input1",
-  "inputSearch": "admin-filtering-input-search",
-  "pagination": "admin-filtering-pagination",
-  "switch": "admin-filtering-switch",
-  "tableList": "admin-filtering-table-list"
+  "buttonClose": "e7bdee8d",
+  "buttonRegisterClick": "2a54997f",
+  "buttonSubmit": "19827f46",
+  "input": "3dd7e6ee",
+  "input1": "d087a4ab",
+  "inputSearch": "b0025887",
+  "pagination": "f97a8cc8",
+  "switch": "7fa86f02",
+  "tableList": "c2232874"
 }

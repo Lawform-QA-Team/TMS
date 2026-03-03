@@ -1,8 +1,10 @@
 {
-  "button": "admin-user-activity-table-button",
-  "inputSearch": "admin-user-activity-table-input-search",
-  "pagination": "admin-user-activity-table-pagination",
-  "selectEvent": "admin-user-activity-table-select-event",
-  "selectStatus": "admin-user-activity-table-select-status",
-  "tableList": "admin-user-activity-table-table-list"
+  "button": "07169478",
+  "inputSearch": "b00e402f",
+  "option": "689ff09f",
+  "option1": "e9786a40",
+  "pagination": "e7863e33",
+  "selectEvent": "79fa1ec3",
+  "selectIsSuccess": "cbcd5952",
+  "tableList": "86fc58c2"
 }

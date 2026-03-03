@@ -1,14 +1,14 @@
 {
-  "buttonList": "admin-terms-button-list",
-  "buttonRegister": "admin-terms-button-register",
-  "buttonSearch": "admin-terms-button-search",
-  "buttonSubmit": "admin-terms-button-submit",
-  "datepicker": "admin-terms-datepicker",
-  "datepickerRevisionDate": "admin-terms-datepicker-revision-date",
-  "datepickerStart": "admin-terms-datepicker-start",
-  "editorContent": "admin-terms-editor-content",
-  "pagination": "admin-terms-pagination",
-  "radioIsVisible": "admin-terms-radio-is-visible",
-  "radioVisibilityN": "admin-terms-radio-visibility-n",
-  "tableList": "admin-terms-table-list"
+  "buttonList": "6a669db8",
+  "buttonRegister": "3663722c",
+  "buttonSearch": "51ecb794",
+  "buttonSubmit": "c0dd15c3",
+  "datepicker": "ec3a4672",
+  "datepickerRevisionDate": "07cd528a",
+  "datepickerStart": "8ef13b06",
+  "editorContent": "fc0b4da1",
+  "pagination": "fde34758",
+  "radioIsVisible": "67e82df4",
+  "radioVisibilityN": "d4e2ca7c",
+  "tableList": "a9077e7d"
 }

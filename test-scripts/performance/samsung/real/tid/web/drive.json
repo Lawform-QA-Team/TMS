@@ -1,9 +1,10 @@
 {
-  "buttonSearch": "web-drive-button-search",
-  "datepicker": "web-drive-datepicker",
-  "datepickerStart": "web-drive-datepicker-start",
-  "input": "web-drive-input",
-  "pagination": "web-drive-pagination",
-  "selectCategory": "web-drive-select-category",
-  "tableList": "web-drive-table-list"
+  "buttonSearch": "97dea766",
+  "datepicker": "6e9de10f",
+  "datepickerStart": "569db2b1",
+  "input": "fe2d46a4",
+  "option": "b2ab6b76",
+  "pagination": "13e35b5b",
+  "select": "ae14d270",
+  "tableList": "a9b90254"
 }

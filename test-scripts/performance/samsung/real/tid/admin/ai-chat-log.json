@@ -1,9 +1,9 @@
 {
-  "buttonList": "admin-ai-chat-log-button-list",
-  "buttonRegister": "admin-ai-chat-log-button-register",
-  "checkbox": "admin-ai-chat-log-checkbox",
-  "checkbox1": "admin-ai-chat-log-checkbox1",
-  "inputSearch": "admin-ai-chat-log-input-search",
-  "pagination": "admin-ai-chat-log-pagination",
-  "tableList": "admin-ai-chat-log-table-list"
+  "buttonList": "149a4e27",
+  "buttonRegister": "6ca05f83",
+  "checkbox": "c4b27674",
+  "checkbox1": "fe83c919",
+  "inputSearch": "acbb58cd",
+  "pagination": "a7503fc1",
+  "tableList": "012e8237"
 }
