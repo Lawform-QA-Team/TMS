@@ -49,6 +49,7 @@ export default async function() {
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_pagination_last.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
+        await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 표준 양식 검색
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH);
@@ -76,7 +77,7 @@ export default async function() {
         // 표준 양식 테이블 클릭
         await page.goto(URLS.AUTODOC.AUTODOC);
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
-        await page.click(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
+        await page.click(`${SELECTORS.ADMIN.AUTODOC.TABLE_LIST} tbody tr:first-child`);
         await wait(5000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table.png` });
@@ -126,7 +127,7 @@ export default async function() {
 
         // 카테고리 테이블 클릭
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
-        await page.click(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
+        await page.click(`${SELECTORS.ADMIN.AUTODOC.TABLE_LIST} tbody tr:first-child`);
         await wait(5000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_table.png` });
