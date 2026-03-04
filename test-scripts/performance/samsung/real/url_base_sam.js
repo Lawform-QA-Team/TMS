@@ -54,8 +54,8 @@ export const FILTERING_URLS = {
 export const SERVICE_URLS = {
     NOTICE: `${BASE_URL}/notice`, //공지사항
     QNA: `${BASE_URL}/qna`, //1:1 문의 관리
-    PRIVACY: `${BASE_URL}/terms?tab=privacy`, //약관 관리 - 개인정보처리방침
-    TERMS: `${BASE_URL}/terms?tab=terms`, //약관 관리 - 이용약관
+    PRIVACY: `${BASE_URL}/service-terms?tab=privacy`, //약관 관리 - 개인정보처리방침
+    TERMS: `${BASE_URL}/service-terms?tab=terms`, //약관 관리 - 이용약관
     IP: `${BASE_URL}/ip-management`  // IP 관리
 }
 
