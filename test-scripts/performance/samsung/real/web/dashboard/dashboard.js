@@ -1,8 +1,13 @@
 import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js"
+import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
 import { URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
+import {
+    selectRandomDateFromRdpCalendar,
+    selectDateInRdpCalendar,
+} from '../../../../common/datepicker_helper.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 
@@ -35,15 +40,16 @@ function getRandomDate(daysBack = 365) {
     return d.toISOString().slice(0, 10);
 }
 
-/** 기간 선택: datepicker 내부 input에 시작일/종료일 채우기 (일 단위용) */
-async function selectDateRange(page, startDate, endDate) {
+/** RDP 캘린더에서 기간 선택 (일 단위: 시작일~종료일) */
+async function selectDateRangeInRdp(page, startDate, endDate) {
     const wrap = SELECTORS.ADMIN.DASHBOARD.DATEPICKER;
     const inputs = await page.$$(`${wrap} input`);
     if (inputs.length >= 2) {
-        await page.locator(`${wrap} input`).first().fill(startDate);
-        await page.locator(`${wrap} input`).nth(1).fill(endDate);
-    } else if (inputs.length === 1) {
-        await page.locator(`${wrap} input`).fill(startDate);
+        await selectDateInRdpCalendar(page, page.locator(`${wrap} input`).first(), startDate);
+        await wait(300);
+        await selectDateInRdpCalendar(page, page.locator(`${wrap} input`).nth(1), endDate);
+    } else {
+        await selectRandomDateFromRdpCalendar(page, wrap);
     }
 }
 
@@ -64,7 +70,8 @@ async function selectMonthInPicker(page, year, month) {
 }
 
 export default async function() {
-    const page = await browser.newPage();
+    const context = await browser.newContext({ acceptDownloads: true });
+    const page = await context.newPage();
     const credentials = getCredentials();
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
@@ -75,12 +82,11 @@ export default async function() {
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_dashboard_home.png` });
 
-        //엑셀 다운로드
+        //엑셀 다운로드 (acceptDownloads로 저장 팝업 없이 자동 저장)
         await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.EXCEL);
         await page.click(SELECTORS.ADMIN.DASHBOARD.EXCEL);
         await wait(5000);
         await page.screenshot({ path: `screenshots/${timestamp}_excel_download.png` });
-        await page.keyboard.press('Enter');
 
         //통계 필터 적용 (combobox: button + role="combobox")
         //구분 - 접속수, 데이터 선택 - 수탁사명, 조회 단위 - 일
@@ -103,13 +109,14 @@ export default async function() {
 
         // 조회 단위에 따른 기간 선택 (randomValue3 = 조회 단위: 일/월/분기/반기/년도)
         const queryUnit = (randomValue3 || '').trim();
+        console.log('queryUnit', queryUnit);
         if (queryUnit.includes('일')) {
             await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.DATEPICKER);
             const startDate = getRandomDate(365);
             const end = new Date(startDate);
             end.setDate(end.getDate() + 7);
             const endDate = end.toISOString().slice(0, 10);
-            await selectDateRange(page, startDate, endDate);
+            await selectDateRangeInRdp(page, startDate, endDate);
             timestamp = getNewTimeStamp();
             await page.screenshot({ path: `screenshots/${timestamp}_datepicker.png` });
         }
@@ -146,8 +153,8 @@ export default async function() {
             await page.screenshot({ path: `screenshots/${timestamp}_select_half_${randomValue_half || 'unknown'}.png` });
         }
         else if (queryUnit.includes('년도') || queryUnit.includes('연')) {
-            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
-            const randomValue_year3 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
+            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
+            const randomValue_year3 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
             timestamp = getNewTimeStamp();
             await page.screenshot({ path: `screenshots/${timestamp}_select_year_${randomValue_year3 || 'unknown'}.png` });
         }
@@ -156,12 +163,24 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.DASHBOARD.BUTTON_SEARCH);
         
     } finally {
-        await page.close();
+        if (page) await page.close();
+        if (context) await context.close();
     }
 }
 
 export function handleSummary(data) {
     const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
+
+    // 결과 추출 및 Slack 발송
+    const slackWebhookUrl = __ENV.SLACK_WEBHOOK_URL;
+    if (slackWebhookUrl) {
+        const payload = buildK6SummaryMessage(data, 'Dashboard');
+        const result = sendSlackWebhook(slackWebhookUrl, payload);
+        if (!result.ok) {
+            console.warn(`[Slack] 메시지 발송 실패 (status: ${result.status})`);
+        }
+    }
+
     return {
         [`Result/dashboard_${timestamp}.html`]: htmlReport(data),
     };
