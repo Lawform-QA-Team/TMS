@@ -35,10 +35,30 @@ export function buildK6SummaryMessage(data, testName = 'k6 Test') {
     const checks = rootGroup.checks || [];
     const totalPasses = checks.reduce((sum, c) => sum + (c.passes || 0), 0);
     const totalFails = checks.reduce((sum, c) => sum + (c.fails || 0), 0);
-    const checksOk = totalFails === 0;
+
+    // threshold 실패 여부 (selector timeout, uncaught exception 등으로 인한 실패 포함)
+    let thresholdFailed = false;
+    for (const metricName of Object.keys(metrics)) {
+        const thresh = metrics[metricName]?.thresholds;
+        if (thresh && typeof thresh === 'object') {
+            for (const t of Object.values(thresh)) {
+                if (t && t.ok === false) {
+                    thresholdFailed = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    // iterations 실패 (uncaught exception 시 iteration이 fail로 카운트됨)
+    const iterFails = metrics.iterations?.values?.fails ?? 0;
+
+    // 전체 실패 판정: 체크 실패 OR threshold 실패 OR iteration 실패
+    const checksOk = totalFails === 0 && !thresholdFailed && iterFails === 0;
 
     // 주요 메트릭 추출
-    const iterations = metrics.iterations?.values?.count ?? metrics.iterations?.values?.passes ?? '-';
+    const iterValues = metrics.iterations?.values || {};
+    const iterations = iterValues.count ?? iterValues.passes ?? '-';
     const vus = metrics.vus?.values?.value ?? metrics.vus?.values?.max ?? '-';
     const durationMs = state.testRunDurationMs ?? 0;
     const durationSec = (durationMs / 1000).toFixed(1);
@@ -72,6 +92,8 @@ export function buildK6SummaryMessage(data, testName = 'k6 Test') {
                 { type: 'mrkdwn', text: `*VUs:*\n${vus}` },
                 { type: 'mrkdwn', text: `*체크:*\n${totalPasses} pass / ${totalFails} fail` },
                 { type: 'mrkdwn', text: `*브라우저 세션:*\n${browserSessions}` },
+                ...(iterFails > 0 ? [{ type: 'mrkdwn', text: `*⚠️ Iteration 실패:*\n${iterFails}건` }] : []),
+                ...(thresholdFailed ? [{ type: 'mrkdwn', text: `*⚠️ Threshold:*\n실패` }] : []),
             ],
         },
     ];
