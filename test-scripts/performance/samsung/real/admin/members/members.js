@@ -2,15 +2,15 @@ import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporte
 import { URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
-import { selectComboboxOption } from '../../../../common/combobox_helper.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
+import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
 
 export const options = {
     scenarios: {
         ui: {
             executor: 'shared-iterations',
-            vus: 1,
+            vus: 1, 
             iterations: 1,
             options: {
                 browser: {
@@ -29,7 +29,10 @@ async function wait(ms) {
 }
 
 export default async function() {
-    const page = await browser.newPage();
+    const context = await browser.newContext({
+        viewport: { width: 2560, height: 1440 },
+    });
+    const page = await context.newPage();
     const credentials = getCredentials();
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
@@ -214,13 +217,25 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_submit.png` });
 
     } finally {
-        await page.close();
+        if (page) await page.close();
+        if (context) await context.close();
     }
 }
 
 export function handleSummary(data) {
     const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
+
+    // 결과 추출 및 Slack 발송
+    const slackWebhookUrl = __ENV.SLACK_WEBHOOK_URL;
+    if (slackWebhookUrl) {
+        const payload = buildK6SummaryMessage(data, 'Members');
+        const result = sendSlackWebhook(slackWebhookUrl, payload);
+        if (!result.ok) {
+            console.warn(`[Slack] 메시지 발송 실패 (status: ${result.status})`);
+        }
+    }
+
     return {
-        [`Result/notice_${timestamp}.html`]: htmlReport(data),
+        [`Result/members_${timestamp}.html`]: htmlReport(data),
     };
 }
