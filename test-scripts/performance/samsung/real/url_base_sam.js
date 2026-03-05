@@ -77,7 +77,10 @@ export const LOG_URLS = {
     LOG: `${BASE_URL}/log`,
 }
 
-
+// 서비스 - 문서 조회
+export const DRIVE_URLS = {
+    DRIVE: `${BASE_URL}/drive`,
+}
 
 // 모든 URL을 하나의 객체로 통합
 export const URLS = {
@@ -91,6 +94,7 @@ export const URLS = {
     SERVICE: SERVICE_URLS,
     MEMBER: MEMBER_URLS,
     LOG: LOG_URLS,
+    DRIVE: DRIVE_URLS,
 }; 
 
 console.log('BASE_URL:', BASE_URL);
