@@ -118,6 +118,8 @@ export const SELECTORS = {
             CHECKBOX_1: '[data-tid="e74d49a8"]',
             DATEPICKER: '[data-tid="f351da96"]',
             PAGINATION: '[data-tid="6b8f4aad"]',
+            // DATEPICKER: '[data-tid="0381c19b"]', 
+            // RADIO: '[data-tid="dd026057"]',
         },
         FILTERING: {
             BUTTON_CLOSE: '[data-tid="e7bdee8d"]',
@@ -165,6 +167,7 @@ export const SELECTORS = {
         },
         PENDING_APPROVAL: {
             BUTTON_CHECK_APPROVAL: '[data-tid="2e835444"]',
+            // BUTTON_CHECK_APPROVAL: '[data-tid="c8bd6a5e"]',
         },
         QNA: {
             BUTTON_LIST: '[data-tid="7086abaf"]',
@@ -212,6 +215,7 @@ export const SELECTORS = {
             INPUT: '[data-tid="e5a47665"]',
             PAGINATION: '[data-tid="052ec5d5"]',
             TABLE_LIST: '[data-tid="98b64d4f"]',
+            // RADIO: '[data-tid="e564149f"]',
         },
     },
 
