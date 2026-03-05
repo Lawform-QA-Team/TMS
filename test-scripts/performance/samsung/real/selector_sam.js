@@ -4,6 +4,7 @@ export const SELECTORS = {
     COMMON: {
         LOGOUT: '[data-tid="cd71514a"], [data-tid="2d4ec066"]', // admin/web navbar 로그아웃
         TABLE: 'tbody tr:first-child', // 테이블 첫 번째 행
+        TABLE2: 'tbody tr:nth-child(2)', // 테이블 두 번째 행
         PAGE_FIRST: 'button[aria-label="첫 페이지로 이동"]',
         PAGE_LAST: 'button[aria-label="마지막 페이지로 이동"]',
         SEARCH: 'button[id="search-btn"]', // 검색 버튼
