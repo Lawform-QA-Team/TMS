@@ -62,17 +62,7 @@ export default async function() {
         await wait(5000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_data_search.png` });
-
-        // AI 채팅 데이터 관리 - 채팅 로그 데이터 체크 박스
         await page.goto(URLS.AI_CHAT.CHATLOG);
-        await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX);
-        await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX);
-
-        await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX_1);
-        await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX_1);
-        await wait(5000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_data_checkbox_1.png` });
 
         // AI 채팅 데이터 관리 - 채팅 로그 데이터 테이블 클릭
         await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.TABLE_LIST);
@@ -80,7 +70,7 @@ export default async function() {
         await wait(5000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_data_table.png` });
-
+        
         // AI 채팅 데이터 관리 - 채팅 로그 데이터 채팅 데이터 등록 진입
         await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.BUTTON_REGISTER);
         await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.BUTTON_REGISTER);
@@ -102,52 +92,34 @@ export default async function() {
         await wait(5000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_data_submit_write.png` });
+        
+        // AI 채팅 데이터 관리 - 채팅 로그 데이터 채팅 데이터 등록 저장
         await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SAVE);
+        await wait(5000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_data_submit_save.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.BUTTON_LIST);
         await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.BUTTON_LIST);
 
-        // AI 채팅 데이터 관리 - 사전 설정 채팅 데이터
-        await page.goto(URLS.AI_CHAT.CHATDATA);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset.png` });
+        // AI 채팅 데이터 관리 - 채팅 로그 데이터 체크 박스
+        await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX);
+        await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX);
+        await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX_1);
+        await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX_1);
         await wait(5000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_checkbox.png` });
+        await page.goto(URLS.AI_CHAT.CHATLOG);
 
-        // AI 채팅 데이터 관리 - 사전 설정 채팅 데이터 페이지네이션
-        // await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.PAGINATION);
-        // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(5000);
-        // timestamp = getNewTimeStamp();
-        // await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_pagination_last.png` });
-        // await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.PAGINATION);
-        // await page.click(SELECTORS.COMMON.PAGE_FIRST);
-
-        // AI 채팅 데이터 관리 - 사전 설정 채팅 데이터 검색
-        // await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.INPUT_SEARCH);
-        // await page.type(SELECTORS.ADMIN.AI_CHAT_LOG.INPUT_SEARCH, '1');
-        // await page.waitForSelector(SELECTORS.COMMON.SEARCH);
-        // await page.click(SELECTORS.COMMON.SEARCH);
-        // await wait(5000);
-        // timestamp = getNewTimeStamp();
-        // await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_search.png` });
-
-        // AI 채팅 데이터 관리 - 사전 설정 채팅 데이터 체크 박스
-        // await page.goto(URLS.AI_CHAT.CHATDATA);
-        // await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX);
-        // await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX);
-
-        // await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX_1);
-        // await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX_1);
-        // await wait(5000);
-        // timestamp = getNewTimeStamp();
-        // await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_checkbox_1.png` });
-
-        // AI 채팅 데이터 관리 - 사전 설정 채팅 데이터 테이블 클릭
-        // await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.TABLE_LIST);
-        // await page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`);
-        // await wait(5000);
-        // timestamp = getNewTimeStamp();
-        // await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_table.png` });
+        // AI 채팅 데이터 관리 - 채팅 로그 데이터 문서 삭제
+        await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX_1);
+        await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX_1);
+        await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.BUTTON_DELETE);
+        await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.BUTTON_DELETE);
+        await wait(5000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_delete.png` });
 
     } finally {
         if (page) await page.close();

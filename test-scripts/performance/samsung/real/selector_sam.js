@@ -18,6 +18,7 @@ export const SELECTORS = {
             BUTTON: '[data-tid="366ca271"]',
         },
         AI_CHAT_LOG: {
+            BUTTON_DELETE: '[data-tid="3f7b1c92"]',
             BUTTON_LIST: '[data-tid="149a4e27"]',
             BUTTON_REGISTER: '[data-tid="6ca05f83"]',
             CHECKBOX: '[data-tid="c4b27674"]',
