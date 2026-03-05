@@ -24,7 +24,7 @@ export const options = {
 
 export default async function() {
     const context = await browser.newContext({
-        viewport: { width: 2560, height: 1440 },
+        viewport: { width: 1960, height: 1080 },
     });
     const page = await context.newPage();
     const credentials = getCredentials();

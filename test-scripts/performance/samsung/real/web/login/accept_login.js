@@ -24,7 +24,9 @@ export const options = {
 }
 
 export default async function() {
-    const context = await browser.newContext();
+    const context = await browser.newContext({
+        viewport: { width: 1960, height: 1080 },
+    });
     const page = await context.newPage();
     const credentials = getCredentials();
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');

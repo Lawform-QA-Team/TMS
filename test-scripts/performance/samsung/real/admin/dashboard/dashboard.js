@@ -73,7 +73,7 @@ async function selectMonthInPicker(page, year, month) {
 export default async function() {
     const context = await browser.newContext({
         acceptDownloads: true,
-        viewport: { width: 2560, height: 1440 },
+        viewport: { width: 1960, height: 1080 },
     });
     const page = await context.newPage();
     const credentials = getCredentials();

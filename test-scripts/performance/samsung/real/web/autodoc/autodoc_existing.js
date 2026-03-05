@@ -29,7 +29,9 @@ async function wait(ms) {
 }
 
 export default async function() {
-    const context = await browser.newContext();
+    const context = await browser.newContext({
+        viewport: { width: 1960, height: 1080 },
+    });
     const page = await context.newPage();
     const credentials = getCredentials();
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
@@ -183,7 +185,7 @@ export default async function() {
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
 
     } finally {
-        await page.close();
+        if (page) await page.close();
         if (context) await context.close();
     }
 }
