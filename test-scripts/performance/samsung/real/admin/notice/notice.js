@@ -51,21 +51,61 @@ export default async function() {
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_notice.png` });
 
-        // 공지사항 등록 메뉴 진입 (id 셀렉터 우선, 실패 시 button 셀렉터)
-        await page.waitForSelector(SELECTORS.ADMIN.NOTICE.REGISTER);
-        await page.click(SELECTORS.ADMIN.NOTICE.REGISTER);
-        await wait(1000);
-        console.log('NOTICE REGISTER SUCCESS URL:', await page.url());
-        await page.screenshot({ path: `screenshots/${timestamp}_register.png` });
+        // 공지사항 페이지네이션
+        await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
+        await page.click(SELECTORS.COMMON.PAGE_LAST);
+        await wait(5000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_pagination_last.png` });
+        await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
+        await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 공지사항 검색
-        await page.goto(URLS.SERVICE.NOTICE);
         await page.waitForSelector(SELECTORS.ADMIN.NOTICE.INPUT_SEARCH);
         await page.type(SELECTORS.ADMIN.NOTICE.INPUT_SEARCH, '공지사항');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(5000);
         await page.screenshot({ path: `screenshots/${timestamp}_search.png` });
+
+        // 공지사항 테이블 클릭 -> 미구현
+        // await page.goto(URLS.SERVICE.NOTICE);
+        // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.TABLE_LIST);
+        // await page.click(SELECTORS.COMMON.TABLE);
+        // await wait(5000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_table.png` });
+
+        // 공지사항 등록 메뉴 진입 (id 셀렉터 우선, 실패 시 button 셀렉터)
+        await page.goto(URLS.SERVICE.NOTICE);
+        await page.waitForSelector(SELECTORS.ADMIN.NOTICE.REGISTER);
+        await page.click(SELECTORS.ADMIN.NOTICE.REGISTER);
+        await wait(1000);
+        console.log('NOTICE REGISTER SUCCESS URL:', await page.url());
+        await page.screenshot({ path: `screenshots/${timestamp}_register.png` });
+        await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_LIST);
+        await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_LIST);
+
+        // 공지사항 등록 메뉴 작성
+        await page.waitForSelector(SELECTORS.ADMIN.NOTICE.REGISTER);
+        await page.click(SELECTORS.ADMIN.NOTICE.REGISTER);
+        await page.waitForSelector(SELECTORS.FEATURES.NOTICE.INPUT_TITLE);
+        await page.type(SELECTORS.FEATURES.NOTICE.INPUT_TITLE, '공지사항 테스트');
+        await page.waitForSelector(`[contenteditable="true"]`);
+        await page.type(`[contenteditable="true"]`, '문의 테스트 1');
+        await page.keyboard.press('Enter')
+        await page.type(`[contenteditable="true"]`, '문의 테스트 2');
+        await wait(5000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_register_write.png` });
+        
+        // 공지사항 등록 메뉴 저장 -> 미구현
+        // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_SUBMIT);
+        // await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_SUBMIT);
+        // await wait(5000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_register_submit.png` });
+
     } finally {
         if (page) await page.close();
         if (context) await context.close();
