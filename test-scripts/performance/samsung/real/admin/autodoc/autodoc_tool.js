@@ -39,6 +39,7 @@ export default async function() {
     try {
         await loginWithPage(page, credentials);
 
+        // 미완성 상태
         // 표준 양식 관리 등록 진입
         await page.goto(URLS.AUTODOC.NEW + "1");
         let timestamp = getNewTimeStamp();
