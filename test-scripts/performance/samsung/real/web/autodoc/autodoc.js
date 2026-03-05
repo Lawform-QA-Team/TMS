@@ -29,7 +29,8 @@ async function wait(ms) {
 }
 
 export default async function() {
-    const page = await browser.newPage();
+    const context = await browser.newContext();
+    const page = await context.newPage();
     const credentials = getCredentials();
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
@@ -109,7 +110,8 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_submit.png` });
 
     } finally {
-        await page.close();
+        if (page) await page.close();
+        if (context) await context.close();
     }
 }
 
