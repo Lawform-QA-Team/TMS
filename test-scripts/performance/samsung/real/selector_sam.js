@@ -37,6 +37,7 @@ export const SELECTORS = {
             BUTTON_REGISTER: '[data-tid="4cd2d7e9"]',
             BUTTON_SUBMIT: '[data-tid="fe0d3ee0"]',
             BUTTON_VIEW: '[data-tid="989d544f"]',
+            BUTTON_SEARCH: '[data-tid="a7e1b3f2"]',
             CHECKBOX: '[data-tid="bd2bfd34"]',
             CHECKBOX_1: '[data-tid="4962a2c9"]',
             INPUT_CATEGORY: '[data-tid="894f039b"]',
@@ -120,8 +121,8 @@ export const SELECTORS = {
             CHECKBOX_1: '[data-tid="e74d49a8"]',
             DATEPICKER: '[data-tid="f351da96"]',
             PAGINATION: '[data-tid="6b8f4aad"]',
-            // DATEPICKER: '[data-tid="0381c19b"]', 
-            // RADIO: '[data-tid="dd026057"]',
+            DATEPICKER: '[data-tid="0381c19b"]', 
+            RADIO: '[data-tid="dd026057"]',
         },
         FILTERING: {
             BUTTON_CLOSE: '[data-tid="e7bdee8d"]',
@@ -166,10 +167,6 @@ export const SELECTORS = {
         NOTICE: {
             REGISTER: '[data-tid="2cb75815"]',
             INPUT_SEARCH: '[data-tid="36307578"]',
-        },
-        PENDING_APPROVAL: {
-            BUTTON_CHECK_APPROVAL: '[data-tid="2e835444"]',
-            // BUTTON_CHECK_APPROVAL: '[data-tid="c8bd6a5e"]',
         },
         QNA: {
             BUTTON_LIST: '[data-tid="7086abaf"]',
@@ -217,7 +214,7 @@ export const SELECTORS = {
             INPUT: '[data-tid="e5a47665"]',
             PAGINATION: '[data-tid="052ec5d5"]',
             TABLE_LIST: '[data-tid="98b64d4f"]',
-            // RADIO: '[data-tid="e564149f"]',
+            RADIO: '[data-tid="e564149f"]',
         },
     },
 
@@ -435,6 +432,9 @@ export const SELECTORS = {
             INPUT_1: '[data-tid="8576e9f9"]',
             PAGINATION: '[data-tid="dbdc79a5"]',
             SELECT: '[data-tid="0d9bb54c"]',
+        },
+        PENDING_APPROVAL: {
+            BUTTON_CHECK_APPROVAL: '[data-tid="c8bd6a5e"]',
         },
     }
 };
