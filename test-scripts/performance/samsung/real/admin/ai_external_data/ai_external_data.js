@@ -30,7 +30,7 @@ async function wait(ms) {
 
 export default async function() {
     const context = await browser.newContext({
-        viewport: { width: 1960, height: 1080 },
+        viewport: { width: 1600, height: 900 },
     });
     const page = await context.newPage();
     const credentials = getCredentials();
@@ -45,14 +45,14 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA.png` });
         await wait(5000);
         
-        // AI 외부 데이터 관리 - 법령 페이지네이션 -> 데이터 부족
-        // await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.PAGINATION);
-        // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(5000);
-        // timestamp = getNewTimeStamp();
-        // await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_pagination_last.png` });
-        // await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.PAGINATION);
-        // await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        // AI 외부 데이터 관리 - 법령 페이지네이션
+        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.PAGINATION);
+        await page.click(SELECTORS.COMMON.PAGE_LAST);
+        await wait(5000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_pagination_last.png` });
+        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.PAGINATION);
+        await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // AI 외부 데이터 관리 - 법령 검색
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_SEARCH);
@@ -64,32 +64,45 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_search.png` });
         await page.goto(URLS.AI_DATA.LAW);
 
-        // AI 외부 데이터 관리 - 법령 테이블 클릭 -> 데이터 부족
-        // await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.TABLE_LIST);
-        // await page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`);
-        // await wait(5000);
-        // timestamp = getNewTimeStamp();
-        // await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_table.png` });
-        // await page.goto(URLS.AI_DATA.COMPANY);
+        // AI 외부 데이터 관리 - 법령 테이블 클릭
+        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.TABLE_LIST);
+        await page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`);
+        await wait(5000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_table.png` });
 
-        // AI 외부 데이터 관리 - 법령 체크 박스 -> 데이터 부족
-        // await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX);
-        // await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX);
-        // await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
-        // await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
-        // await wait(5000);
-        // timestamp = getNewTimeStamp();
-        // await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_checkbox_1.png` });
-        // await page.goto(URLS.AI_DATA.LAW);
+        // AI 외부 데이터 관리 - 법령 데이터 조회
+        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
+        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
+        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_VIEW);
+        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_VIEW);
+        await wait(5000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_table_detail.png` });
+        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
+        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
+        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
+        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
+        await wait(2000);
 
-        // AI 외부 데이터 관리 - 법령 선택 문서 삭제 -> 데이터 부족
-        // await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
-        // await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
-        // await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_DELETE);
-        // await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_DELETE);
-        // await wait(5000);
-        // timestamp = getNewTimeStamp();
-        // await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_delete.png` });
+        // AI 외부 데이터 관리 - 법령 체크 박스
+        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX);
+        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX);
+        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
+        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
+        await wait(5000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_checkbox.png` });
+        await page.goto(URLS.AI_DATA.LAW);
+
+        // AI 외부 데이터 관리 - 법령 선택 문서 삭제
+        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
+        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
+        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_DELETE);
+        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_DELETE);
+        await wait(5000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_delete.png` });
 
     } finally {
         if (page) await page.close();
