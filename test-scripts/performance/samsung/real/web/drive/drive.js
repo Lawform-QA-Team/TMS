@@ -2,10 +2,10 @@ import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporte
 import { URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
-import { selectComboboxOption } from '../../../../common/combobox_helper.js';
-import { selectDateRangeInRdpCalendar } from '../../../../common/datepicker_helper.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../../admin/login/login_helper.js';
+import { selectComboboxOption } from '../../../../common/combobox_helper.js';
+import { selectDateRangeInRdpCalendar } from '../../../../common/datepicker_helper.js';
 
 export const options = {
     scenarios: {
