@@ -56,9 +56,15 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.PAGINATION);
         await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
-        // 로그, 검색
-        // await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.BUTTON);
-        // await page.click(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.BUTTON);
+        // 로그, 일시 설정
+        await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.BUTTON);
+        const buttons = await page.$$(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.BUTTON);
+        await buttons[Math.floor(Math.random() * buttons.length)].click();
+        await wait(5000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_LOG_date.png` });
+
+        // 로그, 검색 -> 데이트피커 변경 대기 중
         // await selectDateRangeInRdpCalendar(page, '시작 데이트 피커', '끝 데이트 피커', '2026-02-01', '2026-02-28')
         await selectComboboxOption(page, SELECTORS.ADMIN.USER_ACTIVITY_TABLE.SELECT_EVENT)
         await selectComboboxOption(page, SELECTORS.ADMIN.USER_ACTIVITY_TABLE.SELECT_STATUS)
