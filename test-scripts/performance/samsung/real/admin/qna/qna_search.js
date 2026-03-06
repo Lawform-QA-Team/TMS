@@ -40,7 +40,7 @@ export default async function() {
     try {
         await loginWithPage(page, credentials);
         await wait(3000);
-        const timestamp = getNewTimeStamp();
+        let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_login_success.png` });
         
         // 1:1 문의 관리
@@ -69,7 +69,7 @@ export default async function() {
         await wait(5000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_qna_search.png` });
-        await page.goto(URLS.SERVICE.NOTICE);
+        await page.goto(URLS.SERVICE.QNA);
 
         // 1:1 문의 관리, 테이블 클릭
         await page.waitForSelector(SELECTORS.FEATURES.QNA.TABLE_LIST);
@@ -80,6 +80,8 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.QNA.BUTTON_LIST);
 
         // 1:1 문의 관리, 답변 작성
+        await page.waitForSelector(SELECTORS.FEATURES.QNA.TABLE_LIST);
+        await page.click(SELECTORS.COMMON.TABLE);
         await page.waitForSelector(`[contenteditable="true"]`);
         await page.type(`[contenteditable="true"]`, '문의 테스트 1');
         await page.keyboard.press('Enter')
