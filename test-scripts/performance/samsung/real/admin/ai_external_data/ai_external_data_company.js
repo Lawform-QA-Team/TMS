@@ -75,7 +75,8 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_VIEW);
-        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_VIEW);
+        const views = await page.$$(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_VIEW);
+        await views[Math.floor(Math.random() * views.length)].click();
         await wait(5000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_table_detail.png` });
