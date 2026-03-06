@@ -51,6 +51,7 @@ export const SELECTORS = {
             BUTTON_AI_DRAFT: '[data-tid="23aacfca"]',
             BUTTON_CANCEL: '[data-tid="41afe01c"]',
             BUTTON_CLOSE: '[data-tid="fefde07b"]',
+            BUTTON_DELETE: '[data-tid="b7f2e4d9"]',
             BUTTON_REGISTER: '[data-tid="392eafb7"]',
             BUTTON_SAVE: '[data-tid="3e51bc6d"]',
             BUTTON_SUBMIT: '[data-tid="e232a4f3"]',
