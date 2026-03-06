@@ -56,7 +56,7 @@ export default async function() {
 
         // 공지사항, 검색
         await page.waitForSelector(SELECTORS.WEB.NOTICE.INPUT_SEARCH);
-        await page.type(SELECTORS.WEB.QNA.INPUT_SEARCH, '공지');
+        await page.type(SELECTORS.WEB.NOTICE.INPUT_SEARCH, '공지');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(5000);
