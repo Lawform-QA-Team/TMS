@@ -4,7 +4,6 @@ import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
-import { selectComboboxOption } from '../../../../common/combobox_helper.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
 
 export const options = {
@@ -56,7 +55,6 @@ export default async function() {
         // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 카테고리 검색
-        // await page.goto(URLS.AUTODOC.CATEGORY);
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH);
         await page.type(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH, '카테고리');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
