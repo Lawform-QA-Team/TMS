@@ -46,14 +46,14 @@ export default async function() {
         await wait(5000);
         await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_TERMS.png` });
 
-        // 약관 관리 - 이용약관, 페이지네이션
-        await page.waitForSelector(SELECTORS.ADMIN.TERMS.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(5000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_TERMS_pagination_last.png` });
-        await page.waitForSelector(SELECTORS.ADMIN.TERMS.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        // 약관 관리 - 이용약관, 페이지네이션 -> 데이터 부족
+        // await page.waitForSelector(SELECTORS.ADMIN.TERMS.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_LAST);
+        // await wait(5000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_TERMS_pagination_last.png` });
+        // await page.waitForSelector(SELECTORS.ADMIN.TERMS.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 약관 관리 - 이용약관, 검색
         await selectDateRangeInRdpCalendar(page, SELECTORS.ADMIN.TERMS.DATEPICKER, SELECTORS.ADMIN.TERMS.DATEPICKER_START, '2026-02-01', '2026-02-28')
@@ -64,7 +64,7 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_TERMS_search.png` });
         await page.goto(URLS.SERVICE.TERMS);
         
-        // 약관 관리 - 이용약관, 테이블 클릭
+        // 약관 관리 - 이용약관, 테이블 클릭 -> 연결 안됨
         await page.waitForSelector(SELECTORS.COMMON.TABLE);
         await page.click(SELECTORS.COMMON.TABLE);
         await wait(5000);
@@ -73,7 +73,6 @@ export default async function() {
         await page.goto(URLS.SERVICE.TERMS);
 
         // 약관 관리 - 이용약관, 등록 진입
-        await page.goto(URLS.SERVICE.TERMS);
         await page.waitForSelector(SELECTORS.ADMIN.TERMS.BUTTON_REGISTER);
         await page.click(SELECTORS.ADMIN.TERMS.BUTTON_REGISTER);
         await wait(5000);
@@ -82,7 +81,7 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.TERMS.BUTTON_LIST);
         await page.click(SELECTORS.ADMIN.TERMS.BUTTON_LIST);
 
-        // 약관 관리 - 이용약관, 등록
+        // 약관 관리 - 이용약관, 등록 작성
         await page.waitForSelector(SELECTORS.ADMIN.TERMS.BUTTON_REGISTER);
         await page.click(SELECTORS.ADMIN.TERMS.BUTTON_REGISTER);
         await page.waitForSelector(`[contenteditable="true"]`);
@@ -92,8 +91,14 @@ export default async function() {
         await wait(5000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_TERMS_register_write.png` });
+        
+        // 약관 관리 - 이용약관, 등록 -> 동작 안됨
         await page.waitForSelector(SELECTORS.ADMIN.TERMS.BUTTON_SUBMIT);
         await page.click(SELECTORS.ADMIN.TERMS.BUTTON_SUBMIT);
+        await wait(5000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_TERMS_register_submit.png` });
+        
 
     } finally {
         if (page) await page.close();
