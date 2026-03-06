@@ -83,11 +83,19 @@ export default async function() {
         // AI 채팅 데이터 관리 - 채팅 로그 데이터 채팅 데이터 등록 작성
         await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.BUTTON_REGISTER);
         await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.BUTTON_REGISTER);
-        await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_AI_DRAFT);
-        await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_AI_DRAFT);
         await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.INPUT);
         await page.type(SELECTORS.ADMIN.AI_PRESET_CHAT.INPUT, '질문 테스트');
+        await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_AI_DRAFT);
+        await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_AI_DRAFT);
         await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.TEXTAREA);
+        await page.waitForFunction(
+            (selector) => {
+                const el = document.querySelector(selector);
+                return el && !el.disabled;
+            },
+            {},
+            SELECTORS.ADMIN.AI_PRESET_CHAT.TEXTAREA
+        );
         await page.type(SELECTORS.ADMIN.AI_PRESET_CHAT.TEXTAREA, '답변 테스트');
         await wait(5000);
         timestamp = getNewTimeStamp();
