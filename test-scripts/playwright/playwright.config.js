@@ -24,7 +24,9 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [['./slack_reporter/slack_reporter.ts', { webhookUrl: process.env.SLACK_WEBHOOK_URL }]], //slack reporter 사용
+  // 프로젝트 루트(`TMS`) 기준 `slack_reporter/slack_reporter.ts`
+  // config 위치: test-scripts/playwright/playwright.config.js
+  reporter: [['../../slack_reporter/slack_reporter.ts', { webhookUrl: process.env.SLACK_WEBHOOK_URL }]], // slack reporter 사용
   
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
