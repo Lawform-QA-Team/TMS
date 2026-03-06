@@ -152,37 +152,38 @@ export default async function() {
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
 
+        // AI 검토 버튼 비활성화?
         // 문서 작성 - 기존 문서, AI 검토 * 편집
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_EDIT);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_EDIT);
-        await wait(5000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_ai.png` });
+        // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_EDIT);
+        // await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_EDIT);
+        // await wait(5000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_ai.png` });
 
         // 문서 작성 - 기존 문서, AI 검토 * 편집, 채팅 입력
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.TEXTAREA);
-        await page.type(SELECTORS.FEATURES.AUTODOC.TEXTAREA, '조항을 추가해줘');
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SEND);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SEND);
-        await wait(20000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_ai_send.png` });
+        // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.TEXTAREA);
+        // await page.type(SELECTORS.FEATURES.AUTODOC.TEXTAREA, '조항을 추가해줘');
+        // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SEND);
+        // await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SEND);
+        // await wait(20000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_ai_send.png` });
 
         // 문서 작성 - 기존 문서, AI 검토 * 편집, 자동 검토
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AUTO_REVIEW);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_AUTO_REVIEW);
-        await wait(20000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_ai_auto.png` });
+        // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AUTO_REVIEW);
+        // await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_AUTO_REVIEW);
+        // await wait(20000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_ai_auto.png` });
 
         // 문서 작성 - 기존 문서, AI 검토 * 편집, 코멘트
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
-        await wait(5000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_ai_comment.png` });
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
+        // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
+        // await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
+        // await wait(5000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_ai_comment.png` });
+        // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
+        // await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
 
     } finally {
         if (page) await page.close();
