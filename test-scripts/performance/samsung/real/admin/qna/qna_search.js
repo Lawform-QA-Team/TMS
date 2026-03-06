@@ -60,9 +60,14 @@ export default async function() {
         await wait(5000);
         await page.screenshot({ path: `screenshots/${timestamp}_qna_page_first.png` });
 
-        // 1:1 문의 관리, 검색
+        // 1:1 문의 관리, 상태 필터
         await selectComboboxOption(page, SELECTORS.ADMIN.QNA.SELECT_ANSWER_STATUS);
         await page.waitForSelector(SELECTORS.ADMIN.QNA.INPUT_SEARCH);
+        await wait(5000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_qna_status.png` });
+
+        // 1:1 문의 관리, 검색
         await page.type(SELECTORS.ADMIN.QNA.INPUT_SEARCH, '문의');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
@@ -90,12 +95,13 @@ export default async function() {
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_qna_answer_write.png` });
         
-        // 1:1 문의 관리, 답변 저장 -> 미구현
-        // await page.waitForSelector(SELECTORS.ADMIN.QNA.BUTTON_SAVE);
-        // await page.click(SELECTORS.ADMIN.QNA.BUTTON_SAVE);
-        // await wait(5000);
-        // timestamp = getNewTimeStamp();
-        // await page.screenshot({ path: `screenshots/${timestamp}_qna_answer_submit.png` });
+        // 1:1 문의 관리, 답변 저장
+        await page.waitForSelector(SELECTORS.ADMIN.QNA.BUTTON_SAVE);
+        await page.click(SELECTORS.ADMIN.QNA.BUTTON_SAVE);
+        await page.goto(URLS.SERVICE.QNA);
+        await wait(5000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_qna_answer_submit.png` });
 
         
     } finally {
