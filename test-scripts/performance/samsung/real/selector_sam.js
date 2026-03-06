@@ -10,6 +10,12 @@ export const SELECTORS = {
         SEARCH: 'button[id="search-btn"]', // 검색 버튼
         PRIVACY: '//a[text()="개인정보 처리방침"]', // 개인정보처리방침
         TERMS: '//a[text()="이용약관"]', // 이용약관
+        // MODULE 셀렉터 (공통 모듈 셀렉터)    
+        MODULE: {
+            BUTTON_CANCEL: '[data-tid=""]',
+            BUTTON_APPLY: '[data-tid=""]',
+            BUTTON_CLOSE: '[data-tid=""]',
+        },
     },
 
     // 관리자(admin) 영역 셀렉터 (tid/admin/*.json 기반)
