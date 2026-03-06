@@ -56,7 +56,7 @@ export default async function() {
 
         // 사용자 관리 - 백오피스, 검색
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH);
-        await page.type(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH, 'a');
+        await page.type(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH, '임희건');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(5000);
@@ -64,12 +64,33 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_search.png` });
 
         // 사용자 관리 - 백오피스, 테이블 클릭
-        await page.goto(URLS.MEMBER.BACKOFFICE);
-        await page.waitForSelector(SELECTORS.COMMON.TABLE);
+        await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.TABLE_LIST);
         await page.click(`${SELECTORS.COMMON.TABLE} button`);
         await wait(5000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_table.png` });
+
+        // 사용자 관리 - 백오피스, 정보 수정
+        await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO);
+        const radios = await page.$$(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO);
+        await radios[0].click();
+        await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO_2);
+        await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO_2);
+        await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.CHECKBOX);
+        const checkboxes = await page.$$(SELECTORS.ADMIN.USER_DETAIL_PANEL.CHECKBOX);
+        for (let i = 0; i <= 3; i++) {
+            await checkboxes[i].click();
+        }
+        await wait(5000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_edit.png` });
+
+        // 사용자 관리 - 백오피스, 정보 저장
+        await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
+        await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
+        await wait(5000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_save.png` });
 
     } finally {
         if (page) await page.close();
