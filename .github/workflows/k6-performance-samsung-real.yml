@@ -93,7 +93,9 @@ jobs:
           echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S')"
           echo "=============================================="
 
-          find "$BASE_DIR" -type f -name "*.js" | sort | while read -r script; do
+          find "$BASE_DIR" -type f -name "*.js" \
+            ! -name "login_helper.js" \
+            | sort | while read -r script; do
             echo "----------------------------------------------"
             echo "Running k6 script: $script"
             echo "Start: $(date -u '+%Y-%m-%d %H:%M:%S')"
