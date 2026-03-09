@@ -51,17 +51,15 @@ jobs:
 
       - name: Build k6 with xk6-influxdb
         run: |
-          # 별도 출력 디렉토리 생성 후 마운트
           mkdir -p /tmp/k6-build
-          
+          chmod 777 /tmp/k6-build          # 컨테이너(root)가 쓸 수 있도록 권한 개방
+
           docker run --rm \
-            -v "$(pwd):/xk6" \
             -v "/tmp/k6-build:/output" \
-            -w /xk6 \
             grafana/xk6 build \
             --with github.com/grafana/xk6-output-influxdb@latest \
             --output /output/k6
-          
+
           cp /tmp/k6-build/k6 ./k6
           chmod +x ./k6
           ./k6 version
