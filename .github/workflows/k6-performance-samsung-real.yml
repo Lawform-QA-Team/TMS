@@ -33,8 +33,12 @@ jobs:
 
       - name: Build k6 with xk6-influxdb
         run: |
-          docker run --rm -v "$(pwd):/xk6" -w /xk6 \
-            grafana/xk6 build --with github.com/grafana/xk6-output-influxdb@latest
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -v "$(pwd):/xk6" \
+            -w /xk6 \
+            grafana/xk6 build \
+            --with github.com/grafana/xk6-output-influxdb@latest
           chmod +x k6
           ./k6 version
 
