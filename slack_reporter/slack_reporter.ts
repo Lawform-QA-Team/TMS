@@ -90,6 +90,11 @@ class MyReporter implements Reporter {
     failed = 0;
     skipped = 0;
     failMessages = '';
+    private webhookUrl: string | undefined;
+
+    constructor(options: { webhookUrl?: string } = {}) {
+        this.webhookUrl = options.webhookUrl;
+    }
 
     onBegin(_: FullConfig, suite: Suite) {
         this.all = suite.allTests().length;
@@ -124,7 +129,7 @@ class MyReporter implements Reporter {
 
     async onEnd(result: FullResult) {
         const blockKit = await this.getBlockKit(result);
-        const webhookUrl = process.env.SLACK_WEBHOOK_URL;
+        const webhookUrl = this.webhookUrl || process.env.SLACK_WEBHOOK_URL;
 
         if (!webhookUrl) {
             console.error('SLACK_WEBHOOK_URL 환경 변수가 설정되지 않았습니다.');

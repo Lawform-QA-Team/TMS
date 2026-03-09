@@ -5,6 +5,7 @@
   "description": "LFBZ 자동화 테스트 레포",
   "scripts": {
     "test": "playwright test",
+    "test:samsung": "playwright test tests/samsung",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
@@ -15,7 +16,8 @@
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.57.0",
-    "@types/node": "^24.10.0"
+    "@types/node": "^24.10.0",
+    "@craco/craco": "^7.1.0"
   },
   "dependencies": {
     "mysql2": "^3.11.0",
