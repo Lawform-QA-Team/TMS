@@ -73,7 +73,7 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_CLOSE);
         await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_CLOSE);
 
-        // 필터링 관리 필터링 등록
+        // 필터링 관리 필터링 등록 작성
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_REGISTER_CLICK);
         await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_REGISTER_CLICK);
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT);
@@ -83,6 +83,8 @@ export default async function() {
         await wait(5000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_register_write.png` });
+        
+        // 필터링 관리 필터링 등록
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
         await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
         await wait(5000);
@@ -92,6 +94,11 @@ export default async function() {
         // 필터링 관리 테이블 클릭
         await page.waitForSelector(SELECTORS.COMMON.TABLE);
         await page.click(`${SELECTORS.COMMON.TABLE} button`);
+        await wait(5000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_table.png` });
+
+        // 필터링 관리 수정
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT);
         await page.type(SELECTORS.ADMIN.FILTERING.INPUT, '필터링 단어 테스트 2');
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT_1);
@@ -101,6 +108,8 @@ export default async function() {
         await wait(5000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_register_edit.png` });
+        
+        // 필터링 관리 수정 저장
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
         await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
         await wait(5000);
