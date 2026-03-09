@@ -1,4 +1,6 @@
 import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js"
+import http from 'k6/http';
+import { check } from 'k6';
 import { URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
@@ -20,6 +22,11 @@ export const options = {
             options: {
                 browser: {
                     type: 'chromium',
+                    args: [
+                        '--disable-features=DownloadBubble,DownloadBubbleV2', // 최신 크롬 다운로드 알림 끄기
+                        '--no-sandbox',
+                        '--disable-setuid-sandbox'
+                    ],
                 },
             },
         },
@@ -75,20 +82,69 @@ export default async function() {
         viewport: { width: 1960, height: 1080 },
     });
     const page = await context.newPage();
+    let downloadUrl = null;
+
+    page.on('response', (response) => {
+        const disposition = response.headers()['content-disposition'];
+        if (disposition && disposition.includes('attachment')) {
+            downloadUrl = response.url();
+            console.log('Download URL:', downloadUrl);
+        }
+    });
+
     const credentials = getCredentials();
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
     try {
         await loginWithPage(page, credentials);
-
         await page.goto(URLS.LOGIN.DASHBOARD);
+
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_dashboard_home.png` });
 
-        //엑셀 다운로드 (acceptDownloads로 저장 팝업 없이 자동 저장)
         await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.EXCEL);
         await page.click(SELECTORS.ADMIN.DASHBOARD.EXCEL);
-        await wait(2000);
+        await page.waitForTimeout(2000);
+
+        const cookies = await context.cookies();
+        const cookieHeader = cookies.map((c) => `${c.name}=${c.value}`).join('; ');
+        console.log('Cookie Header:', cookieHeader);
+
+        if (downloadUrl) {
+            const result = await page.evaluate(async (url) => {
+                try {
+                    const response = await fetch(url, {
+                        method: 'GET',
+                        credentials: 'include', // 브라우저 쿠키/토큰 그대로 사용
+                    });
+                    const blob = await response.blob();
+                    return {
+                        status: response.status,
+                        contentType: response.headers.get('content-type'),
+                        size: blob.size,
+                    };
+                } catch (e) {
+                    return { error: e.message };
+                }
+            }, downloadUrl);
+
+            console.log('Status:', result.status);
+            console.log('Content-Type:', result.contentType);
+            console.log('File size (bytes):', result.size);
+
+            check(result, {
+                'download status 200': (r) => r.status === 200,
+                'file size > 1KB': (r) => r.size > 1024,
+                'content-type is xlsx': (r) =>
+                    r.contentType &&
+                    r.contentType.includes(
+                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    ),
+            });
+        } else {
+            console.error('❌ downloadUrl 캐치 실패');
+            check(null, { 'downloadUrl 캐치 성공': () => false });
+        }
         await page.screenshot({ path: `screenshots/${timestamp}_excel_download.png` });
 
         //통계 필터 적용 (combobox: button + role="combobox")
