@@ -1,4 +1,19 @@
 // k6: __ENV.BASE_URL / Node(Playwright): process.env.BASE_URL
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
+
+// Node에서 직접 실행 시 .env 로드 (Playwright/npm test가 아닐 때)
+if (typeof process !== 'undefined' && typeof __ENV === 'undefined') {
+    try {
+        const __dirname = path.dirname(fileURLToPath(import.meta.url));
+        const require = createRequire(import.meta.url);
+        require('dotenv').config({ path: path.resolve(__dirname, '../..', '.env') });
+    } catch (_) {
+        // dotenv 없거나 로드 실패 시 무시 (이미 환경변수로 주입된 경우 대비)
+    }
+}
+
 let BASE_URL;
 if (typeof __ENV !== 'undefined' && __ENV.BASE_URL) {
     BASE_URL = __ENV.BASE_URL;
