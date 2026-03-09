@@ -31,6 +31,24 @@ jobs:
         with:
           ref: sam-k6
 
+      - name: Install Chromium dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3 \
+            libatk-bridge2.0-0 \
+            libdrm2 \
+            libxkbcommon0 \
+            libgbm1 \
+            libasound2t64 \
+            libxshmfence1 \
+            libxrandr2 \
+            libpangocairo-1.0-0 \
+            libgtk-3-0
+      
+      - name: Increase /dev/shm size
+        run: sudo mount -t tmpfs -o size=2g tmpfs /dev/shm
+
       - name: Build k6 with xk6-influxdb
         run: |
           docker run --rm \
@@ -48,6 +66,7 @@ jobs:
           ENV: ${{ secrets.K6_ENV || 'dev' }}
           ROLE: ${{ secrets.K6_ROLE || 'master' }}
           K6_BROWSER_HEADLESS: ${{ secrets.K6_BROWSER_HEADLESS || 'true' }}
+          K6_BROWSER_ARGS: '--no-sandbox --disable-dev-shm-usage'  # 추가
           BASE_URL: ${{ secrets.K6_BASE_URL }}
           LOGIN_EMAIL: ${{ secrets.K6_LOGIN_EMAIL }}
           LOGIN_PASSWORD: ${{ secrets.K6_LOGIN_PASSWORD }}
