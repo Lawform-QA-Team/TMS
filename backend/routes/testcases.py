@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, send_file
 from models import db, TestCase, TestResult, Screenshot, Project, Folder, User, TestCaseTemplate, TestPlan, TestPlanTestCase, SystemConfig
 from utils.cors import add_cors_headers
 from utils.auth_decorators import admin_required, user_required, guest_allowed
-from utils.serializers import serialize_testcase, serialize_project, serialize_folder
+from utils.serializers import serialize_testcase, serialize_project, serialize_folder, get_testcase_effective_project_id
 from services.testcase_service import TestCaseService
 from services.report_service import ReportService
 from utils.history_tracker import get_test_case_history, track_test_case_creation, track_test_case_change, track_test_case_deletion
@@ -27,8 +27,25 @@ testcases_bp = Blueprint('testcases', __name__)
 # 기존 TCM API 엔드포인트들
 @testcases_bp.route('/projects', methods=['GET'])
 def get_projects():
+    from sqlalchemy.sql import case
+    from sqlalchemy import func
+    from models import Folder
     projects = Project.query.all()
-    data = [serialize_project(p) for p in projects]
+    # 프로젝트별 TC 개수 (유효 프로젝트 = TC.project_id 또는 Folder.project_id)
+    effective_project_id = case(
+        (TestCase.project_id.isnot(None), TestCase.project_id),
+        else_=Folder.project_id
+    )
+    count_subq = (
+        db.session.query(
+            effective_project_id.label('project_id'),
+            func.count(TestCase.id).label('cnt')
+        )
+        .outerjoin(Folder, TestCase.folder_id == Folder.id)
+        .group_by(effective_project_id)
+    ).subquery()
+    count_map = {row.project_id: row.cnt for row in db.session.query(count_subq).all()}
+    data = [serialize_project(p, test_case_count=count_map.get(p.id, 0)) for p in projects]
     response = jsonify(data)
     return add_cors_headers(response), 200
 
@@ -90,10 +107,6 @@ def delete_project(project_id):
 @testcases_bp.route('/testcases', methods=['GET', 'OPTIONS'])
 @guest_allowed
 def get_testcases():
-    if request.method == 'OPTIONS':
-        from utils.common_helpers import handle_options_request
-        return handle_options_request()
-    
     try:
         page = request.args.get('page', None, type=int)
         per_page = request.args.get('per_page', None, type=int)
@@ -120,14 +133,20 @@ def get_testcases():
 @guest_allowed
 def get_testcase(id):
     from sqlalchemy.orm import joinedload
-    # N+1 쿼리 문제 해결: joinedload를 사용하여 관련 데이터를 한 번에 로드
+    # N+1 쿼리 문제 해결: joinedload로 관련 데이터 한 번에 로드 (폴더→프로젝트 연결 포함)
     tc = TestCase.query.options(
         joinedload(TestCase.creator),
-        joinedload(TestCase.assignee)
+        joinedload(TestCase.assignee),
+        joinedload(TestCase.folder)
     ).get_or_404(id)
     
+    effective_project_id = get_testcase_effective_project_id(tc)
+    project_name = None
+    if effective_project_id:
+        proj = Project.query.get(effective_project_id)
+        project_name = proj.name if proj else None
+    
     # alpha DB 스키마에 맞춤: Screenshot은 test_result_id를 통해 연결됨
-    # 최적화: test_result_id 목록을 한 번에 가져와서 IN 쿼리로 스크린샷 조회
     test_results = TestResult.query.filter_by(test_case_id=id).all()
     if test_results:
         result_ids = [result.id for result in test_results]
@@ -140,6 +159,10 @@ def get_testcase(id):
         'id': tc.id,
         'name': tc.name,
         'project_id': tc.project_id,
+        'effective_project_id': effective_project_id,
+        'project_name': project_name,
+        'folder_id': tc.folder_id,
+        'folder_name': tc.folder.folder_name if tc.folder else None,
         'main_category': tc.main_category,
         'sub_category': tc.sub_category,
         'detail_category': tc.detail_category,
@@ -150,7 +173,6 @@ def get_testcase(id):
         'test_steps': tc.test_steps,
         'automation_code_path': tc.automation_code_path,
         'automation_code_type': tc.automation_code_type,
-        'folder_id': tc.folder_id,
         'creator_id': tc.creator_id,
         'assignee_id': tc.assignee_id,
         'creator_name': tc.creator.get_display_name() if tc.creator else None,
@@ -316,18 +338,22 @@ def create_testcase():
     if validation_error:
         return validation_error
     
-    # project_id가 없으면 기본 프로젝트 사용 또는 생성
-    project_id = data.get('project_id')
-    if not project_id:
-        default_project = get_or_create_default_project()
-        project_id = default_project.id
-    
     # folder_id가 없으면 기본 폴더 사용
     folder_id = data.get('folder_id')
     if not folder_id:
         default_folder = get_or_create_default_folder()
         if default_folder:
             folder_id = default_folder.id
+    
+    # project_id: 요청값 우선, 없으면 연결 폴더의 프로젝트로 설정
+    project_id = data.get('project_id')
+    if not project_id and folder_id:
+        folder = Folder.query.get(folder_id)
+        if folder and folder.project_id:
+            project_id = folder.project_id
+    if not project_id:
+        default_project = get_or_create_default_project()
+        project_id = default_project.id
     
     # 폴더의 환경 정보를 자동으로 가져오기
     folder_environment = 'dev'  # 기본값
@@ -374,7 +400,14 @@ def create_testcase():
                     test_case_name = ' > '.join([c for c in categories if c]) or f"테스트 케이스 #{tc.id}"
                 else:
                     test_case_name = f"테스트 케이스 #{tc.id}"
-                
+                new_assignee = User.query.get(tc.assignee_id)
+                new_assignee_display = new_assignee.get_display_name() if new_assignee else str(tc.assignee_id)
+                metadata = {
+                    'test_case_name': test_case_name,
+                    'old_assignee_id': None,
+                    'old_assignee_display': '(없음)',
+                    'new_assignee_display': new_assignee_display,
+                }
                 logger.info(f"🔔 알림 생성 파라미터: user_id={tc.assignee_id}, title='테스트 케이스 담당자 지정', message='{test_case_name}'")
                 
                 notification = notification_service.create_notification(
@@ -383,7 +416,8 @@ def create_testcase():
                     title='테스트 케이스 담당자 지정',
                     message=f"'{test_case_name}' 테스트 케이스의 담당자로 지정되었습니다.",
                     related_test_case_id=tc.id,
-                    priority='medium'
+                    priority='medium',
+                    metadata=metadata
                 )
                 logger.info(f"✅ 담당자 지정 알림 생성 성공: Notification ID {notification.id if notification else 'None'}")
             except Exception as e:
@@ -551,10 +585,12 @@ def update_testcase(id):
         # 폴더 ID가 변경되었는지 확인
         new_folder_id = data.get('folder_id', tc.folder_id)
         if new_folder_id != tc.folder_id:
-            # 새 폴더의 환경 정보로 자동 업데이트
+            # 새 폴더의 환경·프로젝트 정보로 자동 업데이트
             new_folder = Folder.query.get(new_folder_id)
             if new_folder:
                 tc.environment = new_folder.environment
+                if new_folder.project_id is not None:
+                    tc.project_id = new_folder.project_id
                 print(f"🔄 폴더 변경으로 인한 환경 정보 업데이트: {tc.environment} → {new_folder.environment}")
         
         # 테스트 케이스 정보 업데이트
@@ -594,7 +630,16 @@ def update_testcase(id):
                         test_case_name = ' > '.join([c for c in categories if c]) or f"테스트 케이스 #{tc.id}"
                     else:
                         test_case_name = f"테스트 케이스 #{tc.id}"
-                    
+                    old_assignee = User.query.get(old_assignee_id) if old_assignee_id else None
+                    new_assignee = User.query.get(new_assignee_id) if new_assignee_id else None
+                    old_assignee_display = old_assignee.get_display_name() if old_assignee else '(없음)'
+                    new_assignee_display = new_assignee.get_display_name() if new_assignee else str(new_assignee_id)
+                    metadata = {
+                        'test_case_name': test_case_name,
+                        'old_assignee_id': old_assignee_id,
+                        'old_assignee_display': old_assignee_display,
+                        'new_assignee_display': new_assignee_display,
+                    }
                     logger.info(f"🔔 알림 생성 파라미터: user_id={new_assignee_id}, title='테스트 케이스 담당자 지정', message='{test_case_name}'")
                     
                     notification = notification_service.create_notification(
@@ -603,7 +648,8 @@ def update_testcase(id):
                         title='테스트 케이스 담당자 지정',
                         message=f"'{test_case_name}' 테스트 케이스의 담당자로 지정되었습니다.",
                         related_test_case_id=tc.id,
-                        priority='medium'
+                        priority='medium',
+                        metadata=metadata
                     )
                     logger.info(f"✅ 담당자 변경 알림 생성 성공: Notification ID {notification.id if notification else 'None'}")
                 except Exception as e:

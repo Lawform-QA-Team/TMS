@@ -128,50 +128,66 @@ const ProjectManager = () => {
         )}
       </div>
 
-      <div className="project-list">
-        {projects.map(project => (
-          <div key={project.id} className="project-card">
-            <div className="project-info">
-              <h3>{project.name}</h3>
-              <p>{project.description || '설명 없음'}</p>
-            </div>
-            <div className="project-actions">
-              {canEditProject() && (
-                <button 
-                  className="btn btn-edit"
-                  onClick={() => {
-                    setEditingProject(project);
-                    setShowEditModal(true);
-                  }}
-                >
-                  ✏️ 수정
-                </button>
+      <div className="project-section-table">
+        <div className="users-table-wrapper">
+          <table className="users-table">
+            <thead>
+              <tr>
+                <th>프로젝트명</th>
+                <th>설명</th>
+                <th>추가기능</th>
+              </tr>
+            </thead>
+            <tbody>
+              {projects.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="col-empty">
+                    등록된 프로젝트가 없습니다.
+                    {canAddProject() && (
+                      <button
+                        type="button"
+                        className="btn btn-add-inline"
+                        onClick={() => setShowAddModal(true)}
+                      >
+                        첫 번째 프로젝트 추가하기
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ) : (
+                projects.map(project => (
+                  <tr key={project.id}>
+                    <td className="col-name">{project.name}</td>
+                    <td className="col-description">{project.description || '설명 없음'}</td>
+                    <td className="col-actions">
+                      {canEditProject() && (
+                        <button
+                          type="button"
+                          className="btn-text btn-edit"
+                          onClick={() => {
+                            setEditingProject(project);
+                            setShowEditModal(true);
+                          }}
+                        >
+                          수정
+                        </button>
+                      )}
+                      {canDeleteProject() && (
+                        <button
+                          type="button"
+                          className="btn-text btn-delete"
+                          onClick={() => handleDeleteProject(project.id)}
+                        >
+                          삭제
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
               )}
-              {canDeleteProject() && (
-                <button 
-                  className="btn btn-delete"
-                  onClick={() => handleDeleteProject(project.id)}
-                >
-                  🗑️ 삭제
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-        
-        {projects.length === 0 && (
-          <div className="empty-state">
-            <p>등록된 프로젝트가 없습니다.</p>
-            {canAddProject() && (
-              <button 
-                className="btn btn-add"
-                onClick={() => setShowAddModal(true)}
-              >
-                첫 번째 프로젝트 추가하기
-              </button>
-            )}
-          </div>
-        )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* 프로젝트 추가 모달 */}

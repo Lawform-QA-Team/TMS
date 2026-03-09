@@ -161,39 +161,39 @@ const TestCaseTable = ({
                   {/* 자동화 실행 버튼 (코드 경로 또는 테스트 단계가 있으면 표시) */}
                   {(testCase.automation_code_path || testCase.test_steps) && (
                     <button 
-                      className="testcase-btn testcase-btn-automation testcase-btn-icon"
+                      className="testcase-btn testcase-btn-automation"
                       onClick={() => onExecute(testCase.id)}
                       title={testCase.automation_code_path ? '자동화 실행' : '테스트 단계 실행'}
                     >
-                      🤖
+                      실행
                     </button>
                   )}
                   {/* 상세보기 버튼 */}
                   <button 
-                    className="testcase-btn testcase-btn-details testcase-btn-icon"
+                    className="testcase-btn testcase-btn-details"
                     onClick={() => onViewDetails(testCase)}
                     title="상세보기"
                   >
-                    📄
+                    상세
                   </button>
                   {/* 수정 버튼 */}
                   {user && (user.role === 'admin' || user.role === 'user') && (
                     <button 
-                      className="testcase-btn testcase-btn-edit testcase-btn-icon"
+                      className="testcase-btn testcase-btn-edit"
                       onClick={() => onEdit(testCase)}
                       title="수정"
                     >
-                      ✏️
+                      수정
                     </button>
                   )}
                   {/* 삭제 버튼 */}
                   {user && user.role === 'admin' && (
                     <button 
-                      className="testcase-btn testcase-btn-delete testcase-btn-icon"
+                      className="testcase-btn testcase-btn-delete"
                       onClick={() => onDelete(testCase.id)}
                       title="삭제"
                     >
-                      ✕
+                      삭제
                     </button>
                   )}
                 </div>

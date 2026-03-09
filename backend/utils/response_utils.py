@@ -118,3 +118,8 @@ def forbidden_response(message="접근 권한이 없습니다."):
         error_code='FORBIDDEN',
         status_code=403
     )
+
+
+def api_error(message, status_code=500):
+    """API 에러 응답 (기존 {'error': message} 형식 호환)"""
+    return jsonify({'error': message}), status_code

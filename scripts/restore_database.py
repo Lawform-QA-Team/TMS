@@ -7,31 +7,47 @@ import os
 import sys
 import subprocess
 import tempfile
+import shutil
 from pathlib import Path
+from urllib.parse import urlparse, unquote
 from dotenv import load_dotenv
 
 # 프로젝트 루트로 경로 설정
 project_root = Path(__file__).parent.parent
 os.chdir(project_root)
 
-# .env 파일 로드
-load_dotenv()
+# .env 파일 로드 (backend/.env 우선)
+load_dotenv(project_root / "backend" / ".env")
+load_dotenv(project_root / ".env")
 
 def get_db_config():
-    """데이터베이스 설정 가져오기"""
-    db_type = os.environ.get('DB_TYPE', 'sqlite').lower()
-    
-    if db_type == 'mysql' or os.environ.get('DATABASE_URL', '').startswith('mysql'):
+    """데이터베이스 설정 가져오기 (MYSQL_DATABASE_URL 또는 DB_* 환경 변수)"""
+    url = os.environ.get("MYSQL_DATABASE_URL") or os.environ.get("DATABASE_URL", "")
+    if url and ("mysql" in url or "pymysql" in url):
+        try:
+            parsed = urlparse(url)
+            if parsed.username and parsed.path:
+                return {
+                    "type": "mysql",
+                    "host": parsed.hostname or "localhost",
+                    "port": str(parsed.port or 3306),
+                    "user": unquote(parsed.username or ""),
+                    "password": unquote(parsed.password or "") if parsed.password else "",
+                    "database": (parsed.path.lstrip("/").split("?")[0] or "test_management"),
+                }
+        except Exception:
+            pass
+    db_type = os.environ.get("DB_TYPE", "sqlite").lower()
+    if db_type == "mysql" or (url and "mysql" in url):
         return {
-            'type': 'mysql',
-            'host': os.environ.get('DB_HOST', 'localhost'),
-            'port': os.environ.get('DB_PORT', '3306'),
-            'user': os.environ.get('DB_USER', 'root'),
-            'password': os.environ.get('DB_PASSWORD', '1q2w#E$R'),
-            'database': os.environ.get('DB_NAME', 'test_management')
+            "type": "mysql",
+            "host": os.environ.get("DB_HOST", "localhost"),
+            "port": os.environ.get("DB_PORT", "3306"),
+            "user": os.environ.get("DB_USER", "root"),
+            "password": os.environ.get("DB_PASSWORD", "1q2w#E$R"),
+            "database": os.environ.get("DB_NAME", "test_management"),
         }
-    else:
-        return {'type': 'sqlite'}
+    return {"type": "sqlite"}
 
 def test_mysql_connection(config):
     """MySQL 연결 테스트"""
@@ -113,13 +129,22 @@ def restore_mysql(config, backup_file):
             cnf.write(f"port={config['port']}\n")
             cnf_path = cnf.name
         try:
-            os.chmod(cnf_path, 0o600)
+            try:
+                os.chmod(cnf_path, 0o600)
+            except OSError:
+                pass  # Windows 등에서 chmod 미지원 시 무시
+            mysql_exe = shutil.which("mysql")
+            if not mysql_exe:
+                print("❌ 'mysql' 클라이언트를 PATH에서 찾을 수 없습니다.")
+                print("   Windows: MySQL 설치 후 bin 폴더를 PATH에 추가하세요.")
+                print("   예: C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin")
+                return False
             mysql_cmd = [
-                'mysql',
+                mysql_exe,
                 f'--defaults-extra-file={cnf_path}',
                 config['database']
             ]
-            with open(backup_file, 'r', encoding='utf-8') as f:
+            with open(backup_file, 'r', encoding='utf-8', errors='replace') as f:
                 process = subprocess.Popen(
                     mysql_cmd,
                     stdin=f,

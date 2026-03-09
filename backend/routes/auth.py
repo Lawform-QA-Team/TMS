@@ -9,7 +9,7 @@ from utils.response_utils import (
     validation_error_response, unauthorized_response, 
     not_found_response, forbidden_response
 )
-from utils.cors_helpers import handle_options_request, create_cors_response
+from utils.common_helpers import handle_options_request, create_cors_response
 from utils.auth_constants import MESSAGES, MIN_PASSWORD_LENGTH, ROLE_GUEST
 from utils.auth_helpers import (
     create_user_session, create_tokens, create_guest_tokens,
@@ -60,9 +60,6 @@ def register():
       400:
         description: 유효하지 않은 요청
     """
-    if request.method == 'OPTIONS':
-        return handle_options_request()
-    
     try:
         data = request.get_json()
         
@@ -147,9 +144,6 @@ def login():
       401:
         description: 인증 실패
     """
-    if request.method == 'OPTIONS':
-        return handle_options_request()
-    
     try:
         logger.info("로그인 시도 시작")
         data = request.get_json()
@@ -230,9 +224,6 @@ def guest_login():
       200:
         description: 게스트 토큰 반환
     """
-    if request.method == 'OPTIONS':
-        return handle_options_request()
-    
     try:
         logger.info("게스트 로그인 시도")
         
