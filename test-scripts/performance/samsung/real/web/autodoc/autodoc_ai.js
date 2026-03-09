@@ -39,53 +39,47 @@ export default async function() {
     try {
         await loginWithPage(page, credentials);
 
-        // 문서 작성 - 표준 양식
-        await page.goto(URLS.AUTODOC.AUTODOC);
-        await wait(5000);
-        let timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC.png` });
-
-        // 문서 작성 - 표준 양식, 페이지네이션
-        await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(5000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_pagination_last.png` });
-        await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST);
-
-        // 문서 작성 - 표준 양식, 검색
+        // AI 검토 편집
+        await page.goto(URLS.AUTODOC.EXISTING);
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
         await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, '삼성');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(5000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_search.png` });
-
-        // 문서 작성 - 표준 양식, 테이블 클릭
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
+        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
+        await page.click(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
+        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_EDIT);
+        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_EDIT);
         await wait(5000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table.png` });
+        let timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_ai.png` });
 
-        // 문서 작성 - 표준 양식, 작성
-        await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
-        await page.click(SELECTORS.COMMON.TABLE);
-            // 내용을 작성했다고 가정
-        await wait(5000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_write.png` });
+        // 문서 작성 - 기존 문서, AI 검토 * 편집, 채팅 입력
+        // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.TEXTAREA);
+        // await page.type(SELECTORS.FEATURES.AUTODOC.TEXTAREA, '조항을 추가해줘');
+        // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SEND);
+        // await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SEND);
+        // await wait(20000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_ai_send.png` });
 
-        // 문서 작성 - 표준 양식, 임시저장
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_DRAFT_SAVE);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_DRAFT_SAVE);
+        // 문서 작성 - 기존 문서, AI 검토 * 편집, 자동 검토
+        // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AUTO_REVIEW);
+        // await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_AUTO_REVIEW);
+        // await wait(20000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_ai_auto.png` });
+
+        // 문서 작성 - 기존 문서, AI 검토 * 편집, 코멘트
+        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
+        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
         await wait(5000);
         timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_submit.png` });
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
+        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_ai_comment.png` });
+        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
+        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
 
     } finally {
         if (page) await page.close();
@@ -99,7 +93,7 @@ export function handleSummary(data) {
     // 결과 추출 및 Slack 발송
     const slackWebhookUrl = __ENV.SLACK_WEBHOOK_URL;
     if (slackWebhookUrl) {
-        const payload = buildK6SummaryMessage(data, 'Web Autodoc');
+        const payload = buildK6SummaryMessage(data, 'Web Autodoc temp');
         const result = sendSlackWebhook(slackWebhookUrl, payload);
         if (!result.ok) {
             console.warn(`[Slack] 메시지 발송 실패 (status: ${result.status})`);

@@ -56,13 +56,12 @@ export default async function() {
 
         // 문서 작성 - 임시 저장 문서, 검색
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
-        await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, '테스트');
+        await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, '삼성');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(5000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_search.png` });
-        await page.goto(URLS.AUTODOC.TEMP);
 
         // 문서 작성 - 임시 저장 문서, 테이블 클릭
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
@@ -83,9 +82,18 @@ export default async function() {
         // 문서 작성 - 표준 양식, AI 자동 라벨링
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
+        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
+        await page.waitForFunction(
+            (selector) => {
+                const el = document.querySelector(selector);
+                return el && !el.disabled;
+            },
+            {},
+            SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING
+        );
         await wait(5000);
         timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_preview.png` });
+        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_labeling.png` });
 
         // 문서 작성 - 표준 양식, 저장
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
