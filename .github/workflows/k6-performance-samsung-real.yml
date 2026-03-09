@@ -26,8 +26,10 @@ jobs:
     timeout-minutes: 120
 
     steps:
-      - name: Checkout
+      - name: Checkout (sam-k6)
         uses: actions/checkout@v4
+        with:
+          ref: sam-k6
 
       - name: Build k6 with xk6-influxdb
         run: |
