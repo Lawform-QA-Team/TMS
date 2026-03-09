@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '@tms/contexts/AuthContext';
-import Auth from './Auth';
+import Auth from '@tms/components/auth/Auth';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading, user } = useAuth();

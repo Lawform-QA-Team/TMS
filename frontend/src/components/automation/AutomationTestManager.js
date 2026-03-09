@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '@tms/config';
 import { useAuth } from '@tms/contexts/AuthContext';
-import AutomationTestDetail from './AutomationTestDetail';
-import './AutomationTestManager.css';
-import '../common/Modal.css';
+import { getUserDisplayName } from '@tms/utils/userDisplay';
+import AutomationTestDetail from '@tms/components/automation/AutomationTestDetail';
+import '@tms/components/automation/AutomationTestManager.css';
+import '@tms/components/common/Modal.css';
 
 axios.defaults.baseURL = config.apiUrl;
 
@@ -271,7 +272,7 @@ const AutomationTestManager = () => {
             ? { 
                 ...t, 
                 assignee_id: newAssigneeId ? Number(newAssigneeId) : null,
-                assignee_name: newAssigneeId ? users.find(u => u.id === Number(newAssigneeId))?.username || users.find(u => u.id === Number(newAssigneeId))?.first_name || 'Unknown' : null
+                assignee_name: newAssigneeId ? getUserDisplayName(users.find(u => u.id === Number(newAssigneeId))) || 'Unknown' : null
               }
             : t
         )
@@ -307,7 +308,7 @@ const AutomationTestManager = () => {
             marginBottom: '10px',
             fontSize: '14px'
           }}>
-            👀 게스트 모드: 조회만 가능합니다.
+            게스트 모드: 조회만 가능합니다.
           </div>
         )}
         <div className="header-actions">
@@ -500,7 +501,7 @@ const AutomationTestManager = () => {
                           {users && users.length > 0 ? (
                             users.map(user => (
                               <option key={user.id} value={user.id}>
-                                {user.username || user.first_name || 'Unknown'}
+                                {getUserDisplayName(user) || 'Unknown'}
                               </option>
                             ))
                           ) : (
@@ -519,36 +520,36 @@ const AutomationTestManager = () => {
                       <div className="automation-action-buttons">
                         {user && (user.role === 'admin' || user.role === 'user') && (
                           <button 
-                           className="automation-btn automation-btn-execute automation-btn-icon"
+                            className="automation-btn automation-btn-execute"
                             onClick={() => handleExecuteTest(test.id)}
                             title="자동화 실행"
                           >
-                            🤖
+                            실행
                           </button>
                         )}
                         <button 
-                          className="automation-btn automation-btn-details automation-btn-icon"
+                          className="automation-btn automation-btn-details"
                           onClick={() => toggleTestDetails(test)}
                           title="상세보기"
                         >
-                          {selectedTest && selectedTest.id === test.id ? '📋' : '📄'}
+                          상세
                         </button>
                         {user && (user.role === 'admin' || user.role === 'user') && (
                           <button 
-                            className="automation-btn automation-btn-edit automation-btn-icon"
+                            className="automation-btn automation-btn-edit"
                             onClick={() => handleEditClick(test)}
                             title="수정"
                           >
-                            ✏️
+                            수정
                           </button>
                         )}
                         {user && user.role === 'admin' && (
                           <button 
-                            className="automation-btn automation-btn-delete automation-btn-icon"
+                            className="automation-btn automation-btn-delete"
                             onClick={() => handleDeleteTest(test.id)}
                             title="삭제"
                           >
-                            ✕
+                            삭제
                           </button>
                         )}
                       </div>
@@ -690,9 +691,9 @@ const AutomationTestManager = () => {
                   >
                     <option value="">담당자를 선택하세요</option>
                     {users.map(user => (
-                      <option key={user.id} value={user.id}>
-                        {user.username || user.first_name || user.email}
-                      </option>
+                    <option key={user.id} value={user.id}>
+                      {getUserDisplayName(user)}
+                    </option>
                     ))}
                   </select>
                 </div>
@@ -801,9 +802,9 @@ const AutomationTestManager = () => {
                   >
                     <option value="">담당자를 선택하세요</option>
                     {users.map(user => (
-                      <option key={user.id} value={user.id}>
-                        {user.username || user.first_name || user.email}
-                      </option>
+                    <option key={user.id} value={user.id}>
+                      {getUserDisplayName(user)}
+                    </option>
                     ))}
                   </select>
                 </div>

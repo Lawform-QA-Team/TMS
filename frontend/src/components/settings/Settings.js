@@ -1,21 +1,15 @@
 import React, { useState } from 'react';
-import ProjectManager from './ProjectManager';
-import FolderManager from './FolderManager';
-import AccountManager from './AccountManager';
-import PromptSettings from './PromptSettings';
+import ProjectFolderManager from '@tms/components/settings/ProjectFolderManager';
+import AccountManager from '@tms/components/settings/AccountManager';
+import PromptSettings from '@tms/components/settings/PromptSettings';
 import { useAuth } from '@tms/contexts/AuthContext';
-import './Settings.css';
+import '@tms/components/settings/Settings.css';
 
 const Settings = () => {
   const [activeMenu, setActiveMenu] = useState('accounts');
   const { user } = useAuth();
 
-  // 권한별 메뉴 표시 조건
-  const canAccessProjects = () => {
-    return user && user.role === 'admin';
-  };
-
-  const canAccessFolders = () => {
+  const canAccessProjectFolder = () => {
     return user && (user.role === 'admin' || user.role === 'user');
   };
 
@@ -29,10 +23,8 @@ const Settings = () => {
 
   const renderContent = () => {
     switch (activeMenu) {
-      case 'projects':
-        return canAccessProjects() ? <ProjectManager /> : <div>접근 권한이 없습니다.</div>;
-      case 'folders':
-        return canAccessFolders() ? <FolderManager /> : <div>접근 권한이 없습니다.</div>;
+      case 'project-folders':
+        return canAccessProjectFolder() ? <ProjectFolderManager /> : <div>접근 권한이 없습니다.</div>;
       case 'tc-prompt':
         return canAccessPromptSettings() ? <PromptSettings /> : <div>접근 권한이 없습니다.</div>;
       case 'accounts':
@@ -65,23 +57,13 @@ const Settings = () => {
           <nav className="snb-menu">
             <h3>설정 메뉴</h3>
             <ul>
-              {canAccessProjects() && (
+              {canAccessProjectFolder() && (
                 <li>
                   <button 
-                    className={`snb-item ${activeMenu === 'projects' ? 'active' : ''}`}
-                    onClick={() => setActiveMenu('projects')}
+                    className={`snb-item ${activeMenu === 'project-folders' ? 'active' : ''}`}
+                    onClick={() => setActiveMenu('project-folders')}
                   >
-                    📋 프로젝트 관리
-                  </button>
-                </li>
-              )}
-              {canAccessFolders() && (
-                <li>
-                  <button 
-                    className={`snb-item ${activeMenu === 'folders' ? 'active' : ''}`}
-                    onClick={() => setActiveMenu('folders')}
-                  >
-                    📁 폴더 관리
+                    📁 프로젝트·폴더 관리
                   </button>
                 </li>
               )}

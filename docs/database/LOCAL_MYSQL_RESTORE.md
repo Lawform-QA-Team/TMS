@@ -174,8 +174,10 @@ mysql -u root -p1q2w#E$R test_management -e "SELECT COUNT(*) FROM TestCases;"
 복구 전에 현재 데이터를 백업하려면:
 
 ```bash
-# 현재 데이터베이스 백업
-mysqldump -u root -p1q2w#E$R test_management > mysql-backup/before_restore_$(date +%Y%m%d_%H%M%S).sql
+# 현재 데이터베이스 백업 (비밀번호 경고 없이: 임시 설정 파일 사용)
+MYSQL_CNF=$(mktemp) && chmod 600 "$MYSQL_CNF" && printf '[client]\nuser=root\npassword=1q2w#E$R\n' > "$MYSQL_CNF"
+mysqldump --defaults-extra-file="$MYSQL_CNF" test_management > mysql-backup/before_restore_$(date +%Y%m%d_%H%M%S).sql
+rm -f "$MYSQL_CNF"
 ```
 
 ## 📚 관련 문서

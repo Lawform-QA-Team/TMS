@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import config from '@tms/config';
-import './NotificationBell.css';
+import '@tms/components/notifications/NotificationBell.css';
 
 const NotificationBell = () => {
   const [notifications, setNotifications] = useState([]);

@@ -86,8 +86,12 @@ BACKUP_FILE="mysql-backup/backup_$(date +%Y%m%d_%H%M%S).sql"
 S3_BUCKET="test-platform-backups"
 S3_PATH="database/backup_$(date +%Y%m%d_%H%M%S).sql"
 
-# MySQL 덤프 생성
-mysqldump -u root -p1q2w#E$R test_management > $BACKUP_FILE
+# MySQL 덤프 생성 (비밀번호를 명령줄에 넣지 않으면 경고가 나오지 않음)
+# 방법 1: 임시 설정 파일 사용
+MYSQL_CNF=$(mktemp) && chmod 600 "$MYSQL_CNF" && printf '[client]\nuser=root\npassword=1q2w#E$R\n' > "$MYSQL_CNF"
+mysqldump --defaults-extra-file="$MYSQL_CNF" test_management > $BACKUP_FILE
+rm -f "$MYSQL_CNF"
+# 방법 2 (경고 발생): mysqldump -u root -p1q2w#E$R test_management > $BACKUP_FILE
 
 # S3에 업로드
 aws s3 cp $BACKUP_FILE s3://$S3_BUCKET/$S3_PATH

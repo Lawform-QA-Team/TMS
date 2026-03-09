@@ -110,10 +110,6 @@ def execute_scheduled_test(schedule_id, test_case_id, environment, execution_par
 @guest_allowed
 def get_schedules():
     """스케줄 목록 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         # 필터링 파라미터
         test_case_id = request.args.get('test_case_id', type=int)
@@ -145,10 +141,6 @@ def get_schedules():
 @guest_allowed
 def get_schedule(id):
     """스케줄 상세 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         schedule = TestSchedule.query.get_or_404(id)
         data = schedule.to_dict()
@@ -165,10 +157,6 @@ def get_schedule(id):
 @user_required
 def create_schedule():
     """스케줄 생성"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data = request.get_json()
         
@@ -241,10 +229,6 @@ def create_schedule():
 @user_required
 def update_schedule(id):
     """스케줄 수정"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         schedule = TestSchedule.query.get_or_404(id)
         data = request.get_json()
@@ -308,10 +292,6 @@ def update_schedule(id):
 @user_required
 def delete_schedule(id):
     """스케줄 삭제"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         schedule = TestSchedule.query.get_or_404(id)
         
@@ -335,10 +315,6 @@ def delete_schedule(id):
 @user_required
 def toggle_schedule(id):
     """스케줄 활성화/비활성화 토글"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         schedule = TestSchedule.query.get_or_404(id)
         schedule.enabled = not schedule.enabled
@@ -377,10 +353,6 @@ def toggle_schedule(id):
 @user_required
 def run_schedule_now(id):
     """스케줄 즉시 실행"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         schedule = TestSchedule.query.get_or_404(id)
         

@@ -34,14 +34,14 @@ def get_automation_tests():
             if test.creator_id:
                 creator = User.query.get(test.creator_id)
                 if creator:
-                    creator_name = creator.username or creator.first_name or creator.email
+                    creator_name = creator.get_display_name()
             
             # 담당자 정보 조회
             assignee_name = None
             if test.assignee_id:
                 assignee = User.query.get(test.assignee_id)
                 if assignee:
-                    assignee_name = assignee.username or assignee.first_name or assignee.email
+                    assignee_name = assignee.get_display_name()
             
             response_data.append({
                 'id': test.id,

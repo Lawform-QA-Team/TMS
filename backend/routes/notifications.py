@@ -17,10 +17,6 @@ notifications_bp = Blueprint('notifications', __name__)
 @user_required
 def get_notifications():
     """사용자 알림 목록 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         user_id = request.user.id
         username = getattr(request.user, 'username', 'Unknown')
@@ -65,10 +61,6 @@ def get_notifications():
 @user_required
 def get_notification(id):
     """알림 상세 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         user_id = request.user.id
         notification = Notification.query.filter_by(
@@ -88,10 +80,6 @@ def get_notification(id):
 @user_required
 def mark_notification_read(id):
     """알림 읽음 처리"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         user_id = request.user.id
         
@@ -111,10 +99,6 @@ def mark_notification_read(id):
 @user_required
 def mark_all_notifications_read():
     """모든 알림 읽음 처리"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         user_id = request.user.id
         
@@ -134,10 +118,6 @@ def mark_all_notifications_read():
 @user_required
 def delete_notification(id):
     """알림 삭제"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         user_id = request.user.id
         notification = Notification.query.filter_by(
@@ -161,10 +141,6 @@ def delete_notification(id):
 @user_required
 def get_notification_settings():
     """알림 설정 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         user_id = request.user.id
         settings = NotificationSettings.query.filter_by(user_id=user_id).first()
@@ -190,10 +166,6 @@ def get_notification_settings():
 @user_required
 def update_notification_settings():
     """알림 설정 업데이트"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         user_id = request.user.id
         data = request.get_json()

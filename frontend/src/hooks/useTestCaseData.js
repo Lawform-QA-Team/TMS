@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import config from '../config';
+import config from '@tms/config';
 
 export const useTestCaseData = () => {
   const [testCases, setTestCases] = useState([]);

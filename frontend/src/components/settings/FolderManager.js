@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '@tms/config';
-import './FolderManager.css';
+import '@tms/components/settings/FolderManager.css';
 
 const FolderManager = () => {
   const [folders, setFolders] = useState([]);
@@ -196,55 +196,78 @@ const FolderManager = () => {
         </button>
       </div>
 
-      <div className="folder-list">
-        {Array.isArray(folders) && folders.map(folder => (
-          <div key={folder.id} className="folder-card">
-            <div className="folder-info">
-              <h3>{folder.folder_name}</h3>
-              <p>타입: {
-                folder.folder_type === 'environment' ? '환경' : 
-                folder.folder_type === 'deployment_date' ? '배포일자' : 
-                folder.folder_type === 'feature' ? '기능명' : 
-                folder.folder_type ? folder.folder_type : '미분류'
-              }</p>
-              {folder.environment && <p>환경: {folder.environment}</p>}
-              {folder.deployment_date && <p>배포일자: {folder.deployment_date}</p>}
-              {folder.project_id && <p>프로젝트 ID: {folder.project_id}</p>}
-            </div>
-            <div className="folder-actions">
-              <button 
-                className="btn btn-edit"
-                onClick={() => {
-                  setEditingFolder({
-                    ...folder,
-                    project_id: folder.project_id || selectedProjectId
-                  });
-                  setShowEditModal(true);
-                }}
-              >
-                ✏️ 수정
-              </button>
-              <button 
-                className="btn btn-delete"
-                onClick={() => handleDeleteFolder(folder.id)}
-              >
-                🗑️ 삭제
-              </button>
-            </div>
-          </div>
-        ))}
-        
-        {folders.length === 0 && (
-          <div className="empty-state">
-            <p>등록된 폴더가 없습니다.</p>
-            <button 
-              className="btn btn-add"
-              onClick={() => setShowAddModal(true)}
-            >
-              첫 번째 폴더 추가하기
-            </button>
-          </div>
-        )}
+      <div className="folder-section-table">
+        <div className="users-table-wrapper">
+          <table className="users-table">
+            <thead>
+              <tr>
+                <th>폴더명</th>
+                <th>타입</th>
+                <th>환경</th>
+                <th>배포일자</th>
+                <th>프로젝트</th>
+                <th>추가기능</th>
+              </tr>
+            </thead>
+            <tbody>
+              {!Array.isArray(folders) || folders.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="col-empty">
+                    등록된 폴더가 없습니다.
+                    <button
+                      type="button"
+                      className="btn btn-add-inline"
+                      onClick={() => setShowAddModal(true)}
+                    >
+                      첫 번째 폴더 추가하기
+                    </button>
+                  </td>
+                </tr>
+              ) : (
+                folders.map(folder => (
+                  <tr key={folder.id}>
+                    <td className="col-name">{folder.folder_name}</td>
+                    <td className="col-type">
+                      <span className={`folder-type-badge ${folder.folder_type || ''}`}>
+                        {folder.folder_type === 'environment' ? '환경' :
+                         folder.folder_type === 'deployment_date' ? '배포일자' :
+                         folder.folder_type === 'feature' ? '기능명' :
+                         folder.folder_type || '미분류'}
+                      </span>
+                    </td>
+                    <td className="col-env">{folder.environment || '-'}</td>
+                    <td className="col-date">{folder.deployment_date || '-'}</td>
+                    <td className="col-project">
+                      {projects.find(p => p.id === folder.project_id)?.name || `ID ${folder.project_id || '-'}`}
+                    </td>
+                    <td className="col-actions">
+                      <button
+                        type="button"
+                        className="btn-text btn-edit"
+                        onClick={() => {
+                          setEditingFolder({
+                            ...folder,
+                            project_id: folder.project_id || selectedProjectId
+                          });
+                          setShowEditModal(true);
+                        }}
+                      >
+                        수정
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-text btn-delete"
+                        onClick={() => handleDeleteFolder(folder.id)}
+                      >
+                        삭제
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* 폴더 추가 모달 */}

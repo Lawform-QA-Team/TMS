@@ -1,0 +1,112 @@
+# K6 성능 테스트 - samsung/real 전체 스크립트 주기 실행
+# PC 잠자기와 관계없이 GitHub 서버에서 실행됩니다.
+#
+# [필수] 저장소 Settings → Secrets and variables → Actions 에서 다음 추가:
+#   K6_BASE_URL          - 대상 URL (예: https://dev-admin.privacydocs.kr/)
+#   K6_LOGIN_EMAIL       - 로그인 이메일
+#   K6_LOGIN_PASSWORD    - 로그인 비밀번호
+#   K6_INFLUXDB_ORGANIZATION
+#   K6_INFLUXDB_BUCKET
+#   K6_INFLUXDB_TOKEN
+#   K6_INFLUXDB_ADDR     - InfluxDB 주소 (예: https://us-east-1-1.aws.cloud2.influxdata.com)
+# [선택] K6_ACCOUNT, K6_ENV, K6_ROLE, K6_BROWSER_HEADLESS(true), K6_INFLUXDB_PUSH_INTERVAL, K6_SLACK_WEBHOOK_URL
+#
+name: K6 Performance (samsung/real)
+
+on:
+  schedule:
+    # 매일 새벽 3시(UTC) = 한국시간 12시 (UTC+9)
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    # 수동 실행용 (Actions 탭에서 "Run workflow" 버튼)
+
+jobs:
+  k6-samsung-real:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout (sam-k6)
+        uses: actions/checkout@v4
+        with:
+          ref: sam-k6
+
+      - name: Install Chromium dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3 libatk-bridge2.0-0 libdrm2 libxkbcommon0 \
+            libgbm1 libasound2t64 libxshmfence1 libxrandr2 \
+            libpangocairo-1.0-0 libgtk-3-0 \
+            chromium-browser || true
+
+      - name: Increase /dev/shm size
+        run: sudo mount -t tmpfs -o size=2g tmpfs /dev/shm
+
+      - name: Prepare Result directories
+        run: |
+          find test-scripts/performance/samsung/real -type d | while read -r dir; do
+            mkdir -p "$dir/Result"
+          done
+
+      - name: Build k6 with xk6-influxdb
+        run: |
+          mkdir -p /tmp/k6-build
+          chmod 777 /tmp/k6-build          # 컨테이너(root)가 쓸 수 있도록 권한 개방
+
+          docker run --rm \
+            -v "/tmp/k6-build:/output" \
+            grafana/xk6 build \
+            --with github.com/grafana/xk6-output-influxdb@latest \
+            --output /output/k6
+
+          cp /tmp/k6-build/k6 ./k6
+          chmod +x ./k6
+          ./k6 version
+
+      - name: Run all K6 scripts (samsung/real)
+        env:
+          ACCOUNT: ${{ secrets.K6_ACCOUNT || 'samsung' }}
+          ENV: ${{ secrets.K6_ENV || 'dev' }}
+          ROLE: ${{ secrets.K6_ROLE || 'master' }}
+          K6_BROWSER_HEADLESS: ${{ secrets.K6_BROWSER_HEADLESS || 'true' }}
+          K6_BROWSER_ARGS: >-
+            --no-sandbox
+            --disable-dev-shm-usage
+            --disable-gpu
+            --disable-features=CpuFreqScaling,VizDisplayCompositor
+            --disable-setuid-sandbox
+          BASE_URL: ${{ secrets.K6_BASE_URL }}
+          LOGIN_EMAIL: ${{ secrets.K6_LOGIN_EMAIL }}
+          LOGIN_PASSWORD: ${{ secrets.K6_LOGIN_PASSWORD }}
+          K6_INFLUXDB_ORGANIZATION: ${{ secrets.K6_INFLUXDB_ORGANIZATION }}
+          K6_INFLUXDB_BUCKET: ${{ secrets.K6_INFLUXDB_BUCKET }}
+          K6_INFLUXDB_TOKEN: ${{ secrets.K6_INFLUXDB_TOKEN }}
+          K6_INFLUXDB_ADDR: ${{ secrets.K6_INFLUXDB_ADDR }}
+          K6_INFLUXDB_PUSH_INTERVAL: ${{ secrets.K6_INFLUXDB_PUSH_INTERVAL || '10s' }}
+          SLACK_WEBHOOK_URL: ${{ secrets.K6_SLACK_WEBHOOK_URL }}
+        run: |
+          set -euo pipefail
+          BASE_DIR="test-scripts/performance/samsung/real"
+          echo "=============================================="
+          echo "[k6] Running all samsung/real scripts"
+          echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S')"
+          echo "=============================================="
+
+          find "$BASE_DIR" -type f -name "*.js" \
+            ! -name "login_helper.js" \
+            | sort | while read -r script; do
+            echo "----------------------------------------------"
+            echo "Running k6 script: $script"
+            echo "Start: $(date -u '+%Y-%m-%d %H:%M:%S')"
+            echo "----------------------------------------------"
+            mkdir -p "$(dirname "$script")/Result"
+            ./k6 run --out xk6-influxdb=$K6_INFLUXDB_ADDR "$script"
+            echo "Finished: $(date -u '+%Y-%m-%d %H:%M:%S')"
+            echo
+          done
+
+          echo "=============================================="
+          echo "[k6] All samsung/real scripts finished"
+          echo "End: $(date -u '+%Y-%m-%d %H:%M:%S')"
+          echo "=============================================="

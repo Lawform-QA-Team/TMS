@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import Login from './Login';
-import Register from './Register';
-import './Auth.css';
+import Login from '@tms/components/auth/Login';
+import Register from '@tms/components/auth/Register';
+import '@tms/components/auth/Auth.css';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -15,7 +15,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="auth-container">
+    <div>
       {isLogin ? (
         <Login onSwitchToRegister={switchToRegister} />
       ) : (

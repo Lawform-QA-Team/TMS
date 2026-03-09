@@ -16,4 +16,8 @@ const utils = {
     }
 };
 
-module.exports = utils; 
+export function getFormattedTimestamp() {
+    return new Date().toISOString().replace(/[:.]/g, '_').slice(0, 19);
+}
+
+export { utils }; 

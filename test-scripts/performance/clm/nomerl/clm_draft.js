@@ -1,8 +1,8 @@
 import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
-import { getFormattedTimestamp } from "../../common/utils.js";
-import clm_draftNew from "./clm_draft.new.js";
-import clm_draftChange from "./clm_draft.change.js";
-import clm_draftStop from "./clm_draft.stop.js";
+import { getFormattedTimestamp } from "@tms/performance/common/utils.js";
+import clm_draftNew from "@tms/performance/clm/nomerl/clm_draft.new.js";
+import clm_draftChange from "@tms/performance/clm/nomerl/clm_draft.change.js";
+import clm_draftStop from "@tms/performance/clm/nomerl/clm_draft.stop.js";
 
 
 export const options = {

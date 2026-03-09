@@ -1,0 +1,333 @@
+/**
+ * TMS Design System - 통일된 UI 컴포넌트 스타일
+ * 모든 스타일은 index.css의 --tms-* 토큰을 사용합니다.
+ * 사용: className="tms-btn tms-btn--primary" 또는 <Button variant="primary"> 사용
+ */
+
+/* ========== Button ========== */
+.tms-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tms-space-2);
+  padding: var(--tms-space-2) var(--tms-space-4);
+  font-family: var(--tms-font-sans);
+  font-size: var(--tms-text-sm);
+  font-weight: var(--tms-font-semibold);
+  line-height: 1.5;
+  border: 1px solid transparent;
+  border-radius: var(--tms-radius-md);
+  cursor: pointer;
+  transition: background-color var(--tms-transition), border-color var(--tms-transition),
+    color var(--tms-transition), transform var(--tms-transition), box-shadow var(--tms-transition);
+  white-space: nowrap;
+}
+
+.tms-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.tms-btn--sm {
+  padding: var(--tms-space-1) var(--tms-space-3);
+  font-size: var(--tms-text-xs);
+}
+
+.tms-btn--lg {
+  padding: var(--tms-space-3) var(--tms-space-6);
+  font-size: var(--tms-text-base);
+}
+
+.tms-btn--primary {
+  background: linear-gradient(135deg, var(--tms-primary) 0%, var(--tms-primary-light) 100%);
+  color: white;
+  border-color: var(--tms-primary);
+  box-shadow: var(--tms-shadow-sm);
+}
+
+.tms-btn--primary:hover:not(:disabled) {
+  background: var(--tms-primary-hover);
+  border-color: var(--tms-primary-hover);
+  box-shadow: var(--tms-shadow-primary);
+  transform: translateY(-1px);
+}
+
+.tms-btn--secondary {
+  background: var(--tms-bg-card);
+  color: var(--tms-text);
+  border-color: var(--tms-border);
+}
+
+.tms-btn--secondary:hover:not(:disabled) {
+  background: var(--tms-bg);
+  border-color: var(--tms-text-muted);
+}
+
+.tms-btn--accent {
+  background: var(--tms-accent);
+  color: white;
+  border-color: var(--tms-accent);
+}
+
+.tms-btn--accent:hover:not(:disabled) {
+  background: var(--tms-accent-hover);
+  border-color: var(--tms-accent-hover);
+  transform: translateY(-1px);
+}
+
+.tms-btn--success {
+  background: var(--tms-success);
+  color: white;
+  border-color: var(--tms-success);
+}
+
+.tms-btn--success:hover:not(:disabled) {
+  background: var(--tms-success-hover);
+  transform: translateY(-1px);
+}
+
+.tms-btn--danger {
+  background: var(--tms-error);
+  color: white;
+  border-color: var(--tms-error);
+}
+
+.tms-btn--danger:hover:not(:disabled) {
+  background: var(--tms-error-hover);
+  transform: translateY(-1px);
+}
+
+.tms-btn--warning {
+  background: var(--tms-warning);
+  color: white;
+  border-color: var(--tms-warning);
+}
+
+.tms-btn--warning:hover:not(:disabled) {
+  background: var(--tms-warning-hover);
+  transform: translateY(-1px);
+}
+
+.tms-btn--info {
+  background: var(--tms-info);
+  color: white;
+  border-color: var(--tms-info);
+}
+
+.tms-btn--info:hover:not(:disabled) {
+  background: var(--tms-info-hover);
+  transform: translateY(-1px);
+}
+
+.tms-btn--ghost {
+  background: transparent;
+  color: var(--tms-text-secondary);
+  border-color: transparent;
+}
+
+.tms-btn--ghost:hover:not(:disabled) {
+  background: var(--tms-primary-bg);
+  color: var(--tms-primary);
+}
+
+.tms-btn--icon {
+  min-width: 36px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: var(--tms-radius-md);
+}
+
+.tms-btn--icon.tms-btn--lg {
+  min-width: 40px;
+  width: 40px;
+  height: 40px;
+}
+
+/* ========== Input ========== */
+.tms-input-wrap {
+  margin-bottom: var(--tms-space-4);
+}
+
+.tms-input-label {
+  display: block;
+  color: var(--tms-text-secondary);
+  font-weight: var(--tms-font-semibold);
+  font-size: var(--tms-text-sm);
+  margin-bottom: var(--tms-space-2);
+}
+
+.tms-input,
+.tms-textarea,
+.tms-select {
+  width: 100%;
+  padding: var(--tms-space-3) var(--tms-space-4);
+  font-family: var(--tms-font-sans);
+  font-size: var(--tms-text-base);
+  line-height: 1.5;
+  color: var(--tms-text);
+  background: var(--tms-bg-card);
+  border: 1px solid var(--tms-border);
+  border-radius: var(--tms-radius-md);
+  transition: border-color var(--tms-transition), box-shadow var(--tms-transition);
+  box-sizing: border-box;
+}
+
+.tms-input::placeholder,
+.tms-textarea::placeholder {
+  color: var(--tms-text-muted);
+}
+
+.tms-input:focus,
+.tms-textarea:focus,
+.tms-select:focus {
+  outline: none;
+  border-color: var(--tms-primary);
+  box-shadow: 0 0 0 3px var(--tms-primary-bg);
+}
+
+.tms-input:disabled,
+.tms-textarea:disabled,
+.tms-select:disabled {
+  background: var(--tms-bg);
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.tms-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.tms-select {
+  cursor: pointer;
+  appearance: auto;
+}
+
+/* ========== Card ========== */
+.tms-card {
+  background: var(--tms-bg-card);
+  border: 1px solid var(--tms-border);
+  border-radius: var(--tms-radius-lg);
+  box-shadow: var(--tms-shadow-sm);
+  overflow: hidden;
+  transition: box-shadow var(--tms-transition), border-color var(--tms-transition);
+}
+
+.tms-card:hover {
+  box-shadow: var(--tms-shadow-md);
+}
+
+.tms-card__header {
+  padding: var(--tms-space-5) var(--tms-space-6);
+  border-bottom: 1px solid var(--tms-border);
+  background: var(--tms-bg);
+  font-size: var(--tms-text-lg);
+  font-weight: var(--tms-font-semibold);
+  color: var(--tms-text);
+}
+
+.tms-card__body {
+  padding: var(--tms-space-6);
+}
+
+.tms-card__footer {
+  padding: var(--tms-space-4) var(--tms-space-6);
+  border-top: 1px solid var(--tms-border);
+  background: var(--tms-bg);
+}
+
+/* ========== Badge ========== */
+.tms-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--tms-space-1) var(--tms-space-2);
+  font-size: var(--tms-text-xs);
+  font-weight: var(--tms-font-semibold);
+  border-radius: var(--tms-radius-full);
+  white-space: nowrap;
+}
+
+.tms-badge--primary {
+  background: var(--tms-primary-bg);
+  color: var(--tms-primary);
+}
+
+.tms-badge--accent {
+  background: var(--tms-accent);
+  color: white;
+}
+
+.tms-badge--success {
+  background: var(--tms-success-bg);
+  color: var(--tms-success);
+}
+
+.tms-badge--error {
+  background: var(--tms-error-bg);
+  color: var(--tms-error);
+}
+
+.tms-badge--warning {
+  background: var(--tms-warning-bg);
+  color: var(--tms-warning);
+}
+
+.tms-badge--neutral {
+  background: var(--tms-bg);
+  color: var(--tms-text-secondary);
+  border: 1px solid var(--tms-border);
+}
+
+/* ========== Form group (기존 .form-group 대체용) ========== */
+.tms-form-group {
+  margin-bottom: var(--tms-space-5);
+}
+
+.tms-form-group .tms-input-label {
+  margin-bottom: var(--tms-space-2);
+}
+
+.tms-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--tms-space-4);
+  margin-bottom: var(--tms-space-5);
+}
+
+@media (max-width: 768px) {
+  .tms-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ========== Utility ========== */
+.tms-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tms-space-4);
+}
+
+.tms-stack--sm {
+  gap: var(--tms-space-2);
+}
+
+.tms-stack--lg {
+  gap: var(--tms-space-6);
+}
+
+.tms-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tms-space-3);
+}
+
+.tms-row--end {
+  justify-content: flex-end;
+}
+
+.tms-row--between {
+  justify-content: space-between;
+}

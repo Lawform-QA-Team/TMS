@@ -17,10 +17,6 @@ reports_bp = Blueprint('reports', __name__)
 @guest_allowed
 def get_reports():
     """리포트 목록 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         report_type = request.args.get('report_type')
         project_id = request.args.get('project_id', type=int)
@@ -59,10 +55,6 @@ def get_reports():
 @guest_allowed
 def get_report(id):
     """리포트 상세 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         report = CustomReport.query.get_or_404(id)
         
@@ -84,10 +76,6 @@ def get_report(id):
 @user_required
 def create_report():
     """리포트 생성"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data = request.get_json()
         
@@ -122,10 +110,6 @@ def create_report():
 @user_required
 def update_report(id):
     """리포트 수정"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         report = CustomReport.query.get_or_404(id)
         
@@ -170,10 +154,6 @@ def update_report(id):
 @user_required
 def delete_report(id):
     """리포트 삭제"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         report = CustomReport.query.get_or_404(id)
         
@@ -198,10 +178,6 @@ def delete_report(id):
 @user_required
 def generate_report(id):
     """리포트 생성 및 실행"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data = request.get_json() or {}
         execution_params = data.get('execution_params', {})
@@ -227,10 +203,6 @@ def generate_report(id):
 @guest_allowed
 def get_report_execution(execution_id):
     """리포트 실행 기록 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         execution = ReportExecution.query.get_or_404(execution_id)
         
@@ -246,10 +218,6 @@ def get_report_execution(execution_id):
 @guest_allowed
 def download_report(execution_id):
     """리포트 파일 다운로드"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         execution = ReportExecution.query.get_or_404(execution_id)
         
@@ -276,10 +244,6 @@ def download_report(execution_id):
 @guest_allowed
 def get_report_executions(id):
     """리포트의 실행 기록 목록 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         executions = ReportExecution.query.filter_by(report_id=id).order_by(
             ReportExecution.started_at.desc()

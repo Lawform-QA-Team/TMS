@@ -90,6 +90,8 @@ docker-compose -f docker-compose.ubuntu.yml down -v
 
 ### 데이터 백업
 ```bash
+# 비밀번호를 명령줄에 넣으면 "Using a password on the command line..." 경고가 나올 수 있음.
+# 로컬 스크립트(scripts/restore_local_mysql.sh 등)는 임시 설정 파일을 사용해 경고를 피함.
 docker exec ubuntu-mysql-server mysqldump -u root -p1q2w#E$R test_management > backup.sql
 ```
 

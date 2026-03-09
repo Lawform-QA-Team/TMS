@@ -5,6 +5,7 @@ from models import db, TestCase, TestResult, Folder
 from utils.serializers import serialize_testcase
 from utils.logger import get_logger
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 
 logger = get_logger(__name__)
 
@@ -13,10 +14,15 @@ class TestCaseService:
     """테스트 케이스 관련 비즈니스 로직"""
     
     @staticmethod
+    def _testcase_query():
+        """폴더(→프로젝트) 연결을 위한 쿼리 옵션"""
+        return TestCase.query.options(joinedload(TestCase.folder))
+    
+    @staticmethod
     def get_testcases(page=None, per_page=None, include_relations=False):
         """테스트 케이스 목록 조회"""
         if page is None or per_page is None:
-            testcases = TestCase.query.all()
+            testcases = TestCaseService._testcase_query().all()
             return [serialize_testcase(tc, include_relations) for tc in testcases], None
         
         # 페이징 처리
@@ -27,7 +33,7 @@ class TestCaseService:
         
         total_count = TestCase.query.count()
         offset = (page - 1) * per_page
-        testcases = TestCase.query.offset(offset).limit(per_page).all()
+        testcases = TestCaseService._testcase_query().offset(offset).limit(per_page).all()
         
         total_pages = (total_count + per_page - 1) // per_page
         pagination = {

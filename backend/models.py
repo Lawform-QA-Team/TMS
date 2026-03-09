@@ -35,6 +35,22 @@ class User(db.Model):
         """비밀번호 검증"""
         return check_password_hash(self.password_hash, password)
     
+    def get_display_name(self):
+        """표시용 이름: 성+이름 (username) 형식, 없으면 username/email"""
+        base_name = ''
+        if self.last_name and self.first_name:
+            base_name = f"{self.last_name}{self.first_name}"
+        elif self.last_name:
+            base_name = self.last_name
+        elif self.first_name:
+            base_name = self.first_name
+
+        if base_name and self.username:
+            return f"{base_name} ({self.username})"
+        if base_name:
+            return base_name
+        return self.username or self.email
+
     def to_dict(self):
         """사용자 정보를 딕셔너리로 변환"""
         return {
@@ -425,7 +441,7 @@ class TestSchedule(db.Model):
             'environment': self.environment,
             'execution_parameters': self.execution_parameters,
             'created_by': self.created_by,
-            'creator_name': self.creator.username if self.creator else None,
+            'creator_name': self.creator.get_display_name() if self.creator else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
@@ -589,7 +605,7 @@ class CICDIntegration(db.Model):
             'trigger_on_tag': self.trigger_on_tag,
             'test_case_filter': json.loads(self.test_case_filter) if self.test_case_filter else {},
             'created_by': self.created_by,
-            'creator_name': self.creator.username if self.creator else None,
+            'creator_name': self.creator.get_display_name() if self.creator else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
@@ -712,7 +728,7 @@ class TestDataSet(db.Model):
             'usage_count': self.usage_count,
             'last_used_at': self.last_used_at.isoformat() if self.last_used_at else None,
             'created_by': self.created_by,
-            'creator_name': self.creator.username if self.creator else None,
+            'creator_name': self.creator.get_display_name() if self.creator else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
@@ -863,7 +879,7 @@ class Comment(db.Model):
                 'username': self.author.username if self.author else None,
                 'email': self.author.email if self.author else None
             } if self.author else None,
-            'author_name': self.author.username if self.author else None,
+            'author_name': self.author.get_display_name() if self.author else None,
             'author_email': self.author.email if self.author else None,
             'is_edited': self.is_edited,
             'is_deleted': self.is_deleted,
@@ -1306,10 +1322,18 @@ class JiraComment(db.Model):
     
     def to_dict(self):
         """댓글 정보를 딕셔너리로 변환"""
+        author_name = None
+        try:
+            user = User.query.filter_by(email=self.author_email).first()
+            if user:
+                author_name = user.get_display_name()
+        except Exception:
+            author_name = None
         return {
             'id': self.id,
             'body': self.body,
             'author_email': self.author_email,
+            'author_name': author_name,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }

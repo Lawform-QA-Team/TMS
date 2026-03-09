@@ -4,7 +4,7 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f7fafc;
   padding: 20px;
 }
 
@@ -218,15 +218,15 @@
 }
 
 .auth-error {
-  background-color: #fed7d7;
-  color: #c53030;
-  border: 1px solid #feb2b2;
+  background-color: var(--tms-error-bg);
+  color: var(--tms-error);
+  border: 1px solid #fecaca;
 }
 
 .auth-success {
-  background-color: #c6f6d5;
-  color: #2f855a;
-  border: 1px solid #9ae6b4;
+  background-color: var(--tms-success-bg);
+  color: var(--tms-success);
+  border: 1px solid #5eead4;
 }
 
 /* 프로필 정보 */
@@ -239,7 +239,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--tms-border);
 }
 
 .profile-field:last-child {
@@ -248,12 +248,12 @@
 
 .profile-field label {
   font-weight: 600;
-  color: #4a5568;
+  color: var(--tms-text-secondary);
   min-width: 80px;
 }
 
 .profile-field span {
-  color: #2d3748;
+  color: var(--tms-text);
   text-align: left;
   flex: 1;
   margin-left: 16px;

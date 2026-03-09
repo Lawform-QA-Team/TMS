@@ -96,7 +96,178 @@
   text-transform: uppercase;
 }
 
-/* 사용자 목록 스타일 */
+/* 사용자 목록 - 테이블 형태 (스크린샷 스타일) */
+.account-section-table .users-table-wrapper {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid #e9ecef;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.users-table thead {
+  background: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.users-table th {
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+}
+
+.users-table tbody tr {
+  border-bottom: 1px solid #eee;
+  transition: background 0.15s ease;
+}
+
+.users-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.users-table td {
+  padding: 14px 16px;
+  color: #333;
+  vertical-align: middle;
+}
+
+.users-table .col-name {
+  font-weight: 500;
+}
+
+.users-table .col-email {
+  color: #555;
+}
+
+.users-table .col-permissions {
+  vertical-align: top;
+}
+
+.users-table .col-extra-info {
+  max-width: 280px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.users-table .col-empty {
+  text-align: center;
+  padding: 24px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.extra-info-text {
+  display: block;
+  line-height: 1.4;
+}
+
+.guest-readonly {
+  font-size: 12px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+
+.role-badge-inline {
+  display: inline-block;
+}
+
+/* 활성화 토글 스위치 */
+.toggle-switch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  height: 28px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.toggle-switch.on {
+  background: #2563eb;
+  color: #fff;
+}
+
+.toggle-switch.off {
+  background: #e5e7eb;
+  color: #6b7280;
+}
+
+.toggle-switch:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.toggle-switch:disabled,
+.toggle-switch.toggle-busy {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.toggle-slider {
+  pointer-events: none;
+}
+
+/* 추가기능 - 텍스트 버튼 (프로젝트 공통) */
+.col-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-text {
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-text.btn-edit {
+  background: #e5e7eb;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.btn-text.btn-edit:hover {
+  background: #d1d5db;
+}
+
+.btn-text.btn-password {
+  background: #e5e7eb;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.btn-text.btn-password:hover {
+  background: #d1d5db;
+}
+
+.btn-text.btn-delete {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.btn-text.btn-delete:hover {
+  background: #fee2e2;
+}
+
+/* 기존 카드형 목록 호환용 (미사용 시 제거 가능) */
 .users-list {
   display: flex;
   flex-direction: column;
@@ -112,20 +283,6 @@
   border: 1px solid #e9ecef;
   border-radius: 8px;
   transition: all 0.2s ease;
-}
-
-.user-item:hover {
-  background: #e9ecef;
-  border-color: #007bff;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
-}
-
-/* 사용자 목록의 user-info만 스타일링 */
-.users-list .user-item .user-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
 }
 
 .user-main {
@@ -151,27 +308,10 @@
   gap: 8px;
 }
 
-.user-fullname {
-  color: #555;
-  font-size: 14px;
-  font-weight: 500;
-}
-
 .user-meta {
   display: flex;
   gap: 10px;
   align-items: center;
-}
-
-.user-timestamps {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.user-timestamps small {
-  color: #666;
-  font-size: 12px;
 }
 
 .user-actions {
@@ -188,26 +328,6 @@
   font-size: 12px;
   font-weight: 500;
   transition: all 0.2s ease;
-}
-
-.user-actions .btn-edit {
-  background: #17a2b8;
-  color: white;
-}
-
-.user-actions .btn-edit:hover {
-  background: #138496;
-  transform: translateY(-1px);
-}
-
-.user-actions .btn-delete {
-  background: #dc3545;
-  color: white;
-}
-
-.user-actions .btn-delete:hover {
-  background: #c82333;
-  transform: translateY(-1px);
 }
 
 .role-badge.administrator,
@@ -237,6 +357,7 @@
   background: #d4edda;
   color: #155724;
 }
+
 
 .status-badge.inactive {
   background: #f8d7da;
@@ -335,50 +456,11 @@
   background: #c82333;
 }
 
-/* 사용자 목록 */
-.users-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.user-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border-left: 4px solid #007bff;
-  transition: all 0.2s ease;
-}
-
-.user-item:hover {
-  background: #e9ecef;
-  transform: translateX(5px);
-}
-
 .user-info {
   display: flex;
   align-items: center;
   gap: 15px;
   flex: 1;
-}
-
-.user-name {
-  font-weight: 600;
-  color: #333;
-  font-size: 16px;
-}
-
-.user-email {
-  color: #666;
-  font-size: 14px;
-}
-
-.user-actions {
-  display: flex;
-  gap: 10px;
 }
 
 /* 계정 관리 페이지 전용 모달 (스코프) */
@@ -540,6 +622,17 @@
     grid-template-columns: 1fr;
   }
   
+  .users-table-wrapper {
+    margin: 0 -10px;
+    border-radius: 8px;
+  }
+
+  .users-table th,
+  .users-table td {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
   .user-item {
     flex-direction: column;
     align-items: flex-start;

@@ -4,14 +4,15 @@ import axios from 'axios';
 import config from '@tms/config';
 import { useAuth } from '@tms/contexts/AuthContext';
 import { formatUTCToKST } from '@tms/utils/dateUtils';
-import JiraIssuesList from '../jira/JiraIssuesList';
+import JiraIssuesList from '@tms/components/jira/JiraIssuesList';
 
 // 컴포넌트 임포트
-import TestCaseSearch from './TestCaseSearch';
-import TestCaseTable from './TestCaseTable';
-import TestCasePagination from './TestCasePagination';
-import TestCaseModal from './modals/TestCaseModal';
-import TestCaseFormModal from './modals/TestCaseFormModal';
+import TestCaseSearch from '@tms/components/testcases/TestCaseSearch';
+import TestCaseTable from '@tms/components/testcases/TestCaseTable';
+import TestCasePagination from '@tms/components/testcases/TestCasePagination';
+import TestCaseModal from '@tms/components/testcases/modals/TestCaseModal';
+import TestCaseFormModal from '@tms/components/testcases/modals/TestCaseFormModal';
+import { getUserDisplayName } from '@tms/utils/userDisplay';
 
 // 훅 임포트
 import { useTestCaseData } from '@tms/hooks/useTestCaseData';
@@ -19,7 +20,7 @@ import { useTestCaseFilters } from '@tms/hooks/useTestCaseFilters';
 import { useTestCasePagination } from '@tms/hooks/useTestCasePagination';
 
 // 스타일 임포트
-import './TestCaseAPP.css';
+import '@tms/components/testcases/TestCaseAPP.css';
 
 // 헬퍼 함수들
 const findFolderInTree = (nodes, folderId) => {
@@ -170,6 +171,12 @@ const TestCaseAPP = ({ setActiveTab }) => {
   const [newComment, setNewComment] = useState('');
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingCommentContent, setEditingCommentContent] = useState('');
+  const [showCommentMentions, setShowCommentMentions] = useState(false);
+  const [commentMentionQuery, setCommentMentionQuery] = useState('');
+  const [commentMentionIndex, setCommentMentionIndex] = useState(0);
+  const [showEditMentions, setShowEditMentions] = useState(false);
+  const [editMentionQuery, setEditMentionQuery] = useState('');
+  const [editMentionIndex, setEditMentionIndex] = useState(0);
   
   // 폴더 및 정렬 상태
   const [selectedFolder, setSelectedFolder] = useState(null);
@@ -401,7 +408,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
 
     const total = filteredTestCases.length;
     const tested = Math.max(total - counts.nt, 0);
-    const passRate = tested > 0 ? Math.round((counts.pass / tested) * 100) : 0;
+    const passRate = tested > 0 ? Math.round((counts.pass / total) * 100) : 0;
     const calcPercent = (value) => (total > 0 ? Math.round((value / total) * 100) : 0);
     const percentPass = calcPercent(counts.pass);
     const percentFail = calcPercent(counts.fail);
@@ -569,7 +576,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
             return { 
               ...tc, 
               assignee_id: newAssigneeId ? parseInt(newAssigneeId) : null,
-              assignee_name: selectedUser ? (selectedUser.username || selectedUser.name) : null
+              assignee_name: selectedUser ? getUserDisplayName(selectedUser) : null
             };
           }
           return tc;
@@ -671,6 +678,141 @@ const TestCaseAPP = ({ setActiveTab }) => {
     }
   };
 
+  const updateMentions = (value, setShow, setQuery, setIndex) => {
+    const atIndex = value.lastIndexOf('@');
+    if (atIndex === -1) {
+      setShow(false);
+      setQuery('');
+      setIndex(0);
+      return;
+    }
+
+    const beforeAt = value[atIndex - 1];
+    if (atIndex > 0 && beforeAt && !/\s/.test(beforeAt)) {
+      setShow(false);
+      setQuery('');
+      setIndex(0);
+      return;
+    }
+
+    const afterAt = value.slice(atIndex + 1);
+    if (/\s/.test(afterAt)) {
+      setShow(false);
+      setQuery('');
+      setIndex(0);
+      return;
+    }
+
+    setQuery(afterAt);
+    setShow(true);
+    setIndex(0);
+  };
+
+  const getMentionCandidates = (query) => {
+    const q = (query || '').toLowerCase();
+    const list = users || [];
+    if (!q) return list.slice(0, 8);
+    return list
+      .filter((u) => {
+        const username = (u.username || '').toLowerCase();
+        const display = (getUserDisplayName(u) || '').toLowerCase();
+        return username.includes(q) || display.includes(q);
+      })
+      .slice(0, 8);
+  };
+
+  const insertMention = (value, selectedUser) => {
+    if (!selectedUser?.username) return value;
+    const atIndex = value.lastIndexOf('@');
+    if (atIndex === -1) return value;
+    const afterAt = value.slice(atIndex + 1);
+    const nextSpaceIndex = afterAt.search(/\s/);
+    const remaining = nextSpaceIndex === -1 ? '' : afterAt.slice(nextSpaceIndex);
+    const before = value.slice(0, atIndex);
+    const spacer = remaining && !remaining.startsWith(' ') ? ' ' : '';
+    return `${before}@${selectedUser.username}${spacer}${remaining || ' '}`;
+  };
+
+  const handleCommentChange = (value) => {
+    setNewComment(value);
+    updateMentions(value, setShowCommentMentions, setCommentMentionQuery, setCommentMentionIndex);
+  };
+
+  const handleEditCommentChange = (value) => {
+    setEditingCommentContent(value);
+    updateMentions(value, setShowEditMentions, setEditMentionQuery, setEditMentionIndex);
+  };
+
+  const handleNewMentionSelect = (selectedUser) => {
+    setNewComment((prev) => insertMention(prev, selectedUser));
+    setShowCommentMentions(false);
+    setCommentMentionQuery('');
+    setCommentMentionIndex(0);
+  };
+
+  const handleEditMentionSelect = (selectedUser) => {
+    setEditingCommentContent((prev) => insertMention(prev, selectedUser));
+    setShowEditMentions(false);
+    setEditMentionQuery('');
+    setEditMentionIndex(0);
+  };
+
+  const handleCommentKeyDown = (e) => {
+    const list = getMentionCandidates(commentMentionQuery);
+    if (showCommentMentions && list.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setCommentMentionIndex((prev) => (prev + 1) % list.length);
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setCommentMentionIndex((prev) => (prev - 1 + list.length) % list.length);
+        return;
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleNewMentionSelect(list[commentMentionIndex]);
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowCommentMentions(false);
+        setCommentMentionQuery('');
+        setCommentMentionIndex(0);
+        return;
+      }
+    }
+  };
+
+  const handleEditCommentKeyDown = (e) => {
+    const list = getMentionCandidates(editMentionQuery);
+    if (showEditMentions && list.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setEditMentionIndex((prev) => (prev + 1) % list.length);
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setEditMentionIndex((prev) => (prev - 1 + list.length) % list.length);
+        return;
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleEditMentionSelect(list[editMentionIndex]);
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowEditMentions(false);
+        setEditMentionQuery('');
+        setEditMentionIndex(0);
+        return;
+      }
+    }
+  };
+
   // 댓글 추가
   const handleAddComment = async () => {
     if (!newComment.trim() || !selectedTestCase) return;
@@ -688,6 +830,9 @@ const TestCaseAPP = ({ setActiveTab }) => {
       });
       
       setNewComment('');
+      setShowCommentMentions(false);
+      setCommentMentionQuery('');
+      setCommentMentionIndex(0);
       fetchComments(selectedTestCase.id);
     } catch (err) {
       console.error('댓글 추가 오류:', err);
@@ -699,12 +844,18 @@ const TestCaseAPP = ({ setActiveTab }) => {
   const handleStartEdit = (comment) => {
     setEditingCommentId(comment.id);
     setEditingCommentContent(comment.content);
+    setShowEditMentions(false);
+    setEditMentionQuery('');
+    setEditMentionIndex(0);
   };
 
   // 댓글 편집 취소
   const handleCancelEdit = () => {
     setEditingCommentId(null);
     setEditingCommentContent('');
+    setShowEditMentions(false);
+    setEditMentionQuery('');
+    setEditMentionIndex(0);
   };
 
   // 댓글 수정
@@ -723,6 +874,9 @@ const TestCaseAPP = ({ setActiveTab }) => {
       
       setEditingCommentId(null);
       setEditingCommentContent('');
+      setShowEditMentions(false);
+      setEditMentionQuery('');
+      setEditMentionIndex(0);
       fetchComments(selectedTestCase.id);
     } catch (err) {
       console.error('댓글 수정 오류:', err);
@@ -903,6 +1057,9 @@ const TestCaseAPP = ({ setActiveTab }) => {
     return <div className="testcase-error">{error}</div>;
   }
 
+  const commentMentionCandidates = getMentionCandidates(commentMentionQuery);
+  const editMentionCandidates = getMentionCandidates(editMentionQuery);
+
   return (
     <div className="testcase-container">
       <div className="testcase-header">
@@ -916,7 +1073,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
             marginBottom: '10px',
             fontSize: '14px'
           }}>
-            👀 게스트 모드: 조회만 가능합니다.
+            게스트 모드: 조회만 가능합니다.
           </div>
         )}
         <div className="header-actions">
@@ -1197,7 +1354,9 @@ const TestCaseAPP = ({ setActiveTab }) => {
                     <tr>
                       <th>기대결과</th>
                       <td colSpan="3" className="expected-result">
-                        {selectedTestCase.expected_result || '없음'}
+                        <div className="expected-result-content">
+                          {selectedTestCase.expected_result || '없음'}
+                        </div>
                       </td>
                     </tr>
                     <tr>
@@ -1237,7 +1396,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
                             <div className="comment-header">
                               <div className="comment-header-left">
                                 <span className="comment-author">
-                                  👤 {comment.author_name || comment.author?.username || 'Unknown User'}
+                                  👤 {comment.author_name || getUserDisplayName(comment.author) || 'Unknown User'}
                                 </span>
                                 <span className="comment-date">
                                   {comment.created_at ? formatUTCToKST(comment.created_at) : ''}
@@ -1268,9 +1427,44 @@ const TestCaseAPP = ({ setActiveTab }) => {
                                 <textarea
                                   className="comment-textarea"
                                   value={editingCommentContent}
-                                  onChange={(e) => setEditingCommentContent(e.target.value)}
+                                  onChange={(e) => handleEditCommentChange(e.target.value)}
+                                  onKeyDown={handleEditCommentKeyDown}
                                   rows="3"
                                 />
+                                {showEditMentions && editMentionCandidates.length > 0 && (
+                                  <div
+                                    className="mention-list"
+                                    style={{
+                                      border: '1px solid #e9ecef',
+                                      borderRadius: '8px',
+                                      maxHeight: '200px',
+                                      overflowY: 'auto',
+                                      marginBottom: '12px'
+                                    }}
+                                  >
+                                    {editMentionCandidates.map((u, index) => (
+                                      <button
+                                        key={u.id}
+                                        type="button"
+                                        className="mention-item"
+                                        onClick={() => handleEditMentionSelect(u)}
+                                        style={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          width: '100%',
+                                          padding: '8px 12px',
+                                          border: 'none',
+                                          background: index === editMentionIndex ? '#f1f3f5' : 'white',
+                                          cursor: 'pointer',
+                                          textAlign: 'left'
+                                        }}
+                                      >
+                                        <span style={{ marginRight: '8px' }}>👤</span>
+                                        <span>{getUserDisplayName(u)}</span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
                                 <div className="comment-edit-actions">
                                   <button
                                     className="testcase-btn testcase-btn-primary"
@@ -1304,9 +1498,44 @@ const TestCaseAPP = ({ setActiveTab }) => {
                       className="comment-textarea"
                       placeholder="댓글을 입력하세요... (@username 형식으로 멘션 가능)"
                       value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
+                      onChange={(e) => handleCommentChange(e.target.value)}
+                      onKeyDown={handleCommentKeyDown}
                       rows="3"
                     />
+                    {showCommentMentions && commentMentionCandidates.length > 0 && (
+                      <div
+                        className="mention-list"
+                        style={{
+                          border: '1px solid #e9ecef',
+                          borderRadius: '8px',
+                          maxHeight: '200px',
+                          overflowY: 'auto',
+                          marginBottom: '12px'
+                        }}
+                      >
+                        {commentMentionCandidates.map((u, index) => (
+                          <button
+                            key={u.id}
+                            type="button"
+                            className="mention-item"
+                            onClick={() => handleNewMentionSelect(u)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              width: '100%',
+                              padding: '8px 12px',
+                              border: 'none',
+                              background: index === commentMentionIndex ? '#f1f3f5' : 'white',
+                              cursor: 'pointer',
+                              textAlign: 'left'
+                            }}
+                          >
+                            <span style={{ marginRight: '8px' }}>👤</span>
+                            <span>{getUserDisplayName(u)}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     <button
                       className="testcase-btn testcase-btn-primary"
                       onClick={handleAddComment}

@@ -1,10 +1,80 @@
+:root {
+  /* ========== TMS Design System Tokens ========== */
+  /* Primary - 딥 블루 (신뢰감, 전문성) */
+  --tms-primary: #5398d4;
+  --tms-primary-hover: #0d3d6b;
+  --tms-primary-light: #1e5a9e;
+  --tms-primary-bg: rgba(15, 76, 129, 0.08);
+  /* Accent - 웜 오렌지/코랄 (CTA, 강조) */
+  --tms-accent: #ea580c;
+  --tms-accent-hover: #c2410c;
+  --tms-accent-light: #f97316;
+  /* Neutral */
+  --tms-bg: #f8fafc;
+  --tms-bg-card: #ffffff;
+  --tms-border: #e2e8f0;
+  --tms-text: #1e293b;
+  --tms-text-secondary: #475569;
+  --tms-text-muted: #64748b;
+  /* Status (디자인 시스템에서 버튼/배지 등에 사용) */
+  --tms-success: #0d9488;
+  --tms-success-hover: #0f766e;
+  --tms-success-bg: #ccfbf1;
+  --tms-error: #dc2626;
+  --tms-error-hover: #b91c1c;
+  --tms-error-bg: #fee2e2;
+  --tms-warning: #d97706;
+  --tms-warning-hover: #b45309;
+  --tms-warning-bg: #fef3c7;
+  --tms-info: #0ea5e9;
+  --tms-info-hover: #0284c7;
+  --tms-info-bg: #e0f2fe;
+  /* Spacing (4px 기준) */
+  --tms-space-1: 4px;
+  --tms-space-2: 8px;
+  --tms-space-3: 12px;
+  --tms-space-4: 16px;
+  --tms-space-5: 20px;
+  --tms-space-6: 24px;
+  --tms-space-8: 32px;
+  --tms-space-10: 40px;
+  /* Typography */
+  --tms-font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --tms-font-mono: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  --tms-text-xs: 12px;
+  --tms-text-sm: 14px;
+  --tms-text-base: 16px;
+  --tms-text-lg: 18px;
+  --tms-text-xl: 20px;
+  --tms-text-2xl: 24px;
+  --tms-font-normal: 400;
+  --tms-font-medium: 500;
+  --tms-font-semibold: 600;
+  --tms-font-bold: 700;
+  /* Radius */
+  --tms-radius-sm: 6px;
+  --tms-radius-md: 8px;
+  --tms-radius-lg: 12px;
+  --tms-radius-xl: 16px;
+  --tms-radius-full: 9999px;
+  /* Shadow */
+  --tms-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --tms-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --tms-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --tms-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --tms-shadow-primary: 0 4px 14px rgba(15, 76, 129, 0.25);
+  /* Transition */
+  --tms-transition: 0.2s ease;
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: var(--tms-font-sans);
+  font-size: var(--tms-text-base);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--tms-bg);
+  color: var(--tms-text);
 }
 
 code {

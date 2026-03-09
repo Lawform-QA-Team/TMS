@@ -1,5 +1,5 @@
 import React from 'react';
-import './TestCaseSearch.css';
+import '@tms/components/testcases/TestCaseSearch.css';
 
 const TestCaseSearch = ({
   searchTerm,

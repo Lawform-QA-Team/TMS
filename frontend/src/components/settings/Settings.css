@@ -2,20 +2,21 @@
   padding: 20px;
   max-width: auto;
   margin: 0 auto;
-  background: #f8f9fa;
+  background: var(--tms-bg);
   min-height: 100vh;
 }
 
 .settings-header {
   margin-bottom: 30px;
   padding: 20px;
-  background: white;
+  background: var(--tms-bg-card);
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(15, 76, 129, 0.06);
+  border: 1px solid var(--tms-border);
 }
 
 .settings-header h1 {
-  color: #333;
+  color: var(--tms-text);
   margin: 0;
   font-size: 1.8em;
 }
@@ -28,7 +29,7 @@
 }
 
 .user-role-info span:first-child {
-  color: #666;
+  color: var(--tms-text-secondary);
   font-size: 14px;
 }
 
@@ -42,15 +43,15 @@
 }
 
 .role-badge.admin {
-  background: #dc3545;
+  background: var(--tms-error);
 }
 
 .role-badge.user {
-  background: #007bff;
+  background: var(--tms-primary);
 }
 
 .role-badge.guest {
-  background: #6c757d;
+  background: #64748b;
 }
 
 .settings-content {
@@ -61,22 +62,24 @@
 }
 
 .settings-main {
-  background: white;
+  background: var(--tms-bg-card);
   border-radius: 8px;
   padding: 25px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(15, 76, 129, 0.06);
+  border: 1px solid var(--tms-border);
 }
 
 .settings-snb {
-  background: white;
+  background: var(--tms-bg-card);
   border-radius: 8px;
   padding: 25px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(15, 76, 129, 0.06);
+  border: 1px solid var(--tms-border);
   height: fit-content;
 }
 
 .snb-menu h3 {
-  color: #333;
+  color: var(--tms-text);
   margin-bottom: 20px;
   padding-bottom: 15px;
   border-bottom: 2px solid #007bff;

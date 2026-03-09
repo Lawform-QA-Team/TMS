@@ -7,6 +7,8 @@ from utils.response_utils import (
     validation_error_response, not_found_response
 )
 from utils.logger import get_logger
+from utils.timezone_utils import get_kst_now
+from utils.response_utils import api_error
 from datetime import datetime
 
 logger = get_logger(__name__)
@@ -14,20 +16,72 @@ logger = get_logger(__name__)
 # Blueprint 생성
 folders_bp = Blueprint('folders', __name__)
 
+
+@folders_bp.route('/folders/feature', methods=['POST', 'OPTIONS'])
+def add_feature_folders():
+    """기능 폴더 추가 (배포일자 폴더 4,5,6 아래에 CLM/Litigation/Dashboard 기능 폴더 생성)"""
+    try:
+        date_folder_ids = [4, 5, 6]
+        feature_folders = [
+            {'folder_name': 'CLM/Draft', 'parent_folder_id': 4},
+            {'folder_name': 'CLM/Review', 'parent_folder_id': 4},
+            {'folder_name': 'CLM/Sign', 'parent_folder_id': 4},
+            {'folder_name': 'CLM/Process', 'parent_folder_id': 4},
+            {'folder_name': 'Litigation/Draft', 'parent_folder_id': 5},
+            {'folder_name': 'Litigation/Schedule', 'parent_folder_id': 5},
+            {'folder_name': 'Dashboard/Setting', 'parent_folder_id': 6}
+        ]
+        added_folders = []
+        for feature in feature_folders:
+            existing = Folder.query.filter_by(
+                folder_name=feature['folder_name'],
+                parent_folder_id=feature['parent_folder_id']
+            ).first()
+            if not existing:
+                new_folder = Folder(
+                    folder_name=feature['folder_name'],
+                    parent_folder_id=feature['parent_folder_id'],
+                    created_at=get_kst_now()
+                )
+                db.session.add(new_folder)
+                added_folders.append(feature['folder_name'])
+        if added_folders:
+            db.session.commit()
+            return jsonify({
+                'status': 'success',
+                'message': f'기능 폴더 {len(added_folders)}개가 추가되었습니다.',
+                'added_folders': added_folders
+            }), 200
+        return jsonify({'status': 'info', 'message': '추가할 기능 폴더가 없습니다.'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return api_error(str(e), 500)
+
+
 # 폴더 관리 API
 @folders_bp.route('/folders', methods=['GET'])
 @guest_allowed
 def get_folders():
     try:
+        from sqlalchemy import func
         folders = Folder.query.all()
+        # 폴더별 TC 개수 (TestCase.folder_id = 폴더 id)
+        count_rows = (
+            db.session.query(TestCase.folder_id, func.count(TestCase.id).label('cnt'))
+            .filter(TestCase.folder_id.isnot(None))
+            .group_by(TestCase.folder_id)
+            .all()
+        )
+        count_map = {row.folder_id: row.cnt for row in count_rows}
         data = [{
-            'id': f.id, 
-            'folder_name': f.folder_name, 
+            'id': f.id,
+            'folder_name': f.folder_name,
             'parent_folder_id': f.parent_folder_id,
             'folder_type': f.folder_type,
             'environment': f.environment,
             'deployment_date': f.deployment_date.strftime('%Y-%m-%d') if f.deployment_date else None,
             'project_id': f.project_id,
+            'test_case_count': count_map.get(f.id, 0),
             'created_at': f.created_at.isoformat() if f.created_at else None
         } for f in folders]
         
