@@ -25,36 +25,36 @@ export async function run(page) {
 
   await page.goto(URLS.SERVICE.QNA);
   await page.waitForLoadState('load');
-  await wait(5000);
+  await wait(2000);
   console.log('QNA URL:', await page.url());
   await page.screenshot({ path: `screenshots/${timestamp}_qna.png` });
 
   await page.waitForSelector(SELECTORS.COMMON.PAGE_LAST);
   await page.click(SELECTORS.COMMON.PAGE_LAST);
-  await wait(5000);
+  await wait(2000);
   await page.screenshot({ path: `screenshots/${timestamp}_qna_page_last.png` });
   await page.waitForSelector(SELECTORS.COMMON.PAGE_FIRST);
   await page.click(SELECTORS.COMMON.PAGE_FIRST);
-  await wait(5000);
+  await wait(2000);
   await page.screenshot({ path: `screenshots/${timestamp}_qna_page_first.png` });
 
   await selectComboboxOption(page, SELECTORS.ADMIN.QNA.SELECT_ANSWER_STATUS);
   await page.waitForSelector(SELECTORS.ADMIN.QNA.INPUT_SEARCH);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_qna_status.png` });
 
   await page.locator(SELECTORS.ADMIN.QNA.INPUT_SEARCH).fill('문의');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_qna_search.png` });
   await page.goto(URLS.SERVICE.QNA);
 
   await page.waitForSelector(SELECTORS.FEATURES.QNA.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);
-  await wait(5000);
+  await wait(2000);
   await page.screenshot({ path: `screenshots/${timestamp}_qna_table.png` });
   await page.waitForSelector(SELECTORS.ADMIN.QNA.BUTTON_LIST);
   await page.click(SELECTORS.ADMIN.QNA.BUTTON_LIST);
@@ -65,14 +65,14 @@ export async function run(page) {
   await page.locator('[contenteditable="true"]').first().fill('문의 테스트 1');
   await page.keyboard.press('Enter');
   await page.locator('[contenteditable="true"]').first().type('문의 테스트 2');
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_qna_answer_write.png` });
 
   await page.waitForSelector(SELECTORS.ADMIN.QNA.BUTTON_SAVE);
   await page.click(SELECTORS.ADMIN.QNA.BUTTON_SAVE);
   await page.goto(URLS.SERVICE.QNA);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_qna_answer_submit.png` });
 }

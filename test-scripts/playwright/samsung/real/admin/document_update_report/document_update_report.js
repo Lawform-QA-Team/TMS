@@ -21,18 +21,18 @@ export async function run(page) {
   await loginWithPage(page, credentials);
 
   await page.goto(URLS.DOCUMENT_UPDATE.LAW);
-  await wait(5000);
+  await wait(2000);
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_LAW.png` });
 
   await selectRandomDateFromRdpCalendar(page, SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.DATEPICKER);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_LAW_1.png` });
 
   await page.waitForSelector(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_HISTORY_CLICK);
   await page.click(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_HISTORY_CLICK);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_LAW_2.png` });
   await page.waitForSelector(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_CLOSE);
@@ -42,13 +42,13 @@ export async function run(page) {
   await page.click(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_HISTORY_CLICK);
   await page.waitForSelector(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_CONFIRM);
   await page.click(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_CONFIRM);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_LAW_3.png` });
 
   await page.waitForSelector(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_VIEW_ORIGINAL);
   await page.click(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_VIEW_ORIGINAL);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_LAW_4.png` });
 }

@@ -61,7 +61,7 @@ export async function run(page) {
 
   await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.EXCEL);
   await page.click(SELECTORS.ADMIN.DASHBOARD.EXCEL);
-  await wait(5000);
+  await wait(2000);
   await page.screenshot({ path: `screenshots/${timestamp}_excel_download.png` });
 
   await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_CATEGORY);
@@ -79,7 +79,7 @@ export async function run(page) {
   console.log('randomValue3 (조회 단위)', randomValue3);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_select_gategory3.png` });
-  await wait(5000);
+  await wait(2000);
 
   const queryUnit = (randomValue3 || '').trim();
   if (queryUnit.includes('일')) {

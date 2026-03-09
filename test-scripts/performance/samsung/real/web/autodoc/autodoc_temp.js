@@ -41,14 +41,14 @@ export default async function() {
 
         // 문서 작성 - 임시 저장 문서
         await page.goto(URLS.AUTODOC.TEMP);
-        await wait(5000);
+        await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp.png` });
 
         // 문서 작성 - 임시 저장 문서, 페이지네이션
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
         await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_pagination_last.png` });
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
@@ -59,21 +59,21 @@ export default async function() {
         await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, '삼성');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_search.png` });
 
         // 문서 작성 - 임시 저장 문서, 테이블 클릭
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_table.png` });
 
         // 문서 작성 - 표준 양식, 미리보기
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_PREVIEW);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_PREVIEW);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_preview.png` });
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
@@ -91,7 +91,7 @@ export default async function() {
             {},
             SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING
         );
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_labeling.png` });
 

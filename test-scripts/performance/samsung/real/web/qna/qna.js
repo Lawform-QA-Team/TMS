@@ -42,14 +42,14 @@ export default async function() {
 
         // 1:1 문의
         await page.goto(URLS.SERVICE.QNA);
-        await wait(5000);
+        await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA.png` });
 
         // 1:1 문의, 페이지네이션
         await page.waitForSelector(SELECTORS.FEATURES.QNA.PAGINATION);
         await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_pagination_last.png` });
         await page.waitForSelector(SELECTORS.FEATURES.QNA.PAGINATION);
@@ -58,7 +58,7 @@ export default async function() {
         // 1:1 문의, 상태 필터
         await selectComboboxOption(page, SELECTORS.WEB.QNA.SELECT_STATUS);
         await page.waitForSelector(SELECTORS.WEB.QNA.INPUT_SEARCH);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_status.png` });
 
@@ -66,7 +66,7 @@ export default async function() {
         await page.type(SELECTORS.WEB.QNA.INPUT_SEARCH, '문의');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_search.png` });
         await page.goto(URLS.SERVICE.QNA);
@@ -74,7 +74,7 @@ export default async function() {
         // 1:1 문의, 문의 등록 진입
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CREATE_QNA);
         await page.click(SELECTORS.WEB.QNA.BUTTON_CREATE_QNA);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_create.png` });
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CANCEL);
@@ -89,21 +89,21 @@ export default async function() {
         await page.type(`[contenteditable="true"]`, '문의 테스트 1');
         await page.keyboard.press('Enter')
         await page.type(`[contenteditable="true"]`, '문의 테스트 2');
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_create_write.png` });
 
         // 1:1 문의, 문의 등록
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CLICK_SUBMIT);
         await page.click(SELECTORS.WEB.QNA.BUTTON_CLICK_SUBMIT);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_create_submit.png` });
 
         // 1:1 문의, 테이블 클릭
         await page.waitForSelector(SELECTORS.FEATURES.QNA.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_table.png` });
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CLICK_GO_TO_LIST);
@@ -114,7 +114,7 @@ export default async function() {
         await page.click(SELECTORS.COMMON.TABLE);
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CLICK_CANCEL);
         await page.click(SELECTORS.WEB.QNA.BUTTON_CLICK_CANCEL);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_cancel.png` });
 

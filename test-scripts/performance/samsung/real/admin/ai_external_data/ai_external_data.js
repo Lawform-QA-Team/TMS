@@ -43,12 +43,12 @@ export default async function() {
         await page.goto(URLS.AI_DATA.LAW);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA.png` });
-        await wait(5000);
+        await wait(2000);
         
         // AI 외부 데이터 관리 - 법령 페이지네이션
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.PAGINATION);
         await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_pagination_last.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.PAGINATION);
@@ -59,7 +59,7 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_SEARCH, '법령');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_search.png` });
         await page.goto(URLS.AI_DATA.LAW);
@@ -67,7 +67,7 @@ export default async function() {
         // AI 외부 데이터 관리 - 법령 테이블 클릭
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.TABLE_LIST);
         await page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_table.png` });
 
@@ -76,7 +76,7 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_VIEW);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_VIEW);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_table_detail.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
@@ -90,7 +90,7 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX);
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_checkbox.png` });
         await page.goto(URLS.AI_DATA.LAW);
@@ -100,7 +100,7 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_DELETE);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_DELETE);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_delete.png` });
 

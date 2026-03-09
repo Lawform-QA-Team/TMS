@@ -25,14 +25,14 @@ export async function run(page) {
 
   await page.goto(URLS.SERVICE.NOTICE);
   await page.waitForLoadState('load');
-  await wait(5000);
+  await wait(2000);
   console.log('NOTICE URL:', await page.url());
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_notice.png` });
 
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
   await page.click(SELECTORS.COMMON.PAGE_LAST);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_pagination_last.png` });
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
@@ -42,7 +42,7 @@ export async function run(page) {
   await page.locator(SELECTORS.ADMIN.NOTICE.INPUT_SEARCH).fill('공지사항');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await wait(5000);
+  await wait(2000);
   await page.screenshot({ path: `screenshots/${timestamp}_search.png` });
 
   await page.goto(URLS.SERVICE.NOTICE);
@@ -62,7 +62,7 @@ export async function run(page) {
   await page.locator('[contenteditable="true"]').first().fill('문의 테스트 1');
   await page.keyboard.press('Enter');
   await page.locator('[contenteditable="true"]').first().type('문의 테스트 2');
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_register_write.png` });
 }

@@ -45,14 +45,14 @@ export default async function() {
         await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, '삼성');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(5000);
+        await wait(2000);
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
         await page.click(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_EDIT);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_EDIT);
-        await wait(5000);
+        await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_ai.png` });
 
@@ -75,7 +75,7 @@ export default async function() {
         // 문서 작성 - 기존 문서, AI 검토 * 편집, 코멘트
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_ai_comment.png` });
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_1);

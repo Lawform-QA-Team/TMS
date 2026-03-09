@@ -88,7 +88,7 @@ export default async function() {
         //엑셀 다운로드 (acceptDownloads로 저장 팝업 없이 자동 저장)
         await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.EXCEL);
         await page.click(SELECTORS.ADMIN.DASHBOARD.EXCEL);
-        await wait(5000);
+        await wait(2000);
         await page.screenshot({ path: `screenshots/${timestamp}_excel_download.png` });
 
         //통계 필터 적용 (combobox: button + role="combobox")
@@ -108,7 +108,7 @@ export default async function() {
         console.log('randomValue3 (조회 단위)', randomValue3);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_select_gategory3.png` });
-        await wait(5000);
+        await wait(2000);
 
         // 조회 단위에 따른 기간 선택 (randomValue3 = 조회 단위: 일/월/분기/반기/년도)
         const queryUnit = (randomValue3 || '').trim();

@@ -45,12 +45,12 @@ export default async function() {
         await page.goto(URLS.LOG.LOG);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_LOG.png` });
-        await wait(5000);
+        await wait(2000);
 
         // 로그, 페이지네이션
         await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.PAGINATION);
         await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_LOG_pagination_last.png` });
         await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.PAGINATION);
@@ -60,7 +60,7 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.BUTTON);
         const buttons = await page.$$(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.BUTTON);
         await buttons[Math.floor(Math.random() * buttons.length)].click();
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_LOG_date.png` });
 
@@ -72,7 +72,7 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.INPUT_SEARCH, 'a');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_LOG_search.png` });
 

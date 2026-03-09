@@ -21,13 +21,13 @@ export async function run(page) {
   await loginWithPage(page, credentials);
 
   await page.goto(URLS.AUTODOC.AUTODOC);
-  await wait(5000);
+  await wait(2000);
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC.png` });
 
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
   await page.click(SELECTORS.COMMON.PAGE_LAST);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_pagination_last.png` });
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
@@ -37,34 +37,34 @@ export async function run(page) {
   await page.locator(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH).fill('표준 양식');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_search.png` });
   await page.goto(URLS.AUTODOC.AUTODOC);
 
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER);
   await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_register.png` });
 
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.SELECT_SELECTED_CATEGORY);
   await selectComboboxOption(page, SELECTORS.ADMIN.AUTODOC.SELECT_SELECTED_CATEGORY);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_register.select.png` });
   await page.goto(URLS.AUTODOC.AUTODOC);
 
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table.png` });
   await page.goto(URLS.AUTODOC.AUTODOC);
 
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_CATEGORY_MANAGEMENT);
   await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_CATEGORY_MANAGEMENT);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category.png` });
 }

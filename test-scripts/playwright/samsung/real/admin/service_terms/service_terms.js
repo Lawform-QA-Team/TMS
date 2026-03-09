@@ -21,13 +21,13 @@ export async function run(page) {
   await loginWithPage(page, credentials);
 
   await page.goto(URLS.SERVICE.PRIVACY);
-  await wait(5000);
+  await wait(2000);
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_PRIVACY.png` });
 
   await page.waitForSelector(SELECTORS.ADMIN.TERMS.PAGINATION);
   await page.click(SELECTORS.COMMON.PAGE_LAST);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_PRIVACY_pagination_last.png` });
   await page.waitForSelector(SELECTORS.ADMIN.TERMS.PAGINATION);
@@ -36,14 +36,14 @@ export async function run(page) {
   await selectDateRangeInRdpCalendar(page, SELECTORS.ADMIN.TERMS.DATEPICKER, SELECTORS.ADMIN.TERMS.DATEPICKER_START, '2026-02-01', '2026-02-28');
   await page.waitForSelector(SELECTORS.ADMIN.TERMS.BUTTON_SEARCH);
   await page.click(SELECTORS.ADMIN.TERMS.BUTTON_SEARCH);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_PRIVACY_search.png` });
   await page.goto(URLS.SERVICE.PRIVACY);
 
   await page.waitForSelector(SELECTORS.ADMIN.TERMS.BUTTON_REGISTER);
   await page.click(SELECTORS.ADMIN.TERMS.BUTTON_REGISTER);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_PRIVACY_register.png` });
   await page.waitForSelector(SELECTORS.ADMIN.TERMS.BUTTON_LIST);
@@ -56,19 +56,19 @@ export async function run(page) {
   await page.locator('[contenteditable="true"]').first().fill('개인정보처리방침 테스트 1');
   await page.keyboard.press('Enter');
   await page.locator('[contenteditable="true"]').first().type('개인정보처리방침 테스트 2');
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_PRIVACY_register_write.png` });
 
   await page.waitForSelector(SELECTORS.ADMIN.TERMS.BUTTON_SUBMIT);
   await page.click(SELECTORS.ADMIN.TERMS.BUTTON_SUBMIT);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_PRIVACY_register_submit.png` });
 
   await page.waitForSelector(SELECTORS.ADMIN.TERMS.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_PRIVACY_table.png` });
   await page.waitForSelector(SELECTORS.ADMIN.TERMS.BUTTON_LIST);
@@ -81,13 +81,13 @@ export async function run(page) {
   await selectRandomDateFromRdpCalendar(page, SELECTORS.ADMIN.TERMS.DATEPICKER_REVISION_DATE);
   await page.waitForSelector('[contenteditable="true"]');
   await page.locator('[contenteditable="true"]').first().fill('수정 테스트');
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_PRIVACY_edit.png` });
 
   await page.waitForSelector(SELECTORS.ADMIN.TERMS.BUTTON_SUBMIT);
   await page.click(SELECTORS.ADMIN.TERMS.BUTTON_SUBMIT);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_PRIVACY_edit_submit.png` });
 }

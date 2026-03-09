@@ -41,5 +41,5 @@ export async function loginWithPage(page, credentials) {
 
     await page.waitForSelector(SELECTORS.FEATURES.LOGIN.BUTTON_SUBMIT);
     await page.click(SELECTORS.FEATURES.LOGIN.BUTTON_SUBMIT);
-    await wait(5000);
+    await wait(2000);
 }

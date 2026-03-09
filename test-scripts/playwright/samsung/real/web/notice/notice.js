@@ -20,13 +20,13 @@ export async function run(page) {
   await loginWithPage(page, credentials);
 
   await page.goto(URLS.SERVICE.NOTICE);
-  await wait(5000);
+  await wait(2000);
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE.png` });
 
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
   await page.click(SELECTORS.COMMON.PAGE_LAST);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_pagination_last.png` });
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
@@ -36,20 +36,20 @@ export async function run(page) {
   await page.locator(SELECTORS.WEB.NOTICE.INPUT_SEARCH).fill('공지');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_search.png` });
   await page.goto(URLS.SERVICE.NOTICE);
 
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_table.png` });
 
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_VIEW_HISTORY);
   await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_VIEW_HISTORY);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_history.png` });
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_CLOSE);

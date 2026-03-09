@@ -43,14 +43,14 @@ export default async function() {
         await page.goto(URLS.SERVICE.IP);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_IP.png` });
-        await wait(5000);
+        await wait(2000);
 
         // IP 관리, 검색
         await page.waitForSelector(SELECTORS.ADMIN.IP_MANAGEMENT.INPUT_SEARCH);
         await page.type(SELECTORS.ADMIN.IP_MANAGEMENT.INPUT_SEARCH, '5');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_IP_search.png` });
 

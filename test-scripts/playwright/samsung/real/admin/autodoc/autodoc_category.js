@@ -22,20 +22,20 @@ export async function run(page) {
   await page.goto(URLS.AUTODOC.CATEGORY);
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category.png` });
-  await wait(5000);
+  await wait(2000);
 
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH);
   await page.locator(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH).fill('카테고리');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_search.png` });
   await page.goto(URLS.AUTODOC.CATEGORY);
 
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER_CATEGORY);
   await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER_CATEGORY);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_register.png` });
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_CLOSE);
@@ -45,19 +45,19 @@ export async function run(page) {
   await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER_CATEGORY);
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT);
   await page.locator(SELECTORS.ADMIN.AUTODOC.INPUT).fill('카테고리 등록 테스트');
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_register_write.png` });
 
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
   await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_register_save.png` });
 
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_table.png` });
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_CLOSE);
@@ -67,13 +67,13 @@ export async function run(page) {
   await page.click(SELECTORS.COMMON.TABLE);
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT);
   await page.locator(SELECTORS.ADMIN.AUTODOC.INPUT).fill('카테고리 수정');
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_edit_category.png` });
 
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
   await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_edit_category_save.png` });
 }

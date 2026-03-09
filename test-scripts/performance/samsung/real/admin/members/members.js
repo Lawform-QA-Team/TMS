@@ -41,14 +41,14 @@ export default async function() {
 
         // 사용자 관리 - 백오피스
         await page.goto(URLS.MEMBER.BACKOFFICE);
-        await wait(5000);
+        await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE.png` });
 
         // 사용자 관리 - 백오피스, 페이지네이션
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
         await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_pagination_last.png` });
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
@@ -59,14 +59,14 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH, '임희건');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_search.png` });
 
         // 사용자 관리 - 백오피스, 테이블 클릭
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.TABLE_LIST);
         await page.click(`${SELECTORS.COMMON.TABLE} button`);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_table.png` });
 
@@ -81,14 +81,14 @@ export default async function() {
         for (let i = 0; i <= 3; i++) {
             await checkboxes[i].click();
         }
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_edit.png` });
 
         // 사용자 관리 - 백오피스, 정보 저장
         await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_save.png` });
 

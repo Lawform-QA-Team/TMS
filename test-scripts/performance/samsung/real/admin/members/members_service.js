@@ -42,14 +42,14 @@ export default async function() {
 
         // 사용자 관리 - 서비스
         await page.goto(URLS.MEMBER.SERVICE);
-        await wait(5000);
+        await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE.png` });
 
         // 사용자 관리 - 서비스, 페이지네이션
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
         await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_pagination_last.png` });
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
@@ -62,7 +62,7 @@ export default async function() {
         await selectComboboxOption(page, SELECTORS.ADMIN.MEMBERS_TABLE.SELECT_APPROVAL_STATUS)
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_search.png` });
         await page.goto(URLS.MEMBER.SERVICE);
@@ -75,7 +75,7 @@ export default async function() {
         await wait(2000);
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.TABLE_LIST);
         await page.click(`${SELECTORS.COMMON.TABLE} button`);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_table.png` });
 
@@ -85,14 +85,14 @@ export default async function() {
         await radios[2].click();
         await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO_1);
         await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO_1);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_edit.png` });
 
         // 사용자 관리 - 서비스, 정보 저장
         await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_save.png` });
 
@@ -100,7 +100,7 @@ export default async function() {
         await page.goto(URLS.MEMBER.SERVICE);
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.BUTTON_HANDOVER_CLICK);
         await page.click(SELECTORS.ADMIN.MEMBERS_TABLE.BUTTON_HANDOVER_CLICK);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover.png` });
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_GO_TO_LIST);
@@ -111,7 +111,7 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.MEMBERS_TABLE.BUTTON_HANDOVER_CLICK);
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
         await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferor.png` });
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CLOSE);
@@ -122,7 +122,7 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
         await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferor_pagination_last.png` });
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
@@ -133,28 +133,28 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT, '임희건');
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_SEARCH);
         await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_SEARCH);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferor_search.png` });
 
         // 사용자 관리 - 서비스, 인수인계 인계자 테이블 클릭
         await page.waitForSelector(SELECTORS.COMMON.TABLE);
         await page.click(SELECTORS.COMMON.TABLE);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferor_table.png` });
 
         // 사용자 관리 - 서비스, 인수인계 인계자 선택
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CONFIRM);
         await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CONFIRM);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferor_submit.png` });
 
         // 사용자 관리 - 서비스, 인수인계 인수자 진입
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
         await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferee.png` });
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CLOSE);
@@ -165,7 +165,7 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
         await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferee_pagination_last.png` });
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
@@ -176,28 +176,28 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT, 'ggp');
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_SEARCH);
         await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_SEARCH);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferee_search.png` });
 
         // 사용자 관리 - 서비스, 인수인계 인수자 테이블 클릭
         await page.waitForSelector(SELECTORS.COMMON.TABLE);
         await page.click(SELECTORS.COMMON.TABLE);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferee_table.png` });
 
         // 사용자 관리 - 서비스, 인수인계 인수자 선택
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CONFIRM);
         await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CONFIRM);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferee_submit.png` });
 
         // 사용자 관리 - 서비스, 인수인계 저장
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SAVE);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_submit.png` });
 

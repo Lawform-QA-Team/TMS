@@ -42,14 +42,14 @@ export default async function() {
 
         // 약관 관리 - 개인정보처리방침
         await page.goto(URLS.SERVICE.PRIVACY);
-        await wait(5000);
+        await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_PRIVACY.png` });
 
         // 약관 관리 - 개인정보처리방침, 페이지네이션
         await page.waitForSelector(SELECTORS.ADMIN.TERMS.PAGINATION);
         await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_PRIVACY_pagination_last.png` });
         await page.waitForSelector(SELECTORS.ADMIN.TERMS.PAGINATION);
@@ -59,7 +59,7 @@ export default async function() {
         await selectDateRangeInRdpCalendar(page, SELECTORS.ADMIN.TERMS.DATEPICKER, SELECTORS.ADMIN.TERMS.DATEPICKER_START, '2026-02-01', '2026-02-28')
         await page.waitForSelector(SELECTORS.ADMIN.TERMS.BUTTON_SEARCH);
         await page.click(SELECTORS.ADMIN.TERMS.BUTTON_SEARCH);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_PRIVACY_search.png` });
         await page.goto(URLS.SERVICE.PRIVACY);
@@ -67,7 +67,7 @@ export default async function() {
         // 약관 관리 - 개인정보처리방침, 등록 진입
         await page.waitForSelector(SELECTORS.ADMIN.TERMS.BUTTON_REGISTER);
         await page.click(SELECTORS.ADMIN.TERMS.BUTTON_REGISTER);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_PRIVACY_register.png` });
         await page.waitForSelector(SELECTORS.ADMIN.TERMS.BUTTON_LIST);
@@ -81,21 +81,21 @@ export default async function() {
         await page.type(`[contenteditable="true"]`, '개인정보처리방침 테스트 1');
         await page.keyboard.press('Enter')
         await page.type(`[contenteditable="true"]`, '개인정보처리방침 테스트 2');
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_PRIVACY_register_write.png` });
         
         // 약관 관리 - 개인정보처리방침, 등록
         await page.waitForSelector(SELECTORS.ADMIN.TERMS.BUTTON_SUBMIT);
         await page.click(SELECTORS.ADMIN.TERMS.BUTTON_SUBMIT);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_PRIVACY_register_submit.png` });
 
         // 약관 관리 - 개인정보처리방침, 테이블 클릭
         await page.waitForSelector(SELECTORS.ADMIN.TERMS.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_PRIVACY_table.png` });
         await page.waitForSelector(SELECTORS.ADMIN.TERMS.BUTTON_LIST);
@@ -109,14 +109,14 @@ export default async function() {
         await selectRandomDateFromRdpCalendar(page, SELECTORS.ADMIN.TERMS.DATEPICKER_REVISION_DATE)
         await page.waitForSelector(`[contenteditable="true"]`);
         await page.type(`[contenteditable="true"]`, '수정 테스트');
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_PRIVACY_edit.png` });
 
         // 약관 관리 - 개인정보처리방침, 상세 수정 저장
         await page.waitForSelector(SELECTORS.ADMIN.TERMS.BUTTON_SUBMIT);
         await page.click(SELECTORS.ADMIN.TERMS.BUTTON_SUBMIT);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_PRIVACY_edit_submit.png` });
 

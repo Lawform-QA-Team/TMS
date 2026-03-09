@@ -41,14 +41,14 @@ export default async function() {
 
         // 문서 작성 - 표준 양식
         await page.goto(URLS.AUTODOC.AUTODOC);
-        await wait(5000);
+        await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC.png` });
 
         // 문서 작성 - 표준 양식, 페이지네이션
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
         await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_pagination_last.png` });
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
@@ -59,14 +59,14 @@ export default async function() {
         await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, '삼성');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_search.png` });
 
         // 문서 작성 - 표준 양식, 테이블 클릭
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table.png` });
 
@@ -74,14 +74,14 @@ export default async function() {
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
             // 내용을 작성했다고 가정
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_write.png` });
 
         // 문서 작성 - 표준 양식, 임시저장
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_DRAFT_SAVE);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_DRAFT_SAVE);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_submit.png` });
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);

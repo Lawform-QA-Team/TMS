@@ -20,13 +20,13 @@ export async function run(page) {
   await loginWithPage(page, credentials);
 
   await page.goto(URLS.AUTODOC.EXISTING);
-  await wait(5000);
+  await wait(2000);
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing.png` });
 
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
   await page.click(SELECTORS.COMMON.PAGE_LAST);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_pagination_last.png` });
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
@@ -36,32 +36,32 @@ export async function run(page) {
   await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('테스트');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_search.png` });
   await page.goto(URLS.AUTODOC.EXISTING);
 
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_table.png` });
 
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_DOWNLOAD);
   await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_DOWNLOAD);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_download.png` });
 
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_DOWNLOAD_1);
   await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_DOWNLOAD_1);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_clean_download.png` });
 
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
   await page.click(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_edit.png` });
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
@@ -87,7 +87,7 @@ export async function run(page) {
 
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON);
   await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_log.png` });
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
@@ -97,7 +97,7 @@ export async function run(page) {
   await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON);
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE2);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_log_table.png` });
 
@@ -105,7 +105,7 @@ export async function run(page) {
   await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_COMPARE);
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_log_compare.png` });
 

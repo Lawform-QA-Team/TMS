@@ -20,13 +20,13 @@ export async function run(page) {
   await loginWithPage(page, credentials);
 
   await page.goto(URLS.AUTODOC.AUTODOC);
-  await wait(5000);
+  await wait(2000);
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC.png` });
 
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
   await page.click(SELECTORS.COMMON.PAGE_LAST);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_pagination_last.png` });
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
@@ -36,14 +36,14 @@ export async function run(page) {
   await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('테스트');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_search.png` });
   await page.goto(URLS.AUTODOC.AUTODOC);
 
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table.png` });
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
@@ -52,13 +52,13 @@ export async function run(page) {
 
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_write.png` });
 
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_DRAFT_SAVE);
   await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_DRAFT_SAVE);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_submit.png` });
 }

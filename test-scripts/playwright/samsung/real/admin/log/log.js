@@ -23,11 +23,11 @@ export async function run(page) {
   await page.goto(URLS.LOG.LOG);
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_LOG.png` });
-  await wait(5000);
+  await wait(2000);
 
   await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.PAGINATION);
   await page.click(SELECTORS.COMMON.PAGE_LAST);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_LOG_pagination_last.png` });
   await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.PAGINATION);
@@ -37,7 +37,7 @@ export async function run(page) {
   const buttons = page.locator(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.BUTTON);
   const count = await buttons.count();
   await buttons.nth(Math.floor(Math.random() * count)).click();
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_LOG_date.png` });
 
@@ -47,7 +47,7 @@ export async function run(page) {
   await page.locator(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.INPUT_SEARCH).fill('a');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_LOG_search.png` });
 }

@@ -46,7 +46,7 @@ export default async function() {
         // 공지사항 페이지 이동
         await page.goto(URLS.SERVICE.NOTICE);
         await page.waitForLoadState('load');
-        await wait(5000); // SPA가 필터/버튼을 렌더할 시간 확보
+        await wait(2000); // SPA가 필터/버튼을 렌더할 시간 확보
         console.log('NOTICE URL:', await page.url());
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_notice.png` });
@@ -54,7 +54,7 @@ export default async function() {
         // 공지사항 페이지네이션
         await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
         await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_pagination_last.png` });
         await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
@@ -65,14 +65,14 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.NOTICE.INPUT_SEARCH, '공지사항');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(5000);
+        await wait(2000);
         await page.screenshot({ path: `screenshots/${timestamp}_search.png` });
 
         // 공지사항 테이블 클릭 -> 미구현
         // await page.goto(URLS.SERVICE.NOTICE);
         // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.TABLE_LIST);
         // await page.click(SELECTORS.COMMON.TABLE);
-        // await wait(5000);
+        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_table.png` });
 
@@ -95,14 +95,14 @@ export default async function() {
         await page.type(`[contenteditable="true"]`, '문의 테스트 1');
         await page.keyboard.press('Enter')
         await page.type(`[contenteditable="true"]`, '문의 테스트 2');
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_register_write.png` });
         
         // 공지사항 등록 메뉴 저장 -> 미구현
         // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_SUBMIT);
         // await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_SUBMIT);
-        // await wait(5000);
+        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_register_submit.png` });
 

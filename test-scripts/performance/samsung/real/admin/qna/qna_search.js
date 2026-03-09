@@ -46,24 +46,24 @@ export default async function() {
         // 1:1 문의 관리
         await page.goto(URLS.SERVICE.QNA);
         await page.waitForLoadState('load');
-        await wait(5000);
+        await wait(2000);
         console.log('QNA URL:', await page.url());
         await page.screenshot({ path: `screenshots/${timestamp}_qna.png` });
 
         // 1:1 문의 관리, 페이지네이션
         await page.waitForSelector(SELECTORS.COMMON.PAGE_LAST);
         await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(5000);
+        await wait(2000);
         await page.screenshot({ path: `screenshots/${timestamp}_qna_page_last.png` });
         await page.waitForSelector(SELECTORS.COMMON.PAGE_FIRST);
         await page.click(SELECTORS.COMMON.PAGE_FIRST);
-        await wait(5000);
+        await wait(2000);
         await page.screenshot({ path: `screenshots/${timestamp}_qna_page_first.png` });
 
         // 1:1 문의 관리, 상태 필터
         await selectComboboxOption(page, SELECTORS.ADMIN.QNA.SELECT_ANSWER_STATUS);
         await page.waitForSelector(SELECTORS.ADMIN.QNA.INPUT_SEARCH);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_qna_status.png` });
 
@@ -71,7 +71,7 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.QNA.INPUT_SEARCH, '문의');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_qna_search.png` });
         await page.goto(URLS.SERVICE.QNA);
@@ -79,7 +79,7 @@ export default async function() {
         // 1:1 문의 관리, 테이블 클릭
         await page.waitForSelector(SELECTORS.FEATURES.QNA.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
-        await wait(5000);
+        await wait(2000);
         await page.screenshot({ path: `screenshots/${timestamp}_qna_table.png` });
         await page.waitForSelector(SELECTORS.ADMIN.QNA.BUTTON_LIST);
         await page.click(SELECTORS.ADMIN.QNA.BUTTON_LIST);
@@ -91,7 +91,7 @@ export default async function() {
         await page.type(`[contenteditable="true"]`, '문의 테스트 1');
         await page.keyboard.press('Enter')
         await page.type(`[contenteditable="true"]`, '문의 테스트 2');
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_qna_answer_write.png` });
         
@@ -99,7 +99,7 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.QNA.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.QNA.BUTTON_SAVE);
         await page.goto(URLS.SERVICE.QNA);
-        await wait(5000);
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_qna_answer_submit.png` });
 

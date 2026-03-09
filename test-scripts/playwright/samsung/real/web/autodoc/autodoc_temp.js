@@ -20,13 +20,13 @@ export async function run(page) {
   await loginWithPage(page, credentials);
 
   await page.goto(URLS.AUTODOC.TEMP);
-  await wait(5000);
+  await wait(2000);
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp.png` });
 
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
   await page.click(SELECTORS.COMMON.PAGE_LAST);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_pagination_last.png` });
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
@@ -36,20 +36,20 @@ export async function run(page) {
   await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('테스트');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_search.png` });
   await page.goto(URLS.AUTODOC.TEMP);
 
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_table.png` });
 
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_PREVIEW);
   await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_PREVIEW);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_preview.png` });
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
@@ -57,7 +57,7 @@ export async function run(page) {
 
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
   await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
-  await wait(5000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_ai_label.png` });
 
