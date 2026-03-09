@@ -35,29 +35,35 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            libnss3 \
-            libatk-bridge2.0-0 \
-            libdrm2 \
-            libxkbcommon0 \
-            libgbm1 \
-            libasound2t64 \
-            libxshmfence1 \
-            libxrandr2 \
-            libpangocairo-1.0-0 \
-            libgtk-3-0
-      
+            libnss3 libatk-bridge2.0-0 libdrm2 libxkbcommon0 \
+            libgbm1 libasound2t64 libxshmfence1 libxrandr2 \
+            libpangocairo-1.0-0 libgtk-3-0
+
       - name: Increase /dev/shm size
         run: sudo mount -t tmpfs -o size=2g tmpfs /dev/shm
+
+      - name: Fix CPU frequency scaling for Chromium
+        run: |
+          sudo mkdir -p /sys/devices/system/cpu/cpu0/cpufreq
+          echo "1000000" | sudo tee /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
+          echo "1000000" | sudo tee /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+          echo "3000000" | sudo tee /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+
+      - name: Prepare Result directories
+        run: |
+          find test-scripts/performance/samsung/real -type d | while read -r dir; do
+            mkdir -p "$dir/Result"
+          done
 
       - name: Build k6 with xk6-influxdb
         run: |
           docker run --rm \
-            --user "$(id -u):$(id -g)" \
             -v "$(pwd):/xk6" \
             -w /xk6 \
             grafana/xk6 build \
             --with github.com/grafana/xk6-output-influxdb@latest
-          chmod +x k6
+          sudo chown $USER:$USER ./k6
+          chmod +x ./k6
           ./k6 version
 
       - name: Run all K6 scripts (samsung/real)
@@ -66,7 +72,7 @@ jobs:
           ENV: ${{ secrets.K6_ENV || 'dev' }}
           ROLE: ${{ secrets.K6_ROLE || 'master' }}
           K6_BROWSER_HEADLESS: ${{ secrets.K6_BROWSER_HEADLESS || 'true' }}
-          K6_BROWSER_ARGS: '--no-sandbox --disable-dev-shm-usage'  # 추가
+          K6_BROWSER_ARGS: '--no-sandbox --disable-dev-shm-usage'
           BASE_URL: ${{ secrets.K6_BASE_URL }}
           LOGIN_EMAIL: ${{ secrets.K6_LOGIN_EMAIL }}
           LOGIN_PASSWORD: ${{ secrets.K6_LOGIN_PASSWORD }}
@@ -79,19 +85,12 @@ jobs:
         run: |
           set -euo pipefail
           BASE_DIR="test-scripts/performance/samsung/real"
-          echo "=============================================="
-          echo "[k6] Running all samsung/real scripts"
-          echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S')"
-          echo "=============================================="
 
           find "$BASE_DIR" -type f -name "*.js" | sort | while read -r script; do
-            echo "----------------------------------------------"
-            echo "Running k6 script: $script"
-            echo "Start: $(date -u '+%Y-%m-%d %H:%M:%S')"
-            echo "----------------------------------------------"
+            echo "Running: $script"
+            # 각 스크립트의 Result 디렉토리 보장
+            mkdir -p "$(dirname "$script")/Result"
             ./k6 run --out xk6-influxdb=$K6_INFLUXDB_ADDR "$script"
-            echo "Finished: $(date -u '+%Y-%m-%d %H:%M:%S')"
-            echo
           done
 
           echo "=============================================="
