@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '@tms/config';
-import PromptModal from '../common/PromptModal';
-import './JiraIntegration.css';
+import PromptModal from '@tms/components/common/PromptModal';
+import '@tms/components/jira/JiraIntegration.css';
 
 const JiraIntegration = ({ testId, testType, testName, testResult, errorMessage, setActiveTab }) => {
   const [jiraIssues, setJiraIssues] = useState([]);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './TestScriptsExplorer.css';
+import '@tms/components/automation/TestScriptsExplorer.css';
 
 // 파일/폴더 아이템 컴포넌트 (테스트 케이스 폴더 트리 형태)
 const FileTreeItem = ({ item, level = 0, scriptType }) => {

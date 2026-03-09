@@ -1,6 +1,6 @@
-import { getCurrentLoginCredentials, SELECTORS } from '../url/config.js';
-import { URLS } from '../url/url_base.js';
-import { getFormattedTimestamp } from "../common/utils.js";
+import { getCurrentLoginCredentials, SELECTORS } from "@tms/performance/url/config.js";
+import { URLS } from "@tms/performance/url/url_base.js";
+import { getFormattedTimestamp } from "@tms/performance/common/utils.js";
 
 export default async function login_to_dashborad(page) {
     const credentials = getCurrentLoginCredentials();

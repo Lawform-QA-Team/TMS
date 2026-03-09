@@ -1519,6 +1519,12 @@
   word-break: break-all;
 }
 
+.info-table .expected-result-content {
+  max-height: 120px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
 .info-table .automation-code code {
   background: #e9ecef;
   padding: 2px 6px;

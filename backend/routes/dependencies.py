@@ -16,10 +16,6 @@ dependencies_bp = Blueprint('dependencies', __name__)
 @guest_allowed
 def get_dependencies():
     """의존성 목록 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         test_case_id = request.args.get('test_case_id', type=int)
         depends_on_test_case_id = request.args.get('depends_on_test_case_id', type=int)
@@ -47,10 +43,6 @@ def get_dependencies():
 @user_required
 def create_dependency():
     """의존성 생성"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data = request.get_json()
         
@@ -84,10 +76,6 @@ def create_dependency():
 @user_required
 def update_dependency(id):
     """의존성 수정"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         dependency = TestDependency.query.get_or_404(id)
         data = request.get_json()
@@ -120,10 +108,6 @@ def update_dependency(id):
 @user_required
 def delete_dependency(id):
     """의존성 삭제"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         dependency = TestDependency.query.get_or_404(id)
         
@@ -143,10 +127,6 @@ def delete_dependency(id):
 @guest_allowed
 def get_dependency_graph():
     """의존성 그래프 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         test_case_ids = request.args.getlist('test_case_ids', type=int)
         if not test_case_ids:
@@ -166,10 +146,6 @@ def get_dependency_graph():
 @guest_allowed
 def get_execution_order():
     """테스트 케이스 실행 순서 계산"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data = request.get_json()
         
@@ -205,10 +181,6 @@ def get_execution_order():
 @guest_allowed
 def check_dependency_conditions(test_case_id):
     """테스트 케이스의 의존성 조건 확인"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         conditions = dependency_service.check_dependency_conditions(test_case_id)
         
@@ -224,10 +196,6 @@ def check_dependency_conditions(test_case_id):
 @guest_allowed
 def get_test_case_dependencies(test_case_id):
     """테스트 케이스가 의존하는 테스트 케이스 목록 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         dependencies = dependency_service.get_dependencies(test_case_id)
         
@@ -243,10 +211,6 @@ def get_test_case_dependencies(test_case_id):
 @guest_allowed
 def get_dependent_tests(test_case_id):
     """특정 테스트 케이스에 의존하는 테스트 케이스 목록 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         dependent_tests = dependency_service.get_dependent_tests(test_case_id)
         

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import TestCaseModal from './TestCaseModal';
+import { getUserDisplayName } from '@tms/utils/userDisplay';
+import TestCaseModal from '@tms/components/testcases/modals/TestCaseModal';
 
 const TestCaseFormModal = ({ 
   isOpen, 
@@ -199,7 +200,7 @@ const TestCaseFormModal = ({
             <option value="">담당자를 선택하세요</option>
             {users.map(user => (
               <option key={user.id} value={user.id}>
-                {user.username || user.first_name || user.email}
+                {getUserDisplayName(user)}
               </option>
             ))}
           </select>

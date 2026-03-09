@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '@tms/config';
-import './UnifiedDashboard.css';
+import '@tms/components/dashboard/UnifiedDashboard.css';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
 import { Doughnut, Bar } from 'react-chartjs-2';
 
@@ -55,6 +55,7 @@ const UnifiedDashboard = ({ setActiveTab }) => {
   const [testExecutions, setTestExecutions] = useState([]);
   const [dashboardSummaries, setDashboardSummaries] = useState([]);
   const [testcaseSummaries, setTestcaseSummaries] = useState([]);
+  const [projectStats, setProjectStats] = useState([]);
   const [jiraStats, setJiraStats] = useState({
     totalIssues: 0,
     issuesByStatus: {},
@@ -79,6 +80,7 @@ const UnifiedDashboard = ({ setActiveTab }) => {
         // 기존 environmentSummary와 jiraStats가 있으면 제거하고 새로운 카드들로 교체
         const { environmentSummary, jiraStats, jiraSummary, ...otherSettings } = parsed;
         return {
+          projectStats: { enabled: true, order: 0, size: 'large' },
           environmentDev: { enabled: true, order: 1, size: 'medium' },
           environmentAlpha: { enabled: true, order: 2, size: 'medium' },
           environmentProduction: { enabled: true, order: 3, size: 'medium' },
@@ -107,7 +109,8 @@ const UnifiedDashboard = ({ setActiveTab }) => {
       testCases: { enabled: true, order: 10, size: 'medium' },
       performanceTests: { enabled: true, order: 11, size: 'medium' },
       testExecutions: { enabled: true, order: 12, size: 'medium' },
-      screenshots: { enabled: true, order: 13, size: 'small' }
+      screenshots: { enabled: true, order: 13, size: 'small' },
+      projectStats: { enabled: true, order: 0, size: 'large' }
     };
   });
   
@@ -267,6 +270,7 @@ const UnifiedDashboard = ({ setActiveTab }) => {
   // 카드 표시 이름 반환
   const getCardDisplayName = (cardKey) => {
     const names = {
+      projectStats: '프로젝트별 통계',
       environmentDev: 'DEV 환경 테스트 케이스',
       environmentAlpha: 'ALPHA 환경 테스트 케이스',
       environmentProduction: 'PRODUCTION 환경 테스트 케이스',
@@ -394,12 +398,13 @@ const UnifiedDashboard = ({ setActiveTab }) => {
       setError(null);
       
       // 최적화: 불필요한 헬스체크 요청 제거, 병렬 요청만 유지
-      const [testCasesRes, performanceTestsRes, testExecutionsRes, summariesRes, testcaseSummariesRes, jiraStatsRes, jiraEnvironmentStatsRes, jiraRecentIssuesRes] = await Promise.all([
+      const [testCasesRes, performanceTestsRes, testExecutionsRes, summariesRes, testcaseSummariesRes, projectStatsRes, jiraStatsRes, jiraEnvironmentStatsRes, jiraRecentIssuesRes] = await Promise.all([
         axios.get(`/testcases?page=1&per_page=${itemsPerPage}`),
         axios.get(`/performance-tests?page=1&per_page=${itemsPerPage}`),
         axios.get(`/test-executions?page=1&per_page=${itemsPerPage}`),
         axios.get('/dashboard-summaries'),
         axios.get('/testcases/summary/all'),
+        axios.get('/dashboard/project-stats'),
         axios.get('/api/jira/stats'),
         axios.get('/api/jira/stats/environment'),
         axios.get(`/api/jira/issues?page=1&per_page=${itemsPerPage}`)
@@ -410,7 +415,8 @@ const UnifiedDashboard = ({ setActiveTab }) => {
       setTestExecutions(testExecutionsRes.data.items || testExecutionsRes.data);
       setDashboardSummaries(summariesRes.data);
       setTestcaseSummaries(testcaseSummariesRes.data);
-      
+      setProjectStats(Array.isArray(projectStatsRes.data) ? projectStatsRes.data : []);
+
       // JIRA 통계 처리
       console.log('📊 JIRA 통계 응답:', jiraStatsRes.data);
       if (jiraStatsRes.data && jiraStatsRes.data.success) {
@@ -902,6 +908,7 @@ const UnifiedDashboard = ({ setActiveTab }) => {
                 className="btn-reset"
                 onClick={() => {
                   const defaultSettings = {
+                    projectStats: { enabled: true, order: 0, size: 'large' },
                     environmentDev: { enabled: true, order: 1, size: 'medium' },
                     environmentAlpha: { enabled: true, order: 2, size: 'medium' },
                     environmentProduction: { enabled: true, order: 3, size: 'medium' },
@@ -940,6 +947,67 @@ const UnifiedDashboard = ({ setActiveTab }) => {
         
         return (
           <div key={cardKey}>
+            {cardKey === 'projectStats' && (
+              <div 
+                className={`dashboard-card card-size-${config.size} draggable-card ${isDragging ? 'dragging' : ''} ${isDragOver ? 'drag-over' : ''}`}
+                draggable={true}
+                onDragStart={(e) => handleDragStart(e, cardKey)}
+                onDragOver={(e) => handleDragOver(e, cardKey)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, cardKey)}
+                onDragEnd={handleDragEnd}
+              >
+                <div className="card-header">
+                  <h3>프로젝트별 통계</h3>
+                  <button 
+                    className="btn-move-to-tab"
+                    onClick={() => setActiveTab('testcases')}
+                    title="테스트 케이스 상세 보기"
+                  >
+                    이동 &gt;
+                  </button>
+                </div>
+                <div className="card-content">
+                  <div className="project-stats-grid">
+                    {projectStats.length === 0 ? (
+                      <p className="no-project-stats">프로젝트별 테스트 데이터가 없습니다.</p>
+                    ) : (
+                      projectStats.map((proj) => (
+                        <div key={proj.project_id ?? 'none'} className="project-stat-card">
+                          <div className="project-stat-name">{proj.project_name}</div>
+                          <div className="project-stat-table-wrap">
+                            <table className="summary-table project-stat-table">
+                              <thead>
+                                <tr>
+                                  <th>Total</th>
+                                  <th>Pass</th>
+                                  <th>Fail</th>
+                                  <th>N/T</th>
+                                  <th>N/A</th>
+                                  <th>Block</th>
+                                  <th>성공률</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td>{proj.total_testcases}</td>
+                                  <td className="status-pass">{proj.passed}</td>
+                                  <td className="status-fail">{proj.failed}</td>
+                                  <td className="status-nt">{proj.nt}</td>
+                                  <td className="status-na">{proj.na}</td>
+                                  <td className="status-block">{proj.blocked}</td>
+                                  <td className="success-rate">{proj.pass_rate.toFixed(1)}%</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
             {cardKey === 'environmentDev' && (
               <div 
                 className={`dashboard-card card-size-${config.size} draggable-card ${isDragging ? 'dragging' : ''} ${isDragOver ? 'drag-over' : ''}`}

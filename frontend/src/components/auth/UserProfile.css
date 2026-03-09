@@ -53,6 +53,122 @@
   font-size: 0.95em;
 }
 
+.profile-notifications {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profile-notification-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.notification-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notification-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  background: #f8f9fa;
+}
+
+.notification-row label {
+  font-weight: 600;
+  color: #495057;
+}
+
+.notification-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notification-field label {
+  font-weight: 600;
+  color: #495057;
+}
+
+.notification-field input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.notification-suboptions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-left: 10px;
+  padding-left: 12px;
+  border-left: 2px dashed #dee2e6;
+}
+
+.notification-suboption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+}
+
+/* 토글 스위치 */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #ced4da;
+  border-radius: 999px;
+  transition: background-color 0.2s ease;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  top: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #007bff;
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(22px);
+}
+
 .profile-snb {
   /* 시각적으로 settings-snb와 동일하게 보이도록 Settings.css의 스타일을 활용함 */
 }

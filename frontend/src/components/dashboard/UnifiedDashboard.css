@@ -5,7 +5,7 @@
 }
 
 .unified-dashboard h1 {
-  color: #333;
+  color: var(--tms-text);
   margin-bottom: 30px;
   text-align: center;
 }
@@ -19,7 +19,7 @@
 /* 환경별 요약 섹션 - 카드 크기 적용 제거 (위의 통합 규칙 사용) */
 
 .environment-summary-section h2 {
-  color: #555;
+  color: var(--tms-text-secondary);
   margin-bottom: 20px;
   font-size: 1.5em;
 }
@@ -32,25 +32,25 @@
 }
 
 .environment-card {
-  background: white;
-  border: 1px solid #e0e0e0;
+  background: var(--tms-bg-card);
+  border: 1px solid var(--tms-border);
   border-radius: 8px;
   padding: 15px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(15, 76, 129, 0.06);
   transition: transform 0.2s ease;
   height: fit-content;
 }
 
 .environment-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 8px rgba(15, 76, 129, 0.12);
 }
 
 .environment-card h3 {
-  color: #333;
+  color: var(--tms-text);
   margin-bottom: 15px;
   font-size: 1.2em;
-  border-bottom: 2px solid #007bff;
+  border-bottom: 2px solid var(--tms-primary);
   padding-bottom: 8px;
 }
 
@@ -763,6 +763,50 @@
 } 
 
 /* 환경별 테스트 케이스 상태 요약 테이블 스타일 */
+/* 프로젝트별 통계 카드 */
+.project-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.project-stat-card {
+  background: var(--tms-bg-card);
+  border: 1px solid var(--tms-border);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 4px rgba(15, 76, 129, 0.06);
+}
+
+.project-stat-name {
+  font-weight: 600;
+  color: var(--tms-text);
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--tms-border);
+  font-size: 0.95em;
+}
+
+.project-stat-table-wrap {
+  overflow-x: auto;
+}
+
+.project-stat-table {
+  font-size: 0.85em;
+}
+
+.project-stat-table th,
+.project-stat-table td {
+  padding: 6px 4px;
+}
+
+.no-project-stats {
+  color: var(--tms-text-secondary);
+  padding: 16px;
+  text-align: center;
+  margin: 0;
+}
+
 .summary-table-container {
   margin-top: 10px;
 }

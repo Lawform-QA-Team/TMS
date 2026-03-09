@@ -1,1 +1,1 @@
-export { default } from './UnifiedDashboard'; 
+export { default } from '@tms/components/dashboard/UnifiedDashboard'; 

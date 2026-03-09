@@ -1,9 +1,9 @@
 import { check } from "k6";
 import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
 import { browser } from "k6/browser";
-import advice_clm from "./advice_clm.js";
-import { URLS } from '../url/url_base.js';
-import { getFormattedTimestamp } from "../common/utils.js";
+import advice_clm from "@tms/performance/advice/advice_clm.js";
+import { URLS } from "@tms/performance/url/url_base.js";
+import { getFormattedTimestamp } from "@tms/performance/common/utils.js";
 
 export const options = {
     scenarios: {

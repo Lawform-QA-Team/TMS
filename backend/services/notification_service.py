@@ -5,6 +5,7 @@
 from models import db, Notification, NotificationSettings, User, TestCase, TestResult
 from utils.timezone_utils import get_kst_now
 from utils.logger import get_logger
+from services.slack_webhook_form import build_slack_payload
 import json
 import os
 import requests
@@ -23,7 +24,7 @@ class NotificationService:
     def create_notification(self, user_id, notification_type, title, message, 
                            related_test_case_id=None, related_automation_test_id=None,
                            related_performance_test_id=None, related_test_result_id=None,
-                           priority='medium', channels='in_app'):
+                           priority='medium', channels='in_app', metadata=None):
         """
         알림 생성
         
@@ -38,6 +39,7 @@ class NotificationService:
             related_test_result_id: 관련 테스트 결과 ID
             priority: 우선순위
             channels: 알림 채널
+            metadata: Slack 등 전송 시 사용할 추가 데이터 (예: assignment 시 test_case_name, old_assignee_display, new_assignee_display)
         
         Returns:
             Notification: 생성된 알림 객체
@@ -63,7 +65,7 @@ class NotificationService:
             self._send_realtime_notification(notification)
             
             # 슬랙 웹훅으로 알림 전송 (설정된 경우)
-            self._send_slack_notification(notification, user_id)
+            self._send_slack_notification(notification, user_id, metadata=metadata)
             
             logger.info(f"알림 생성 완료: {title} (User: {user_id})")
             return notification
@@ -72,6 +74,31 @@ class NotificationService:
             logger.error(f"알림 생성 오류: {str(e)}")
             db.session.rollback()
             raise
+
+    def _is_channel_enabled(self, user_settings, notification_type, channel):
+        """채널별 알림 활성화 여부 확인"""
+        if not user_settings:
+            return True
+
+        # 전역 채널 설정
+        if channel == 'in_app' and not user_settings.in_app_enabled:
+            return False
+        if channel == 'slack' and not user_settings.slack_enabled:
+            return False
+        if channel == 'email' and not user_settings.email_enabled:
+            return False
+
+        # 타입별 상세 설정
+        try:
+            settings = json.loads(user_settings.settings) if user_settings.settings else {}
+        except Exception:
+            settings = {}
+
+        type_settings = settings.get(notification_type, {})
+        if not type_settings:
+            return True
+
+        return bool(type_settings.get(channel, True))
     
     def notify_test_failed(self, test_case_id, test_result_id, user_id=None):
         """테스트 실패 알림"""
@@ -272,6 +299,10 @@ class NotificationService:
         """WebSocket을 통해 실시간 알림 전송"""
         try:
             from app import socketio
+            user_settings = NotificationSettings.query.filter_by(user_id=notification.user_id).first()
+            if not self._is_channel_enabled(user_settings, notification.notification_type, 'in_app'):
+                logger.info(f"🔔 인앱 알림 비활성화: User {notification.user_id}, type={notification.notification_type}")
+                return
             
             # 해당 사용자에게만 알림 전송
             socketio.emit('notification', notification.to_dict(), room=f'user_{notification.user_id}')
@@ -280,11 +311,14 @@ class NotificationService:
         except Exception as e:
             logger.error(f"실시간 알림 전송 오류: {str(e)}")
     
-    def _send_slack_notification(self, notification, user_id):
-        """슬랙 웹훅을 통해 알림 전송"""
+    def _send_slack_notification(self, notification, user_id, metadata=None):
+        """슬랙 웹훅을 통해 알림 전송. metadata는 assignment 등 타입별 Block Kit 포맷에 사용."""
         try:
             # 사용자별 슬랙 설정 확인
             user_settings = NotificationSettings.query.filter_by(user_id=user_id).first()
+            if not self._is_channel_enabled(user_settings, notification.notification_type, 'slack'):
+                logger.info(f"🔔 슬랙 알림 비활성화: User {user_id}, type={notification.notification_type}")
+                return
             
             # 슬랙 웹훅 URL 확인 (사용자별 설정 우선, 없으면 전역 환경 변수)
             slack_webhook_url = None
@@ -321,79 +355,46 @@ class NotificationService:
             user = User.query.get(user_id)
             username = user.username if user else 'Unknown User'
             
-            # 알림 타입에 따른 이모지 및 색상 설정
-            emoji_map = {
-                'assignment': '👤',
-                'mention': '💬',
-                'test_failed': '❌',
-                'test_completed': '✅',
-                'test_started': '🚀',
-                'schedule_run': '⏰',
-                'test_status_changed': '🔄'
-            }
-            
-            color_map = {
-                'high': '#dc3545',      # 빨간색
-                'medium': '#ffc107',     # 노란색
-                'low': '#17a2b8'         # 파란색
-            }
-            
-            emoji = emoji_map.get(notification.notification_type, '🔔')
-            color = color_map.get(notification.priority, '#6c757d')
-            
-            # 슬랙 메시지 포맷팅
-            slack_message = {
-                "text": f"{emoji} {notification.title}",
-                "blocks": [
-                    {
-                        "type": "header",
-                        "text": {
-                            "type": "plain_text",
-                            "text": f"{emoji} {notification.title}",
-                            "emoji": True
-                        }
-                    },
-                    {
-                        "type": "section",
-                        "fields": [
-                            {
-                                "type": "mrkdwn",
-                                "text": f"*사용자:*\n{username}"
-                            },
-                            {
-                                "type": "mrkdwn",
-                                "text": f"*타입:*\n{notification.notification_type}"
-                            }
-                        ]
-                    },
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": f"*메시지:*\n{notification.message}"
-                        }
-                    }
-                ],
-                "attachments": [
-                    {
-                        "color": color,
-                        "footer": "Integrated Test Platform",
-                        "ts": int(notification.created_at.timestamp()) if notification.created_at else None
-                    }
-                ]
-            }
-            
-            # 관련 테스트 케이스 정보 추가
-            if notification.related_test_case_id:
-                test_case = TestCase.query.get(notification.related_test_case_id)
-                if test_case:
-                    slack_message["blocks"].append({
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": f"*관련 테스트 케이스:*\n{test_case.name}"
-                        }
-                    })
+            # 슬랙 폼은 slack_webhook_form 모듈에서 통일 관리
+            if notification.notification_type == 'assignment' and (metadata or notification.related_test_case_id):
+                test_case_name = None
+                old_assignee_display = None
+                new_assignee_display = None
+                if metadata:
+                    test_case_name = metadata.get('test_case_name')
+                    old_assignee_display = metadata.get('old_assignee_display')
+                    new_assignee_display = metadata.get('new_assignee_display')
+                if not test_case_name and notification.related_test_case_id:
+                    tc = TestCase.query.get(notification.related_test_case_id)
+                    if tc:
+                        test_case_name = tc.name or (f"테스트 케이스 #{tc.id}")
+                if new_assignee_display is None and notification.user_id:
+                    u = User.query.get(notification.user_id)
+                    new_assignee_display = u.get_display_name() if u else str(notification.user_id)
+                if old_assignee_display is None and metadata and metadata.get('old_assignee_id'):
+                    u = User.query.get(metadata['old_assignee_id'])
+                    old_assignee_display = u.get_display_name() if u else str(metadata['old_assignee_id'])
+                slack_message = build_slack_payload(
+                    notification.notification_type,
+                    notification.title or '',
+                    notification.message or '',
+                    test_case_name=test_case_name,
+                    old_assignee_display=old_assignee_display,
+                    new_assignee_display=new_assignee_display,
+                )
+            else:
+                related_test_case_name = None
+                if notification.related_test_case_id:
+                    tc = TestCase.query.get(notification.related_test_case_id)
+                    if tc:
+                        related_test_case_name = tc.name
+                slack_message = build_slack_payload(
+                    notification.notification_type,
+                    notification.title or '',
+                    notification.message or '',
+                    username=username,
+                    related_test_case_name=related_test_case_name,
+                )
             
             # 슬랙 웹훅으로 전송
             response = requests.post(
@@ -405,7 +406,10 @@ class NotificationService:
             if response.status_code == 200:
                 logger.info(f"슬랙 알림 전송 성공: User {user_id}, Notification {notification.id}")
             else:
-                logger.warning(f"슬랙 알림 전송 실패: Status {response.status_code}, Response: {response.text}")
+                logger.warning(
+                    f"슬랙 알림 전송 실패: Status {response.status_code}, Response: {response.text}. "
+                    "URL 유효성·앱 권한·Incoming Webhooks 활성화를 확인하세요."
+                )
                 
         except requests.exceptions.RequestException as e:
             logger.error(f"슬랙 웹훅 요청 오류: {str(e)}")

@@ -20,9 +20,10 @@
 }
 
 .common-modal-overlay .modal {
-  background: white;
+  background: var(--tms-bg-card);
   border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 40px rgba(15, 76, 129, 0.2);
+  border: 1px solid var(--tms-border);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -65,15 +66,15 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid #e0e0e0;
-  background: #f8f9fa;
+  border-bottom: 1px solid var(--tms-border);
+  background: var(--tms-bg);
 }
 
 .common-modal-overlay .modal-header h3 {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #333;
+  color: var(--tms-text);
 }
 
 .common-modal-overlay .modal-close {
@@ -81,7 +82,7 @@
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: #666;
+  color: var(--tms-text-secondary);
   padding: 0;
   width: 30px;
   height: 30px;
@@ -93,8 +94,8 @@
 }
 
 .common-modal-overlay .modal-close:hover {
-  background-color: #f0f0f0;
-  color: #333;
+  background-color: var(--tms-primary-bg);
+  color: var(--tms-primary);
 }
 
 .common-modal-overlay .modal-body {
@@ -108,8 +109,8 @@
   justify-content: flex-end;
   gap: 12px;
   padding: 20px 24px;
-  border-top: 1px solid #e0e0e0;
-  background: #f8f9fa;
+  border-top: 1px solid var(--tms-border);
+  background: var(--tms-bg);
 }
 
 /* 반응형 디자인 */

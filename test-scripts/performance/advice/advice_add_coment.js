@@ -1,8 +1,8 @@
 import {htmlReport} from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
 import { browser } from 'k6/browser';
-import login_to_dashboard from "../login/login_to_dashboard";
-import { URLS } from "../url/url_base";
-import { getFormattedTimestamp } from "../common/utils";
+import login_to_dashboard from "@tms/performance/login/login_to_dashboard";
+import { URLS } from "@tms/performance/url/url_base";
+import { getFormattedTimestamp } from "@tms/performance/common/utils";
 
 export const options = {
     scenarios: {

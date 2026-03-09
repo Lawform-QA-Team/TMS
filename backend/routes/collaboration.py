@@ -19,10 +19,6 @@ collaboration_bp = Blueprint('collaboration', __name__)
 @guest_allowed
 def get_comments():
     """댓글 목록 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         entity_type = request.args.get('entity_type')
         entity_id = request.args.get('entity_id', type=int)
@@ -46,10 +42,6 @@ def get_comments():
 @user_required
 def create_comment():
     """댓글 생성"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data = request.get_json()
         
@@ -80,10 +72,6 @@ def create_comment():
 @user_required
 def update_comment(comment_id):
     """댓글 수정"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data = request.get_json()
         
@@ -115,10 +103,6 @@ def update_comment(comment_id):
 @user_required
 def delete_comment(comment_id):
     """댓글 삭제"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         comment = collaboration_service.delete_comment(
             comment_id=comment_id,
@@ -142,10 +126,6 @@ def delete_comment(comment_id):
 @user_required
 def get_mentions():
     """사용자 멘션 목록 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         is_read = request.args.get('is_read')
         if is_read is not None:
@@ -165,10 +145,6 @@ def get_mentions():
 @user_required
 def mark_mention_as_read(mention_id):
     """멘션 읽음 처리"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         mention = collaboration_service.mark_mention_as_read(mention_id, request.user.id)
         
@@ -192,10 +168,6 @@ def mark_mention_as_read(mention_id):
 @guest_allowed
 def get_workflows():
     """워크플로우 목록 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         workflow_type = request.args.get('workflow_type')
         project_id = request.args.get('project_id', type=int)
@@ -226,10 +198,6 @@ def get_workflows():
 @guest_allowed
 def get_workflow(id):
     """워크플로우 상세 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         workflow = Workflow.query.get_or_404(id)
         
@@ -245,10 +213,6 @@ def get_workflow(id):
 @user_required
 def create_workflow():
     """워크플로우 생성"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data = request.get_json()
         
@@ -281,10 +245,6 @@ def create_workflow():
 @user_required
 def update_workflow(id):
     """워크플로우 수정"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         workflow = Workflow.query.get_or_404(id)
         data = request.get_json()
@@ -314,10 +274,6 @@ def update_workflow(id):
 @user_required
 def apply_workflow(id):
     """엔티티에 워크플로우 적용"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data = request.get_json()
         
@@ -346,10 +302,6 @@ def apply_workflow(id):
 @user_required
 def transition_workflow():
     """워크플로우 상태 전환"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data = request.get_json()
         
@@ -383,10 +335,6 @@ def transition_workflow():
 @guest_allowed
 def get_workflow_state():
     """엔티티의 워크플로우 상태 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         entity_type = request.args.get('entity_type')
         entity_id = request.args.get('entity_id', type=int)

@@ -1,5 +1,5 @@
 import React from 'react';
-import './TestCasePagination.css';
+import '@tms/components/testcases/TestCasePagination.css';
 
 const TestCasePagination = ({
   currentPage,

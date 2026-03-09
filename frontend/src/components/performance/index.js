@@ -1,1 +1,1 @@
-export { default } from './PerformanceTestManager'; 
+export { default } from '@tms/components/performance/PerformanceTestManager'; 

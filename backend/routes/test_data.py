@@ -17,10 +17,6 @@ test_data_bp = Blueprint('test_data', __name__)
 @guest_allowed
 def get_data_sets():
     """데이터 세트 목록 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         # 필터링 파라미터
         environment = request.args.get('environment')
@@ -57,10 +53,6 @@ def get_data_sets():
 @guest_allowed
 def get_data_set(id):
     """데이터 세트 상세 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data_set = TestDataSet.query.get_or_404(id)
         
@@ -88,10 +80,6 @@ def get_data_set(id):
 @user_required
 def create_data_set():
     """데이터 세트 생성"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data = request.get_json()
         
@@ -132,10 +120,6 @@ def create_data_set():
 @user_required
 def update_data_set(id):
     """데이터 세트 수정"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data_set = TestDataSet.query.get_or_404(id)
         data = request.get_json()
@@ -177,10 +161,6 @@ def update_data_set(id):
 @user_required
 def delete_data_set(id):
     """데이터 세트 삭제"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data_set = TestDataSet.query.get_or_404(id)
         
@@ -209,10 +189,6 @@ def delete_data_set(id):
 @user_required
 def create_data_set_version(id):
     """데이터 세트 버전 생성"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data = request.get_json()
         
@@ -243,10 +219,6 @@ def create_data_set_version(id):
 @guest_allowed
 def get_data_set_versions(id):
     """데이터 세트 버전 목록 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         # 부모 버전과 모든 자식 버전 조회
         parent = TestDataSet.query.get_or_404(id)
@@ -272,10 +244,6 @@ def get_data_set_versions(id):
 @guest_allowed
 def get_test_case_data(test_case_id):
     """테스트 케이스에 매핑된 데이터 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         environment = request.args.get('environment')
         
@@ -304,10 +272,6 @@ def get_test_case_data(test_case_id):
 @guest_allowed
 def get_mappings():
     """테스트 케이스-데이터 세트 매핑 목록 조회"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         test_case_id = request.args.get('test_case_id', type=int)
         data_set_id = request.args.get('data_set_id', type=int)
@@ -335,10 +299,6 @@ def get_mappings():
 @user_required
 def create_mapping():
     """테스트 케이스-데이터 세트 매핑 생성"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data = request.get_json()
         
@@ -388,10 +348,6 @@ def create_mapping():
 @user_required
 def update_mapping(id):
     """매핑 수정"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         mapping = TestCaseDataMapping.query.get_or_404(id)
         data = request.get_json()
@@ -421,10 +377,6 @@ def update_mapping(id):
 @user_required
 def delete_mapping(id):
     """매핑 삭제"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         mapping = TestCaseDataMapping.query.get_or_404(id)
         
@@ -444,10 +396,6 @@ def delete_mapping(id):
 @user_required
 def generate_dynamic_data():
     """동적 테스트 데이터 생성"""
-    if request.method == 'OPTIONS':
-        from app import handle_options_request
-        return handle_options_request()
-    
     try:
         data = request.get_json()
         

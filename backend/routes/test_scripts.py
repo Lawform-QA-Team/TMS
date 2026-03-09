@@ -13,13 +13,24 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Blueprint 생성
 test_scripts_bp = Blueprint('test_scripts', __name__)
 
-def get_file_info(file_path):
+def get_file_info(file_path, base_dir=None):
     """파일 정보를 가져오는 헬퍼 함수"""
     try:
         stat_info = os.stat(file_path)
+        
+        # 상대 경로 계산 (base_dir이 주어진 경우)
+        relative_path = file_path
+        if base_dir:
+            try:
+                relative_path = os.path.relpath(file_path, base_dir)
+                # Windows 경로를 Unix 스타일로 변환
+                relative_path = relative_path.replace('\\', '/')
+            except:
+                pass
+        
         file_info = {
             'name': os.path.basename(file_path),
-            'path': file_path,
+            'path': relative_path,
             'type': 'file',
             'size': stat_info.st_size,
             'modified': datetime.fromtimestamp(stat_info.st_mtime).isoformat(),
@@ -41,13 +52,24 @@ def get_file_info(file_path):
         current_app.logger.error(f"파일 정보 조회 오류: {e}")
         return None
 
-def get_directory_info(dir_path):
+def get_directory_info(dir_path, base_dir=None):
     """디렉토리 정보를 가져오는 헬퍼 함수"""
     try:
         stat_info = os.stat(dir_path)
+        
+        # 상대 경로 계산 (base_dir이 주어진 경우)
+        relative_path = dir_path
+        if base_dir:
+            try:
+                relative_path = os.path.relpath(dir_path, base_dir)
+                # Windows 경로를 Unix 스타일로 변환
+                relative_path = relative_path.replace('\\', '/')
+            except:
+                pass
+        
         dir_info = {
             'name': os.path.basename(dir_path),
-            'path': dir_path,
+            'path': relative_path,
             'type': 'directory',
             'modified': datetime.fromtimestamp(stat_info.st_mtime).isoformat(),
             'permissions': oct(stat_info.st_mode)[-3:],
@@ -66,7 +88,7 @@ def get_directory_info(dir_path):
         current_app.logger.error(f"디렉토리 정보 조회 오류: {e}")
         return None
 
-def explore_directory(path):
+def explore_directory(path, base_dir=None):
     """디렉토리 내용을 탐색하는 함수"""
     try:
         if not os.path.exists(path):
@@ -86,11 +108,11 @@ def explore_directory(path):
             child_path = os.path.join(path, child)
             
             if os.path.isdir(child_path):
-                dir_info = get_directory_info(child_path)
+                dir_info = get_directory_info(child_path, base_dir)
                 if dir_info:
                     items.append(dir_info)
             else:
-                file_info = get_file_info(child_path)
+                file_info = get_file_info(child_path, base_dir)
                 if file_info:
                     items.append(file_info)
                     
@@ -125,9 +147,13 @@ def explore_test_scripts():
             # test-scripts 하위 폴더
             relative_path = base_path.replace('test-scripts/', '', 1)
             full_path = os.path.join(test_scripts_root, relative_path)
+        elif os.path.isabs(base_path):
+            # 절대 경로인 경우 (Windows 경로 포함)
+            # 경로 정규화 (역슬래시를 슬래시로 변환 등)
+            full_path = os.path.normpath(base_path)
         else:
-            # 잘못된 경로
-            return jsonify({'error': '잘못된 경로입니다.'}), 400
+            # test-scripts 기준 상대 경로
+            full_path = os.path.join(test_scripts_root, base_path)
             
         # 디버그 로그
         current_app.logger.info(f"요청 경로: {base_path}")
@@ -149,8 +175,8 @@ def explore_test_scripts():
             current_app.logger.error(f"허용되지 않은 경로: {full_path}")
             return jsonify({'error': '허용되지 않은 경로입니다.'}), 403
             
-        # 디렉토리 탐색
-        result = explore_directory(full_path)
+        # 디렉토리 탐색 (base_dir을 test_scripts_root로 설정하여 상대 경로 반환)
+        result = explore_directory(full_path, test_scripts_root)
         
         if result is None:
             current_app.logger.error(f"디렉토리 탐색 실패: {full_path}")
@@ -175,10 +201,37 @@ def get_file_content():
             
         # 프로젝트 루트 기준으로 경로 설정
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        full_path = os.path.join(project_root, file_path)
-        
+        # 보안 및 상대경로 지원:
+        # - 기본적으로 요청 경로는 `test-scripts` 폴더 기준의 상대경로로 해석합니다.
+        # - 클라이언트가 `test-scripts/...` 을 보낼 경우에도 처리합니다.
+        # - 절대경로가 들어오면 그대로 사용하되 안전성 검사를 수행합니다.
+        test_scripts_root = os.path.join(project_root, 'test-scripts')
+
+        # Normalize incoming path and strip leading slashes
+        file_path = file_path.replace('\\', '/').lstrip('/')
+
+        if os.path.isabs(file_path):
+            # 절대경로인 경우
+            full_path = os.path.normpath(file_path)
+        elif file_path.startswith('test-scripts/'):
+            # 클라이언트가 test-scripts/... 형태로 보낸 경우
+            rel = file_path[len('test-scripts/'):]
+            full_path = os.path.join(test_scripts_root, rel)
+        else:
+            # 기본: test-scripts 폴더 기준 상대경로
+            full_path = os.path.join(test_scripts_root, file_path)
+
+        # 절대 경로로 변환 및 정규화
+        full_path = os.path.abspath(full_path)
+
         # 경로 검증 (보안상 test-scripts 폴더 내에서만 접근 허용)
-        if not full_path.startswith(os.path.join(project_root, 'test-scripts')):
+        try:
+            # os.path.commonpath을 이용해 경로가 test_scripts_root 하위인지 확인
+            common = os.path.commonpath([full_path, os.path.abspath(test_scripts_root)])
+        except Exception:
+            return jsonify({'error': '허용되지 않은 경로입니다.'}), 403
+
+        if common != os.path.abspath(test_scripts_root):
             return jsonify({'error': '허용되지 않은 경로입니다.'}), 403
             
         if not os.path.exists(full_path):
@@ -256,10 +309,8 @@ def search_test_scripts():
                     else:
                         # 파일명에 검색어가 포함된 경우
                         if query.lower() in item.lower():
-                            file_info = get_file_info(item_path)
+                            file_info = get_file_info(item_path, test_scripts_path)
                             if file_info:
-                                # 상대 경로로 변환
-                                file_info['relative_path'] = os.path.relpath(item_path, project_root)
                                 results.append(file_info)
                                 
             except Exception as e:

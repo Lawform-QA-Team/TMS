@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@tms/contexts/AuthContext';
+import config from '@tms/config';
 import { formatUTCToKST } from '@tms/utils/dateUtils';
-import './Auth.css';
-import './UserProfile.css';
+import '@tms/components/auth/Auth.css';
+import '@tms/components/auth/UserProfile.css';
 
 const UserProfile = () => {
-  const { user, changePassword, logout } = useAuth();
+  const { user, token, changePassword, logout } = useAuth();
   const [activeMenu, setActiveMenu] = useState('account'); // account, notifications, login, login-fail, security, logout
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const isGuest = user?.role === 'guest';
@@ -16,6 +17,20 @@ const UserProfile = () => {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const defaultDetailSettings = {
+    mention: { in_app: true, email: false, slack: false },
+    assignment: { in_app: true, email: false, slack: false },
+    test_status_changed: { in_app: true, email: false, slack: false }
+  };
+  const [notificationSettings, setNotificationSettings] = useState({
+    email_enabled: true,
+    slack_enabled: false,
+    slack_webhook_url: '',
+    in_app_enabled: true,
+    settings: defaultDetailSettings
+  });
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsMessage, setNotificationsMessage] = useState({ type: '', text: '' });
 
   const handlePasswordChange = (e) => {
     setPasswordData({
@@ -75,6 +90,76 @@ const UserProfile = () => {
     }
   }, [activeMenu, isGuest]);
 
+  useEffect(() => {
+    if (activeMenu === 'notifications' && !isGuest) {
+      fetchNotificationSettings();
+    }
+  }, [activeMenu, isGuest]);
+
+  const fetchNotificationSettings = async () => {
+    try {
+      setNotificationsLoading(true);
+      setNotificationsMessage({ type: '', text: '' });
+      const response = await fetch(`${config.apiUrl}/notifications/settings`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setNotificationSettings({
+          email_enabled: data?.email_enabled ?? true,
+          slack_enabled: data?.slack_enabled ?? false,
+          slack_webhook_url: data?.slack_webhook_url || '',
+          in_app_enabled: data?.in_app_enabled ?? true,
+          settings: {
+            ...defaultDetailSettings,
+            ...(data?.settings || {})
+          }
+        });
+      } else {
+        setNotificationsMessage({ type: 'error', text: '알림 설정을 불러오지 못했습니다.' });
+      }
+    } catch (err) {
+      setNotificationsMessage({ type: 'error', text: '알림 설정을 불러오지 못했습니다.' });
+    } finally {
+      setNotificationsLoading(false);
+    }
+  };
+
+  const handleNotificationSave = async () => {
+    try {
+      setNotificationsLoading(true);
+      setNotificationsMessage({ type: '', text: '' });
+      const response = await fetch(`${config.apiUrl}/notifications/settings`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email_enabled: notificationSettings.email_enabled,
+          slack_enabled: notificationSettings.slack_enabled,
+          slack_webhook_url: notificationSettings.slack_webhook_url,
+          in_app_enabled: notificationSettings.in_app_enabled,
+          settings: notificationSettings.settings
+        })
+      });
+
+      if (response.ok) {
+        setNotificationsMessage({ type: 'success', text: '알림 설정이 저장되었습니다.' });
+      } else {
+        setNotificationsMessage({ type: 'error', text: '알림 설정 저장에 실패했습니다.' });
+      }
+    } catch (err) {
+      setNotificationsMessage({ type: 'error', text: '알림 설정 저장에 실패했습니다.' });
+    } finally {
+      setNotificationsLoading(false);
+    }
+  };
+
   const renderAccountSection = () => (
     <>
       <div className="profile-section-header">
@@ -88,12 +173,12 @@ const UserProfile = () => {
           <span>{user?.email || user?.username}</span>
         </div>
         <div className="profile-field">
-          <label>이름</label>
-          <span>{user?.first_name || '미설정'}</span>
-        </div>
-        <div className="profile-field">
           <label>성</label>
           <span>{user?.last_name || '미설정'}</span>
+        </div>
+        <div className="profile-field">
+          <label>이름</label>
+          <span>{user?.first_name || '미설정'}</span>
         </div>
         <div className="profile-field">
           <label>역할</label>
@@ -189,11 +274,144 @@ const UserProfile = () => {
     </>
   );
 
+  const toggleDetail = (channel, key, checked) => {
+    setNotificationSettings({
+      ...notificationSettings,
+      settings: {
+        ...notificationSettings.settings,
+        [key]: {
+          ...notificationSettings.settings?.[key],
+          [channel]: checked
+        }
+      }
+    });
+  };
+
+  const renderDetailOptions = (channel) => (
+    <div className="notification-suboptions">
+      {[
+        { key: 'mention', label: '댓글 멘션 알림' },
+        { key: 'assignment', label: '담당자 지정 알림' },
+        { key: 'test_status_changed', label: '테스트 케이스 상태 변경' }
+      ].map((item) => (
+        <div key={`${channel}-${item.key}`} className="notification-suboption">
+          <span>{item.label}</span>
+          <label className="toggle-switch">
+            <input
+              type="checkbox"
+              checked={!!notificationSettings.settings?.[item.key]?.[channel]}
+              onChange={(e) => toggleDetail(channel, item.key, e.target.checked)}
+            />
+            <span className="toggle-slider"></span>
+          </label>
+        </div>
+      ))}
+    </div>
+  );
+
   const renderNotificationsSection = () => (
-    <div className="profile-placeholder">
-      <h2>알림 / 이메일 수신 설정</h2>
-      <p>이 화면에서는 추후 Slack/이메일/인앱 알림 수신 여부를 세부적으로 설정할 수 있도록 확장할 예정입니다.</p>
-      <p>현재는 슬랙 웹훅 알림만 사용 중이며, 이메일 알림 기능을 준비 중입니다.</p>
+    <div className="profile-notifications">
+      <div className="profile-section-header">
+        <h2>알림 / 이메일 수신 설정</h2>
+        <p>알림 채널별 수신 여부와 Slack Webhook URL을 설정합니다.</p>
+      </div>
+
+      {notificationsMessage.text && (
+        <div className={`auth-${notificationsMessage.type}`}>
+          {notificationsMessage.type === 'success' ? '✅' : '❌'} {notificationsMessage.text}
+        </div>
+      )}
+
+      <div className="profile-notification-form">
+        <div className="notification-group">
+          <div className="notification-row">
+            <label>앱 내 알림</label>
+            <label className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={notificationSettings.in_app_enabled}
+                onChange={(e) =>
+                  setNotificationSettings({
+                    ...notificationSettings,
+                    in_app_enabled: e.target.checked
+                  })
+                }
+              />
+              <span className="toggle-slider"></span>
+            </label>
+          </div>
+          {notificationSettings.in_app_enabled && renderDetailOptions('in_app')}
+        </div>
+
+        <div className="notification-group">
+          <div className="notification-row">
+            <label>이메일 알림</label>
+            <label className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={notificationSettings.email_enabled}
+                onChange={(e) =>
+                  setNotificationSettings({
+                    ...notificationSettings,
+                    email_enabled: e.target.checked
+                  })
+                }
+              />
+              <span className="toggle-slider"></span>
+            </label>
+          </div>
+          {notificationSettings.email_enabled && renderDetailOptions('email')}
+        </div>
+
+        <div className="notification-group">
+          <div className="notification-row">
+            <label>Slack 알림</label>
+            <label className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={notificationSettings.slack_enabled}
+                onChange={(e) =>
+                  setNotificationSettings({
+                    ...notificationSettings,
+                    slack_enabled: e.target.checked
+                  })
+                }
+              />
+              <span className="toggle-slider"></span>
+            </label>
+          </div>
+          {notificationSettings.slack_enabled && (
+            <>
+              {renderDetailOptions('slack')}
+              <div className="notification-field">
+                <label>Slack Webhook URL</label>
+                <input
+                  type="text"
+                  value={notificationSettings.slack_webhook_url}
+                  onChange={(e) =>
+                    setNotificationSettings({
+                      ...notificationSettings,
+                      slack_webhook_url: e.target.value
+                    })
+                  }
+                  placeholder="Slack Webhook URL을 입력하세요"
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="profile-actions">
+          <button
+            type="button"
+            className="auth-button auth-button-primary"
+            onClick={handleNotificationSave}
+            disabled={notificationsLoading}
+          >
+            {notificationsLoading ? '저장 중...' : '저장'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 

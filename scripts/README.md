@@ -10,6 +10,7 @@
 - **restart-mock-jira.sh** - Mock JIRA 서버 재시작
 
 ### 데이터베이스 관련 스크립트
+- **backup_database.sh** - 로컬 MySQL 백업(추출), 다른 PC 마이그레이션용
 - **restore_database.sh** - 데이터베이스 복구 스크립트
 - **restore_local_mysql.sh** - 로컬 MySQL 데이터베이스 복구
 - **start-ubuntu-mysql.sh** - Ubuntu MySQL 서버 시작
@@ -17,6 +18,7 @@
 - **mysql-tunnel.sh** - MySQL 터널 설정
 
 ### 데이터베이스 유틸리티 (Python)
+- **backup_database.py** - 로컬 MySQL 백업(추출) Python 스크립트
 - **restore_database.py** - 데이터베이스 복구 Python 스크립트
 - **test_db_connection.py** - 데이터베이스 연결 테스트
 
@@ -36,6 +38,15 @@
 # Mock JIRA 서버 재시작
 ./scripts/restart-mock-jira.sh
 ```
+
+### 로컬 DB 백업(다른 PC로 마이그레이션용)
+```bash
+# 백업 추출 (mysql-backup/local_backup.sql 생성)
+./scripts/backup_database.sh
+# 또는
+python scripts/backup_database.py
+```
+자세한 절차: [로컬 DB 마이그레이션 가이드](../docs/database/LOCAL_DB_MIGRATION.md)
 
 ### 데이터베이스 복구
 ```bash

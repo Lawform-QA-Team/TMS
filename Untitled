@@ -1,1 +1,0 @@
-    if (item.name === 'performance') return '⚡';

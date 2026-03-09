@@ -1,8 +1,8 @@
 import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
-import { getFormattedTimestamp } from "../../common/utils.js";
-import clm_draftNewMUlti from "./clm_draft.new_multi.js";
-import clm_draftChangeMulti from "./clm_draft.change_multi.js";
-import clm_draftStopMulti from "./clm_draft.stop_multi.js";
+import { getFormattedTimestamp } from "@tms/performance/common/utils.js";
+import clm_draftNewMUlti from "@tms/performance/clm/multi/clm_draft.new_multi.js";
+import clm_draftChangeMulti from "@tms/performance/clm/multi/clm_draft.change_multi.js";
+import clm_draftStopMulti from "@tms/performance/clm/multi/clm_draft.stop_multi.js";
 
 
 export const options = {

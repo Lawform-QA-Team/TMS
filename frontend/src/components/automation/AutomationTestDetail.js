@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '@tms/config';
 import { formatUTCToKST, formatUnixTimestampToKST } from '@tms/utils/dateUtils';
-import './AutomationTestDetail.css';
+import '@tms/components/automation/AutomationTestDetail.css';
 
 // 스크린샷 갤러리 컴포넌트
 const ScreenshotGallery = ({ testId, testName }) => {

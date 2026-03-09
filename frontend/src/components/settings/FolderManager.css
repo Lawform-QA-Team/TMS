@@ -56,74 +56,133 @@
   background: #c82333;
 }
 
-.folder-list {
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+/* 테이블형 UI (계정 관리와 동일) */
+.folder-section-table .users-table-wrapper {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid #e9ecef;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
-.folder-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid #e9ecef;
-  transition: background-color 0.2s ease;
-}
-
-.folder-item:hover {
-  background: #f8f9fa;
-}
-
-.folder-item:last-child {
-  border-bottom: none;
-}
-
-.folder-info {
-  flex: 1;
-}
-
-.folder-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 5px;
-}
-
-.folder-details {
-  display: flex;
-  gap: 20px;
-  color: #666;
+.folder-manager .users-table {
+  width: 100%;
+  border-collapse: collapse;
   font-size: 14px;
 }
 
-.folder-type {
+.folder-manager .users-table thead {
+  background: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.folder-manager .users-table th {
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+}
+
+.folder-manager .users-table tbody tr {
+  border-bottom: 1px solid #eee;
+  transition: background 0.15s ease;
+}
+
+.folder-manager .users-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.folder-manager .users-table td {
+  padding: 14px 16px;
+  color: #333;
+  vertical-align: middle;
+}
+
+.folder-manager .users-table .col-name {
+  font-weight: 500;
+}
+
+.folder-manager .users-table .col-empty {
+  text-align: center;
+  padding: 24px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.folder-manager .col-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.folder-manager .btn-text {
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.folder-manager .btn-text.btn-edit {
+  background: #e5e7eb;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.folder-manager .btn-text.btn-edit:hover {
+  background: #d1d5db;
+}
+
+.folder-manager .btn-text.btn-delete {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.folder-manager .btn-text.btn-delete:hover {
+  background: #fee2e2;
+}
+
+.folder-manager .btn-add-inline {
+  display: block;
+  margin: 12px auto 0;
+  padding: 8px 16px;
+  font-size: 13px;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.folder-manager .btn-add-inline:hover {
+  background: #0056b3;
+}
+
+.folder-type-badge {
   display: inline-block;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
 }
 
-.folder-type.environment {
+.folder-type-badge.environment {
   background: #e3f2fd;
   color: #1976d2;
 }
 
-.folder-type.testcase {
+.folder-type-badge.deployment_date {
   background: #f3e5f5;
   color: #7b1fa2;
 }
 
-.folder-type.performance {
+.folder-type-badge.feature {
   background: #fff3e0;
   color: #f57c00;
-}
-
-.folder-actions {
-  display: flex;
-  gap: 8px;
 }
 
 /* 폴더 관리(설정) 페이지 전용 모달 (스코프) */

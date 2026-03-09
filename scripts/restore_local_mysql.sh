@@ -12,6 +12,18 @@ DB_PASSWORD="1q2w#E$R"
 DB_HOST="localhost"
 DB_PORT="3306"
 
+# 비밀번호를 명령줄에 넘기지 않기 위해 임시 설정 파일 사용 (경고 제거 + 보안)
+MYSQL_CNF=$(mktemp)
+chmod 600 "$MYSQL_CNF"
+cat > "$MYSQL_CNF" << EOF
+[client]
+user=$DB_USER
+password=$DB_PASSWORD
+host=$DB_HOST
+port=$DB_PORT
+EOF
+trap 'rm -f "$MYSQL_CNF"' EXIT
+
 # 색상 코드
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -56,7 +68,7 @@ echo -e "${GREEN}✅ MySQL 명령어 확인: $MYSQL_CMD${NC}"
 # MySQL 서비스 실행 확인
 echo ""
 echo "🔍 MySQL 서비스 상태 확인 중..."
-if ! "$MYSQL_CMD" -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" -e "SELECT 1" > /dev/null 2>&1; then
+if ! "$MYSQL_CMD" --defaults-extra-file="$MYSQL_CNF" -e "SELECT 1" > /dev/null 2>&1; then
     echo -e "${YELLOW}⚠️  MySQL 서비스가 실행되지 않았거나 연결할 수 없습니다.${NC}"
     echo ""
     echo "MySQL 서비스 시작 방법:"
@@ -91,7 +103,7 @@ echo "   파일 크기: $(ls -lh $BACKUP_FILE | awk '{print $5}')"
 # 데이터베이스 존재 여부 확인 및 생성
 echo ""
 echo "📊 데이터베이스 확인 중..."
-if "$MYSQL_CMD" -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" -e "USE $DB_NAME" > /dev/null 2>&1; then
+if "$MYSQL_CMD" --defaults-extra-file="$MYSQL_CNF" -e "USE $DB_NAME" > /dev/null 2>&1; then
     echo -e "${YELLOW}⚠️  데이터베이스 '$DB_NAME'가 이미 존재합니다.${NC}"
     read -p "기존 데이터베이스를 삭제하고 복구하시겠습니까? (y/N): " -n 1 -r
     echo
@@ -100,11 +112,11 @@ if "$MYSQL_CMD" -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" -e "U
         exit 0
     fi
     echo "🗑️  기존 데이터베이스 삭제 중..."
-    "$MYSQL_CMD" -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" -e "DROP DATABASE IF EXISTS $DB_NAME;"
+    "$MYSQL_CMD" --defaults-extra-file="$MYSQL_CNF" -e "DROP DATABASE IF EXISTS $DB_NAME;"
 fi
 
 echo "📦 데이터베이스 생성 중..."
-"$MYSQL_CMD" -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS $DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+"$MYSQL_CMD" --defaults-extra-file="$MYSQL_CNF" -e "CREATE DATABASE IF NOT EXISTS $DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 echo -e "${GREEN}✅ 데이터베이스 생성 완료${NC}"
 
 # 백업 파일 복구
@@ -112,7 +124,7 @@ echo ""
 echo "📥 백업 파일 복구 중..."
 echo "   이 작업은 몇 분이 걸릴 수 있습니다..."
 
-if "$MYSQL_CMD" -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" < "$BACKUP_FILE"; then
+if "$MYSQL_CMD" --defaults-extra-file="$MYSQL_CNF" "$DB_NAME" < "$BACKUP_FILE"; then
     echo -e "${GREEN}✅ 데이터베이스 복구 완료!${NC}"
 else
     echo -e "${RED}❌ 데이터베이스 복구 실패${NC}"
@@ -122,7 +134,7 @@ fi
 # 복구 확인
 echo ""
 echo "🔍 복구 확인 중..."
-TABLE_COUNT=$("$MYSQL_CMD" -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" -e "SHOW TABLES;" 2>/dev/null | wc -l | tr -d ' ')
+TABLE_COUNT=$("$MYSQL_CMD" --defaults-extra-file="$MYSQL_CNF" "$DB_NAME" -e "SHOW TABLES;" 2>/dev/null | wc -l | tr -d ' ')
 TABLE_COUNT=$((TABLE_COUNT - 1))  # 헤더 제외
 
 if [ "$TABLE_COUNT" -gt 0 ]; then
@@ -130,7 +142,7 @@ if [ "$TABLE_COUNT" -gt 0 ]; then
     echo "   복구된 테이블 수: $TABLE_COUNT"
     echo ""
     echo "📋 테이블 목록:"
-    "$MYSQL_CMD" -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" -e "SHOW TABLES;" 2>/dev/null | tail -n +2
+    "$MYSQL_CMD" --defaults-extra-file="$MYSQL_CNF" "$DB_NAME" -e "SHOW TABLES;" 2>/dev/null | tail -n +2
 else
     echo -e "${YELLOW}⚠️  테이블이 복구되지 않았습니다.${NC}"
 fi

@@ -1,2 +1,2 @@
-export { default as TestCaseApp } from './TestCaseAPP';
-export { default } from './TestCaseAPP';
+export { default as TestCaseApp } from '@tms/components/testcases/TestCaseAPP';
+export { default } from '@tms/components/testcases/TestCaseAPP';
