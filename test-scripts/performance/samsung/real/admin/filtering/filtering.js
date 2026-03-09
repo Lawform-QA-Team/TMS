@@ -41,9 +41,9 @@ export default async function() {
 
         // 필터링 관리
         await page.goto(URLS.FILTERING.FILTERING);
+        await wait(5000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_FILTERING.png` });
-        await wait(5000);
 
         // 필터링 관리 페이지네이션
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.PAGINATION);
