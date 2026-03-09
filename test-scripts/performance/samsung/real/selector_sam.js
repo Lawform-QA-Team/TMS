@@ -128,7 +128,7 @@ export const SELECTORS = {
             CHECKBOX_1: '[data-tid="e74d49a8"]',
             DATEPICKER: '[data-tid="f351da96"]',
             PAGINATION: '[data-tid="6b8f4aad"]',
-            DATEPICKER: '[data-tid="0381c19b"]', 
+            DATEPICKER_1: '[data-tid="0381c19b"]', 
             RADIO: '[data-tid="dd026057"]',
         },
         FILTERING: {
