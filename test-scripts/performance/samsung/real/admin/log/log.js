@@ -75,6 +75,20 @@ export default async function() {
         await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_LOG_search.png` });
+        await page.goto(URLS.LOG.LOG);
+
+        // 로그, 검색 -> AI 채팅
+        await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.SELECT_EVENT);
+        await page.locator(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.SELECT_EVENT).click();
+        const aiChatOption = page.locator('[role="option"]').filter({ hasText: 'AI 채팅' });
+        await aiChatOption.click();
+        await page.waitForSelector(SELECTORS.COMMON.SEARCH);
+        await page.click(SELECTORS.COMMON.SEARCH);
+        await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.TABLE_LIST);
+        await page.click(`${SELECTORS.COMMON.TABLE} span.cursor-pointer`);
+        await wait(2000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_LOG_ai.png` });
 
     } finally {
         if (page) await page.close();
