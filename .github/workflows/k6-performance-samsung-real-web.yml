@@ -1,17 +1,16 @@
-# K6 성능 테스트 - samsung/real 전체 스크립트 주기 실행
+# K6 성능 테스트 - samsung/real/web 스크립트 주기 실행
 # PC 잠자기와 관계없이 GitHub 서버에서 실행됩니다.
 #
 # [필수] 저장소 Settings → Secrets and variables → Actions 에서 다음 추가:
-#   K6_BASE_URL          - 대상 URL (예: https://dev-admin.privacydocs.kr/)
-#   K6_LOGIN_EMAIL       - 로그인 이메일
-#   K6_LOGIN_PASSWORD    - 로그인 비밀번호
+#   WEB_BASE_URL             - web 대상 URL (예: https://dev.privacydocs.kr/)
+#   WEB_LOGIN_EMAIL          - web 로그인 이메일
+#   WEB_LOGIN_PASSWORD       - web 로그인 비밀번호
+#   K6_INFLUXDB_ADDR         - InfluxDB 주소 (예: https://us-east-1-1.aws.cloud2.influxdata.com)
 #   K6_INFLUXDB_ORGANIZATION
 #   K6_INFLUXDB_BUCKET
 #   K6_INFLUXDB_TOKEN
-#   K6_INFLUXDB_ADDR     - InfluxDB 주소 (예: https://us-east-1-1.aws.cloud2.influxdata.com)
-# [선택] K6_ACCOUNT, K6_ENV, K6_ROLE, K6_BROWSER_HEADLESS(true), K6_INFLUXDB_PUSH_INTERVAL, K6_SLACK_WEBHOOK_URL
+# [선택] K6_BROWSER_HEADLESS(true), K6_INFLUXDB_PUSH_INTERVAL, SLACK_WEBHOOK_URL
 #
-# K6 성능 테스트 - samsung/real/web 스크립트 주기 실행
 name: K6 Performance (samsung/real/web)
 
 on:
@@ -65,9 +64,6 @@ jobs:
 
       - name: Run all K6 scripts (samsung/real/web)
         env:
-          ACCOUNT: ${{ secrets.K6_ACCOUNT || 'samsung' }}
-          ENV: ${{ secrets.K6_ENV || 'dev' }}
-          ROLE: ${{ secrets.K6_ROLE || 'master' }}
           K6_BROWSER_HEADLESS: ${{ secrets.K6_BROWSER_HEADLESS || 'true' }}
           K6_BROWSER_ARGS: >-
             --no-sandbox
@@ -75,15 +71,15 @@ jobs:
             --disable-gpu
             --disable-features=CpuFreqScaling,VizDisplayCompositor
             --disable-setuid-sandbox
-          BASE_URL: ${{ secrets.K6_WEB_BASE_URL }}        # web 전용 시크릿
-          LOGIN_EMAIL: ${{ secrets.K6_WEB_LOGIN_EMAIL }}  # web 전용 시크릿
-          LOGIN_PASSWORD: ${{ secrets.K6_WEB_LOGIN_PASSWORD }}  # web 전용 시크릿
+          BASE_URL: ${{ secrets.WEB_BASE_URL }}
+          LOGIN_EMAIL: ${{ secrets.WEB_LOGIN_EMAIL }}
+          LOGIN_PASSWORD: ${{ secrets.WEB_LOGIN_PASSWORD }}
+          K6_INFLUXDB_ADDR: ${{ secrets.K6_INFLUXDB_ADDR }}
           K6_INFLUXDB_ORGANIZATION: ${{ secrets.K6_INFLUXDB_ORGANIZATION }}
           K6_INFLUXDB_BUCKET: ${{ secrets.K6_INFLUXDB_BUCKET }}
           K6_INFLUXDB_TOKEN: ${{ secrets.K6_INFLUXDB_TOKEN }}
-          K6_INFLUXDB_ADDR: ${{ secrets.K6_INFLUXDB_ADDR }}
           K6_INFLUXDB_PUSH_INTERVAL: ${{ secrets.K6_INFLUXDB_PUSH_INTERVAL || '60s' }}
-          SLACK_WEBHOOK_URL: ${{ secrets.K6_SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           set -euo pipefail
           BASE_DIR="test-scripts/performance/samsung/real/web"

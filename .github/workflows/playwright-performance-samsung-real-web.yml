@@ -2,10 +2,14 @@
 # PC 잠자기와 관계없이 GitHub 서버에서 실행됩니다.
 #
 # [필수] 저장소 Settings → Secrets and variables → Actions 에서 다음 추가:
-#   K6_WEB_BASE_URL          - web 대상 URL (예: https://dev.privacydocs.kr/)
-#   K6_WEB_LOGIN_EMAIL       - web 로그인 이메일
-#   K6_WEB_LOGIN_PASSWORD    - web 로그인 비밀번호
-# [선택] K6_ACCOUNT, K6_ENV, K6_ROLE, SLACK_WEBHOOK_URL (Playwright 리포트용)
+#   WEB_BASE_URL             - web 대상 URL (예: https://dev.privacydocs.kr/)
+#   WEB_LOGIN_EMAIL          - web 로그인 이메일
+#   WEB_LOGIN_PASSWORD       - web 로그인 비밀번호
+#   PW_INFLUXDB_URL          - InfluxDB 주소 (예: https://us-east-1-1.aws.cloud2.influxdata.com)
+#   PW_INFLUXDB_ORG          - InfluxDB 조직명
+#   PW_INFLUXDB_BUCKET       - InfluxDB 버킷명
+#   PW_INFLUXDB_TOKEN        - InfluxDB 토큰
+# [선택] SLACK_WEBHOOK_URL
 #
 name: Playwright E2E (samsung/real/web)
 
@@ -46,13 +50,14 @@ jobs:
       - name: Run Playwright tests (samsung/real/web)
         working-directory: test-scripts/playwright
         env:
-          ACCOUNT: ${{ secrets.K6_ACCOUNT || 'samsung' }}
-          ENV: ${{ secrets.K6_ENV || 'dev' }}
-          ROLE: ${{ secrets.K6_ROLE || 'master' }}
-          BASE_URL: ${{ secrets.K6_WEB_BASE_URL }}
-          LOGIN_EMAIL: ${{ secrets.K6_WEB_LOGIN_EMAIL }}
-          LOGIN_PASSWORD: ${{ secrets.K6_WEB_LOGIN_PASSWORD }}
-          SLACK_WEBHOOK_URL: ${{ secrets.K6_SLACK_WEBHOOK_URL }}
+          BASE_URL: ${{ secrets.WEB_BASE_URL }}
+          LOGIN_EMAIL: ${{ secrets.WEB_LOGIN_EMAIL }}
+          LOGIN_PASSWORD: ${{ secrets.WEB_LOGIN_PASSWORD }}
+          INFLUXDB_URL: ${{ secrets.PW_INFLUXDB_URL }}
+          INFLUXDB_ORG: ${{ secrets.PW_INFLUXDB_ORG }}
+          INFLUXDB_BUCKET: ${{ secrets.PW_INFLUXDB_BUCKET }}
+          INFLUXDB_TOKEN: ${{ secrets.PW_INFLUXDB_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           set -euo pipefail
           echo "=============================================="
