@@ -27,7 +27,7 @@ export default defineConfig({
   // 콘솔 출력(list) + 테스트 종료 시 Slack 웹훅 전송
   reporter: [
     ['list'],
-    ['../../slack_reporter/slack_reporter.ts', { webhookUrl: process.env.SLACK_WEBHOOK_URL }],
+    ['../../reporter/slack_reporter.ts', { webhookUrl: process.env.SLACK_WEBHOOK_URL }],
   ],
   
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
