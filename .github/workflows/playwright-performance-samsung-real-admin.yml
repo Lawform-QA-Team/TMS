@@ -37,7 +37,7 @@ jobs:
 
       - name: Install dependencies (Playwright)
         working-directory: test-scripts/playwright
-        run: npm ci
+        run: npm install
 
       - name: Install Playwright browsers (Chromium)
         working-directory: test-scripts/playwright
