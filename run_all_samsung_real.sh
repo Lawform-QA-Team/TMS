@@ -23,9 +23,9 @@ find "$BASE_DIR" -type f -name "*.js" \
             echo "Running k6 script: $script"
             echo "Start: $(date -u '+%Y-%m-%d %H:%M:%S')"
             echo "----------------------------------------------"
-            mkdir -p "$(dirname "$script")/Result"
-            ./k6 run --out xk6-influxdb=$K6_INFLUXDB_ADDR "$script"
+            ./run.sh "$script"
             echo "Finished: $(date -u '+%Y-%m-%d %H:%M:%S')"
+            echo "----------------------------------------------"
             echo
           done
 
