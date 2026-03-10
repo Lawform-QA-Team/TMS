@@ -1,0 +1,66 @@
+# Playwright E2E 테스트 - samsung/real/web 주기 실행
+# PC 잠자기와 관계없이 GitHub 서버에서 실행됩니다.
+#
+# [필수] 저장소 Settings → Secrets and variables → Actions 에서 다음 추가:
+#   K6_WEB_BASE_URL          - web 대상 URL (예: https://dev.privacydocs.kr/)
+#   K6_WEB_LOGIN_EMAIL       - web 로그인 이메일
+#   K6_WEB_LOGIN_PASSWORD    - web 로그인 비밀번호
+# [선택] K6_ACCOUNT, K6_ENV, K6_ROLE, SLACK_WEBHOOK_URL (Playwright 리포트용)
+#
+name: Playwright E2E (samsung/real/web)
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  playwright-samsung-real-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout (sam-k6)
+        uses: actions/checkout@v4
+        with:
+          ref: sam-k6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: test-scripts/playwright/package-lock.json
+
+      - name: Increase /dev/shm size
+        run: sudo mount -t tmpfs -o size=2g tmpfs /dev/shm
+
+      - name: Install dependencies (Playwright)
+        working-directory: test-scripts/playwright
+        run: npm ci
+
+      - name: Install Playwright browsers (Chromium)
+        working-directory: test-scripts/playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests (samsung/real/web)
+        working-directory: test-scripts/playwright
+        env:
+          ACCOUNT: ${{ secrets.K6_ACCOUNT || 'samsung' }}
+          ENV: ${{ secrets.K6_ENV || 'dev' }}
+          ROLE: ${{ secrets.K6_ROLE || 'master' }}
+          BASE_URL: ${{ secrets.K6_WEB_BASE_URL }}
+          LOGIN_EMAIL: ${{ secrets.K6_WEB_LOGIN_EMAIL }}
+          LOGIN_PASSWORD: ${{ secrets.K6_WEB_LOGIN_PASSWORD }}
+          SLACK_WEBHOOK_URL: ${{ secrets.K6_SLACK_WEBHOOK_URL }}
+        run: |
+          set -euo pipefail
+          echo "=============================================="
+          echo "[Playwright] Running samsung/real/web tests"
+          echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S')"
+          echo "=============================================="
+          npx playwright test tests/samsung/real/web --project=chromium
+          echo "=============================================="
+          echo "[Playwright] samsung/real/web tests finished"
+          echo "End: $(date -u '+%Y-%m-%d %H:%M:%S')"
+          echo "=============================================="
