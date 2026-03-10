@@ -88,13 +88,22 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table.png` });
         await page.goto(URLS.AUTODOC.AUTODOC);
 
-        // 업데이트 추천 -> 미구현
-        // await page.goto(URLS.AUTODOC.AUTODOC);
-        // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_UPDATE_RECOMMEND);
-        // await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_UPDATE_RECOMMEND);
-        // await wait(2000);
-        // timestamp = getNewTimeStamp();
-        // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_update.png` });
+        // 표준 양식 테이블 업데이트 클릭
+        await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
+        const badges = await page.$$(`${SELECTORS.ADMIN.AUTODOC.TABLE_LIST} span[data-slot="badge"]`);
+        await badges[0].click();
+        await wait(100000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table_update.png` });
+        await page.goto(URLS.AUTODOC.AUTODOC);
+
+        // 업데이트 추천
+        await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_UPDATE_RECOMMEND);
+        await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_UPDATE_RECOMMEND);
+        await wait(2000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_update.png` });
+        await page.goto(URLS.AUTODOC.AUTODOC);
 
         // 카테고리 관리
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_CATEGORY_MANAGEMENT);
