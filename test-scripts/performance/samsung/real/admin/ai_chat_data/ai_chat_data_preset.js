@@ -154,7 +154,7 @@ export function handleSummary(data) {
     // 결과 추출 및 Slack 발송
     const slackWebhookUrl = __ENV.SLACK_WEBHOOK_URL;
     if (slackWebhookUrl) {
-        const payload = buildK6SummaryMessage(data, 'AI Chat Data');
+        const payload = buildK6SummaryMessage(data, 'AI Chat Data Preset');
         const result = sendSlackWebhook(slackWebhookUrl, payload);
         if (!result.ok) {
             console.warn(`[Slack] 메시지 발송 실패 (status: ${result.status})`);
