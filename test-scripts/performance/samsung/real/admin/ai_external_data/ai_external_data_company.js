@@ -64,28 +64,6 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_search.png` });
         await page.goto(URLS.AI_DATA.COMPANY);
 
-        // AI 외부 데이터 관리 - 타사 문서 테이블 클릭
-        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.TABLE_LIST);
-        await page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_table_click.png` });
-
-        // AI 외부 데이터 관리 - 타사 문서 상세
-        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
-        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
-        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_VIEW);
-        const views = await page.$$(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_VIEW);
-        await views[Math.floor(Math.random() * views.length)].click();
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_table_detail.png` });
-        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
-        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
-        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
-        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
-        await page.goto(URLS.AI_DATA.COMPANY);
-
         // AI 외부 데이터 관리 - 타사 문서 등록 진입
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_REGISTER);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_REGISTER);
@@ -103,25 +81,55 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_CATEGORY, '타사 문서 등록 테스트');
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_URL);
         await page.type(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_URL, 'https://www.google.com');
-        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_EXTRACT_TEXT);
-        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_EXTRACT_TEXT);
-        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_CLOSE);
-        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_CLOSE);
-        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_PREVIEW);
-        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_PREVIEW);
-        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_CLOSE);
-        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_CLOSE);
         await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_register_write.png` });
         
+        // AI 외부 데이터 관리 - 텍스트 추출
+        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_EXTRACT_TEXT);
+        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_EXTRACT_TEXT);
+        await wait(10000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_register_extract.png` });
+        await page.keyboard.press('Escape');
+
+        // AI 외부 데이터 관리 - 미리보기
+        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_PREVIEW);
+        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_PREVIEW);
+        await wait(2000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_register_preview.png` });
+        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_CLOSE);
+        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_CLOSE);
+        
         // AI 외부 데이터 관리 - 타사 문서 등록
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_SUBMIT);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_SUBMIT);
+        await wait(2000);
         await page.goto(URLS.AI_DATA.COMPANY);
         await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_register_submit.png` });
+
+        // AI 외부 데이터 관리 - 타사 문서 테이블 클릭
+        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.TABLE_LIST);
+        await page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`);
+        await wait(2000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_table_click.png` });
+
+        // AI 외부 데이터 관리 - 타사 문서 상세
+        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
+        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
+        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_VIEW);
+        const views = await page.$$(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_VIEW);
+        await views[Math.floor(Math.random() * views.length)].click();
+        await wait(2000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_table_detail.png` });
+        await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
+        await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
+        await page.goto(URLS.AI_DATA.COMPANY);
 
         // AI 외부 데이터 관리 - 타사 문서 체크 박스
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX);
