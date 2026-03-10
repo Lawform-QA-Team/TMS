@@ -1,6 +1,15 @@
 import type { Reporter, FullConfig, Suite, TestCase, TestResult, FullResult  } from '@playwright/test/reporter';
 import path from 'path';
 
+type SlackMessageInput = {
+    all: number;
+    passed: number;
+    failed: number;
+    skipped: number;
+    duration: string;
+    result?: string;
+};
+
 const getSlackMessage = ({
     all,
     passed,
@@ -8,7 +17,7 @@ const getSlackMessage = ({
     skipped,
     duration,
     result,
-}) => {
+}: SlackMessageInput) => {
     // 결과에 따른 색상 결정
     const color = failed > 0 ? '#ff0000' : '#36a64f'; // 실패 시 빨간색, 성공 시 초록색
     const statusEmoji = failed > 0 ? '❌' : '✅';
@@ -162,10 +171,10 @@ class MyReporter implements Reporter {
         const { duration } = result;
 
         const resultBlockKit = getSlackMessage({
-            all: `${this.all}`,
-            passed: `${this.passed}개`,
-            failed: `${this.failed}개`,
-            skipped: `${this.skipped}개`,
+            all: this.all,
+            passed: this.passed,
+            failed: this.failed,
+            skipped: this.skipped,
             duration: `${(duration / 1000).toFixed(1)}s`,
             result: `${this.failMessages ? `통과하지 못한 테스트\n${this.failMessages}` : `모든 테스트 통과!`}`,
         });
