@@ -11,17 +11,16 @@
 #   K6_INFLUXDB_ADDR     - InfluxDB 주소 (예: https://us-east-1-1.aws.cloud2.influxdata.com)
 # [선택] K6_ACCOUNT, K6_ENV, K6_ROLE, K6_BROWSER_HEADLESS(true), K6_INFLUXDB_PUSH_INTERVAL, K6_SLACK_WEBHOOK_URL
 #
-name: K6 Performance (samsung/real)
+# K6 성능 테스트 - samsung/real/admin 스크립트 주기 실행
+name: K6 Performance (samsung/real/admin)
 
 on:
   schedule:
-    # 매일 새벽 3시(UTC) = 한국시간 12시 (UTC+9)
     - cron: '0 * * * *'
   workflow_dispatch:
-    # 수동 실행용 (Actions 탭에서 "Run workflow" 버튼)
 
 jobs:
-  k6-samsung-real:
+  k6-samsung-real-admin:
     runs-on: ubuntu-latest
     timeout-minutes: 120
 
@@ -45,14 +44,14 @@ jobs:
 
       - name: Prepare Result directories
         run: |
-          find test-scripts/performance/samsung/real -type d | while read -r dir; do
+          find test-scripts/performance/samsung/real/admin -type d | while read -r dir; do
             mkdir -p "$dir/Result"
           done
 
       - name: Build k6 with xk6-influxdb
         run: |
           mkdir -p /tmp/k6-build
-          chmod 777 /tmp/k6-build          # 컨테이너(root)가 쓸 수 있도록 권한 개방
+          chmod 777 /tmp/k6-build
 
           docker run --rm \
             -v "/tmp/k6-build:/output" \
@@ -64,7 +63,7 @@ jobs:
           chmod +x ./k6
           ./k6 version
 
-      - name: Run all K6 scripts (samsung/real)
+      - name: Run all K6 scripts (samsung/real/admin)
         env:
           ACCOUNT: ${{ secrets.K6_ACCOUNT || 'samsung' }}
           ENV: ${{ secrets.K6_ENV || 'dev' }}
@@ -76,20 +75,20 @@ jobs:
             --disable-gpu
             --disable-features=CpuFreqScaling,VizDisplayCompositor
             --disable-setuid-sandbox
-          BASE_URL: ${{ secrets.K6_BASE_URL }}
-          LOGIN_EMAIL: ${{ secrets.K6_LOGIN_EMAIL }}
-          LOGIN_PASSWORD: ${{ secrets.K6_LOGIN_PASSWORD }}
+          BASE_URL: ${{ secrets.K6_ADMIN_BASE_URL }}        # admin 전용 시크릿
+          LOGIN_EMAIL: ${{ secrets.K6_ADMIN_LOGIN_EMAIL }}  # admin 전용 시크릿
+          LOGIN_PASSWORD: ${{ secrets.K6_ADMIN_LOGIN_PASSWORD }}  # admin 전용 시크릿
           K6_INFLUXDB_ORGANIZATION: ${{ secrets.K6_INFLUXDB_ORGANIZATION }}
           K6_INFLUXDB_BUCKET: ${{ secrets.K6_INFLUXDB_BUCKET }}
           K6_INFLUXDB_TOKEN: ${{ secrets.K6_INFLUXDB_TOKEN }}
           K6_INFLUXDB_ADDR: ${{ secrets.K6_INFLUXDB_ADDR }}
-          K6_INFLUXDB_PUSH_INTERVAL: ${{ secrets.K6_INFLUXDB_PUSH_INTERVAL || '10s' }}
+          K6_INFLUXDB_PUSH_INTERVAL: ${{ secrets.K6_INFLUXDB_PUSH_INTERVAL || '60s' }}
           SLACK_WEBHOOK_URL: ${{ secrets.K6_SLACK_WEBHOOK_URL }}
         run: |
           set -euo pipefail
-          BASE_DIR="test-scripts/performance/samsung/real"
+          BASE_DIR="test-scripts/performance/samsung/real/admin"
           echo "=============================================="
-          echo "[k6] Running all samsung/real scripts"
+          echo "[k6] Running all samsung/real/admin scripts"
           echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S')"
           echo "=============================================="
 
@@ -109,6 +108,6 @@ jobs:
           done
 
           echo "=============================================="
-          echo "[k6] All samsung/real scripts finished"
+          echo "[k6] All samsung/real/admin scripts finished"
           echo "End: $(date -u '+%Y-%m-%d %H:%M:%S')"
           echo "=============================================="
