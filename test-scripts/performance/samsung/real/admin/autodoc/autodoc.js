@@ -92,7 +92,7 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
         const badges = await page.$$(`${SELECTORS.ADMIN.AUTODOC.TABLE_LIST} span[data-slot="badge"]`);
         await badges[0].click();
-        await wait(100000);
+        await wait(10000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table_update.png` });
         await page.goto(URLS.AUTODOC.AUTODOC);
