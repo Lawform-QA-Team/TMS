@@ -41,18 +41,18 @@ export default async function() {
 
         // 표준 양식 관리 진입
         await page.goto(URLS.AUTODOC.CATEGORY);
+        await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category.png` });
-        await wait(2000);
 
-        // 카테고리 관리 페이지네이션 -> 미구현
-        // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
-        // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(2000);
-        // timestamp = getNewTimeStamp();
-        // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_pagination_last.png` });
-        // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
-        // await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        // 카테고리 관리 페이지네이션
+        await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
+        await page.click(SELECTORS.COMMON.PAGE_LAST);
+        await wait(2000);
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_pagination_last.png` });
+        await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
+        await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 카테고리 검색
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH);
@@ -126,7 +126,7 @@ export function handleSummary(data) {
     // 결과 추출 및 Slack 발송
     const slackWebhookUrl = __ENV.SLACK_WEBHOOK_URL;
     if (slackWebhookUrl) {
-        const payload = buildK6SummaryMessage(data, 'Autodoc');
+        const payload = buildK6SummaryMessage(data, 'Autodoc Category');
         const result = sendSlackWebhook(slackWebhookUrl, payload);
         if (!result.ok) {
             console.warn(`[Slack] 메시지 발송 실패 (status: ${result.status})`);
