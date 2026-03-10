@@ -16,20 +16,27 @@ Write-Host "BASE_DIR: $BASE_DIR"
 Write-Host "Timestamp: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 Write-Host "=============================================="
 
-# samsung/real 하위의 모든 .js 파일을 정렬된 순서로 순차 실행
-$scripts = Get-ChildItem -Path $BASE_DIR -Recurse -Filter "*.js" | Sort-Object FullName
+# samsung/real 하위의 모든 .js 파일을 정렬된 순서로 순차 실행 (login_helper.js 제외)
+$scripts = Get-ChildItem -Path $BASE_DIR -Recurse -Filter "*.js" `
+           | Where-Object { $_.Name -ne "login_helper.js" } `
+           | Sort-Object FullName
 
 foreach ($script in $scripts) {
     $relativePath = $script.FullName.Substring($ROOT_DIR.Length + 1)
 
+    $resultDir = Join-Path (Split-Path $relativePath -Parent) "Result"
+    if (-not [string]::IsNullOrEmpty($resultDir) -and -not (Test-Path $resultDir)) {
+        New-Item -ItemType Directory -Path $resultDir | Out-Null
+    }
+
     Write-Host "----------------------------------------------"
     Write-Host "Running k6 script: $relativePath"
-    Write-Host "Start: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+    Write-Host "Start: $(Get-Date -AsUTC -Format 'yyyy-MM-dd HH:mm:ss')"
     Write-Host "----------------------------------------------"
 
     & "$ROOT_DIR\run.ps1" $relativePath
 
-    Write-Host "Finished: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+    Write-Host "Finished: $(Get-Date -AsUTC -Format 'yyyy-MM-dd HH:mm:ss')"
     Write-Host ""
 }
 
