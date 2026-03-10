@@ -16,7 +16,7 @@ name: K6 Performance (samsung/real)
 on:
   schedule:
     # 매일 새벽 3시(UTC) = 한국시간 12시 (UTC+9)
-    - cron: '0 3 * * *'
+    - cron: '0 * * * *'
   workflow_dispatch:
     # 수동 실행용 (Actions 탭에서 "Run workflow" 버튼)
 
