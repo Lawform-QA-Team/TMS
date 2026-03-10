@@ -32,6 +32,9 @@ async function wait(ms) {
 
 export default async function() {
     const context = await browser.newContext({
+        acceptDownloads: true,
+        behavior: 'allow',
+        downloadsPath: './downloads',
         viewport: { width: 1960, height: 1080 },
     });
     const page = await context.newPage();
@@ -43,9 +46,9 @@ export default async function() {
 
         // 로그
         await page.goto(URLS.LOG.LOG);
+        await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_LOG.png` });
-        await wait(2000);
 
         // 로그, 페이지네이션
         await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.PAGINATION);
