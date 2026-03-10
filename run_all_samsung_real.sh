@@ -18,6 +18,7 @@ echo "=============================================="
 # samsung/real 하위의 모든 .js 파일을 정렬된 순서로 순차 실행
 find "$BASE_DIR" -type f -name "*.js" \
             ! -name "login_helper.js" \
+            ! -name "selector_sam.js" \
             | sort | while read -r script; do
             echo "----------------------------------------------"
             echo "Running k6 script: $script"
