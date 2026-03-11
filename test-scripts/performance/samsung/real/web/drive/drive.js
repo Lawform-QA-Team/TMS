@@ -70,7 +70,7 @@ export default async function() {
 
         // 문서 조회, 검색
         await page.waitForSelector(SELECTORS.WEB.DRIVE.INPUT);
-        await page.type(SELECTORS.WEB.DRIVE.INPUT, '시연용');
+        await page.type(SELECTORS.WEB.DRIVE.INPUT, 'heekun');
         await page.waitForSelector(SELECTORS.WEB.DRIVE.BUTTON_SEARCH);
         await page.click(SELECTORS.WEB.DRIVE.BUTTON_SEARCH);
         await wait(2000);
@@ -105,6 +105,6 @@ export function handleSummary(data) {
     }
 
     return {
-        [`Result/notice_${timestamp}.html`]: htmlReport(data),
+        [`Result/web_drive_${timestamp}.html`]: htmlReport(data),
     };
 }

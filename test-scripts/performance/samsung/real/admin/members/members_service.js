@@ -118,8 +118,8 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CLOSE);
 
         // 사용자 관리 - 서비스, 인수인계 인계자 페이지네이션
-        // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
-        // await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
+        await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
+        await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
         // await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
         // await wait(2000);
@@ -130,7 +130,7 @@ export default async function() {
 
         // 사용자 관리 - 서비스, 인수인계 인계자 검색
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT);
-        await page.type(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT, '임희건');
+        await page.type(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT, 'hkqa');
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_SEARCH);
         await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_SEARCH);
         await wait(2000);
@@ -161,8 +161,8 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CLOSE);
 
         // 사용자 관리 - 서비스, 인수인계 인수자 페이지네이션
-        // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
-        // await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
+        await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
+        await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
         // await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
         // await wait(2000);
@@ -173,7 +173,7 @@ export default async function() {
 
         // 사용자 관리 - 서비스, 인수인계 인수자 검색
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT);
-        await page.type(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT, 'ggp');
+        await page.type(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT, 'q1m');
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_SEARCH);
         await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_SEARCH);
         await wait(2000);
@@ -221,6 +221,6 @@ export function handleSummary(data) {
     }
 
     return {
-        [`Result/members_${timestamp}.html`]: htmlReport(data),
+        [`Result/members_service_${timestamp}.html`]: htmlReport(data),
     };
 }

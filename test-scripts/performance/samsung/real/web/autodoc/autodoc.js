@@ -56,7 +56,7 @@ export default async function() {
 
         // 문서 작성 - 표준 양식, 검색
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
-        await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, '_시연용');
+        await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, '시연용');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
@@ -71,8 +71,6 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table.png` });
 
         // 문서 작성 - 표준 양식, 작성
-        await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
-        await page.click(SELECTORS.COMMON.TABLE);
             // 내용을 작성했다고 가정
         await wait(2000);
         timestamp = getNewTimeStamp();
@@ -81,7 +79,7 @@ export default async function() {
         // 문서 작성 - 표준 양식, 임시저장
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_DRAFT_SAVE);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_DRAFT_SAVE);
-        await wait(2000);
+        await wait(5000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_submit.png` });
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
@@ -107,6 +105,6 @@ export function handleSummary(data) {
     }
 
     return {
-        [`Result/notice_${timestamp}.html`]: htmlReport(data),
+        [`Result/web_autodoc_${timestamp}.html`]: htmlReport(data),
     };
 }

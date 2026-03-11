@@ -1,4 +1,5 @@
 import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js"
+import { URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
@@ -63,7 +64,7 @@ export default async function() {
         // 통합검색, 검색 필터 적용
         await selectComboboxOption(page, SELECTORS.WEB.SEARCH.SELECT)
         await page.waitForSelector(SELECTORS.WEB.SEARCH.INPUT);
-        await page.fill(SELECTORS.WEB.SEARCH.INPUT, '테스트');
+        await page.fill(SELECTORS.WEB.SEARCH.INPUT, 'heekun');
         await page.waitForSelector(SELECTORS.WEB.SEARCH.DATEPICKER);
         await page.waitForSelector(SELECTORS.WEB.SEARCH.DATEPICKER_START);
         await selectDateRangeInRdpCalendar(page, SELECTORS.WEB.SEARCH.DATEPICKER, SELECTORS.WEB.SEARCH.DATEPICKER_START, '2026-03-01', '2026-03-31')
@@ -74,8 +75,14 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_SEARCH_filter.png` });
 
         // 통합검색, 검색 결과 클릭
-        const buttons = await page.$$('button.text-base.font-medium.text-foreground.cursor-pointer.text-left');
-        await buttons[0].click();
+        await page.goto(URLS.DRIVE.DRIVE);
+        await page.waitForSelector(SELECTORS.WEB.NAVBAR.INPUT);
+        await page.type(SELECTORS.WEB.NAVBAR.INPUT, '테스트');
+        await page.keyboard.press('Enter');
+        await wait(2000);
+        const results = await page.$$('button.text-base.font-medium.text-foreground.hover\\:text-primary.cursor-pointer.text-left');
+        console.log(results[0]);
+        await results[0].click();
         await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SEARCH_result.png` });
@@ -100,6 +107,6 @@ export function handleSummary(data) {
     }
 
     return {
-        [`Result/user_activity_log_${timestamp}.html`]: htmlReport(data),
+        [`Result/web_search_${timestamp}.html`]: htmlReport(data),
     };
 }

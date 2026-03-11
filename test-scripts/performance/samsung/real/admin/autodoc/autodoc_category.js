@@ -134,6 +134,6 @@ export function handleSummary(data) {
     }
 
     return {
-        [`Result/autodoc_${timestamp}.html`]: htmlReport(data),
+        [`Result/autodoc_category_${timestamp}.html`]: htmlReport(data),
     };
 }

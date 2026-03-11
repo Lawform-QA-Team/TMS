@@ -51,14 +51,14 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_qna.png` });
 
         // 1:1 문의 관리, 페이지네이션
-        await page.waitForSelector(SELECTORS.COMMON.PAGE_LAST);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(2000);
-        await page.screenshot({ path: `screenshots/${timestamp}_qna_page_last.png` });
-        await page.waitForSelector(SELECTORS.COMMON.PAGE_FIRST);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST);
-        await wait(2000);
-        await page.screenshot({ path: `screenshots/${timestamp}_qna_page_first.png` });
+        // await page.waitForSelector(SELECTORS.COMMON.PAGE_LAST);
+        // await page.click(SELECTORS.COMMON.PAGE_LAST);
+        // await wait(2000);
+        // await page.screenshot({ path: `screenshots/${timestamp}_qna_page_last.png` });
+        // await page.waitForSelector(SELECTORS.COMMON.PAGE_FIRST);
+        // await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        // await wait(2000);
+        // await page.screenshot({ path: `screenshots/${timestamp}_qna_page_first.png` });
 
         // 1:1 문의 관리, 상태 필터
         await selectComboboxOption(page, SELECTORS.ADMIN.QNA.SELECT_ANSWER_STATUS);

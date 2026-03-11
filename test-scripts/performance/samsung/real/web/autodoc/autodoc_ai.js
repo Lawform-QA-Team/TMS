@@ -39,14 +39,15 @@ export default async function() {
     try {
         await loginWithPage(page, credentials);
 
-        // AI 검토 편집
+        // 문서 작성 - 기존 문서
         await page.goto(URLS.AUTODOC.EXISTING);
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
-        await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, '_시연용');
+        await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, 'heekun');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
-        await page.click(SELECTORS.COMMON.TABLE);
+        await page.waitForSelector(SELECTORS.COMMON.TABLE);
+        await wait(2000);
+        await page.click(`${SELECTORS.WEB.AUTODOC.TABLE_LIST} tbody tr:first-child`);
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
         await page.click(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_EDIT);
@@ -100,6 +101,6 @@ export function handleSummary(data) {
     }
 
     return {
-        [`Result/notice_${timestamp}.html`]: htmlReport(data),
+        [`Result/web_autodoc_ai_${timestamp}.html`]: htmlReport(data),
     };
 }

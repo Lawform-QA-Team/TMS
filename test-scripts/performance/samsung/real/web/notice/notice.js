@@ -118,6 +118,6 @@ export function handleSummary(data) {
     }
 
     return {
-        [`Result/notice_${timestamp}.html`]: htmlReport(data),
+        [`Result/web_notice_${timestamp}.html`]: htmlReport(data),
     };
 }

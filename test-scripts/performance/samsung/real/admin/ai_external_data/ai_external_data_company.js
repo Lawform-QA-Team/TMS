@@ -170,6 +170,6 @@ export function handleSummary(data) {
     }
 
     return {
-        [`Result/ai_external_data_${timestamp}.html`]: htmlReport(data),
+        [`Result/ai_external_data_company_${timestamp}.html`]: htmlReport(data),
     };
 }

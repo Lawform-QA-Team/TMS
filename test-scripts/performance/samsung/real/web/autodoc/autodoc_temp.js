@@ -56,7 +56,7 @@ export default async function() {
 
         // 문서 작성 - 임시 저장 문서, 검색
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
-        await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, '_시연용');
+        await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, 'heekun');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
@@ -122,6 +122,6 @@ export function handleSummary(data) {
     }
 
     return {
-        [`Result/notice_${timestamp}.html`]: htmlReport(data),
+        [`Result/web_autodoc_temp_${timestamp}.html`]: htmlReport(data),
     };
 }

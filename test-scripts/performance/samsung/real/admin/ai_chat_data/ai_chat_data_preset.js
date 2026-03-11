@@ -47,7 +47,7 @@ export default async function() {
 
         // AI 채팅 데이터 관리 - 사전 설정 채팅 데이터 검색
         await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.INPUT_SEARCH);
-        await page.type(SELECTORS.ADMIN.AI_PRESET_CHAT.INPUT_SEARCH, '1');
+        await page.type(SELECTORS.ADMIN.AI_PRESET_CHAT.INPUT_SEARCH, '테스트');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
@@ -162,6 +162,6 @@ export function handleSummary(data) {
     }
 
     return {
-        [`Result/ai_chat_data_${timestamp}.html`]: htmlReport(data),
+        [`Result/ai_chat_data_preset_${timestamp}.html`]: htmlReport(data),
     };
 }
