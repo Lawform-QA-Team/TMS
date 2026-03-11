@@ -5,9 +5,10 @@
 #   WEB_BASE_URL             - web 대상 URL (예: https://dev.privacydocs.kr/)
 #   WEB_LOGIN_EMAIL          - web 로그인 이메일
 #   WEB_LOGIN_PASSWORD       - web 로그인 비밀번호
-#   PW_INFLUXDB_URL          - InfluxDB 주소 (예: https://us-east-1-1.aws.cloud2.influxdata.com)
-#   PW_INFLUXDB_ORG          - InfluxDB 조직명
+#   PW_INFLUXDB_ADDR         - InfluxDB 주소 (예: https://us-east-1-1.aws.cloud2.influxdata.com)
+#   PW_INFLUXDB_ORGANIZATION - InfluxDB 조직명
 #   PW_INFLUXDB_BUCKET       - InfluxDB 버킷명
+#   PW_INFLUXDB_TOKEN        - InfluxDB 토큰
 #   PW_INFLUXDB_TOKEN        - InfluxDB 토큰
 # [선택] SLACK_WEBHOOK_URL
 #
@@ -50,9 +51,9 @@ jobs:
       - name: Run Playwright tests (samsung/real/web)
         working-directory: test-scripts/playwright
         env:
-          BASE_URL: ${{ secrets.ADMIN_BASE_URL }}
-          LOGIN_EMAIL: ${{ secrets.ADMIN_LOGIN_EMAIL }}
-          LOGIN_PASSWORD: ${{ secrets.ADMIN_LOGIN_PASSWORD }}
+          BASE_URL: ${{ secrets.WEB_BASE_URL }}
+          LOGIN_EMAIL: ${{ secrets.WEB_LOGIN_EMAIL }}
+          LOGIN_PASSWORD: ${{ secrets.WEB_LOGIN_PASSWORD }}
           INFLUXDB_URL: ${{ secrets.PW_INFLUXDB_ADDR }}
           INFLUXDB_ORG: ${{ secrets.PW_INFLUXDB_ORGANIZATION }}
           INFLUXDB_BUCKET: ${{ secrets.PW_INFLUXDB_BUCKET }}
@@ -64,7 +65,9 @@ jobs:
           echo "[Playwright] Running samsung/real/web tests"
           echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S')"
           echo "=============================================="
-          npx playwright test tests/samsung/real/web --project=chromium
+          npx playwright test tests/samsung/real/web \
+            --config=./reporter/playwright.config.ts \
+            --project=chromium
           echo "=============================================="
           echo "[Playwright] samsung/real/web tests finished"
           echo "End: $(date -u '+%Y-%m-%d %H:%M:%S')"

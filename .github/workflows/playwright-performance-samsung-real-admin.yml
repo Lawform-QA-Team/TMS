@@ -5,8 +5,8 @@
 #   ADMIN_BASE_URL           - admin 대상 URL (예: https://dev-admin.privacydocs.kr/)
 #   ADMIN_LOGIN_EMAIL        - admin 로그인 이메일
 #   ADMIN_LOGIN_PASSWORD     - admin 로그인 비밀번호
-#   PW_INFLUXDB_URL          - InfluxDB 주소 (예: https://us-east-1-1.aws.cloud2.influxdata.com)
-#   PW_INFLUXDB_ORG          - InfluxDB 조직명
+#   PW_INFLUXDB_ADDR         - InfluxDB 주소 (예: https://us-east-1-1.aws.cloud2.influxdata.com)
+#   PW_INFLUXDB_ORGANIZATION - InfluxDB 조직명
 #   PW_INFLUXDB_BUCKET       - InfluxDB 버킷명
 #   PW_INFLUXDB_TOKEN        - InfluxDB 토큰
 # [선택] SLACK_WEBHOOK_URL
@@ -64,7 +64,9 @@ jobs:
           echo "[Playwright] Running samsung/real/admin tests"
           echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S')"
           echo "=============================================="
-          npx playwright test tests/samsung/real/admin --project=chromium
+          npx playwright test tests/samsung/real/admin \
+            --config=./reporter/playwright.config.ts \
+            --project=chromium
           echo "=============================================="
           echo "[Playwright] samsung/real/admin tests finished"
           echo "End: $(date -u '+%Y-%m-%d %H:%M:%S')"
