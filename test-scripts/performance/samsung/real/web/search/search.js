@@ -62,16 +62,13 @@ export default async function() {
 
         // 통합검색, 검색 필터 적용
         await selectComboboxOption(page, SELECTORS.WEB.SEARCH.SELECT)
-        // await page.waitForSelector(SELECTORS.WEB.SEARCH.INPUT);
-        // await page.fill(SELECTORS.WEB.SEARCH.INPUT, 'heekun');
+        await page.waitForSelector(SELECTORS.WEB.SEARCH.INPUT);
+        await page.fill(SELECTORS.WEB.SEARCH.INPUT, 'heekun');
         await page.waitForSelector(SELECTORS.WEB.SEARCH.DATEPICKER);
         await page.waitForSelector(SELECTORS.WEB.SEARCH.DATEPICKER_START);
         await selectDateRangeInRdpCalendar(page, SELECTORS.WEB.SEARCH.DATEPICKER, SELECTORS.WEB.SEARCH.DATEPICKER_START, '2026-03-01', '2026-03-31')
-        // await page.waitForSelector(SELECTORS.WEB.SEARCH.BUTTON_FILTER_SEARCH);
-        // await page.click(SELECTORS.WEB.SEARCH.BUTTON_FILTER_SEARCH);
-        await page.waitForSelector(SELECTORS.WEB.SEARCH.INPUT);
-        await page.fill(SELECTORS.WEB.SEARCH.INPUT, 'heekun');
-        await page.keyboard.press('Enter');
+        await page.waitForSelector(SELECTORS.WEB.SEARCH.BUTTON_FILTER_SEARCH);
+        await page.click(SELECTORS.WEB.SEARCH.BUTTON_FILTER_SEARCH);
         await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SEARCH_filter.png` });
