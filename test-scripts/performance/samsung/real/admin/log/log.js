@@ -67,8 +67,10 @@ export default async function() {
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_LOG_date.png` });
 
-        // 로그, 검색 -> 데이트피커 변경 대기 중
-        // await selectDateRangeInRdpCalendar(page, '시작 데이트 피커', '끝 데이트 피커', '2026-02-01', '2026-02-28')
+        // 로그, 검색
+        await page.waitForLoadState("load");
+        const datepickers = await page.$$('button[data-slot="popover-trigger"]');
+        await selectDateRangeInRdpCalendar(page, datepickers[0], datepickers[1], '2026-02-01', '2026-02-28')
         await selectComboboxOption(page, SELECTORS.ADMIN.USER_ACTIVITY_TABLE.SELECT_EVENT)
         await selectComboboxOption(page, SELECTORS.ADMIN.USER_ACTIVITY_TABLE.SELECT_STATUS)
         await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.INPUT_SEARCH);
