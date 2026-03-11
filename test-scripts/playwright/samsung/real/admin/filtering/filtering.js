@@ -19,11 +19,13 @@ export async function run(page) {
 
   await loginWithPage(page, credentials);
 
+  // 필터링 관리
   await page.goto(URLS.FILTERING.FILTERING);
+  await wait(2000);
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING.png` });
-  await wait(2000);
 
+  // 필터링 관리 페이지네이션
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.PAGINATION);
   await page.click(SELECTORS.COMMON.PAGE_LAST);
   await wait(2000);
@@ -32,6 +34,7 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.PAGINATION);
   await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
+  // 필터링 관리 검색
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT_SEARCH);
   await page.locator(SELECTORS.ADMIN.FILTERING.INPUT_SEARCH).fill('필터');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
@@ -40,6 +43,7 @@ export async function run(page) {
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_search.png` });
 
+  // 필터링 관리 필터링 등록 진입
   await page.goto(URLS.FILTERING.FILTERING);
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_REGISTER_CLICK);
   await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_REGISTER_CLICK);
@@ -49,6 +53,7 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_CLOSE);
   await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_CLOSE);
 
+  // 필터링 관리 필터링 등록 작성
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_REGISTER_CLICK);
   await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_REGISTER_CLICK);
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT);
@@ -58,14 +63,22 @@ export async function run(page) {
   await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_register_write.png` });
+
+  // 필터링 관리 필터링 등록
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
   await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
   await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_register_submit.png` });
 
+  // 필터링 관리 테이블 클릭
   await page.waitForSelector(SELECTORS.COMMON.TABLE);
   await page.click(`${SELECTORS.COMMON.TABLE} button`);
+  await wait(2000);
+  timestamp = getNewTimeStamp();
+  await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_table.png` });
+
+  // 필터링 관리 수정
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT);
   await page.locator(SELECTORS.ADMIN.FILTERING.INPUT).fill('필터링 단어 테스트 2');
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT_1);
@@ -75,6 +88,8 @@ export async function run(page) {
   await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_register_edit.png` });
+
+  // 필터링 관리 수정 저장
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
   await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
   await wait(2000);

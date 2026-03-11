@@ -20,11 +20,13 @@ export async function run(page) {
 
   await loginWithPage(page, credentials);
 
+  // 표준 양식 관리 진입
   await page.goto(URLS.AUTODOC.AUTODOC);
   await wait(2000);
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC.png` });
 
+  // 표준 양식 테이블 페이지네이션
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
   await page.click(SELECTORS.COMMON.PAGE_LAST);
   await wait(2000);
@@ -33,6 +35,7 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
   await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
+  // 표준 양식 검색
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH);
   await page.locator(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH).fill('표준 양식');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
@@ -42,12 +45,14 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_search.png` });
   await page.goto(URLS.AUTODOC.AUTODOC);
 
+  // 표준 양식 등록 진입
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER);
   await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER);
   await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_register.png` });
 
+  // 표준 양식 등록 - 양식 유형 선택
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.SELECT_SELECTED_CATEGORY);
   await selectComboboxOption(page, SELECTORS.ADMIN.AUTODOC.SELECT_SELECTED_CATEGORY);
   await wait(2000);
@@ -55,6 +60,7 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_register.select.png` });
   await page.goto(URLS.AUTODOC.AUTODOC);
 
+  // 표준 양식 테이블 클릭
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);
   await wait(2000);
@@ -62,6 +68,24 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table.png` });
   await page.goto(URLS.AUTODOC.AUTODOC);
 
+  // 표준 양식 테이블 업데이트 클릭
+  await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
+  const badges = await page.$$(`${SELECTORS.ADMIN.AUTODOC.TABLE_LIST} span[data-slot="badge"]`);
+  await badges[0].click();
+  await wait(10000);
+  timestamp = getNewTimeStamp();
+  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table_update.png` });
+  await page.goto(URLS.AUTODOC.AUTODOC);
+
+  // 업데이트 추천
+  await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_UPDATE_RECOMMEND);
+  await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_UPDATE_RECOMMEND);
+  await wait(2000);
+  timestamp = getNewTimeStamp();
+  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_update.png` });
+  await page.goto(URLS.AUTODOC.AUTODOC);
+
+  // 카테고리 관리
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_CATEGORY_MANAGEMENT);
   await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_CATEGORY_MANAGEMENT);
   await wait(2000);

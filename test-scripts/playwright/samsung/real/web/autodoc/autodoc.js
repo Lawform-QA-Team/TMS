@@ -19,11 +19,13 @@ export async function run(page) {
 
   await loginWithPage(page, credentials);
 
+  // 문서 작성 - 표준 양식
   await page.goto(URLS.AUTODOC.AUTODOC);
   await wait(2000);
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC.png` });
 
+  // 문서 작성 - 표준 양식, 페이지네이션
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
   await page.click(SELECTORS.COMMON.PAGE_LAST);
   await wait(2000);
@@ -32,33 +34,36 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
   await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
+  // 문서 작성 - 표준 양식, 검색
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
-  await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('테스트');
+  await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('삼성');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
   await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_search.png` });
-  await page.goto(URLS.AUTODOC.AUTODOC);
 
+  // 문서 작성 - 표준 양식, 테이블 클릭
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);
   await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table.png` });
-  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
-  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
-  await page.goto(URLS.AUTODOC.AUTODOC);
 
+  // 문서 작성 - 표준 양식, 작성
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);
+    // 내용을 작성했다고 가정
   await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_write.png` });
 
+  // 문서 작성 - 표준 양식, 임시저장
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_DRAFT_SAVE);
   await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_DRAFT_SAVE);
   await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_submit.png` });
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
+  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
 }

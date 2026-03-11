@@ -19,11 +19,13 @@ export async function run(page) {
 
   await loginWithPage(page, credentials);
 
+  // 공지사항
   await page.goto(URLS.SERVICE.NOTICE);
   await wait(2000);
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE.png` });
 
+  // 공지사항, 페이지네이션
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
   await page.click(SELECTORS.COMMON.PAGE_LAST);
   await wait(2000);
@@ -32,28 +34,47 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
   await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
+  // 공지사항, 검색
   await page.waitForSelector(SELECTORS.WEB.NOTICE.INPUT_SEARCH);
-  await page.locator(SELECTORS.WEB.NOTICE.INPUT_SEARCH).fill('공지');
+  await page.locator(SELECTORS.WEB.NOTICE.INPUT_SEARCH).fill('공지테스트');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
   await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_search.png` });
-  await page.goto(URLS.SERVICE.NOTICE);
 
+  // 공지사항, 테이블 클릭
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);
   await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_table.png` });
 
+  // 공지사항, 수정 이력
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_VIEW_HISTORY);
   await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_VIEW_HISTORY);
   await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_history.png` });
+
+  // 공지사항, 수정 이력 페이지네이션
+  await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
+  await page.click(SELECTORS.COMMON.PAGE_LAST);
+  await wait(2000);
+  timestamp = getNewTimeStamp();
+  await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_history_pagination_last.png` });
+
+  // 공지사항, 수정 이력 닫기
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_CLOSE);
   await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_CLOSE);
+  await wait(2000);
+  timestamp = getNewTimeStamp();
+  await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_history_close.png` });
+
+  // 공지사항, 목록
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_LIST);
   await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_LIST);
+  await wait(2000);
+  timestamp = getNewTimeStamp();
+  await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_list.png` });
 }
