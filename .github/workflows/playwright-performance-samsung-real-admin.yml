@@ -43,9 +43,9 @@ jobs:
         working-directory: test-scripts/playwright
         run: npm install
 
-      - name: Install Playwright browsers (Chromium)
+      - name: Install Playwright browsers
         working-directory: test-scripts/playwright
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium firefox webkit
 
       - name: Run Playwright tests (samsung/real/admin)
         working-directory: test-scripts/playwright
@@ -65,8 +65,7 @@ jobs:
           echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S')"
           echo "=============================================="
           npx playwright test tests/samsung/real/admin \
-            --config=./reporter/playwright.config.ts \
-            --project=chromium
+            --config=./reporter/playwright.config.ts
           echo "=============================================="
           echo "[Playwright] samsung/real/admin tests finished"
           echo "End: $(date -u '+%Y-%m-%d %H:%M:%S')"
