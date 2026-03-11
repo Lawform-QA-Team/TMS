@@ -18,11 +18,9 @@ const getSlackMessage = ({
     duration,
     result,
 }: SlackMessageInput) => {
-    // 결과에 따른 색상 결정
-    const color = failed > 0 ? '#ff0000' : '#36a64f'; // 실패 시 빨간색, 성공 시 초록색
+    const color = failed > 0 ? '#ff0000' : '#36a64f';
     const statusEmoji = failed > 0 ? '❌' : '✅';
-    
-    // 슬랙 블록 킷 구성
+
     const blocks: any[] = [
         {
             type: 'header',
@@ -62,8 +60,7 @@ const getSlackMessage = ({
             ],
         },
     ];
-    
-    // 실패한 테스트가 있는 경우 상세 정보 추가
+
     if (failed > 0 && result) {
         blocks.push({
             type: 'section',
@@ -81,13 +78,13 @@ const getSlackMessage = ({
             },
         });
     }
-    
+
+    // attachments 안으로 blocks 이동 → color 바 유지 + Bad Request 해결
     return {
-        blocks,
         attachments: [
             {
                 color,
-                blocks: [],
+                blocks,
             },
         ],
     };
@@ -153,7 +150,7 @@ class MyReporter implements Reporter {
                 },
                 body: JSON.stringify(blockKit),
             });
-    
+
             if (!response.ok) {
                 console.error('Slack 메시지 전송 실패:', response.statusText);
             } else {
@@ -167,7 +164,8 @@ class MyReporter implements Reporter {
     private addFailMessage(message: string) {
         this.failMessages += `\n${message}`;
     }
-    private async getBlockKit(result: FullResult){
+
+    private async getBlockKit(result: FullResult) {
         const { duration } = result;
 
         const resultBlockKit = getSlackMessage({
