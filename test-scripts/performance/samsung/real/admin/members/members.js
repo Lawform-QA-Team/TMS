@@ -71,7 +71,7 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_table.png` });
 
         // 사용자 관리 - 백오피스, 정보 수정
-        await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO);
+        await page.waitForLoadState('load');
         const radios = await page.$$(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO);
         await radios[0].click();
         await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO_2);
@@ -86,6 +86,10 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_edit.png` });
 
         // 사용자 관리 - 백오피스, 정보 저장
+        await page.waitForLoadState('load');
+        await radios[2].click();
+        await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO_1);
+        await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO_1);
         await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
         await wait(2000);

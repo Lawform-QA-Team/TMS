@@ -46,7 +46,7 @@ export async function run(page) {
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_table.png` });
 
-  await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO);
+  await page.waitForLoadState('load');
   await page.locator(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO).first().click();
   await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO_2);
   await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO_2);
@@ -60,6 +60,10 @@ export async function run(page) {
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_edit.png` });
 
+  await page.waitForLoadState('load');
+  await page.locator(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO).nth(2).click();
+  await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO_1);
+  await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO_1);
   await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
   await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
   await wait(2000);
