@@ -10,7 +10,7 @@ const __dirname  = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../test-scripts/playwright/.env') });
 
 export default defineConfig({
-  testDir: '../test-scripts/playwright/tests',
+  testDir: '../tests',
 
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
