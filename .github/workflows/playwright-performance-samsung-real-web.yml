@@ -50,11 +50,11 @@ jobs:
       - name: Run Playwright tests (samsung/real/web)
         working-directory: test-scripts/playwright
         env:
-          BASE_URL: ${{ secrets.WEB_BASE_URL }}
-          LOGIN_EMAIL: ${{ secrets.WEB_LOGIN_EMAIL }}
-          LOGIN_PASSWORD: ${{ secrets.WEB_LOGIN_PASSWORD }}
-          INFLUXDB_URL: ${{ secrets.PW_INFLUXDB_URL }}
-          INFLUXDB_ORG: ${{ secrets.PW_INFLUXDB_ORG }}
+          BASE_URL: ${{ secrets.ADMIN_BASE_URL }}
+          LOGIN_EMAIL: ${{ secrets.ADMIN_LOGIN_EMAIL }}
+          LOGIN_PASSWORD: ${{ secrets.ADMIN_LOGIN_PASSWORD }}
+          INFLUXDB_URL: ${{ secrets.PW_INFLUXDB_ADDR }}
+          INFLUXDB_ORG: ${{ secrets.PW_INFLUXDB_ORGANIZATION }}
           INFLUXDB_BUCKET: ${{ secrets.PW_INFLUXDB_BUCKET }}
           INFLUXDB_TOKEN: ${{ secrets.PW_INFLUXDB_TOKEN }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
