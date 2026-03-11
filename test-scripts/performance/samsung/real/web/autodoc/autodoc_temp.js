@@ -46,13 +46,13 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp.png` });
 
         // 문서 작성 - 임시 저장 문서, 페이지네이션
-        await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_pagination_last.png` });
-        await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        // await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_LAST);
+        // await wait(2000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_pagination_last.png` });
+        // await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 문서 작성 - 임시 저장 문서, 검색
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);

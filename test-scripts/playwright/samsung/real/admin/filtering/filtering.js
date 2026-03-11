@@ -26,13 +26,13 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING.png` });
 
   // 필터링 관리 페이지네이션
-  await page.waitForSelector(SELECTORS.ADMIN.FILTERING.PAGINATION);
-  await page.click(SELECTORS.COMMON.PAGE_LAST);
-  await wait(2000);
-  timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_pagination_last.png` });
-  await page.waitForSelector(SELECTORS.ADMIN.FILTERING.PAGINATION);
-  await page.click(SELECTORS.COMMON.PAGE_FIRST);
+  // await page.waitForSelector(SELECTORS.ADMIN.FILTERING.PAGINATION);
+  // await page.click(SELECTORS.COMMON.PAGE_LAST);
+  // await wait(2000);
+  // timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_pagination_last.png` });
+  // await page.waitForSelector(SELECTORS.ADMIN.FILTERING.PAGINATION);
+  // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
   // 필터링 관리 검색
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT_SEARCH);

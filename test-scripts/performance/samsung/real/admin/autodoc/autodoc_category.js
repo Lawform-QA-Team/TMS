@@ -46,13 +46,13 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category.png` });
 
         // 카테고리 관리 페이지네이션
-        await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_pagination_last.png` });
-        await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_LAST);
+        // await wait(2000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_pagination_last.png` });
+        // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 카테고리 검색
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH);

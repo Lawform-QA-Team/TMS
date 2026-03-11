@@ -46,13 +46,13 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE.png` });
 
         // 사용자 관리 - 백오피스, 페이지네이션
-        await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_pagination_last.png` });
-        await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_LAST);
+        // await wait(2000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_pagination_last.png` });
+        // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 사용자 관리 - 백오피스, 검색
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH);

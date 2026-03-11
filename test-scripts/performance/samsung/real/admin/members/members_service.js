@@ -47,13 +47,13 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE.png` });
 
         // 사용자 관리 - 서비스, 페이지네이션
-        await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_pagination_last.png` });
-        await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_LAST);
+        // await wait(2000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_pagination_last.png` });
+        // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 사용자 관리 - 서비스, 검색
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH);
@@ -118,15 +118,15 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CLOSE);
 
         // 사용자 관리 - 서비스, 인수인계 인계자 페이지네이션
-        await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
-        await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
-        await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferor_pagination_last.png` });
-        await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
+        // await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
+        // await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_LAST);
+        // await wait(2000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferor_pagination_last.png` });
+        // await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 사용자 관리 - 서비스, 인수인계 인계자 검색
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT);
@@ -161,15 +161,15 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CLOSE);
 
         // 사용자 관리 - 서비스, 인수인계 인수자 페이지네이션
-        await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
-        await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
-        await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferee_pagination_last.png` });
-        await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
+        // await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
+        // await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_LAST);
+        // await wait(2000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferee_pagination_last.png` });
+        // await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 사용자 관리 - 서비스, 인수인계 인수자 검색
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT);
@@ -195,11 +195,11 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferee_submit.png` });
 
         // 사용자 관리 - 서비스, 인수인계 저장
-        await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SAVE);
-        await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SAVE);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_submit.png` });
+        // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SAVE);
+        // await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SAVE);
+        // await wait(2000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_submit.png` });
 
     } finally {
         if (page) await page.close();

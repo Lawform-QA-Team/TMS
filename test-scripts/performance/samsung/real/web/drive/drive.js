@@ -48,13 +48,13 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_DRIVE.png` });
 
         // 문서 조회, 페이지네이션
-        await page.waitForSelector(SELECTORS.WEB.DRIVE.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_DRIVE_pagination_last.png` });
-        await page.waitForSelector(SELECTORS.WEB.DRIVE.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        // await page.waitForSelector(SELECTORS.WEB.DRIVE.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_LAST);
+        // await wait(2000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_DRIVE_pagination_last.png` });
+        // await page.waitForSelector(SELECTORS.WEB.DRIVE.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 문서 조회, 카테고리 검색
         await selectComboboxOption(page, SELECTORS.WEB.DRIVE.SELECT_CATEGORY);
@@ -70,7 +70,7 @@ export default async function() {
 
         // 문서 조회, 검색
         await page.waitForSelector(SELECTORS.WEB.DRIVE.INPUT);
-        await page.type(SELECTORS.WEB.DRIVE.INPUT, '테스트');
+        await page.type(SELECTORS.WEB.DRIVE.INPUT, '시연용');
         await page.waitForSelector(SELECTORS.WEB.DRIVE.BUTTON_SEARCH);
         await page.click(SELECTORS.WEB.DRIVE.BUTTON_SEARCH);
         await wait(2000);

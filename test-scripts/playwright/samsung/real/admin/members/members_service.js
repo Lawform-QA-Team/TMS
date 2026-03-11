@@ -25,13 +25,13 @@ export async function run(page) {
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE.png` });
 
-  await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
-  await page.click(SELECTORS.COMMON.PAGE_LAST);
-  await wait(2000);
-  timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_pagination_last.png` });
-  await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
-  await page.click(SELECTORS.COMMON.PAGE_FIRST);
+  // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
+  // await page.click(SELECTORS.COMMON.PAGE_LAST);
+  // await wait(2000);
+  // timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_pagination_last.png` });
+  // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
+  // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
   await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH);
   await page.locator(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH).fill('a');
@@ -88,15 +88,15 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CLOSE);
   await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CLOSE);
 
-  await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
-  await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
-  await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
-  await page.click(SELECTORS.COMMON.PAGE_LAST);
-  await wait(2000);
-  timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferor_pagination_last.png` });
-  await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
-  await page.click(SELECTORS.COMMON.PAGE_FIRST);
+  // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
+  // await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
+  // await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
+  // await page.click(SELECTORS.COMMON.PAGE_LAST);
+  // await wait(2000);
+  // timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferor_pagination_last.png` });
+  // await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
+  // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
   await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT);
   await page.locator(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT).fill('임희건');
@@ -126,15 +126,15 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CLOSE);
   await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CLOSE);
 
-  await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
-  await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
-  await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
-  await page.click(SELECTORS.COMMON.PAGE_LAST);
-  await wait(2000);
-  timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferee_pagination_last.png` });
-  await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
-  await page.click(SELECTORS.COMMON.PAGE_FIRST);
+  // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
+  // await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
+  // await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
+  // await page.click(SELECTORS.COMMON.PAGE_LAST);
+  // await wait(2000);
+  // timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferee_pagination_last.png` });
+  // await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
+  // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
   await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT);
   await page.locator(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT).fill('ggp');

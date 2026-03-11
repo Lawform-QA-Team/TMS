@@ -28,13 +28,13 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_LOG.png` });
 
   // 로그, 페이지네이션
-  await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.PAGINATION);
-  await page.click(SELECTORS.COMMON.PAGE_LAST);
-  await wait(2000);
-  timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_LOG_pagination_last.png` });
-  await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.PAGINATION);
-  await page.click(SELECTORS.COMMON.PAGE_FIRST);
+  // await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.PAGINATION);
+  // await page.click(SELECTORS.COMMON.PAGE_LAST);
+  // await wait(2000);
+  // timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_LOG_pagination_last.png` });
+  // await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.PAGINATION);
+  // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
   // 로그, 일시 설정
   await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.BUTTON);

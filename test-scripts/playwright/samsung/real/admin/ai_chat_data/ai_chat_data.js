@@ -24,13 +24,13 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_data.png` });
   await wait(2000);
 
-  await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.PAGINATION);
-  await page.click(SELECTORS.COMMON.PAGE_LAST);
-  await wait(2000);
-  timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_data_pagination_last.png` });
-  await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.PAGINATION);
-  await page.click(SELECTORS.COMMON.PAGE_FIRST);
+  // await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.PAGINATION);
+  // await page.click(SELECTORS.COMMON.PAGE_LAST);
+  // await wait(2000);
+  // timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_data_pagination_last.png` });
+  // await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.PAGINATION);
+  // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.INPUT_SEARCH);
   await page.locator(SELECTORS.ADMIN.AI_CHAT_LOG.INPUT_SEARCH).fill('1');

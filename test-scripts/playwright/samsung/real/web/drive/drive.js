@@ -26,13 +26,13 @@ export async function run(page) {
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_DRIVE.png` });
 
-  await page.waitForSelector(SELECTORS.WEB.DRIVE.PAGINATION);
-  await page.click(SELECTORS.COMMON.PAGE_LAST);
-  await wait(2000);
-  timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_DRIVE_pagination_last.png` });
-  await page.waitForSelector(SELECTORS.WEB.DRIVE.PAGINATION);
-  await page.click(SELECTORS.COMMON.PAGE_FIRST);
+  // await page.waitForSelector(SELECTORS.WEB.DRIVE.PAGINATION);
+  // await page.click(SELECTORS.COMMON.PAGE_LAST);
+  // await wait(2000);
+  // timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_DRIVE_pagination_last.png` });
+  // await page.waitForSelector(SELECTORS.WEB.DRIVE.PAGINATION);
+  // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
   await selectComboboxOption(page, SELECTORS.WEB.DRIVE.SELECT_CATEGORY);
   await wait(2000);

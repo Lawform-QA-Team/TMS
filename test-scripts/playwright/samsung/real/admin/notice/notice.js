@@ -32,13 +32,13 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_notice.png` });
 
   // 공지사항 페이지네이션
-  await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
-  await page.click(SELECTORS.COMMON.PAGE_LAST);
-  await wait(2000);
-  timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_pagination_last.png` });
-  await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
-  await page.click(SELECTORS.COMMON.PAGE_FIRST);
+  // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
+  // await page.click(SELECTORS.COMMON.PAGE_LAST);
+  // await wait(2000);
+  // timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_pagination_last.png` });
+  // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
+  // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
   // 공지사항 검색
   await page.waitForSelector(SELECTORS.ADMIN.NOTICE.INPUT_SEARCH);

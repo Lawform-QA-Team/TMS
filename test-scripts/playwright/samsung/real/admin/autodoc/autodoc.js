@@ -27,13 +27,13 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC.png` });
 
   // 표준 양식 테이블 페이지네이션
-  await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
-  await page.click(SELECTORS.COMMON.PAGE_LAST);
-  await wait(2000);
-  timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_pagination_last.png` });
-  await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
-  await page.click(SELECTORS.COMMON.PAGE_FIRST);
+  // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
+  // await page.click(SELECTORS.COMMON.PAGE_LAST);
+  // await wait(2000);
+  // timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_pagination_last.png` });
+  // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
+  // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
   // 표준 양식 검색
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH);

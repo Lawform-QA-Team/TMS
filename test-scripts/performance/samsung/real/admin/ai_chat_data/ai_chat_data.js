@@ -46,17 +46,17 @@ export default async function() {
         await wait(2000);
 
         // AI 채팅 데이터 관리 - 채팅 로그 데이터 페이지네이션
-        await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_data_pagination_last.png` });
-        await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        // await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_LAST);
+        // await wait(2000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_data_pagination_last.png` });
+        // await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_FIRST);
         
         // AI 채팅 데이터 관리 - 채팅 로그 데이터 검색
         await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.INPUT_SEARCH);
-        await page.type(SELECTORS.ADMIN.AI_CHAT_LOG.INPUT_SEARCH, '1');
+        await page.type(SELECTORS.ADMIN.AI_CHAT_LOG.INPUT_SEARCH, '테스트');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);

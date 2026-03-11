@@ -47,17 +47,17 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC.png` });
 
         // 표준 양식 테이블 페이지네이션
-        await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST); // 마지막 페이지 이동
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_pagination_last.png` });
-        await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST); // 첫 페이지 이동
+        // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_LAST); // 마지막 페이지 이동
+        // await wait(2000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_pagination_last.png` });
+        // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_FIRST); // 첫 페이지 이동
 
         // 표준 양식 검색
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH);
-        await page.type(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH, '표준 양식');
+        await page.type(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH, '시연용');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
