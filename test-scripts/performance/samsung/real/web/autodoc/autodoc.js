@@ -56,7 +56,7 @@ export default async function() {
 
         // 문서 작성 - 표준 양식, 검색
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
-        await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, '삼성');
+        await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, '_시연용');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);

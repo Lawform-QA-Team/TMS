@@ -22,7 +22,7 @@ export async function run(page) {
   // AI 검토 편집
   await page.goto(URLS.AUTODOC.EXISTING);
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
-  await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('삼성');
+  await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('_시연용');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
