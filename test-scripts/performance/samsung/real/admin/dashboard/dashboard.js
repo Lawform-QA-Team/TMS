@@ -160,7 +160,7 @@ export default async function() {
 
         await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT); // 조회 단위
         const randomValue3 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT);
-        console.log('randomValue3 (조회 단위)', 'randomValue3');
+        console.log('randomValue3 (조회 단위)', randomValue3);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_select_gategory3.png` });
         await wait(2000);

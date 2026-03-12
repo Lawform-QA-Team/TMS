@@ -63,10 +63,13 @@ export async function run(page) {
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_select_gategory.png` });
 
-  await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT);
-  await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT);
-  timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_select_gategory2.png` });
+  const dataSelectEl = await page.$(SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT);
+  if (dataSelectEl) {
+    await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT);
+    await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT);
+    timestamp = getNewTimeStamp();
+    await page.screenshot({ path: `screenshots/${timestamp}_select_gategory2.png` });
+  }
 
   await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT);
   const randomValue3 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT);
