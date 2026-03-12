@@ -47,14 +47,7 @@ export async function run(page) {
   await page.locator(SELECTORS.ADMIN.AI_PRESET_CHAT.INPUT).fill('질문 테스트');
   await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_AI_DRAFT);
   await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_AI_DRAFT);
-  await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.TEXTAREA);
-  await page.waitForFunction(
-    (sel) => {
-      const el = document.querySelector(sel);
-      return el && !el.disabled;
-    },
-    SELECTORS.ADMIN.AI_PRESET_CHAT.TEXTAREA
-  );
+  await page.waitForSelector(`${SELECTORS.ADMIN.AI_PRESET_CHAT.TEXTAREA}:not([disabled])`);
   await page.locator(SELECTORS.ADMIN.AI_PRESET_CHAT.TEXTAREA).fill('답변 테스트');
   await wait(2000);
   timestamp = getNewTimeStamp();
