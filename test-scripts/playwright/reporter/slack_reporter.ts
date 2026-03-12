@@ -62,11 +62,16 @@ const getSlackMessage = ({
     ];
 
     if (failed > 0 && result) {
+        // Slack blocks text 최대 3000자 제한
+        const truncatedResult = result.length > 2800
+            ? result.slice(0, 2800) + '\n...(생략됨)'
+            : result;
+
         blocks.push({
             type: 'section',
             text: {
                 type: 'mrkdwn',
-                text: `*실패한 테스트 상세:*\n\`\`\`${result}\`\`\``,
+                text: `*실패한 테스트 상세:*\n\`\`\`${truncatedResult}\`\`\``,
             },
         });
     } else if (failed === 0) {
@@ -79,7 +84,6 @@ const getSlackMessage = ({
         });
     }
 
-    // attachments 안으로 blocks 이동 → color 바 유지 + Bad Request 해결
     return {
         attachments: [
             {
@@ -168,13 +172,20 @@ class MyReporter implements Reporter {
     private async getBlockKit(result: FullResult) {
         const { duration } = result;
 
+        // 실패 메시지 최대 2000자로 제한
+        const truncatedFailMessages = this.failMessages.length > 2000
+            ? this.failMessages.slice(0, 2000) + '\n...(생략됨)'
+            : this.failMessages;
+
         const resultBlockKit = getSlackMessage({
             all: this.all,
             passed: this.passed,
             failed: this.failed,
             skipped: this.skipped,
             duration: `${(duration / 1000).toFixed(1)}s`,
-            result: `${this.failMessages ? `통과하지 못한 테스트\n${this.failMessages}` : `모든 테스트 통과!`}`,
+            result: truncatedFailMessages
+                ? `통과하지 못한 테스트\n${truncatedFailMessages}`
+                : `모든 테스트 통과!`,
         });
 
         return resultBlockKit;
