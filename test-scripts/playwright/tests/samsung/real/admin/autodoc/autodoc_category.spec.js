@@ -3,4 +3,4 @@ import { run } from '../../../../../samsung/real/admin/autodoc/autodoc_category.
 
 test('samsung real admin - autodoc category', async ({ page }) => {
   await run(page);
-}, 300000);
+}, 120000);

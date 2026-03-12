@@ -3,4 +3,4 @@ import { run } from '../../../../../samsung/real/admin/members/members_service.j
 
 test('samsung real admin - members service', async ({ page }) => {
   await run(page);
-}, 300000);
+}, 120000);

@@ -11,7 +11,7 @@ dotenv.config({ path: path.resolve(__dirname, '../test-scripts/playwright/.env')
 
 export default defineConfig({
   testDir: '../tests',
-  timeout: 300000,
+  timeout: 120000,
 
   fullyParallel: true,
   forbidOnly: !!process.env.CI,

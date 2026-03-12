@@ -3,4 +3,4 @@ import { run } from '../../../../../samsung/real/admin/ai_chat_data/ai_chat_data
 
 test('samsung real admin - ai chat data preset', async ({ page }) => {
   await run(page);
-}, 300000);
+}, 120000);

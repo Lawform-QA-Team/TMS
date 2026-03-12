@@ -3,4 +3,4 @@ import { run } from '../../../../../samsung/real/admin/ai_external_data/ai_exter
 
 test('samsung real admin - ai external data', async ({ page }) => {
   await run(page);
-}, 300000);
+}, 120000);

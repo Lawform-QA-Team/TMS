@@ -3,4 +3,4 @@ import { run } from '../../../../../samsung/real/web/search/search.js';
 
 test('samsung real web - search', async ({ page }) => {
   await run(page);
-}, 300000);
+}, 120000);
