@@ -57,7 +57,7 @@ export async function run(page) {
   await page.locator(SELECTORS.WEB.NAVBAR.INPUT).fill('테스트');
   await page.keyboard.press('Enter');
   await wait(2000);
-  const results = await page.$$('button.text-base.font-medium.text-foreground.hover\\:text-primary.cursor-pointer.text-left');
+  const results = await page.$$('button.text-base.font-semibold.text-foreground.hover\\:text-primary.cursor-pointer.text-left');
   await results[0].click();
   await wait(2000);
   timestamp = getNewTimeStamp();
