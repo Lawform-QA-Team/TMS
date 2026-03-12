@@ -21,9 +21,16 @@ type FailEntry = {
     line: number;
     column: number;
     duration: string;
-    errorMessage?: string;
-    errorStack?: string;
+    /** 터미널에 가까운 상세 에러 텍스트 (message + stack + snippet + attachments 등) */
+    detail?: string;
 };
+
+/** ANSI 컬러 코드 제거 (예: [31m 같은 코드) */
+function stripAnsi(input?: string): string | undefined {
+    if (!input) return input;
+    // eslint-disable-next-line no-control-regex
+    return input.replace(/\x1B\[[0-9;]*m/g, '');
+}
 
 const getSlackMessage = ({
     all,
@@ -138,27 +145,15 @@ function buildThreadBlocks(entry: FailEntry): any[] {
             ],
         },
     ];
-    if (entry.errorMessage) {
-        const msg = entry.errorMessage.length > 2900
-            ? entry.errorMessage.slice(0, 2900) + '\n...(생략됨)'
-            : entry.errorMessage;
+    if (entry.detail) {
+        const text = entry.detail.length > 2900
+            ? entry.detail.slice(0, 2900) + '\n...(생략됨)'
+            : entry.detail;
         blocks.push({
             type: 'section',
             text: {
                 type: 'mrkdwn',
-                text: `*에러 메시지:*\n\`\`\`${msg}\`\`\``,
-            },
-        });
-    }
-    if (entry.errorStack) {
-        const stack = entry.errorStack.length > 2900
-            ? entry.errorStack.slice(0, 2900) + '\n...(생략됨)'
-            : entry.errorStack;
-        blocks.push({
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*스택:*\n\`\`\`${stack}\`\`\``,
+                text: `*에러 상세:*\n\`\`\`${text}\`\`\``,
             },
         });
     }
@@ -196,14 +191,38 @@ class MyReporter implements Reporter {
                 this.addFailMessage(
                     `❌ ${fileName}:${test.location.line}:${test.location.column} > ${testTitle} ${testDuration}`,
                 );
+
+                const parts: string[] = [];
+                const message = stripAnsi(result.error?.message);
+                const stack = stripAnsi(result.error?.stack);
+                const anyError = result.error as any;
+                const snippet = stripAnsi(anyError?.snippet);
+
+                if (message) parts.push(message);
+                if (stack && stack !== message) parts.push(stack);
+                if (snippet) parts.push(snippet);
+
+                if (result.attachments && result.attachments.length > 0) {
+                    const attachmentLines: string[] = [];
+                    for (const att of result.attachments as any[]) {
+                        if (!att?.path) continue;
+                        const name = att.name || att.contentType || 'attachment';
+                        attachmentLines.push(`${name}: ${att.path}`);
+                    }
+                    if (attachmentLines.length > 0) {
+                        parts.push(`Attachments:\n${attachmentLines.join('\n')}`);
+                    }
+                }
+
+                const detail = parts.join('\n\n');
+
                 this.failEntries.push({
                     title: testTitle,
                     fileName,
                     line: test.location.line,
                     column: test.location.column,
                     duration: testDuration,
-                    errorMessage: result.error?.message,
-                    errorStack: result.error?.stack,
+                    detail,
                 });
                 this.failed += 1;
                 break;
