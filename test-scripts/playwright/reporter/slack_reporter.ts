@@ -25,11 +25,15 @@ type FailEntry = {
     detail?: string;
 };
 
-/** ANSI 컬러 코드 제거 (예: [31m 같은 코드) */
+/** ANSI 컬러 코드 제거 (예: \x1B[31m 또는 리터럴 [31m) */
 function stripAnsi(input?: string): string | undefined {
     if (!input) return input;
-    // eslint-disable-next-line no-control-regex
-    return input.replace(/\x1B\[[0-9;]*m/g, '');
+    let s = input;
+    // 실제 ESC 시퀀스 (\x1B[...m)
+    s = s.replace(/\x1B\[[0-9;]*m/g, '');
+    // 리터럴 [숫자m 형태 (문자열로 들어오는 경우)
+    s = s.replace(/\[[0-9;]+m/g, '');
+    return s.trim();
 }
 
 const getSlackMessage = ({
@@ -125,7 +129,7 @@ const getSlackMessage = ({
     };
 };
 
-/** 스레드용 블록: 실패 한 건의 상세 에러 */
+/** 스레드용 블록: 실패 한 건의 상세 에러 (ANSI 제거 적용) */
 function buildThreadBlocks(entry: FailEntry): any[] {
     const location = `${entry.fileName}:${entry.line}:${entry.column}`;
     const blocks: any[] = [
@@ -146,9 +150,10 @@ function buildThreadBlocks(entry: FailEntry): any[] {
         },
     ];
     if (entry.detail) {
-        const text = entry.detail.length > 2900
+        const raw = entry.detail.length > 2900
             ? entry.detail.slice(0, 2900) + '\n...(생략됨)'
             : entry.detail;
+        const text = stripAnsi(raw) ?? raw;
         blocks.push({
             type: 'section',
             text: {
@@ -160,13 +165,23 @@ function buildThreadBlocks(entry: FailEntry): any[] {
     return blocks;
 }
 
+/** 테스트 한 건의 마지막 실행 결과 (retry 제외용) */
+type LastResult = {
+    status: TestResult['status'];
+    duration: number;
+    error?: TestResult['error'];
+    attachments?: TestResult['attachments'];
+};
+
 class MyReporter implements Reporter {
     all = 0;
     passed = 0;
     failed = 0;
     skipped = 0;
     failMessages = '';
-    /** 스레드 전송용 실패 상세 목록 */
+    /** 테스트별 마지막 결과만 유지 (retry 제외) */
+    private lastResultByTest = new Map<string, LastResult & { test: TestCase }>();
+    /** 스레드 전송용 실패 상세 목록 (onEnd에서 lastResultByTest 기반으로 생성) */
     private failEntries: FailEntry[] = [];
     private token: string | undefined;
     private channel: string | undefined;
@@ -181,66 +196,80 @@ class MyReporter implements Reporter {
     }
 
     onTestEnd(test: TestCase, result: TestResult) {
-        const testDuration = `${(result.duration / 1000).toFixed(1)}s`;
-        const fileName = path.basename(test.location.file);
-        const testTitle = test.title;
+        const key = test.id ?? `${test.location.file}:${test.location.line}:${test.title}`;
+        this.lastResultByTest.set(key, {
+            status: result.status,
+            duration: result.duration,
+            error: result.error,
+            attachments: result.attachments,
+            test,
+        });
+    }
 
-        switch (result.status) {
-            case 'failed':
-            case 'timedOut':
-                this.addFailMessage(
-                    `❌ ${fileName}:${test.location.line}:${test.location.column} > ${testTitle} ${testDuration}`,
-                );
+    /** 마지막 결과만 기준으로 집계 및 failEntries 생성 (retry 제외) */
+    private applyFinalResults() {
+        this.passed = 0;
+        this.failed = 0;
+        this.skipped = 0;
+        this.failMessages = '';
+        this.failEntries = [];
 
-                const parts: string[] = [];
-                const message = stripAnsi(result.error?.message);
-                const stack = stripAnsi(result.error?.stack);
-                const anyError = result.error as any;
-                const snippet = stripAnsi(anyError?.snippet);
+        for (const { status, duration, error, attachments, test } of this.lastResultByTest.values()) {
+            const testDuration = `${(duration / 1000).toFixed(1)}s`;
+            const fileName = path.basename(test.location.file);
+            const testTitle = test.title;
 
-                if (message) parts.push(message);
-                if (stack && stack !== message) parts.push(stack);
-                if (snippet) parts.push(snippet);
-
-                if (result.attachments && result.attachments.length > 0) {
-                    const attachmentLines: string[] = [];
-                    for (const att of result.attachments as any[]) {
-                        if (!att?.path) continue;
-                        const name = att.name || att.contentType || 'attachment';
-                        attachmentLines.push(`${name}: ${att.path}`);
+            switch (status) {
+                case 'failed':
+                case 'timedOut':
+                    this.addFailMessage(
+                        `❌ ${fileName}:${test.location.line}:${test.location.column} > ${testTitle} ${testDuration}`,
+                    );
+                    const parts: string[] = [];
+                    const message = stripAnsi(error?.message);
+                    const stack = stripAnsi(error?.stack);
+                    const anyError = error as any;
+                    const snippet = stripAnsi(anyError?.snippet);
+                    if (message) parts.push(message);
+                    if (stack && stack !== message) parts.push(stack);
+                    if (snippet) parts.push(snippet);
+                    if (attachments && attachments.length > 0) {
+                        const lines: string[] = [];
+                        for (const att of attachments as any[]) {
+                            if (!att?.path) continue;
+                            const name = att.name || att.contentType || 'attachment';
+                            lines.push(`${name}: ${att.path}`);
+                        }
+                        if (lines.length > 0) parts.push(`Attachments:\n${lines.join('\n')}`);
                     }
-                    if (attachmentLines.length > 0) {
-                        parts.push(`Attachments:\n${attachmentLines.join('\n')}`);
-                    }
-                }
-
-                const detail = parts.join('\n\n');
-
-                this.failEntries.push({
-                    title: testTitle,
-                    fileName,
-                    line: test.location.line,
-                    column: test.location.column,
-                    duration: testDuration,
-                    detail,
-                });
-                this.failed += 1;
-                break;
-            case 'skipped':
-                this.addFailMessage(
-                    `⚠️ ${fileName}:${test.location.line}:${test.location.column} > ${testTitle} ${testDuration}`,
-                );
-                this.skipped += 1;
-                break;
-            case 'passed':
-                this.passed += 1;
-                break;
-            default:
-                break;
+                    this.failEntries.push({
+                        title: testTitle,
+                        fileName,
+                        line: test.location.line,
+                        column: test.location.column,
+                        duration: testDuration,
+                        detail: parts.join('\n\n'),
+                    });
+                    this.failed += 1;
+                    break;
+                case 'skipped':
+                    this.addFailMessage(
+                        `⚠️ ${fileName}:${test.location.line}:${test.location.column} > ${testTitle} ${testDuration}`,
+                    );
+                    this.skipped += 1;
+                    break;
+                case 'passed':
+                    this.passed += 1;
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
     async onEnd(result: FullResult) {
+        this.applyFinalResults();
+
         const blockKit = await this.getBlockKit(result);
         const token = this.token;
         const channel = this.channel;
