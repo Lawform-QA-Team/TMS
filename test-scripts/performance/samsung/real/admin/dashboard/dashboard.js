@@ -60,19 +60,15 @@ async function selectDateRangeInRdp(page, startDate, endDate) {
     }
 }
 
-/** 월 선택 캘린더에서 연도·월 선택 (팝업 열린 뒤 N월 버튼 클릭) */
+/** 월 선택: input[type="month"]의 value를 직접 설정 */
 async function selectMonthInPicker(page, year, month) {
-    await page.locator(SELECTORS.ADMIN.DASHBOARD.DATEPICKER).click();
-    await wait(300);
-    // 연도 입력이 있으면 먼저 채움 (선택 사항)
-    const yearInput = page.locator('input[type="number"], input[placeholder*="년"]').first();
-    if (await yearInput.isVisible().catch(() => false)) {
-        await yearInput.fill(String(year));
-        await wait(200);
-    }
-    // "N월" 버튼 클릭 (exact로 1월/10월 구분)
-    const monthLabel = `${month}월`;
-    await page.getByText(monthLabel, { exact: true }).click();
+    const monthValue = `${year}-${String(month).padStart(2, '0')}`;
+    const input = page.locator('input[type="month"]');
+    await input.evaluate((el, val) => {
+        el.value = val;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+    }, monthValue);
     await wait(200);
 }
 
@@ -154,14 +150,17 @@ export default async function() {
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_select_gategory.png` });
 
-        await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT); // 데이터 선택
-        await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_select_gategory2.png` });
+        const dataSelectEl = await page.$(SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT);
+        if (dataSelectEl) {
+            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT); // 데이터 선택
+            await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT);
+            timestamp = getNewTimeStamp();
+            await page.screenshot({ path: `screenshots/${timestamp}_select_gategory2.png` });
+        }
 
         await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT); // 조회 단위
         const randomValue3 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT);
-        console.log('randomValue3 (조회 단위)', randomValue3);
+        console.log('randomValue3 (조회 단위)', 'randomValue3');
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_select_gategory3.png` });
         await wait(2000);
@@ -180,7 +179,7 @@ export default async function() {
             await page.screenshot({ path: `screenshots/${timestamp}_datepicker.png` });
         }
         else if (queryUnit.includes('월')) {
-            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.DATEPICKER);
+            await page.waitForSelector('input[type="month"]');
             // 월 단위: 월 선택 캘린더에서 연도·월 클릭 (1~12월 그리드)
             const d = new Date();
             d.setMonth(d.getMonth() - Math.floor(Math.random() * 12));
@@ -191,29 +190,27 @@ export default async function() {
             await page.screenshot({ path: `screenshots/${timestamp}_datepicker_month.png` });
         }
         else if (queryUnit.includes('분기')) {
-            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
-            const randomValue_year = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
+            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
+            const randomValue_year = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1, { nth: 0 });
             timestamp = getNewTimeStamp();
             await page.screenshot({ path: `screenshots/${timestamp}_select_year_${randomValue_year || 'unknown'}.png` });
 
-            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
-            const randomValue_quarter = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
+            const randomValue_quarter = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1, { nth: 1 });
             timestamp = getNewTimeStamp();
             await page.screenshot({ path: `screenshots/${timestamp}_select_quarter_${randomValue_quarter || 'unknown'}.png` });
         }
         else if (queryUnit.includes('반기')) {
-            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
-            const randomValue_year2 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
+            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
+            const randomValue_year2 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1, { nth: 0 });
             timestamp = getNewTimeStamp();
             await page.screenshot({ path: `screenshots/${timestamp}_select_year2_${randomValue_year2 || 'unknown'}.png` });
-            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
-            const randomValue_half = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
+            const randomValue_half = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1, { nth: 1 });
             timestamp = getNewTimeStamp();
             await page.screenshot({ path: `screenshots/${timestamp}_select_half_${randomValue_half || 'unknown'}.png` });
         }
         else if (queryUnit.includes('년도') || queryUnit.includes('연')) {
             await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
-            const randomValue_year3 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
+            const randomValue_year3 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1, { nth: 1 });
             timestamp = getNewTimeStamp();
             await page.screenshot({ path: `screenshots/${timestamp}_select_year_${randomValue_year3 || 'unknown'}.png` });
         }
