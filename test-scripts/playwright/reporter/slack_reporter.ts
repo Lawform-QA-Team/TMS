@@ -21,8 +21,14 @@ type FailEntry = {
     line: number;
     column: number;
     duration: string;
-    /** 터미널에 가까운 상세 에러 텍스트 (message + stack + snippet + attachments 등) */
-    detail?: string;
+    /** 에러 메시지 (Call log 포함될 수 있음, ANSI 제거) */
+    errorMessage?: string;
+    /** 코드 스니펫 (어느 라인에서 실패했는지, ANSI 제거) */
+    errorSnippet?: string;
+    /** 스택 트레이스만 (에러 메시지와 중복 제거, ANSI 제거) */
+    errorStack?: string;
+    /** 첨부 파일 경로 목록 */
+    attachmentLines?: string[];
 };
 
 /** ANSI 컬러 코드 제거 (예: \x1B[31m 또는 리터럴 [31m) */
@@ -34,6 +40,35 @@ function stripAnsi(input?: string): string | undefined {
     // 리터럴 [숫자m 형태 (문자열로 들어오는 경우)
     s = s.replace(/\[[0-9;]+m/g, '');
     return s.trim();
+}
+
+const SLACK_BLOCK_TEXT_MAX = 2900;
+
+/** 에러 객체를 메시지 / 스니펫 / 스택으로 분리 (중복 제거) */
+function parseError(error: TestResult['error']): {
+    message: string | undefined;
+    snippet: string | undefined;
+    stack: string | undefined;
+} {
+    if (!error) return { message: undefined, snippet: undefined, stack: undefined };
+    const anyErr = error as { message?: string; stack?: string; snippet?: string };
+    const message = stripAnsi(anyErr.message);
+    const rawStack = stripAnsi(anyErr.stack);
+    const snippet = stripAnsi(anyErr.snippet);
+
+    // stack에 message가 앞에 포함된 경우 제거 (중복 방지)
+    let stack: string | undefined;
+    if (rawStack) {
+        const msgFirstLine = message?.split('\n')[0]?.trim();
+        if (msgFirstLine && rawStack.startsWith(msgFirstLine)) {
+            const after = rawStack.slice(msgFirstLine.length).replace(/^\n+/, '').trim();
+            stack = after || undefined;
+        } else {
+            stack = rawStack;
+        }
+    }
+
+    return { message: message || undefined, snippet: snippet || undefined, stack };
 }
 
 const getSlackMessage = ({
@@ -129,7 +164,7 @@ const getSlackMessage = ({
     };
 };
 
-/** 스레드용 블록: 실패 한 건의 상세 에러 (ANSI 제거 적용) */
+/** 스레드용 블록: 실패 한 건의 상세 에러 (메시지 / 코드 위치 / 스택 구분, ANSI 제거) */
 function buildThreadBlocks(entry: FailEntry): any[] {
     const location = `${entry.fileName}:${entry.line}:${entry.column}`;
     const blocks: any[] = [
@@ -149,16 +184,43 @@ function buildThreadBlocks(entry: FailEntry): any[] {
             ],
         },
     ];
-    if (entry.detail) {
-        const raw = entry.detail.length > 2900
-            ? entry.detail.slice(0, 2900) + '\n...(생략됨)'
-            : entry.detail;
-        const text = stripAnsi(raw) ?? raw;
+
+    const truncate = (s: string) =>
+        s.length > SLACK_BLOCK_TEXT_MAX ? s.slice(0, SLACK_BLOCK_TEXT_MAX) + '\n...(생략됨)' : s;
+
+    if (entry.errorMessage) {
         blocks.push({
             type: 'section',
             text: {
                 type: 'mrkdwn',
-                text: `*에러 상세:*\n\`\`\`${text}\`\`\``,
+                text: `*에러 메시지:*\n\`\`\`${truncate(entry.errorMessage)}\`\`\``,
+            },
+        });
+    }
+    if (entry.errorSnippet) {
+        blocks.push({
+            type: 'section',
+            text: {
+                type: 'mrkdwn',
+                text: `*코드 위치:*\n\`\`\`${truncate(entry.errorSnippet)}\`\`\``,
+            },
+        });
+    }
+    if (entry.errorStack) {
+        blocks.push({
+            type: 'section',
+            text: {
+                type: 'mrkdwn',
+                text: `*스택:*\n\`\`\`${truncate(entry.errorStack)}\`\`\``,
+            },
+        });
+    }
+    if (entry.attachmentLines && entry.attachmentLines.length > 0) {
+        blocks.push({
+            type: 'section',
+            text: {
+                type: 'mrkdwn',
+                text: `*첨부:*\n\`\`\`${truncate(entry.attachmentLines.join('\n'))}\`\`\``,
             },
         });
     }
@@ -225,22 +287,14 @@ class MyReporter implements Reporter {
                     this.addFailMessage(
                         `❌ ${fileName}:${test.location.line}:${test.location.column} > ${testTitle} ${testDuration}`,
                     );
-                    const parts: string[] = [];
-                    const message = stripAnsi(error?.message);
-                    const stack = stripAnsi(error?.stack);
-                    const anyError = error as any;
-                    const snippet = stripAnsi(anyError?.snippet);
-                    if (message) parts.push(message);
-                    if (stack && stack !== message) parts.push(stack);
-                    if (snippet) parts.push(snippet);
+                    const { message: errMsg, snippet: errSnippet, stack: errStack } = parseError(error);
+                    const attachmentLines: string[] = [];
                     if (attachments && attachments.length > 0) {
-                        const lines: string[] = [];
                         for (const att of attachments as any[]) {
                             if (!att?.path) continue;
                             const name = att.name || att.contentType || 'attachment';
-                            lines.push(`${name}: ${att.path}`);
+                            attachmentLines.push(`${name}: ${att.path}`);
                         }
-                        if (lines.length > 0) parts.push(`Attachments:\n${lines.join('\n')}`);
                     }
                     this.failEntries.push({
                         title: testTitle,
@@ -248,7 +302,10 @@ class MyReporter implements Reporter {
                         line: test.location.line,
                         column: test.location.column,
                         duration: testDuration,
-                        detail: parts.join('\n\n'),
+                        errorMessage: errMsg,
+                        errorSnippet: errSnippet,
+                        errorStack: errStack,
+                        attachmentLines: attachmentLines.length > 0 ? attachmentLines : undefined,
                     });
                     this.failed += 1;
                     break;
