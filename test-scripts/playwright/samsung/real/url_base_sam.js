@@ -16,9 +16,9 @@ if (typeof process !== 'undefined' && typeof __ENV === 'undefined') {
 
 let BASE_URL;
 if (typeof __ENV !== 'undefined' && __ENV.BASE_URL) {
-    BASE_URL = __ENV.BASE_URL;
+    BASE_URL = __ENV.BASE_URL.replace(/\/$/, '');
 } else if (typeof process !== 'undefined' && process.env?.BASE_URL) {
-    BASE_URL = process.env.BASE_URL;
+    BASE_URL = process.env.BASE_URL.replace(/\/$/, '');
 } else {
     throw new Error(
         'BASE_URL이 필요합니다. Playwright: BASE_URL=... npm test 또는 .env에 BASE_URL 설정'

@@ -1,10 +1,10 @@
 // k6: __ENV.BASE_URL / Node: process.env.BASE_URL (동적 import 미지원 환경 대응)
 let BASE_URL;
 if (typeof __ENV !== 'undefined' && __ENV.BASE_URL) {
-    BASE_URL = __ENV.BASE_URL;
+    BASE_URL = __ENV.BASE_URL.replace(/\/$/, '');
     // console.log('BASE_URL:', BASE_URL);
 } else if (typeof process !== 'undefined' && process.env && process.env.BASE_URL) {
-    BASE_URL = process.env.BASE_URL;
+    BASE_URL = process.env.BASE_URL.replace(/\/$/, '');
     // console.log('BASE_URL:', BASE_URL);
 } else {
     throw new Error(
