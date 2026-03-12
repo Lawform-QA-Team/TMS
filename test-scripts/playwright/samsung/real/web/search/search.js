@@ -58,7 +58,6 @@ export async function run(page) {
   await page.keyboard.press('Enter');
   await wait(2000);
   const results = await page.$$('button.text-base.font-medium.text-foreground.hover\\:text-primary.cursor-pointer.text-left');
-  console.log(results[0]);
   await results[0].click();
   await wait(2000);
   timestamp = getNewTimeStamp();
