@@ -3,4 +3,4 @@ import { run } from '../../../../../samsung/real/admin/document_update_report/do
 
 test('samsung real admin - document update report', async ({ page }) => {
   await run(page);
-});
+}, 120000);

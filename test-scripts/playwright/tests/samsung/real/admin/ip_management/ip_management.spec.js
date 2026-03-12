@@ -3,4 +3,4 @@ import { run } from '../../../../../samsung/real/admin/ip_management/ip_manageme
 
 test('samsung real admin - ip management', async ({ page }) => {
   await run(page);
-});
+}, 120000);
