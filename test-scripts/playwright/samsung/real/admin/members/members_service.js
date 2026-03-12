@@ -88,8 +88,8 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CLOSE);
   await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CLOSE);
 
-  // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
-  // await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
+  await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
+  await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
   // await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
   // await page.click(SELECTORS.COMMON.PAGE_LAST);
   // await wait(2000);
@@ -99,7 +99,7 @@ export async function run(page) {
   // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
   await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT);
-  await page.locator(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT).fill('임희건');
+  await page.locator(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT).fill('hkqa');
   await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_SEARCH);
   await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_SEARCH);
   await wait(2000);
@@ -126,8 +126,8 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CLOSE);
   await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CLOSE);
 
-  // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
-  // await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
+  await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
+  await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
   // await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
   // await page.click(SELECTORS.COMMON.PAGE_LAST);
   // await wait(2000);
@@ -137,7 +137,7 @@ export async function run(page) {
   // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
   await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT);
-  await page.locator(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT).fill('ggp');
+  await page.locator(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT).fill('q1m');
   await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_SEARCH);
   await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_SEARCH);
   await wait(2000);
@@ -156,9 +156,9 @@ export async function run(page) {
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferee_submit.png` });
 
-  await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SAVE);
-  await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SAVE);
-  await wait(2000);
-  timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_submit.png` });
+  // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SAVE);
+  // await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SAVE);
+  // await wait(2000);
+  // timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_submit.png` });
 }

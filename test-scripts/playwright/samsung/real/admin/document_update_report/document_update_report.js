@@ -42,8 +42,8 @@ export async function run(page) {
   await page.click(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_CLOSE);
 
   // 문서 업데이트 리포트, 전체 업데이트 이력, 페이지네이션
-  // await page.waitForSelector(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_HISTORY_CLICK);
-  // await page.click(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_HISTORY_CLICK);
+  await page.waitForSelector(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_HISTORY_CLICK);
+  await page.click(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_HISTORY_CLICK);
   // await page.waitForSelector(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.PAGINATION);
   // const last_pages = await page.$$(SELECTORS.COMMON.PAGE_LAST);
   // await last_pages[0].click();
@@ -54,7 +54,7 @@ export async function run(page) {
   // await first_pages[0].click();
 
   // 문서 업데이트 리포트, 전체 업데이트 이력, 항목 선택
-  await page.waitForSelector(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.CHECKBOX_1);
+  await page.waitForLoadState("load");
   const checks = await page.$$(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.CHECKBOX_1);
   await checks[1].click();
   await wait(2000);

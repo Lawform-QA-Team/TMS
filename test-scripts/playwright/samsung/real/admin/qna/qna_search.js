@@ -29,14 +29,14 @@ export async function run(page) {
   console.log('QNA URL:', await page.url());
   await page.screenshot({ path: `screenshots/${timestamp}_qna.png` });
 
-  await page.waitForSelector(SELECTORS.COMMON.PAGE_LAST);
-  await page.click(SELECTORS.COMMON.PAGE_LAST);
-  await wait(2000);
-  await page.screenshot({ path: `screenshots/${timestamp}_qna_page_last.png` });
-  await page.waitForSelector(SELECTORS.COMMON.PAGE_FIRST);
-  await page.click(SELECTORS.COMMON.PAGE_FIRST);
-  await wait(2000);
-  await page.screenshot({ path: `screenshots/${timestamp}_qna_page_first.png` });
+  // await page.waitForSelector(SELECTORS.COMMON.PAGE_LAST);
+  // await page.click(SELECTORS.COMMON.PAGE_LAST);
+  // await wait(2000);
+  // await page.screenshot({ path: `screenshots/${timestamp}_qna_page_last.png` });
+  // await page.waitForSelector(SELECTORS.COMMON.PAGE_FIRST);
+  // await page.click(SELECTORS.COMMON.PAGE_FIRST);
+  // await wait(2000);
+  // await page.screenshot({ path: `screenshots/${timestamp}_qna_page_first.png` });
 
   await selectComboboxOption(page, SELECTORS.ADMIN.QNA.SELECT_ANSWER_STATUS);
   await page.waitForSelector(SELECTORS.ADMIN.QNA.INPUT_SEARCH);

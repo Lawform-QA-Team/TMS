@@ -37,7 +37,7 @@ export async function run(page) {
 
   // 표준 양식 검색
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH);
-  await page.locator(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH).fill('표준 양식');
+  await page.locator(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH).fill('시연용');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
   await wait(2000);
@@ -69,10 +69,10 @@ export async function run(page) {
   await page.goto(URLS.AUTODOC.AUTODOC);
 
   // 표준 양식 테이블 업데이트 클릭
-  await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
-  const badges = await page.$$(`${SELECTORS.ADMIN.AUTODOC.TABLE_LIST} span[data-slot="badge"]`);
+  await page.waitForSelector(`span[data-slot="badge"]`);
+  const badges = await page.$$(`span[data-slot="badge"]`);
   await badges[0].click();
-  await wait(10000);
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table_update.png` });
   await page.goto(URLS.AUTODOC.AUTODOC);

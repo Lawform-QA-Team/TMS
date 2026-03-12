@@ -33,7 +33,7 @@ export async function run(page) {
   // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.INPUT_SEARCH);
-  await page.locator(SELECTORS.ADMIN.AI_CHAT_LOG.INPUT_SEARCH).fill('1');
+  await page.locator(SELECTORS.ADMIN.AI_CHAT_LOG.INPUT_SEARCH).fill('테스트');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
   await wait(2000);

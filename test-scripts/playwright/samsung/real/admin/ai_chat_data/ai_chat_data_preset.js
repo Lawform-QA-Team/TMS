@@ -25,7 +25,7 @@ export async function run(page) {
   await wait(2000);
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.INPUT_SEARCH);
-  await page.locator(SELECTORS.ADMIN.AI_PRESET_CHAT.INPUT_SEARCH).fill('1');
+  await page.locator(SELECTORS.ADMIN.AI_PRESET_CHAT.INPUT_SEARCH).fill('테스트');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
   await wait(2000);

@@ -42,7 +42,7 @@ export async function run(page) {
 
   // 공지사항 검색
   await page.waitForSelector(SELECTORS.ADMIN.NOTICE.INPUT_SEARCH);
-  await page.locator(SELECTORS.ADMIN.NOTICE.INPUT_SEARCH).fill('공지사항');
+  await page.locator(SELECTORS.ADMIN.NOTICE.INPUT_SEARCH).fill('공지');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
   await wait(2000);
