@@ -9,7 +9,7 @@
 #   PW_INFLUXDB_ORGANIZATION - InfluxDB 조직명
 #   PW_INFLUXDB_BUCKET       - InfluxDB 버킷명
 #   PW_INFLUXDB_TOKEN        - InfluxDB 토큰
-# [선택] SLACK_WEBHOOK_URL
+# [선택] SLACK_BOT_TOKEN, SLACK_CHANNEL_ID
 #
 name: Playwright E2E (samsung/real/web)
 
@@ -57,7 +57,8 @@ jobs:
           INFLUXDB_ORG: ${{ secrets.PW_INFLUXDB_ORGANIZATION }}
           INFLUXDB_BUCKET: ${{ secrets.PW_INFLUXDB_BUCKET }}
           INFLUXDB_TOKEN: ${{ secrets.PW_INFLUXDB_TOKEN }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
         run: |
           set -euo pipefail
           echo "=============================================="
