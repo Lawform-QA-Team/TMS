@@ -48,7 +48,7 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_table.png` });
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
-  await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
+  await page.locator(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH).click({ force: true });
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_VIEW);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_VIEW);
   await wait(2000);
