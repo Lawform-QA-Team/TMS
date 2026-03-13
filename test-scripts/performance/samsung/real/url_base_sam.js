@@ -41,9 +41,9 @@ export const AUTODOC_URLS = {
     CATEGORY: `${BASE_URL}/autodoc/categories`, // 카테고리
 
     // 서비스(웹)
-    STANDARD: `${WEB_BASE_URL}/autodoc?method=standard&page=1`,
-    TEMP: `${WEB_BASE_URL}/autodoc?method=temp&page=1`,
-    EXISTING: `${WEB_BASE_URL}/autodoc?method=existing&page=1`,
+    STANDARD: `${WEB_BASE_URL}/autodoc?method=standard`,
+    TEMP: `${WEB_BASE_URL}/autodoc?method=temp`,
+    EXISTING: `${WEB_BASE_URL}/autodoc?method=existing`,
 }
 
 //AI 외부 데이터 관리
@@ -60,7 +60,8 @@ export const AI_CHAT_URLS ={
 
 //문서 업데이트 리포트
 export const DOCUMENT_UPDATE_URLS = {
-    LAW: `${BASE_URL}/document-update-report`,
+    LAW: `${BASE_URL}/document-update-report?tab=law`,
+    OTHER: `${BASE_URL}/document-update-report?tab=other`,
 }
 
 //필터링 관리
