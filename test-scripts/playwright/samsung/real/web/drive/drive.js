@@ -4,7 +4,7 @@
 import { URLS, WEB_URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
-import { getCredentials, loginWithPage } from '../../admin/login/login_helper.js';
+import { getWebCredentials, loginWithPage } from '../../admin/login/login_helper.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
 import { selectDateRangeInRdpCalendar } from '../../../../common/datepicker_helper.js';
 
@@ -16,7 +16,7 @@ async function wait(ms) {
  * @param {import('@playwright/test').Page} page
  */
 export async function run(page) {
-  const credentials = getCredentials();
+  const credentials = getWebCredentials();
   const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
   await loginWithPage(page, credentials, WEB_URLS.LOGIN.HOME);
