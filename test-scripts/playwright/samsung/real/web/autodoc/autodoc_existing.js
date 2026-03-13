@@ -1,7 +1,7 @@
 /**
  * 문서 작성 - 기존 문서 (웹) - Playwright용
  */
-import { URLS } from '../../url_base_sam.js';
+import { URLS, WEB_URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { getCredentials, loginWithPage } from '../../admin/login/login_helper.js';
@@ -17,10 +17,10 @@ export async function run(page) {
   const credentials = getCredentials();
   const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
-  await loginWithPage(page, credentials);
+  await loginWithPage(page, credentials, WEB_URLS.LOGIN.HOME);
 
   // 문서 작성 - 기존 문서
-  await page.goto(URLS.AUTODOC.EXISTING);
+  await page.goto(WEB_URLS.AUTODOC.EXISTING);
   await wait(2000);
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing.png` });

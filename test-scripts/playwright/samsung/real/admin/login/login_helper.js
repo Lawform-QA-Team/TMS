@@ -32,10 +32,10 @@ async function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export async function loginWithPage(page, credentials) {
+export async function loginWithPage(page, credentials, loginUrl = URLS.LOGIN.HOME) {
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
-    await page.goto(URLS.LOGIN.HOME);
+    await page.goto(loginUrl);
     let timestamp = getNewTimeStamp();
     await page.screenshot({ path: `screenshots/${timestamp}_login_home.png` });
 

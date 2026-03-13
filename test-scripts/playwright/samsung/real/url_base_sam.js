@@ -25,6 +25,15 @@ if (typeof __ENV !== 'undefined' && __ENV.BASE_URL) {
     );
 }
 
+let WEB_BASE_URL;
+if (typeof __ENV !== 'undefined' && __ENV.WEB_BASE_URL) {
+    WEB_BASE_URL = __ENV.WEB_BASE_URL.replace(/\/$/, '');
+} else if (typeof process !== 'undefined' && process.env?.WEB_BASE_URL) {
+    WEB_BASE_URL = process.env.WEB_BASE_URL.replace(/\/$/, '');
+} else {
+    WEB_BASE_URL = BASE_URL;
+}
+
 // 로그인 관련 URL
 export const LOGIN_URLS = {
     HOME: `${BASE_URL}`,
@@ -109,6 +118,29 @@ export const URLS = {
     DRIVE: DRIVE_URLS,
 }; 
 
+// 웹(서비스) 전용 URL
+export const WEB_URLS = {
+    BASE: WEB_BASE_URL,
+    LOGIN: {
+        HOME: `${WEB_BASE_URL}`,
+        LOGIN: `${WEB_BASE_URL}/login`,
+    },
+    AUTODOC: {
+        AUTODOC: `${WEB_BASE_URL}/autodoc`,
+        STANDARD: `${WEB_BASE_URL}/autodoc?method=standard&page=1`,
+        TEMP: `${WEB_BASE_URL}/autodoc?method=temp&page=1`,
+        EXISTING: `${WEB_BASE_URL}/autodoc?method=existing&page=1`,
+    },
+    SERVICE: {
+        NOTICE: `${WEB_BASE_URL}/notice`,
+        QNA: `${WEB_BASE_URL}/qna`,
+    },
+    DRIVE: {
+        DRIVE: `${WEB_BASE_URL}/drive`,
+    },
+};
+
 if (typeof process !== 'undefined' && process.env?.NODE_ENV !== 'test') {
     console.log('BASE_URL:', BASE_URL);
+    console.log('WEB_BASE_URL:', WEB_BASE_URL);
 }

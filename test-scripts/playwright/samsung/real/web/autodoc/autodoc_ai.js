@@ -1,7 +1,7 @@
 /**
  * 문서 작성 - 기존 문서, AI 검토 (웹) - Playwright용
  */
-import { URLS } from '../../url_base_sam.js';
+import { URLS, WEB_URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { getCredentials, loginWithPage } from '../../admin/login/login_helper.js';
@@ -17,10 +17,10 @@ export async function run(page) {
   const credentials = getCredentials();
   const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
-  await loginWithPage(page, credentials);
+  await loginWithPage(page, credentials, WEB_URLS.LOGIN.HOME);
 
   // AI 검토 편집
-  await page.goto(URLS.AUTODOC.EXISTING);
+  await page.goto(WEB_URLS.AUTODOC.EXISTING);
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
   await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('heekun');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);

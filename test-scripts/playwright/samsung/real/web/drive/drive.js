@@ -1,7 +1,7 @@
 /**
  * 문서 조회 (웹) - Playwright용
  */
-import { URLS } from '../../url_base_sam.js';
+import { URLS, WEB_URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { getCredentials, loginWithPage } from '../../admin/login/login_helper.js';
@@ -19,10 +19,10 @@ export async function run(page) {
   const credentials = getCredentials();
   const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
-  await loginWithPage(page, credentials);
+  await loginWithPage(page, credentials, WEB_URLS.LOGIN.HOME);
 
   // 문서 조회
-  await page.goto(URLS.DRIVE.DRIVE);
+  await page.goto(WEB_URLS.DRIVE.DRIVE);
   await wait(2000);
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_DRIVE.png` });
@@ -56,7 +56,7 @@ export async function run(page) {
   await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_DRIVE_search.png` });
-  await page.goto(URLS.DRIVE.DRIVE);
+  await page.goto(WEB_URLS.DRIVE.DRIVE);
 
   // 문서 조회, 테이블 클릭
   await page.waitForSelector(SELECTORS.WEB.DRIVE.TABLE_LIST);
