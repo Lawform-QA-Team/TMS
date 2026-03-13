@@ -82,6 +82,7 @@ const getSlackMessage = ({
 }: SlackMessageInput) => {
     const color = failed > 0 ? '#ff0000' : '#36a64f';
     const statusEmoji = failed > 0 ? '❌' : '✅';
+    const passRate = all > 0 ? ((passed / all) * 100).toFixed(1) : '0.0';
 
     const blocks: any[] = [
         {
@@ -100,7 +101,7 @@ const getSlackMessage = ({
                 },
                 {
                     type: 'mrkdwn',
-                    text: `*실행 시간:*\n${duration}`,
+                    text: `*Pass Rate:*\n${passRate}%`,
                 },
             ],
         },
@@ -118,6 +119,15 @@ const getSlackMessage = ({
                 {
                     type: 'mrkdwn',
                     text: `*⚠️ 스킵:*\n${skipped}개`,
+                },
+            ],
+        },
+        {
+            type: 'section',
+            fields: [
+                {
+                    type: 'mrkdwn',
+                    text: `*실행 시간:*\n${duration}`,
                 },
             ],
         },
