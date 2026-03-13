@@ -6,6 +6,8 @@
   "scripts": {
     "test": "playwright test --config ./reporter/playwright.config.ts",
     "test:samsung": "playwright test tests/samsung --config ./reporter/playwright.config.ts",
+    "test:samsung:admin": "playwright test tests/samsung/real/admin --config ./reporter/playwright.config.ts",
+    "test:samsung:web": "playwright test tests/samsung/real/web --config ./reporter/playwright.config.ts",
     "test:headed": "playwright test --headed --config ./reporter/playwright.config.ts",
     "test:ui": "playwright test --ui --config ./reporter/playwright.config.ts",
     "test:debug": "playwright test  tests/samsung --debug --config ./reporter/playwright.config.ts",
