@@ -34,26 +34,32 @@ if (typeof __ENV !== 'undefined' && __ENV.WEB_BASE_URL) {
     WEB_BASE_URL = BASE_URL;
 }
 
-// 로그인 관련 URL
+// 어드민 로그인 관련 URL
 export const LOGIN_URLS = {
     HOME: `${BASE_URL}`,
     LOGIN: `${BASE_URL}/login`,
     DASHBOARD: `${BASE_URL}/dashboard` // 통계 = 대시보드
 };
 
+// 웹 서비스 로그인 관련 URL
+export const WEB_LOGIN_URLS = {
+    HOME: `${WEB_BASE_URL}`,
+    LOGIN: `${WEB_BASE_URL}/login`,
+    DASHBOARD: `${WEB_BASE_URL}/dashboard`
+};
+
 // 표준 양식 관리
 export const AUTODOC_URLS = {
-    AUTODOC: `${BASE_URL}/autodoc`,
-
     // 백오피스
+    AUTODOC: `${BASE_URL}/autodoc`,
     CREATE: `${BASE_URL}/autodoc/document/list`,
     NEW: `${BASE_URL}/autodoc/tool?formType=`, // 신규 양식
     CATEGORY: `${BASE_URL}/autodoc/categories`, // 카테고리
 
-    // 서비스
-    STANDARD: `${BASE_URL}/autodoc?method=standard&page=1`,
-    TEMP: `${BASE_URL}/autodoc?method=temp&page=1`,
-    EXISTING: `${BASE_URL}/autodoc?method=existing&page=1`,
+    // 서비스(웹)
+    STANDARD: `${WEB_BASE_URL}/autodoc?method=standard&page=1`,
+    TEMP: `${WEB_BASE_URL}/autodoc?method=temp&page=1`,
+    EXISTING: `${WEB_BASE_URL}/autodoc?method=existing&page=1`,
 }
 
 //AI 외부 데이터 관리
@@ -100,13 +106,15 @@ export const LOG_URLS = {
 
 // 서비스 - 문서 조회
 export const DRIVE_URLS = {
-    DRIVE: `${BASE_URL}/drive`,
+    DRIVE: `${WEB_BASE_URL}/drive`,
 }
 
 // 모든 URL을 하나의 객체로 통합
 export const URLS = {
     BASE: BASE_URL,
+    WEB_BASE: WEB_BASE_URL,
     LOGIN: LOGIN_URLS,
+    WEB_LOGIN: WEB_LOGIN_URLS,
     AUTODOC: AUTODOC_URLS,
     AI_DATA: AI_DATA_URLS,
     AI_CHAT: AI_CHAT_URLS,
@@ -116,7 +124,7 @@ export const URLS = {
     MEMBER: MEMBER_URLS,
     LOG: LOG_URLS,
     DRIVE: DRIVE_URLS,
-}; 
+};
 
 // 웹(서비스) 전용 URL
 export const WEB_URLS = {
