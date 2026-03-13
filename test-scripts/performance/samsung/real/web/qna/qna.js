@@ -41,7 +41,7 @@ export default async function() {
         await loginWithPage(page, credentials);
 
         // 1:1 문의
-        await page.goto(URLS.SERVICE.QNA);
+        await page.goto(URLS.SERVICE.WEB_QNA);
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA.png` });
@@ -69,7 +69,7 @@ export default async function() {
         await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_search.png` });
-        await page.goto(URLS.SERVICE.QNA);
+        await page.goto(URLS.SERVICE.WEB_QNA);
 
         // 1:1 문의, 문의 등록 진입
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CREATE_QNA);

@@ -40,7 +40,7 @@ export default async function() {
         await loginWithPage(page, credentials);
 
         // 공지사항
-        await page.goto(URLS.SERVICE.NOTICE);
+        await page.goto(URLS.SERVICE.WEB_NOTICE);
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_NOTICE.png` });

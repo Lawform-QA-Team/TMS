@@ -40,7 +40,7 @@ export default async function() {
         await loginWithPage(page, credentials);
 
         // 문서 작성 - 표준 양식
-        await page.goto(URLS.AUTODOC.AUTODOC);
+        await page.goto(URLS.AUTODOC.STANDARD);
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC.png` });
