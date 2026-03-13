@@ -71,7 +71,7 @@ export async function run(page) {
   // 문서 업데이트 리포트, 법령 선택
   await page.waitForSelector(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON);
   const laws = await page.$$(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON);
-  await laws[laws.length - 1].click();
+  await laws[Math.floor(Math.random() * laws.length)].click();
   await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_LAW_select_history.png` });

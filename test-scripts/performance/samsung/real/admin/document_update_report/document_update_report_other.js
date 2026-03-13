@@ -40,28 +40,28 @@ export default async function() {
     try {
         await loginWithPage(page, credentials);
 
-        // 문서 업데이트 리포트
-        await page.goto(URLS.DOCUMENT_UPDATE.LAW);
+        // 문서 업데이트 리포트 - 타사문서
+        await page.goto(URLS.DOCUMENT_UPDATE.OTHER);
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_LAW.png` });
 
-        // 문서 업데이트 리포트, 날짜 선택
+        // 문서 업데이트 리포트 - 타사문서, 날짜 선택
         await selectComboboxOption(page, SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.DATEPICKER)
         await wait(2000);
         timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_LAW_1.png` });
+        await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_OTHER_date.png` });
 
-        // 문서 업데이트 리포트, 전체 업데이트 이력
+        // 문서 업데이트 리포트 - 타사문서, 전체 업데이트 이력
         await page.waitForSelector(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_HISTORY_CLICK);
         await page.click(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_HISTORY_CLICK);
         await wait(2000);
         timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_LAW_update.png` });
+        await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_OTHER_update.png` });
         await page.waitForSelector(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_CLOSE);
         await page.click(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_CLOSE);
 
-        // 문서 업데이트 리포트, 전체 업데이트 이력, 페이지네이션
+        // 문서 업데이트 리포트 - 타사문서, 전체 업데이트 이력, 페이지네이션
         await page.waitForSelector(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_HISTORY_CLICK);
         await page.click(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_HISTORY_CLICK);
         // await page.waitForSelector(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.PAGINATION);
@@ -73,35 +73,35 @@ export default async function() {
         // const first_pages = await page.$$(SELECTORS.COMMON.PAGE_FIRST);
         // await first_pages[0].click();
         
-        // 문서 업데이트 리포트, 전체 업데이트 이력, 항목 선택
+        // 문서 업데이트 리포트 - 타사문서, 전체 업데이트 이력, 항목 선택
         await page.waitForLoadState("load");
         const checks = await page.$$(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.CHECKBOX_1);
         await checks[1].click();
         await wait(2000);
         timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_LAW_select_history.png` });
+        await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_OTHER_select_history.png` });
 
-        // 문서 업데이트 리포트, 전체 업데이트 이력, 확인
+        // 문서 업데이트 리포트 - 타사문서, 전체 업데이트 이력, 확인
         await page.waitForSelector(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_CONFIRM);
         await page.click(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_CONFIRM);
         await wait(2000);
         timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_confirm.png` });
+        await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_OTHER_confirm.png` });
 
-        // 문서 업데이트 리포트, 법령 선택
-        await page.waitForSelector(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON);
-        const laws = await page.$$(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON);
-        await laws[Math.floor(Math.random() * laws.length)].click();
+        // 문서 업데이트 리포트 - 타사문서, 기업 선택
+        await page.waitForLoadState('load');
+        const companies = await page.$$('button[data-appearance="outline"][data-size="md"]');
+        await companies[Math.floor(Math.random() * companies.length)].click();
         await wait(2000);
         timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_LAW_select_history.png` });
+        await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_OTHER_select_history.png` });
 
-        // 문서 업데이트 리포트, 원문보기
+        // 문서 업데이트 리포트 - 타사문서, 원문보기
         await page.waitForSelector(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_VIEW_ORIGINAL);
         await page.click(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_VIEW_ORIGINAL);
         await wait(2000);
         timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_original.png` });
+        await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_OTHER_original.png` });
 
     } finally {
         if (page) await page.close();
@@ -115,7 +115,7 @@ export function handleSummary(data) {
     // 결과 추출 및 Slack 발송
     const slackWebhookUrl = __ENV.SLACK_WEBHOOK_URL;
     if (slackWebhookUrl) {
-        const payload = buildK6SummaryMessage(data, 'Document Update Report');
+        const payload = buildK6SummaryMessage(data, 'Document Update Report Other');
         const result = sendSlackWebhook(slackWebhookUrl, payload);
         if (!result.ok) {
             console.warn(`[Slack] 메시지 발송 실패 (status: ${result.status})`);
@@ -123,6 +123,6 @@ export function handleSummary(data) {
     }
 
     return {
-        [`Result/document_update_report_${timestamp}.html`]: htmlReport(data),
+        [`Result/document_update_report_other_${timestamp}.html`]: htmlReport(data),
     };
 }
