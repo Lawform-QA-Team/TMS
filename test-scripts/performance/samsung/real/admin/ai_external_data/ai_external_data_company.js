@@ -88,7 +88,14 @@ export default async function() {
         // AI 외부 데이터 관리 - 텍스트 추출
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_EXTRACT_TEXT);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_EXTRACT_TEXT);
-        await wait(10000);
+        await page.waitForFunction(
+            (selector) => {
+                const el = document.querySelector(selector);
+                return el && !el.disabled;
+            },
+            {},
+            SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_EXTRACT_TEXT
+        );
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_register_extract.png` });
         await page.keyboard.press('Escape');
