@@ -63,7 +63,7 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_register_write.png` });
 
   // 카테고리 등록 저장
-  await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
+  await page.waitForSelector(`${SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE}:not([disabled])`);
   await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
   await wait(2000);
   timestamp = getNewTimeStamp();

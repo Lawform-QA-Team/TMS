@@ -62,6 +62,8 @@ export async function run(page) {
   await wait(5000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_submit.png` });
+  // 임시저장 후 모달 오버레이가 닫힐 때까지 대기
+  await page.waitForFunction(() => !document.querySelector('[data-state="open"][aria-hidden="true"]'));
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
   await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
 }
