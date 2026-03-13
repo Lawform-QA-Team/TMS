@@ -52,7 +52,7 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_register.png` });
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_GO_BACK);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_GO_BACK);
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('load');
   await page.goto(URLS.AI_DATA.COMPANY);
 
   // AI 외부 데이터 관리 - 타사 문서 등록 작성

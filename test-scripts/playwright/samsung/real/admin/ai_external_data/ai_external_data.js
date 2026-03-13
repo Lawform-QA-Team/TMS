@@ -49,6 +49,11 @@ export async function run(page) {
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
   await page.locator(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH).click({ force: true });
+  // SWITCH 토글 후 확인 다이얼로그가 나타나면 확인 버튼 클릭
+  const alertDialog = page.locator('[role="alertdialog"]');
+  await alertDialog.waitFor({ state: 'visible' });
+  await alertDialog.locator('button').last().click();
+  await alertDialog.waitFor({ state: 'hidden' });
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_VIEW);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_VIEW);
   await wait(2000);
