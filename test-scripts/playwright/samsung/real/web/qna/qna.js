@@ -1,7 +1,7 @@
 /**
  * 1:1 문의 (웹) - Playwright용
  */
-import { URLS, WEB_URLS } from '../../url_base_sam.js';
+import { URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { getWebCredentials, loginWithPage } from '../../admin/login/login_helper.js';
@@ -18,10 +18,10 @@ export async function run(page) {
   const credentials = getWebCredentials();
   const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
-  await loginWithPage(page, credentials, WEB_URLS.LOGIN.HOME);
+  await loginWithPage(page, credentials, URLS.WEB_LOGIN.HOME);
 
   // 1:1 문의
-  await page.goto(WEB_URLS.SERVICE.QNA);
+  await page.goto(URLS.SERVICE.WEB_QNA);
   await wait(2000);
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_QNA.png` });
@@ -49,7 +49,7 @@ export async function run(page) {
   await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_QNA_search.png` });
-  await page.goto(WEB_URLS.SERVICE.QNA);
+  await page.goto(URLS.SERVICE.WEB_QNA);
 
   // 1:1 문의, 문의 등록 진입
   await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CREATE_QNA);

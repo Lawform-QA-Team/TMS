@@ -1,4 +1,4 @@
-// k6: __ENV.BASE_URL / Node(Playwright): process.env.BASE_URL
+// k6: __ENV.ADMIN_BASE_URL / Node: process.env.ADMIN_BASE_URL
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createRequire } from 'module';
@@ -14,24 +14,23 @@ if (typeof process !== 'undefined' && typeof __ENV === 'undefined') {
     }
 }
 
+// admin 스크립트 실행 시에만 필수. web 스크립트만 실행 시 미설정 가능.
 let BASE_URL;
-if (typeof __ENV !== 'undefined' && (__ENV.ADMIN_BASE_URL || __ENV.BASE_URL)) {
-    BASE_URL = (__ENV.ADMIN_BASE_URL || __ENV.BASE_URL).replace(/\/$/, '');
-} else if (typeof process !== 'undefined' && (process.env?.ADMIN_BASE_URL || process.env?.BASE_URL)) {
-    BASE_URL = (process.env.ADMIN_BASE_URL || process.env.BASE_URL).replace(/\/$/, '');
-} else {
-    throw new Error(
-        'BASE_URL이 필요합니다. .env에 ADMIN_BASE_URL 또는 BASE_URL 설정'
-    );
+if (typeof __ENV !== 'undefined' && __ENV.ADMIN_BASE_URL) {
+    BASE_URL = __ENV.ADMIN_BASE_URL.replace(/\/$/, '');
+} else if (typeof process !== 'undefined' && process.env && process.env.ADMIN_BASE_URL) {
+    BASE_URL = process.env.ADMIN_BASE_URL.replace(/\/$/, '');
 }
 
+// 웹(서비스) URL — admin과 별도 도메인 사용
+// web 스크립트 실행 시에만 필수. admin 스크립트만 실행 시 미설정 가능.
 let WEB_BASE_URL;
 if (typeof __ENV !== 'undefined' && __ENV.WEB_BASE_URL) {
     WEB_BASE_URL = __ENV.WEB_BASE_URL.replace(/\/$/, '');
-} else if (typeof process !== 'undefined' && process.env?.WEB_BASE_URL) {
+} else if (typeof process !== 'undefined' && process.env && process.env.WEB_BASE_URL) {
     WEB_BASE_URL = process.env.WEB_BASE_URL.replace(/\/$/, '');
 } else {
-    WEB_BASE_URL = BASE_URL;
+    WEB_BASE_URL = BASE_URL; // fallback
 }
 
 // 어드민 로그인 관련 URL
@@ -90,7 +89,10 @@ export const SERVICE_URLS = {
     QNA: `${BASE_URL}/qna`, //1:1 문의 관리
     PRIVACY: `${BASE_URL}/service-terms?tab=privacy`, //약관 관리 - 개인정보처리방침
     TERMS: `${BASE_URL}/service-terms?tab=terms`, //약관 관리 - 이용약관
-    IP: `${BASE_URL}/ip-management`  // IP 관리
+    IP: `${BASE_URL}/ip-management`,  // IP 관리
+
+    WEB_NOTICE: `${WEB_BASE_URL}/notice`, //공지사항
+    WEB_QNA: `${WEB_BASE_URL}/qna`, //1:1 문의 관리
 }
 
 //사용자 관리
@@ -125,30 +127,3 @@ export const URLS = {
     LOG: LOG_URLS,
     DRIVE: DRIVE_URLS,
 };
-
-// 웹(서비스) 전용 URL
-export const WEB_URLS = {
-    BASE: WEB_BASE_URL,
-    LOGIN: {
-        HOME: `${WEB_BASE_URL}`,
-        LOGIN: `${WEB_BASE_URL}/login`,
-    },
-    AUTODOC: {
-        AUTODOC: `${WEB_BASE_URL}/autodoc`,
-        STANDARD: `${WEB_BASE_URL}/autodoc?method=standard&page=1`,
-        TEMP: `${WEB_BASE_URL}/autodoc?method=temp&page=1`,
-        EXISTING: `${WEB_BASE_URL}/autodoc?method=existing&page=1`,
-    },
-    SERVICE: {
-        NOTICE: `${WEB_BASE_URL}/notice`,
-        QNA: `${WEB_BASE_URL}/qna`,
-    },
-    DRIVE: {
-        DRIVE: `${WEB_BASE_URL}/drive`,
-    },
-};
-
-if (typeof process !== 'undefined' && process.env?.NODE_ENV !== 'test') {
-    console.log('BASE_URL:', BASE_URL);
-    console.log('WEB_BASE_URL:', WEB_BASE_URL);
-}
