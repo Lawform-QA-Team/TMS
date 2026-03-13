@@ -12,9 +12,9 @@ export function getCredentials() {
         (typeof process !== 'undefined' && (process.env?.ADMIN_LOGIN_EMAIL || process.env?.LOGIN_EMAIL || process.env?.EMAIL)) ||
         '';
     const password =
-        (typeof __ENV !== 'undefined' && (__ENV.LOGIN_PASSWORD || __ENV.PASSWORD)) ||
+        (typeof __ENV !== 'undefined' && (__ENV.ADMIN_LOGIN_PASSWORD || __ENV.LOGIN_PASSWORD || __ENV.PASSWORD)) ||
         (typeof process !== 'undefined' &&
-            (process.env?.LOGIN_PASSWORD || process.env?.PASSWORD)) ||
+            (process.env?.ADMIN_LOGIN_PASSWORD || process.env?.LOGIN_PASSWORD || process.env?.PASSWORD)) ||
         '';
     if (!email || !password) {
         throw new Error(
@@ -34,9 +34,9 @@ export function getWebCredentials() {
         (typeof process !== 'undefined' && (process.env?.WEB_LOGIN_EMAIL || process.env?.LOGIN_EMAIL || process.env?.EMAIL)) ||
         '';
     const password =
-        (typeof __ENV !== 'undefined' && (__ENV.LOGIN_PASSWORD || __ENV.PASSWORD)) ||
+        (typeof __ENV !== 'undefined' && (__ENV.WEB_LOGIN_PASSWORD || __ENV.LOGIN_PASSWORD || __ENV.PASSWORD)) ||
         (typeof process !== 'undefined' &&
-            (process.env?.LOGIN_PASSWORD || process.env?.PASSWORD)) ||
+            (process.env?.WEB_LOGIN_PASSWORD || process.env?.LOGIN_PASSWORD || process.env?.PASSWORD)) ||
         '';
     if (!email || !password) {
         throw new Error(
