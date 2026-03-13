@@ -1,17 +1,14 @@
 // k6: __ENV.ADMIN_BASE_URL / Node: process.env.ADMIN_BASE_URL
+// admin 스크립트 실행 시에만 필수. web 스크립트만 실행 시 미설정 가능.
 let BASE_URL;
 if (typeof __ENV !== 'undefined' && __ENV.ADMIN_BASE_URL) {
     BASE_URL = __ENV.ADMIN_BASE_URL.replace(/\/$/, '');
 } else if (typeof process !== 'undefined' && process.env && process.env.ADMIN_BASE_URL) {
     BASE_URL = process.env.ADMIN_BASE_URL.replace(/\/$/, '');
-} else {
-    throw new Error(
-        'ADMIN_BASE_URL이 필요합니다. k6 실행 예: k6 run -e ADMIN_BASE_URL=https://대상주소 -e ADMIN_LOGIN_EMAIL=... -e ADMIN_LOGIN_PASSWORD=... 스크립트경로\n' +
-        '.env 사용 시: (test-scripts/performance 폴더에서) export $(grep -v "^#" .env | xargs) && k6 run ...'
-    );
 }
 
 // 웹(서비스) URL — admin과 별도 도메인 사용
+// web 스크립트 실행 시에만 필수. admin 스크립트만 실행 시 미설정 가능.
 let WEB_BASE_URL;
 if (typeof __ENV !== 'undefined' && __ENV.WEB_BASE_URL) {
     WEB_BASE_URL = __ENV.WEB_BASE_URL.replace(/\/$/, '');
