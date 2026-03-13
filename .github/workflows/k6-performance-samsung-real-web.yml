@@ -71,7 +71,7 @@ jobs:
             --disable-gpu
             --disable-features=CpuFreqScaling,VizDisplayCompositor
             --disable-setuid-sandbox
-          BASE_URL: ${{ secrets.WEB_BASE_URL }}
+          WEB_BASE_URL: ${{ secrets.WEB_BASE_URL }}
           LOGIN_EMAIL: ${{ secrets.WEB_LOGIN_EMAIL }}
           LOGIN_PASSWORD: ${{ secrets.WEB_LOGIN_PASSWORD }}
           K6_INFLUXDB_ADDR: ${{ secrets.K6_INFLUXDB_ADDR }}

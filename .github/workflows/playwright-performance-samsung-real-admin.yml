@@ -50,7 +50,7 @@ jobs:
       - name: Run Playwright tests (samsung/real/admin)
         working-directory: test-scripts/playwright
         env:
-          BASE_URL: ${{ secrets.ADMIN_BASE_URL }}
+          ADMIN_BASE_URL: ${{ secrets.ADMIN_BASE_URL }}
           LOGIN_EMAIL: ${{ secrets.ADMIN_LOGIN_EMAIL }}
           LOGIN_PASSWORD: ${{ secrets.ADMIN_LOGIN_PASSWORD }}
           INFLUXDB_URL: ${{ secrets.PW_INFLUXDB_ADDR }}

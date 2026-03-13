@@ -51,6 +51,7 @@ jobs:
         working-directory: test-scripts/playwright
         env:
           BASE_URL: ${{ secrets.WEB_BASE_URL }}
+          WEB_BASE_URL: ${{ secrets.WEB_BASE_URL }}
           LOGIN_EMAIL: ${{ secrets.WEB_LOGIN_EMAIL }}
           LOGIN_PASSWORD: ${{ secrets.WEB_LOGIN_PASSWORD }}
           INFLUXDB_URL: ${{ secrets.PW_INFLUXDB_ADDR }}
