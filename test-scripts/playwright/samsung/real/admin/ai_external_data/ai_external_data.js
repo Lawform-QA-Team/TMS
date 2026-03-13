@@ -20,8 +20,8 @@ export async function run(page) {
   await loginWithPage(page, credentials);
 
   await page.goto(URLS.AI_DATA.LAW);
+  await wait(2000);
   let timestamp = getNewTimeStamp();
-  await page.waitForLoadState('networkidle');
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA.png` });
 
   // await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.PAGINATION);
@@ -36,15 +36,14 @@ export async function run(page) {
   await page.locator(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_SEARCH).fill('고시');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await page.waitForLoadState('networkidle');
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_search.png` });
   await page.goto(URLS.AI_DATA.LAW);
-  await page.waitForLoadState('networkidle');
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.TABLE_LIST);
   await page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`);
-  await page.waitForLoadState('networkidle');
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_table.png` });
 
@@ -55,30 +54,28 @@ export async function run(page) {
   if (views.length >= 2) {
       await views[Math.floor(Math.random() * (views.length - 1)) + 1].click();
   }
-  await page.waitForLoadState('networkidle');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_table_detail.png` });
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
-  await page.waitForLoadState('networkidle');
+  await wait(2000);
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX);
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
-  await page.waitForLoadState('networkidle');
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_checkbox.png` });
   await page.goto(URLS.AI_DATA.LAW);
-  await page.waitForLoadState('networkidle');
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_DELETE);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_DELETE);
-  await page.waitForLoadState('networkidle');
+  await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_delete.png` });
 }
