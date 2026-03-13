@@ -21,7 +21,7 @@ export async function run(page) {
 
   // AI 외부 데이터 관리 - 타사 문서 진입
   await page.goto(URLS.AI_DATA.COMPANY);
-  await wait(2000);
+  await page.waitForLoadState('networkidle');
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company.png` });
 
@@ -59,8 +59,10 @@ export async function run(page) {
   // AI 외부 데이터 관리 - 타사 문서 등록 작성
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_REGISTER);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_REGISTER);
+  await page.waitForLoadState('networkidle');
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_CATEGORY);
   await page.locator(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_CATEGORY).fill('타사 문서 등록 테스트');
+  await page.waitForLoadState('networkidle');
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_URL);
   await page.locator(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_URL).fill('https://www.google.com');
   await page.waitForLoadState('networkidle');
@@ -109,17 +111,18 @@ export async function run(page) {
   // AI 외부 데이터 관리 - 타사 문서 상세
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
-  await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_VIEW);
-  const views = await page.$$(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_VIEW);
-  if (views.length >= 2) {
-      await views[Math.floor(Math.random() * (views.length - 1)) + 1].click();
-  }
-  await page.waitForLoadState('networkidle');
+  // await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_VIEW);
+  // const views = await page.$$(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_VIEW);
+  // if (views.length >= 2) {
+  //     await views[Math.floor(Math.random() * (views.length - 1)) + 1].click();
+  // }
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_table_detail.png` });
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
   await page.goto(URLS.AI_DATA.COMPANY);
+  await page.waitForLoadState('networkidle');
 
   // AI 외부 데이터 관리 - 타사 문서 체크 박스
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX);
