@@ -20,7 +20,7 @@ export async function run(page) {
   await loginWithPage(page, credentials, URLS.WEB_LOGIN.HOME);
 
   // 문서 작성 - 표준 양식
-  await page.goto(`${URLS.WEB_BASE}/autodoc`);
+  await page.goto(URLS.AUTODOC.STANDARD);
   await wait(2000);
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC.png` });
@@ -51,7 +51,10 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table.png` });
 
   // 문서 작성 - 표준 양식, 작성
-    // 내용을 작성했다고 가정
+  await page.waitForSelector('//button[@role="tab"][contains(text(),"문서 정보 작성")]');
+  await page.click('//button[@role="tab"][contains(text(),"문서 정보 작성")]');
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.INPUT_1);
+  await page.locator(SELECTORS.FEATURES.AUTODOC.INPUT_1).fill('문서 작성 테스트');
   await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_write.png` });
@@ -62,8 +65,147 @@ export async function run(page) {
   await wait(5000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_submit.png` });
-  // 임시저장 후 모달 오버레이가 닫힐 때까지 대기
-  await page.waitForFunction(() => !document.querySelector('[data-state="open"][aria-hidden="true"]'));
-  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
-  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
+
+  // 문서 작성 - 표준 양식, 미리보기
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_PREVIEW);
+  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_PREVIEW);
+  await wait(2000);
+  timestamp = getNewTimeStamp();
+  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_preview.png` });
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
+  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
+
+  // 문서 작성 - 표준 양식, AI 자동 라벨링
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
+  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
+  await page.waitForFunction(
+    (selector) => {
+      const el = document.querySelector(selector);
+      return el && !el.disabled;
+    },
+    SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING
+  );
+  await wait(2000);
+  timestamp = getNewTimeStamp();
+  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_labeling.png` });
+  // await page.waitForSelector('//button[contains(text(),"라벨링 되돌리기")]');
+  // await page.click('//button[contains(text(),"라벨링 되돌리기")]');
+
+  // 문서 작성 - 표준 양식, 저장
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
+  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
+  await wait(1000);
+  timestamp = getNewTimeStamp();
+  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_submit.png` });
+
+  // 문서 작성 - 기존 문서, 다운로드
+  // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_DOWNLOAD);
+  // await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_DOWNLOAD);
+  // await wait(2000);
+  // timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_download.png` });
+
+  // 문서 작성 - 기존 문서, 클린본 다운로드
+  // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_DOWNLOAD_1);
+  // await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_DOWNLOAD_1);
+  // await wait(2000);
+  // timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_clean_download.png` });
+
+  // 문서 작성 - 기존 문서, 수정모드
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
+  await page.click(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
+  await wait(2000);
+  timestamp = getNewTimeStamp();
+  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_edit.png` });
+
+  // 문서 작성 - 기존 문서, 수정모드, 저장하기
+    // 내용을 작성했다고 가정
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
+  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
+  await wait(2000);
+  timestamp = getNewTimeStamp();
+  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_edit_save.png` });
+
+  // 문서 작성 - 기존 문서, 수정모드, 트래킹 끄고 저장하기
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
+  await page.click(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_TRACKING_MODE);
+  await page.click(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_TRACKING_MODE);
+    // 내용을 작성했다고 가정
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
+  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
+  await wait(2000);
+  timestamp = getNewTimeStamp();
+  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_edit_tracking_off.png` });
+
+  // 문서 작성 - 기존 문서, 수정 이력 진입
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON);
+  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON);
+  timestamp = getNewTimeStamp();
+  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_log.png` });
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
+  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
+
+  // 문서 작성 - 기존 문서, 수정 이력, 테이블 클릭
+  // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON);
+  // await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON);
+  // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.TABLE_LIST);
+  // await page.click(SELECTORS.COMMON.TABLE2);
+  // await wait(2000);
+  // timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_log_table.png` });
+
+  // 문서 작성 - 기존 문서, 수정 이력, 비교하기
+  // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_COMPARE);
+  // await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_COMPARE);
+  // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.TABLE_LIST);
+  // await page.click(SELECTORS.COMMON.TABLE);
+  // await wait(2000);
+  // timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_log_compare.png` });
+
+  // 문서 작성 - 기존 문서, 수정 이력, 불러오기 -> 확인, 취소 버튼에 tid가 없어서 진행 불가능
+  // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_LOAD);
+  // await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_LOAD);
+  // await wait(1000);
+  // timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_log_load.png` });
+  // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
+  // await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
+
+  // 문서 작성 - 기존 문서
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
+  await page.click(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_EDIT);
+  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_EDIT);
+  await wait(2000);
+  timestamp = getNewTimeStamp();
+  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_ai.png` });
+
+  // 문서 작성 - 기존 문서, AI 검토 * 편집, 채팅 입력
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.TEXTAREA);
+  await page.locator(SELECTORS.FEATURES.AUTODOC.TEXTAREA).fill('조항을 추가해줘');
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SEND);
+  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SEND);
+  await wait(15000);
+  timestamp = getNewTimeStamp();
+  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_ai_send.png` });
+
+  // 문서 작성 - 기존 문서, AI 검토 * 편집, 자동 검토
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AUTO_REVIEW);
+  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_AUTO_REVIEW);
+  await wait(15000);
+  timestamp = getNewTimeStamp();
+  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_ai_auto.png` });
+
+  // 문서 작성 - 기존 문서, AI 검토 * 편집, 코멘트
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
+  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
+  await wait(2000);
+  timestamp = getNewTimeStamp();
+  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_ai_comment.png` });
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
+  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
 }

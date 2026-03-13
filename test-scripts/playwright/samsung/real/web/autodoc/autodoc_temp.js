@@ -50,34 +50,6 @@ export async function run(page) {
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_table.png` });
 
-  // 문서 작성 - 표준 양식, 미리보기
-  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_PREVIEW);
-  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_PREVIEW);
-  await wait(2000);
-  timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_preview.png` });
-  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
-  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
-
-  // 문서 작성 - 표준 양식, AI 자동 라벨링
-  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
-  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
-  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
-  await page.waitForFunction(
-    (selector) => {
-      const el = document.querySelector(selector);
-      return el && !el.disabled;
-    },
-    SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING
-  );
-  await wait(2000);
-  timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_labeling.png` });
-
-  // 문서 작성 - 표준 양식, 저장
-  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
-  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
-  await wait(1000);
-  timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_submit.png` });
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
+  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
 }
