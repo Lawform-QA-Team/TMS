@@ -36,6 +36,13 @@ export async function run(page) {
   // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
   // 표준 양식 검색
+  await page.waitForSelector('button[data-slot="popover-trigger"]');
+  await page.click('button[data-slot="popover-trigger"]');
+  await page.waitForSelector('input[data-slot="input"][placeholder="카테고리 검색"]');
+  await page.fill('input[data-slot="input"][placeholder="카테고리 검색"]', '카테고리');
+  await page.waitForLoadState('load');
+  const contents = await page.$$('button.relative.flex.w-full.cursor-pointer.items-center.rounded-sm.text-left');
+  await contents[Math.floor(Math.random() * contents.length)].click();
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH);
   await page.locator(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH).fill('시연용');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
@@ -68,22 +75,22 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table.png` });
   await page.goto(URLS.AUTODOC.AUTODOC);
 
-  // 표준 양식 테이블 업데이트 클릭
-  await page.waitForSelector(`span[data-slot="badge"]`);
-  const badges = await page.$$(`span[data-slot="badge"]`);
-  await badges[0].click();
-  await wait(2000);
-  timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table_update.png` });
-  await page.goto(URLS.AUTODOC.AUTODOC);
-
   // 업데이트 추천
-  await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_UPDATE_RECOMMEND);
-  await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_UPDATE_RECOMMEND);
+  await page.locator('button').filter({ hasText: '업데이트 추천' }).waitFor();
+  await page.locator('button').filter({ hasText: '업데이트 추천' }).click();
   await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_update.png` });
   await page.goto(URLS.AUTODOC.AUTODOC);
+
+  // 표준 양식 테이블 업데이트 클릭
+  // await page.waitForSelector(`span[data-slot="badge"]`);
+  // const badges = await page.$$(`span[data-slot="badge"]`);
+  // await badges[0].click();
+  // await wait(2000);
+  // timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table_update.png` });
+  // await page.goto(URLS.AUTODOC.AUTODOC);
 
   // 카테고리 관리
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_CATEGORY_MANAGEMENT);
