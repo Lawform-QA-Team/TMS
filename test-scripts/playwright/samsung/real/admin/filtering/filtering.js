@@ -11,6 +11,20 @@ async function wait(ms) {
 }
 
 /**
+ * 랜덤 문자열 생성 함수
+ * @param {number} length - 생성할 문자열 길이
+ * @returns {string} 랜덤 문자열
+ */
+function generateRandomString(length = 6) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
+/**
  * @param {import('@playwright/test').Page} page
  */
 export async function run(page) {
@@ -57,9 +71,11 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_REGISTER_CLICK);
   await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_REGISTER_CLICK);
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT);
-  await page.locator(SELECTORS.ADMIN.FILTERING.INPUT).fill('필터링 단어 테스트');
+  const randomWord = `필터_${generateRandomString(8)}_${Date.now()}`;
+  await page.locator(SELECTORS.ADMIN.FILTERING.INPUT).fill(randomWord);
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT_1);
-  await page.locator(SELECTORS.ADMIN.FILTERING.INPUT_1).fill('필터링 사유 테스트');
+  const randomReason = `테스트사유_${generateRandomString(6)}_${getNewTimeStamp()}`;
+  await page.locator(SELECTORS.ADMIN.FILTERING.INPUT_1).fill(randomReason);
   await wait(2000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_register_write.png` });
@@ -80,9 +96,11 @@ export async function run(page) {
 
   // 필터링 관리 수정
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT);
-  await page.locator(SELECTORS.ADMIN.FILTERING.INPUT).fill('필터링 단어 테스트 2');
+  const editRandomWord = `수정필터_${generateRandomString(8)}_${Date.now()}`;
+  await page.locator(SELECTORS.ADMIN.FILTERING.INPUT).fill(editRandomWord);
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT_1);
-  await page.locator(SELECTORS.ADMIN.FILTERING.INPUT_1).fill('필터링 사유 테스트 2');
+  const editRandomReason = `수정사유_${generateRandomString(6)}_${getNewTimeStamp()}`;
+  await page.locator(SELECTORS.ADMIN.FILTERING.INPUT_1).fill(editRandomReason);
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.SWITCH);
   await page.click(SELECTORS.ADMIN.FILTERING.SWITCH);
   await wait(2000);
