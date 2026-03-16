@@ -76,6 +76,7 @@ export const AI_CHAT_URLS ={
 //문서 업데이트 리포트
 export const DOCUMENT_UPDATE_URLS = {
     LAW: `${BASE_URL}/document-update-report`,
+    OTHER: `${BASE_URL}/document-update-report?tab=other`,
 }
 
 //필터링 관리
