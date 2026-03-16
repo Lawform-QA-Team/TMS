@@ -3,6 +3,9 @@ export const TIMEOUT = {
   // 테스트 전체 제한 시간 (spec.js, playwright.config.ts)
   TEST: Number(process.env.TEST_TIMEOUT) || 120000,
 
+  // AI 작업 등 장시간 소요 테스트용 제한 시간
+  TEST_LONG: Number(process.env.TEST_LONG_TIMEOUT) || 240000,
+
   // 셀렉터/요소 대기 시간 (waitForSelector 기본값)
   ELEMENT: Number(process.env.ELEMENT_TIMEOUT) || 10000,
 
