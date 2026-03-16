@@ -20,8 +20,8 @@ export async function run(page) {
   await loginWithPage(page, credentials);
 
   // AI 외부 데이터 관리 - 타사 문서 진입
-  await page.goto(URLS.AI_DATA.COMPANY);
-  // await page.waitForLoadState('networkidle');
+  await page.goto(URLS.AI_DATA.COMPANY, { waitUntil: 'commit' });
+  await page.waitForLoadState('domcontentloaded');
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company.png` });
 
@@ -42,8 +42,8 @@ export async function run(page) {
   // await page.waitForLoadState('networkidle');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_search.png` });
-  await page.goto(URLS.AI_DATA.COMPANY);
-  // await page.waitForLoadState('networkidle');
+  await page.goto(URLS.AI_DATA.COMPANY, { waitUntil: 'commit' });
+  await page.waitForLoadState('domcontentloaded');
 
   // AI 외부 데이터 관리 - 타사 문서 등록 진입
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_REGISTER);
@@ -53,8 +53,8 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_register.png` });
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_GO_BACK);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_GO_BACK);
-  await page.goto(URLS.AI_DATA.COMPANY);
-  // await page.waitForLoadState('networkidle');
+  await page.goto(URLS.AI_DATA.COMPANY, { waitUntil: 'commit' });
+  await page.waitForLoadState('domcontentloaded');
 
   // AI 외부 데이터 관리 - 타사 문서 등록 작성
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_REGISTER);
@@ -95,9 +95,8 @@ export async function run(page) {
   // AI 외부 데이터 관리 - 타사 문서 등록
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_SUBMIT);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_SUBMIT);
-  // await page.waitForLoadState('networkidle');
-  await page.goto(URLS.AI_DATA.COMPANY);
-  // await page.waitForLoadState('networkidle');
+  await page.goto(URLS.AI_DATA.COMPANY, { waitUntil: 'commit' });
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_register_submit.png` });
 
@@ -121,18 +120,18 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_table_detail.png` });
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
-  await page.goto(URLS.AI_DATA.COMPANY);
-  // await page.waitForLoadState('networkidle');
+  await page.goto(URLS.AI_DATA.COMPANY, { waitUntil: 'commit' });
+  await page.waitForLoadState('domcontentloaded');
 
   // AI 외부 데이터 관리 - 타사 문서 체크 박스
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX);
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
-  // await page.waitForLoadState('networkidle');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_checkbox.png` });
-  await page.goto(URLS.AI_DATA.COMPANY);
+  await page.goto(URLS.AI_DATA.COMPANY, { waitUntil: 'commit' });
+  await page.waitForLoadState('domcontentloaded');
 
   // AI 외부 데이터 관리 - 타사 문서 선택 문서 삭제
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
