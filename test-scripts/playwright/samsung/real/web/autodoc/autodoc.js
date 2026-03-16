@@ -78,7 +78,15 @@ export async function run(page) {
   // 문서 작성 - 표준 양식, AI 자동 라벨링
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
   await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
-  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
+  // 클릭 후 버튼이 disabled(로딩) 상태가 될 때까지 기다림
+  await page.waitForFunction(
+    (selector) => {
+      const el = document.querySelector(selector);
+      return el && el.disabled;
+    },
+    SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING
+  );
+  // 로딩이 끝나 disabled가 해제될 때까지 기다림
   await page.waitForFunction(
     (selector) => {
       const el = document.querySelector(selector);
