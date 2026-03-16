@@ -149,7 +149,10 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_edit.png` });
 
         // 문서 작성 - 기존 문서, 수정모드, 저장하기
-            // 내용을 작성했다고 가정
+        await page.waitForSelector('//button[@role="tab"][contains(text(),"문서 정보 작성")]');
+        await page.click('//button[@role="tab"][contains(text(),"문서 정보 작성")]');
+        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.INPUT_1);
+        await page.fill(SELECTORS.FEATURES.AUTODOC.INPUT_1, '문서 작성 테스트 1');
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
         await wait(2000);
@@ -161,7 +164,10 @@ export default async function() {
         await page.click(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_TRACKING_MODE);
         await page.click(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_TRACKING_MODE);
-            // 내용을 작성했다고 가정
+        await page.waitForSelector('//button[@role="tab"][contains(text(),"문서 정보 작성")]');
+        await page.click('//button[@role="tab"][contains(text(),"문서 정보 작성")]');
+        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.INPUT_1);
+        await page.fill(SELECTORS.FEATURES.AUTODOC.INPUT_1, '문서 작성 테스트 2');
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
         await wait(2000);
