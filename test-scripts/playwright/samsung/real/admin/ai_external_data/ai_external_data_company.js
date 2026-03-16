@@ -53,6 +53,8 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_register.png` });
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_GO_BACK);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_GO_BACK);
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/ai-external-data', { waitUntil: 'domcontentloaded' });
   await page.goto(URLS.AI_DATA.COMPANY, { waitUntil: 'commit' });
   await page.waitForLoadState('domcontentloaded');
 
@@ -120,6 +122,8 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_table_detail.png` });
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/ai-external-data', { waitUntil: 'domcontentloaded' });
   await page.goto(URLS.AI_DATA.COMPANY, { waitUntil: 'commit' });
   await page.waitForLoadState('domcontentloaded');
 
