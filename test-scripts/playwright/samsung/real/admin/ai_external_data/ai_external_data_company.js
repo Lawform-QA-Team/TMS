@@ -21,7 +21,7 @@ export async function run(page) {
 
   // AI 외부 데이터 관리 - 타사 문서 진입
   await page.goto(URLS.AI_DATA.COMPANY);
-  await page.waitForLoadState('networkidle');
+  // await page.waitForLoadState('networkidle');
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company.png` });
 
@@ -39,33 +39,33 @@ export async function run(page) {
   await page.locator(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_SEARCH).fill('타사');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await page.waitForLoadState('networkidle');
+  // await page.waitForLoadState('networkidle');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_search.png` });
   await page.goto(URLS.AI_DATA.COMPANY);
-  await page.waitForLoadState('networkidle');
+  // await page.waitForLoadState('networkidle');
 
   // AI 외부 데이터 관리 - 타사 문서 등록 진입
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_REGISTER);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_REGISTER);
-  await page.waitForLoadState('networkidle');
+  // await page.waitForLoadState('networkidle');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_register.png` });
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_GO_BACK);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_GO_BACK);
   await page.goto(URLS.AI_DATA.COMPANY);
-  await page.waitForLoadState('networkidle');
+  // await page.waitForLoadState('networkidle');
 
   // AI 외부 데이터 관리 - 타사 문서 등록 작성
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_REGISTER);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_REGISTER);
-  await page.waitForLoadState('networkidle');
+  // await page.waitForLoadState('networkidle');
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_CATEGORY);
   await page.locator(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_CATEGORY).fill('타사 문서 등록 테스트');
-  await page.waitForLoadState('networkidle');
+  // await page.waitForLoadState('networkidle');
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_URL);
   await page.locator(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_URL).fill('https://www.google.com');
-  await page.waitForLoadState('networkidle');
+  // await page.waitForLoadState('networkidle');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_register_write.png` });
 
@@ -86,7 +86,7 @@ export async function run(page) {
   // AI 외부 데이터 관리 - 미리보기
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_PREVIEW);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_PREVIEW);
-  await page.waitForLoadState('networkidle');
+  // await page.waitForLoadState('networkidle');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_register_preview.png` });
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_CLOSE);
@@ -95,16 +95,16 @@ export async function run(page) {
   // AI 외부 데이터 관리 - 타사 문서 등록
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_SUBMIT);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_SUBMIT);
-  await page.waitForLoadState('networkidle');
+  // await page.waitForLoadState('networkidle');
   await page.goto(URLS.AI_DATA.COMPANY);
-  await page.waitForLoadState('networkidle');
+  // await page.waitForLoadState('networkidle');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_register_submit.png` });
 
   // AI 외부 데이터 관리 - 타사 문서 테이블 클릭
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.TABLE_LIST);
   await page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`);
-  await page.waitForLoadState('networkidle');
+  // await page.waitForLoadState('networkidle');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_table_click.png` });
 
@@ -122,14 +122,14 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
   await page.goto(URLS.AI_DATA.COMPANY);
-  await page.waitForLoadState('networkidle');
+  // await page.waitForLoadState('networkidle');
 
   // AI 외부 데이터 관리 - 타사 문서 체크 박스
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX);
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
-  await page.waitForLoadState('networkidle');
+  // await page.waitForLoadState('networkidle');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_checkbox.png` });
   await page.goto(URLS.AI_DATA.COMPANY);
@@ -139,7 +139,7 @@ export async function run(page) {
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_DELETE);
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_DELETE);
-  await page.waitForLoadState('networkidle');
+  // await page.waitForLoadState('networkidle');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_delete.png` });
 }
