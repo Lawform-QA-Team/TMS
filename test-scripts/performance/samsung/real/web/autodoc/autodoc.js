@@ -240,9 +240,9 @@ export default async function() {
         await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_ai_comment.png` });
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
-        
+        await page.waitForSelector('button[data-appearance="outline"][data-size="sm"] svg.lucide-log-out');
+        await page.click('button[data-appearance="outline"][data-size="sm"] svg.lucide-log-out');
+
     } finally {
         if (page) await page.close();
         if (context) await context.close();
