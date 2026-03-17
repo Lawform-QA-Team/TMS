@@ -35,6 +35,7 @@ export default async function() {
     const page = await context.newPage();
     const credentials = getCredentials();
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
+    const randomStr = () => Math.random().toString(36).slice(2, 7);
 
     try {
         await loginWithPage(page, credentials);
@@ -77,7 +78,7 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER_CATEGORY);
         await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER_CATEGORY);
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT);
-        await page.type(SELECTORS.ADMIN.AUTODOC.INPUT, '카테고리 등록 테스트');
+        await page.fill(SELECTORS.ADMIN.AUTODOC.INPUT, `cat_${randomStr()}`);
         await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_register_write.png` });
@@ -102,7 +103,7 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT);
-        await page.type(SELECTORS.ADMIN.AUTODOC.INPUT, '카테고리 수정');
+        await page.fill(SELECTORS.ADMIN.AUTODOC.INPUT, `edit_${randomStr()}`);
         await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_edit_category.png` });
