@@ -104,23 +104,14 @@ export async function run(page) {
   await page.waitForLoadState("domcontentloaded")
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_REGEX_doc_detail.png` });
-  // await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
-  // await Promise.all([
-  //   page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
-  //   page.click(SELECTORS.COMMON.TABLE),
-  // ]);
-  // timestamp = getNewTimeStamp();
-  // await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_REGEX_doc_detail.png` });
 
-  // 문서 정보 작성 탭 진입
-  // await page.waitForSelector('//button[@role="tab"][contains(text(),"문서 정보 작성")]');
-  // await page.click('//button[@role="tab"][contains(text(),"문서 정보 작성")]');
-  // await page.waitForLoadState('domcontentloaded');
 
   // PII 샘플 데이터 입력 및 필터링 감지 확인 (전체 순회)
+  const docInput = page.getByRole('textbox', { name: '개인정보 주식회사' });
+
   for (const pii of PII_SAMPLES) {
-    await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.INPUT);
-    await page.locator(SELECTORS.FEATURES.AUTODOC.INPUT).fill(pii.sample);
+    await docInput.waitFor();
+    await docInput.fill(pii.sample);
     await wait(1000);
     timestamp = getNewTimeStamp();
     await page.screenshot({
@@ -128,14 +119,43 @@ export async function run(page) {
     });
 
     // 다음 입력 전 필드 초기화
-    await page.locator(SELECTORS.FEATURES.AUTODOC.INPUT).fill('');
+    await docInput.fill('');
   }
 
   // 전체 PII 샘플 한 번에 입력 (복합 감지 확인)
   const combinedSample = PII_SAMPLES.map((p) => p.sample).join(' / ');
-  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.INPUT);
-  await page.locator(SELECTORS.FEATURES.AUTODOC.INPUT).fill(combinedSample);
+  await docInput.waitFor();
+  await docInput.fill(combinedSample);
   await wait(1000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_REGEX_input_combined.png` });
+
+  await page.goto(URLS.DRIVE.DRIVE);
+  await page.waitForLoadState('domcontentloaded');
+  timestamp = getNewTimeStamp();
+  await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_REGEX_drive.png` });
+
+  await page.waitForSelector(SELECTORS.WEB.DRIVE.TABLE_LIST);
+  await page.click(`${SELECTORS.COMMON.TABLE} span.cursor-pointer`);
+  await page.waitForLoadState('domcontentloaded');
+  timestamp = getNewTimeStamp();
+  await page.screenshot({ path: `screenshots/${timestamp}_DRIVE_table.png` });
+
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.SWITCH_EDITOR_EDIT_MODE);
+  await page.click(SELECTORS.FEATURES.AUTODOC.SWITCH_EDITOR_EDIT_MODE);
+  await page.waitForLoadState('domcontentloaded');
+  timestamp = getNewTimeStamp();
+  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_edit.png` });
+  await page.waitForSelector('[contenteditable="true"]');
+
+  const editInput = page.locator('[contenteditable="true"]').first();
+  for (const pii of PII_SAMPLES) {
+    await editInput.waitFor();
+    await editInput.fill(pii.sample);
+    await wait(1000);
+    timestamp = getNewTimeStamp();
+    await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_edit_input_${pii.name}.png` });
+
+    await editInput.fill('');
+  }
 }
