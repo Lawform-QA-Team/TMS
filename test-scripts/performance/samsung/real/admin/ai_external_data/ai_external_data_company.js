@@ -5,6 +5,14 @@ import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { Trend } from 'k6/metrics';
+
+export const aiExtCoPageLoad = new Trend('admin_ai_ext_co_page_load', true);
+export const aiExtCoSearch = new Trend('admin_ai_ext_co_search', true);
+export const aiExtCoRegisterSave = new Trend('admin_ai_ext_co_register_save', true);
+export const aiExtCoTableClick = new Trend('admin_ai_ext_co_table_click', true);
+export const aiExtCoDetail = new Trend('admin_ai_ext_co_detail', true);
+export const aiExtCoDelete = new Trend('admin_ai_ext_co_delete', true);
 
 export const options = {
     scenarios: {
@@ -40,10 +48,13 @@ export default async function() {
         await loginWithPage(page, credentials);
 
         // AI 외부 데이터 관리 - 타사 문서 진입
+        const aiExtCoPageLoadStart = Date.now();
         await page.goto(URLS.AI_DATA.COMPANY);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company.png` });
         await wait(2000);
+        aiExtCoPageLoad.add(Date.now() - aiExtCoPageLoadStart);
+        console.log(`aiExtCoPageLoad duration: ${Date.now() - aiExtCoPageLoadStart}ms`);
 
         // AI 외부 데이터 관리 - 타사 문서 페이지네이션
         // await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.PAGINATION);
@@ -55,11 +66,14 @@ export default async function() {
         // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // AI 외부 데이터 관리 - 타사 문서 검색
+        const aiExtCoSearchStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_SEARCH);
         await page.type(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_SEARCH, '타사');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
+        aiExtCoSearch.add(Date.now() - aiExtCoSearchStart);
+        console.log(`aiExtCoSearch duration: ${Date.now() - aiExtCoSearchStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_search.png` });
         await page.goto(URLS.AI_DATA.COMPANY);
@@ -75,6 +89,7 @@ export default async function() {
         await page.goto(URLS.AI_DATA.COMPANY);
 
         // AI 외부 데이터 관리 - 타사 문서 등록 작성
+        const aiExtCoRegisterSaveStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_REGISTER);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_REGISTER);
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_CATEGORY);
@@ -84,7 +99,7 @@ export default async function() {
         await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_register_write.png` });
-        
+
         // AI 외부 데이터 관리 - 텍스트 추출
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_EXTRACT_TEXT);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_EXTRACT_TEXT);
@@ -108,24 +123,30 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_register_preview.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_CLOSE);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_CLOSE);
-        
+
         // AI 외부 데이터 관리 - 타사 문서 등록
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_SUBMIT);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_SUBMIT);
         await wait(2000);
         await page.goto(URLS.AI_DATA.COMPANY);
         await wait(2000);
+        aiExtCoRegisterSave.add(Date.now() - aiExtCoRegisterSaveStart);
+        console.log(`aiExtCoRegisterSave duration: ${Date.now() - aiExtCoRegisterSaveStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_register_submit.png` });
 
         // AI 외부 데이터 관리 - 타사 문서 테이블 클릭
+        const aiExtCoTableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.TABLE_LIST);
         await page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`);
         await wait(2000);
+        aiExtCoTableClick.add(Date.now() - aiExtCoTableClickStart);
+        console.log(`aiExtCoTableClick duration: ${Date.now() - aiExtCoTableClickStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_table_click.png` });
 
         // AI 외부 데이터 관리 - 타사 문서 상세
+        const aiExtCoDetailStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_VIEW);
@@ -139,6 +160,8 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
         await page.goto(URLS.AI_DATA.COMPANY);
+        aiExtCoDetail.add(Date.now() - aiExtCoDetailStart);
+        console.log(`aiExtCoDetail duration: ${Date.now() - aiExtCoDetailStart}ms`);
 
         // AI 외부 데이터 관리 - 타사 문서 체크 박스
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX);
@@ -151,11 +174,14 @@ export default async function() {
         await page.goto(URLS.AI_DATA.COMPANY);
 
         // AI 외부 데이터 관리 - 타사 문서 선택 문서 삭제
+        const aiExtCoDeleteStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_DELETE);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_DELETE);
         await wait(2000);
+        aiExtCoDelete.add(Date.now() - aiExtCoDeleteStart);
+        console.log(`aiExtCoDelete duration: ${Date.now() - aiExtCoDeleteStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_delete.png` });
 

@@ -6,6 +6,13 @@ import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { Trend } from 'k6/metrics';
+
+export const webQnaPageLoad = new Trend('web_qna_page_load', true);
+export const webQnaStatusFilter = new Trend('web_qna_status_filter', true);
+export const webQnaSearch = new Trend('web_qna_search', true);
+export const webQnaRegisterSave = new Trend('web_qna_register_save', true);
+export const webQnaTableClick = new Trend('web_qna_table_click', true);
 
 export const options = {
     scenarios: {
@@ -41,10 +48,13 @@ export default async function() {
         await loginWithPage(page, credentials);
 
         // 1:1 문의
+        const webQnaPageLoadStart = Date.now();
         await page.goto(URLS.SERVICE.WEB_QNA);
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA.png` });
+        webQnaPageLoad.add(Date.now() - webQnaPageLoadStart);
+        console.log(`web_qna_page_load: ${Date.now() - webQnaPageLoadStart}ms`);
 
         // 1:1 문의, 페이지네이션
         // await page.waitForSelector(SELECTORS.FEATURES.QNA.PAGINATION);
@@ -56,17 +66,23 @@ export default async function() {
         // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 1:1 문의, 상태 필터
+        const webQnaStatusFilterStart = Date.now();
         await selectComboboxOption(page, SELECTORS.WEB.QNA.SELECT_STATUS);
         await page.waitForSelector(SELECTORS.WEB.QNA.INPUT_SEARCH);
         await wait(2000);
+        webQnaStatusFilter.add(Date.now() - webQnaStatusFilterStart);
+        console.log(`web_qna_status_filter: ${Date.now() - webQnaStatusFilterStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_status.png` });
 
         // 1:1 문의, 검색
+        const webQnaSearchStart = Date.now();
         await page.type(SELECTORS.WEB.QNA.INPUT_SEARCH, '문의');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
+        webQnaSearch.add(Date.now() - webQnaSearchStart);
+        console.log(`web_qna_search: ${Date.now() - webQnaSearchStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_search.png` });
         await page.goto(URLS.SERVICE.WEB_QNA);
@@ -81,14 +97,15 @@ export default async function() {
         await page.click(SELECTORS.WEB.QNA.BUTTON_CANCEL);
 
         // 1:1 문의, 문의 등록 작성
+        const webQnaRegisterSaveStart = Date.now();
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CREATE_QNA);
         await page.click(SELECTORS.WEB.QNA.BUTTON_CREATE_QNA);
         await page.waitForSelector(SELECTORS.WEB.QNA.INPUT);
         await page.type(SELECTORS.WEB.QNA.INPUT, '문의 테스트');
         await page.waitForSelector(`[contenteditable="true"]`);
-        await page.type(`[contenteditable="true"]`, '문의 테스트 1');
-        await page.keyboard.press('Enter')
-        await page.type(`[contenteditable="true"]`, '문의 테스트 2');
+        await page.locator(`[contenteditable="true"]`).first().fill('문의 테스트 1');
+        await page.keyboard.press('Enter');
+        await page.locator(`[contenteditable="true"]`).first().type('문의 테스트 2');
         await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_create_write.png` });
@@ -97,13 +114,18 @@ export default async function() {
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CLICK_SUBMIT);
         await page.click(SELECTORS.WEB.QNA.BUTTON_CLICK_SUBMIT);
         await wait(2000);
+        webQnaRegisterSave.add(Date.now() - webQnaRegisterSaveStart);
+        console.log(`web_qna_register_save: ${Date.now() - webQnaRegisterSaveStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_create_submit.png` });
 
         // 1:1 문의, 테이블 클릭
+        const webQnaTableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.FEATURES.QNA.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
         await wait(2000);
+        webQnaTableClick.add(Date.now() - webQnaTableClickStart);
+        console.log(`web_qna_table_click: ${Date.now() - webQnaTableClickStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_table.png` });
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CLICK_GO_TO_LIST);

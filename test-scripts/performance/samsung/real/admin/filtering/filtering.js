@@ -5,6 +5,13 @@ import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { Trend } from 'k6/metrics';
+
+export const adminFilteringPageLoad = new Trend('admin_filtering_page_load', true);
+export const adminFilteringSearch = new Trend('admin_filtering_search', true);
+export const adminFilteringRegisterSave = new Trend('admin_filtering_register_save', true);
+export const adminFilteringTableClick = new Trend('admin_filtering_table_click', true);
+export const adminFilteringEditSave = new Trend('admin_filtering_edit_save', true);
 
 export const options = {
     scenarios: {
@@ -54,10 +61,13 @@ export default async function() {
         await loginWithPage(page, credentials);
 
         // 필터링 관리
+        const adminFilteringPageLoadStart = Date.now();
         await page.goto(URLS.FILTERING.FILTERING);
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_FILTERING.png` });
+        adminFilteringPageLoad.add(Date.now() - adminFilteringPageLoadStart);
+        console.log(`Admin filtering page load duration: ${Date.now() - adminFilteringPageLoadStart}ms`);
 
         // 필터링 관리 페이지네이션
         // await page.waitForSelector(SELECTORS.ADMIN.FILTERING.PAGINATION);
@@ -70,10 +80,13 @@ export default async function() {
 
         // 필터링 관리 검색
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT_SEARCH);
+        const adminFilteringSearchStart = Date.now();
         await page.type(SELECTORS.ADMIN.FILTERING.INPUT_SEARCH, '필터');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
+        adminFilteringSearch.add(Date.now() - adminFilteringSearchStart);
+        console.log(`Admin filtering search duration: ${Date.now() - adminFilteringSearchStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_search.png` });
 
@@ -88,6 +101,7 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_CLOSE);
 
         // 필터링 관리 필터링 등록 작성
+        const adminFilteringRegisterSaveStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_REGISTER_CLICK);
         await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_REGISTER_CLICK);
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT);
@@ -104,19 +118,25 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
         await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
         await wait(2000);
+        adminFilteringRegisterSave.add(Date.now() - adminFilteringRegisterSaveStart);
+        console.log(`Admin filtering register save duration: ${Date.now() - adminFilteringRegisterSaveStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_register_submit.png` });
 
         // 필터링 관리 테이블 클릭
         await page.waitForSelector(SELECTORS.COMMON.TABLE);
+        const adminFilteringTableClickStart = Date.now();
         await page.click(`${SELECTORS.COMMON.TABLE} button`);
         await wait(2000);
+        adminFilteringTableClick.add(Date.now() - adminFilteringTableClickStart);
+        console.log(`Admin filtering table click duration: ${Date.now() - adminFilteringTableClickStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_table.png` });
 
         // 필터링 관리 수정
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT);
         const editRandomWord = `수정필터_${generateRandomString(8)}_${Date.now()}`;
+        const adminFilteringEditSaveStart = Date.now();
         await page.fill(SELECTORS.ADMIN.FILTERING.INPUT, editRandomWord);
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT_1);
         const editRandomReason = `수정사유_${generateRandomString(6)}_${getNewTimeStamp()}`;
@@ -131,6 +151,8 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
         await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
         await wait(2000);
+        adminFilteringEditSave.add(Date.now() - adminFilteringEditSaveStart);
+        console.log(`Admin filtering edit save duration: ${Date.now() - adminFilteringEditSaveStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_register_edit_submit.png` });
 

@@ -5,6 +5,17 @@ import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { Trend } from 'k6/metrics';
+
+export const webAutodocPageLoad = new Trend('web_autodoc_page_load', true);
+export const webAutodocSearch = new Trend('web_autodoc_search', true);
+export const webAutodocTableClick = new Trend('web_autodoc_table_click', true);
+export const webAutodocDraftSave = new Trend('web_autodoc_draft_save', true);
+export const webAutodocAiLabeling = new Trend('web_autodoc_ai_labeling', true);
+export const webAutodocSave = new Trend('web_autodoc_save', true);
+export const webAutodocEditSave = new Trend('web_autodoc_edit_save', true);
+export const webAutodocAiChat = new Trend('web_autodoc_ai_chat', true);
+export const webAutodocAutoReview = new Trend('web_autodoc_auto_review', true);
 
 export const options = {
     scenarios: {
@@ -40,10 +51,13 @@ export default async function() {
         await loginWithPage(page, credentials);
 
         // 문서 작성 - 표준 양식
+        const webAutodocPageLoadStart = Date.now();
         await page.goto(URLS.AUTODOC.STANDARD);
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC.png` });
+        webAutodocPageLoad.add(Date.now() - webAutodocPageLoadStart);
+        console.log(`web_autodoc_page_load: ${Date.now() - webAutodocPageLoadStart}ms`);
 
         // 문서 작성 - 표준 양식, 페이지네이션
         // await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
@@ -55,18 +69,24 @@ export default async function() {
         // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 문서 작성 - 표준 양식, 검색
+        const webAutodocSearchStart = Date.now();
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
         await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, '개인정보처리방침_삼성닷컴(최종)');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
+        webAutodocSearch.add(Date.now() - webAutodocSearchStart);
+        console.log(`web_autodoc_search: ${Date.now() - webAutodocSearchStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_search.png` });
 
         // 문서 작성 - 표준 양식, 테이블 클릭
+        const webAutodocTableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
         await wait(2000);
+        webAutodocTableClick.add(Date.now() - webAutodocTableClickStart);
+        console.log(`web_autodoc_table_click: ${Date.now() - webAutodocTableClickStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table.png` });
 
@@ -80,9 +100,12 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_write.png` });
 
         // 문서 작성 - 표준 양식, 임시저장
+        const webAutodocDraftSaveStart = Date.now();
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_DRAFT_SAVE);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_DRAFT_SAVE);
         await wait(5000);
+        webAutodocDraftSave.add(Date.now() - webAutodocDraftSaveStart);
+        console.log(`web_autodoc_draft_save: ${Date.now() - webAutodocDraftSaveStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_submit.png` });
 
@@ -96,6 +119,7 @@ export default async function() {
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
 
         // 문서 작성 - 표준 양식, AI 자동 라벨링
+        const webAutodocAiLabelingStart = Date.now();
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
         // 클릭 후 버튼이 disabled(로딩) 상태가 될 때까지 기다림
@@ -115,15 +139,20 @@ export default async function() {
             SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING
           );
         await wait(2000);
+        webAutodocAiLabeling.add(Date.now() - webAutodocAiLabelingStart);
+        console.log(`web_autodoc_ai_labeling: ${Date.now() - webAutodocAiLabelingStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_labeling.png` });
         // await page.waitForSelector('//button[contains(text(),"라벨링 되돌리기")]');
         // await page.click('//button[contains(text(),"라벨링 되돌리기")]');
 
         // 문서 작성 - 표준 양식, 저장
+        const webAutodocSaveStart = Date.now();
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
         await wait(1000);
+        webAutodocSave.add(Date.now() - webAutodocSaveStart);
+        console.log(`web_autodoc_save: ${Date.now() - webAutodocSaveStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_submit.png` });
 
@@ -142,6 +171,7 @@ export default async function() {
         // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_clean_download.png` });
 
         // 문서 작성 - 기존 문서, 수정모드
+        const webAutodocEditSaveStart = Date.now();
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
         await page.click(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
         await wait(2000);
@@ -185,6 +215,8 @@ export default async function() {
             SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE
         );
         await wait(2000);
+        webAutodocEditSave.add(Date.now() - webAutodocEditSaveStart);
+        console.log(`web_autodoc_edit_save: ${Date.now() - webAutodocEditSaveStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_edit_tracking_off.png` });
 
@@ -226,6 +258,7 @@ export default async function() {
         // 문서 작성 - 기존 문서
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
         await page.click(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
+        const webAutodocAiChatStart = Date.now();
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_EDIT);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_EDIT);
         await wait(2000);
@@ -254,10 +287,13 @@ export default async function() {
             SELECTORS.FEATURES.AUTODOC.BUTTON_SEND
         );
         await wait(2000);
+        webAutodocAiChat.add(Date.now() - webAutodocAiChatStart);
+        console.log(`web_autodoc_ai_chat: ${Date.now() - webAutodocAiChatStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_ai_send.png` });
 
         // 문서 작성 - 기존 문서, AI 검토 * 편집, 자동 검토
+        const webAutodocAutoReviewStart = Date.now();
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AUTO_REVIEW);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_AUTO_REVIEW);
         // 클릭 후 버튼에 스핀이 생길 때까지 기다림
@@ -277,6 +313,8 @@ export default async function() {
             SELECTORS.FEATURES.AUTODOC.BUTTON_SEND
         );
         await wait(2000);
+        webAutodocAutoReview.add(Date.now() - webAutodocAutoReviewStart);
+        console.log(`web_autodoc_auto_review: ${Date.now() - webAutodocAutoReviewStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_ai_auto.png` });
 

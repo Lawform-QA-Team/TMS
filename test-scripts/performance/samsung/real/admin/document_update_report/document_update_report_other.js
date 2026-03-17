@@ -6,6 +6,12 @@ import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { Trend } from 'k6/metrics';
+
+export const docUpdateOthPageLoad = new Trend('admin_doc_update_oth_page_load', true);
+export const docUpdateOthDateSelect = new Trend('admin_doc_update_oth_date_select', true);
+export const docUpdateOthCompanySelect = new Trend('admin_doc_update_oth_company_select', true);
+export const docUpdateOthViewOriginal = new Trend('admin_doc_update_oth_view_original', true);
 
 export const options = {
     scenarios: {
@@ -41,14 +47,20 @@ export default async function() {
         await loginWithPage(page, credentials);
 
         // 문서 업데이트 리포트 - 타사문서
+        const docUpdateOthPageLoadStart = Date.now();
         await page.goto(URLS.DOCUMENT_UPDATE.OTHER);
         await wait(2000);
+        docUpdateOthPageLoad.add(Date.now() - docUpdateOthPageLoadStart);
+        console.log(`docUpdateOthPageLoad duration: ${Date.now() - docUpdateOthPageLoadStart}ms`);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_LAW.png` });
 
         // 문서 업데이트 리포트 - 타사문서, 날짜 선택
+        const docUpdateOthDateSelectStart = Date.now();
         await selectComboboxOption(page, SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.DATEPICKER)
         await wait(2000);
+        docUpdateOthDateSelect.add(Date.now() - docUpdateOthDateSelectStart);
+        console.log(`docUpdateOthDateSelect duration: ${Date.now() - docUpdateOthDateSelectStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_OTHER_date.png` });
 
@@ -89,17 +101,23 @@ export default async function() {
         // await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_OTHER_confirm.png` });
 
         // 문서 업데이트 리포트 - 타사문서, 기업 선택
+        const docUpdateOthCompanySelectStart = Date.now();
         await page.waitForLoadState('load');
         const companies = await page.$$('button[data-appearance="outline"][data-size="md"]');
         await companies[Math.floor(Math.random() * companies.length)].click();
         await wait(2000);
+        docUpdateOthCompanySelect.add(Date.now() - docUpdateOthCompanySelectStart);
+        console.log(`docUpdateOthCompanySelect duration: ${Date.now() - docUpdateOthCompanySelectStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_OTHER_select_history.png` });
 
         // 문서 업데이트 리포트 - 타사문서, 원문보기
+        const docUpdateOthViewOriginalStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_VIEW_ORIGINAL);
         await page.click(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_VIEW_ORIGINAL);
         await wait(2000);
+        docUpdateOthViewOriginal.add(Date.now() - docUpdateOthViewOriginalStart);
+        console.log(`docUpdateOthViewOriginal duration: ${Date.now() - docUpdateOthViewOriginalStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_OTHER_original.png` });
 

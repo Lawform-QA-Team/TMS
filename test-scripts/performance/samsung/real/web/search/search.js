@@ -7,6 +7,11 @@ import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
 import { selectDateRangeInRdpCalendar } from '../../../../common/datepicker_helper.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { Trend } from 'k6/metrics';
+
+export const webSearchSearch = new Trend('web_search_search', true);
+export const webSearchFilter = new Trend('web_search_filter', true);
+export const webSearchResultClick = new Trend('web_search_result_click', true);
 
 export const options = {
     scenarios: {
@@ -45,10 +50,13 @@ export default async function() {
         await loginWithPage(page, credentials);
 
         // 통합검색
+        const webSearchSearchStart = Date.now();
         await page.waitForSelector(SELECTORS.WEB.NAVBAR.INPUT);
         await page.type(SELECTORS.WEB.NAVBAR.INPUT, '테스트');
         await page.keyboard.press('Enter');
         await wait(2000);
+        webSearchSearch.add(Date.now() - webSearchSearchStart);
+        console.log(`web_search_search: ${Date.now() - webSearchSearchStart}ms`);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SEARCH.png` });
 
@@ -62,6 +70,7 @@ export default async function() {
         // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 통합검색, 검색 필터 적용
+        const webSearchFilterStart = Date.now();
         await selectComboboxOption(page, SELECTORS.WEB.SEARCH.SELECT)
         await page.waitForSelector(SELECTORS.WEB.SEARCH.INPUT);
         await page.fill(SELECTORS.WEB.SEARCH.INPUT, 'heekun');
@@ -71,11 +80,14 @@ export default async function() {
         await page.waitForSelector(SELECTORS.WEB.SEARCH.BUTTON_FILTER_SEARCH);
         await page.click(SELECTORS.WEB.SEARCH.BUTTON_FILTER_SEARCH);
         await wait(2000);
+        webSearchFilter.add(Date.now() - webSearchFilterStart);
+        console.log(`web_search_filter: ${Date.now() - webSearchFilterStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SEARCH_filter.png` });
 
         // 통합검색, 검색 결과 클릭
         await page.goto(URLS.DRIVE.DRIVE);
+        const webSearchResultClickStart = Date.now();
         await page.waitForSelector(SELECTORS.WEB.NAVBAR.INPUT);
         await page.type(SELECTORS.WEB.NAVBAR.INPUT, '테스트');
         await page.keyboard.press('Enter');
@@ -83,6 +95,8 @@ export default async function() {
         const results = await page.$$('button.text-base.font-semibold.text-foreground.hover\\:text-primary.cursor-pointer.text-left');
         await results[0].click();
         await wait(2000);
+        webSearchResultClick.add(Date.now() - webSearchResultClickStart);
+        console.log(`web_search_result_click: ${Date.now() - webSearchResultClickStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SEARCH_result.png` });
 

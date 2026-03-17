@@ -5,6 +5,12 @@ import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { Trend } from 'k6/metrics';
+
+export const adminMembersPageLoad = new Trend('admin_members_page_load', true);
+export const adminMembersSearch = new Trend('admin_members_search', true);
+export const adminMembersTableClick = new Trend('admin_members_table_click', true);
+export const adminMembersEditSave = new Trend('admin_members_edit_save', true);
 
 export const options = {
     scenarios: {
@@ -40,10 +46,13 @@ export default async function() {
         await loginWithPage(page, credentials);
 
         // 사용자 관리 - 백오피스
+        const adminMembersPageLoadStart = Date.now();
         await page.goto(URLS.MEMBER.BACKOFFICE);
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE.png` });
+        adminMembersPageLoad.add(Date.now() - adminMembersPageLoadStart);
+        console.log(`Admin members page load duration: ${Date.now() - adminMembersPageLoadStart}ms`);
 
         // 사용자 관리 - 백오피스, 페이지네이션
         // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
@@ -56,21 +65,28 @@ export default async function() {
 
         // 사용자 관리 - 백오피스, 검색
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH);
+        const adminMembersSearchStart = Date.now();
         await page.type(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH, '임희건');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
+        adminMembersSearch.add(Date.now() - adminMembersSearchStart);
+        console.log(`Admin members search duration: ${Date.now() - adminMembersSearchStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_search.png` });
 
         // 사용자 관리 - 백오피스, 테이블 클릭
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.TABLE_LIST);
+        const adminMembersTableClickStart = Date.now();
         await page.click(`${SELECTORS.COMMON.TABLE} button`);
         await wait(2000);
+        adminMembersTableClick.add(Date.now() - adminMembersTableClickStart);
+        console.log(`Admin members table click duration: ${Date.now() - adminMembersTableClickStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_table.png` });
 
         // 사용자 관리 - 백오피스, 정보 수정
+        const adminMembersEditSaveStart = Date.now();
         await page.waitForLoadState('load');
         const radios = await page.$$(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO);
         await radios[0].click();
@@ -93,6 +109,8 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
         await wait(2000);
+        adminMembersEditSave.add(Date.now() - adminMembersEditSaveStart);
+        console.log(`Admin members edit save duration: ${Date.now() - adminMembersEditSaveStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_save.png` });
 

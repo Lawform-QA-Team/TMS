@@ -6,6 +6,13 @@ import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { Trend } from 'k6/metrics';
+
+export const adminMembersSvcPageLoad = new Trend('admin_members_svc_page_load', true);
+export const adminMembersSvcSearch = new Trend('admin_members_svc_search', true);
+export const adminMembersSvcTableClick = new Trend('admin_members_svc_table_click', true);
+export const adminMembersSvcEditSave = new Trend('admin_members_svc_edit_save', true);
+export const adminMembersSvcHandover = new Trend('admin_members_svc_handover', true);
 
 export const options = {
     scenarios: {
@@ -41,10 +48,13 @@ export default async function() {
         await loginWithPage(page, credentials);
 
         // 사용자 관리 - 서비스
+        const adminMembersSvcPageLoadStart = Date.now();
         await page.goto(URLS.MEMBER.SERVICE);
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE.png` });
+        adminMembersSvcPageLoad.add(Date.now() - adminMembersSvcPageLoadStart);
+        console.log(`Admin members service page load duration: ${Date.now() - adminMembersSvcPageLoadStart}ms`);
 
         // 사용자 관리 - 서비스, 페이지네이션
         // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
@@ -57,17 +67,21 @@ export default async function() {
 
         // 사용자 관리 - 서비스, 검색
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH);
+        const adminMembersSvcSearchStart = Date.now();
         await page.type(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH, 'a');
         await selectComboboxOption(page, SELECTORS.ADMIN.MEMBERS_TABLE.SELECT_ROLE)
         await selectComboboxOption(page, SELECTORS.ADMIN.MEMBERS_TABLE.SELECT_APPROVAL_STATUS)
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
+        adminMembersSvcSearch.add(Date.now() - adminMembersSvcSearchStart);
+        console.log(`Admin members service search duration: ${Date.now() - adminMembersSvcSearchStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_search.png` });
         await page.goto(URLS.MEMBER.SERVICE);
 
         // 사용자 관리 - 서비스, 테이블 클릭
+        const adminMembersSvcTableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH);
         await page.type(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH, '임희건');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
@@ -76,10 +90,13 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.TABLE_LIST);
         await page.click(`${SELECTORS.COMMON.TABLE} button`);
         await wait(2000);
+        adminMembersSvcTableClick.add(Date.now() - adminMembersSvcTableClickStart);
+        console.log(`Admin members service table click duration: ${Date.now() - adminMembersSvcTableClickStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_table.png` });
 
         // 사용자 관리 - 서비스, 정보 수정
+        const adminMembersSvcEditSaveStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO);
         const radios = await page.$$(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO);
         await radios[2].click();
@@ -93,10 +110,13 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
         await wait(2000);
+        adminMembersSvcEditSave.add(Date.now() - adminMembersSvcEditSaveStart);
+        console.log(`Admin members service edit save duration: ${Date.now() - adminMembersSvcEditSaveStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_save.png` });
 
         // 사용자 관리 - 서비스, 인수인계 진입
+        const adminMembersSvcHandoverStart = Date.now();
         await page.goto(URLS.MEMBER.SERVICE);
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.BUTTON_HANDOVER_CLICK);
         await page.click(SELECTORS.ADMIN.MEMBERS_TABLE.BUTTON_HANDOVER_CLICK);
@@ -191,6 +211,8 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CONFIRM);
         await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CONFIRM);
         await wait(2000);
+        adminMembersSvcHandover.add(Date.now() - adminMembersSvcHandoverStart);
+        console.log(`Admin members service handover duration: ${Date.now() - adminMembersSvcHandoverStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferee_submit.png` });
 

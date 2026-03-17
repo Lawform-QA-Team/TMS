@@ -7,6 +7,12 @@ import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
 import { selectDateRangeInRdpCalendar } from '../../../../common/datepicker_helper.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { Trend } from 'k6/metrics';
+
+export const adminLogPageLoad = new Trend('admin_log_page_load', true);
+export const adminLogDateSelect = new Trend('admin_log_date_select', true);
+export const adminLogSearch = new Trend('admin_log_search', true);
+export const adminLogAiChat = new Trend('admin_log_ai_chat', true);
 
 export const options = {
     scenarios: {
@@ -45,10 +51,13 @@ export default async function() {
         await loginWithPage(page, credentials);
 
         // 로그
+        const adminLogPageLoadStart = Date.now();
         await page.goto(URLS.LOG.LOG);
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_LOG.png` });
+        adminLogPageLoad.add(Date.now() - adminLogPageLoadStart);
+        console.log(`Admin log page load duration: ${Date.now() - adminLogPageLoadStart}ms`);
 
         // 로그, 페이지네이션
         // await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.PAGINATION);
@@ -60,14 +69,18 @@ export default async function() {
         // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 로그, 일시 설정
+        const adminLogDateSelectStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.BUTTON);
         const buttons = await page.$$(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.BUTTON);
         await buttons[Math.floor(Math.random() * buttons.length)].click();
         await wait(2000);
+        adminLogDateSelect.add(Date.now() - adminLogDateSelectStart);
+        console.log(`Admin log date select duration: ${Date.now() - adminLogDateSelectStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_LOG_date.png` });
 
         // 로그, 검색
+        const adminLogSearchStart = Date.now();
         await page.waitForLoadState("load");
         const datepickers = await page.$$('button[data-slot="popover-trigger"]');
         await selectDateRangeInRdpCalendar(page, datepickers[0], datepickers[1], '2026-02-01', '2026-02-28')
@@ -78,11 +91,14 @@ export default async function() {
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
+        adminLogSearch.add(Date.now() - adminLogSearchStart);
+        console.log(`Admin log search duration: ${Date.now() - adminLogSearchStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_LOG_search.png` });
         await page.goto(URLS.LOG.LOG);
 
         // 로그, 검색 -> AI 채팅
+        const adminLogAiChatStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.SELECT_EVENT);
         await page.locator(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.SELECT_EVENT).click();
         const aiChatOption = page.locator('[role="option"]').filter({ hasText: 'AI 채팅' });
@@ -92,6 +108,8 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.TABLE_LIST);
         await page.click(`${SELECTORS.COMMON.TABLE} span.cursor-pointer`);
         await wait(2000);
+        adminLogAiChat.add(Date.now() - adminLogAiChatStart);
+        console.log(`Admin log AI chat duration: ${Date.now() - adminLogAiChatStart}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_LOG_ai.png` });
 

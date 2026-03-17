@@ -5,6 +5,9 @@ import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { Trend } from 'k6/metrics';
+
+const admin_autodoc_tool_login = new Trend('admin_autodoc_tool_login');
 
 export const options = {
     scenarios: {
@@ -37,7 +40,10 @@ export default async function() {
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
     try {
+        const loginStart = Date.now();
         await loginWithPage(page, credentials);
+        admin_autodoc_tool_login.add(Date.now() - loginStart);
+        console.log(`[admin_autodoc_tool] login duration: ${Date.now() - loginStart}ms`);
 
         // // 미완성 상태
         // // 표준 양식 관리 등록 진입

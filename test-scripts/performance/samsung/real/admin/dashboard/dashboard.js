@@ -12,6 +12,10 @@ import {
     selectDateInRdpCalendar,
 } from '../../../../common/datepicker_helper.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { Trend } from 'k6/metrics';
+
+export const adminDashPageLoad = new Trend('admin_dash_page_load', true);
+export const adminDashSearchFilter = new Trend('admin_dash_search_filter', true);
 
 export const options = {
     scenarios: {
@@ -93,10 +97,13 @@ export default async function() {
 
     try {
         await loginWithPage(page, credentials);
+        const adminDashPageLoadStart = Date.now();
         await page.goto(URLS.LOGIN.DASHBOARD);
 
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_dashboard_home.png` });
+        adminDashPageLoad.add(Date.now() - adminDashPageLoadStart);
+        console.log(`Admin dash page load duration: ${Date.now() - adminDashPageLoadStart}ms`);
 
         // await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.EXCEL);
         // await page.click(SELECTORS.ADMIN.DASHBOARD.EXCEL);
@@ -145,6 +152,7 @@ export default async function() {
 
         //통계 필터 적용 (combobox: button + role="combobox")
         //구분 - 접속수, 데이터 선택 - 수탁사명, 조회 단위 - 일
+        const adminDashSearchFilterStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_CATEGORY); // 구분
         await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_CATEGORY);
         timestamp = getNewTimeStamp();
@@ -222,7 +230,9 @@ export default async function() {
         
         await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.BUTTON_SEARCH);
         await page.click(SELECTORS.ADMIN.DASHBOARD.BUTTON_SEARCH);
-        
+        adminDashSearchFilter.add(Date.now() - adminDashSearchFilterStart);
+        console.log(`Admin dash search filter duration: ${Date.now() - adminDashSearchFilterStart}ms`);
+
     } finally {
         if (page) await page.close();
         if (context) await context.close();
