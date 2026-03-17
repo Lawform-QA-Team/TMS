@@ -9,3 +9,13 @@ export function getFormattedTimestamp() {
   const seconds = String(now.getSeconds()).padStart(2, '0');
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
+
+/**
+ * 파일명으로 사용해도 되는(Windows/mac 공통) 타임스탬프 포맷
+ * 예: 2026-03-17_22-55-17
+ */
+export function getFileSafeTimestamp() {
+  return getFormattedTimestamp()
+    .replace(/\s/g, '_')   // 공백 → 언더스코어
+    .replace(/:/g, '-');   // Windows에서 불가한 ':' 제거
+}
