@@ -24,22 +24,48 @@ async function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export async function loginWithPage(page, credentials) {
+export async function loginWithPage(page, credentials, metrics = null) {
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
+    const totalStartTime = Date.now();
 
+    // 1. Page load measurement
+    const pageLoadStart = Date.now();
     await page.goto(URLS.LOGIN.HOME);
+    if (metrics?.pageLoadDuration) {
+        metrics.pageLoadDuration.add(Date.now() - pageLoadStart);
+        console.log(`Page load duration: ${Date.now() - pageLoadStart}ms`);
+    }
     let timestamp = getNewTimeStamp();
     await page.screenshot({ path: `screenshots/${timestamp}_login_home.png` });
 
+    // 2. Input credentials measurement
+    const inputStart = Date.now();
     await page.waitForSelector(SELECTORS.FEATURES.LOGIN.INPUT_EMAIL);
     await page.type(SELECTORS.FEATURES.LOGIN.INPUT_EMAIL, credentials.EMAIL);
     await page.waitForSelector(SELECTORS.FEATURES.LOGIN.INPUT_PASSWORD);
     await page.type(SELECTORS.FEATURES.LOGIN.INPUT_PASSWORD, credentials.PASSWORD);
+    if (metrics?.inputCredentialsDuration) {
+        metrics.inputCredentialsDuration.add(Date.now() - inputStart);
+        console.log(`Input credentials duration: ${Date.now() - inputStart}ms`);
+    }
 
     timestamp = getNewTimeStamp();
     await page.screenshot({ path: `screenshots/${timestamp}_input_account.png` });
 
+    // 3. Submit login measurement
+    const submitStart = Date.now();
     await page.waitForSelector(SELECTORS.FEATURES.LOGIN.BUTTON_SUBMIT);
     await page.click(SELECTORS.FEATURES.LOGIN.BUTTON_SUBMIT);
     await wait(2000);
+    if (metrics?.submitLoginDuration) {
+        metrics.submitLoginDuration.add(Date.now() - submitStart);
+        console.log(`Submit login duration: ${Date.now() - submitStart}ms`);
+    }
+
+    // 4. Total login duration
+    if (metrics?.totalLoginDuration) {
+        const totalDuration = Date.now() - totalStartTime;
+        metrics.totalLoginDuration.add(totalDuration);
+        console.log(`Total login duration: ${totalDuration}ms`);
+    }
 }

@@ -1,8 +1,15 @@
 import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js"
 import { browser } from 'k6/browser';
+import { Trend } from 'k6/metrics';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
 import { getCredentials, loginWithPage } from './login_helper.js';
+
+// Custom metrics for each login action
+export const pageLoadDuration = new Trend('page_load_duration', true);
+export const inputCredentialsDuration = new Trend('input_credentials_duration', true);
+export const submitLoginDuration = new Trend('submit_login_duration', true);
+export const totalLoginDuration = new Trend('total_login_duration', true);
 
 export const options = {
     scenarios: {
@@ -30,7 +37,13 @@ export default async function() {
     const credentials = getCredentials();
 
     try {
-        await loginWithPage(page, credentials);
+        const metrics = {
+            pageLoadDuration,
+            inputCredentialsDuration,
+            submitLoginDuration,
+            totalLoginDuration
+        };
+        await loginWithPage(page, credentials, metrics);
     } finally {
         if (page) await page.close();
         if (context) await context.close();
