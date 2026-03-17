@@ -28,6 +28,20 @@ async function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/**
+ * 랜덤 문자열 생성 함수
+ * @param {number} length - 생성할 문자열 길이
+ * @returns {string} 랜덤 문자열
+ */
+function generateRandomString(length = 6) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1960, height: 1080 },
@@ -77,9 +91,11 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_REGISTER_CLICK);
         await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_REGISTER_CLICK);
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT);
-        await page.type(SELECTORS.ADMIN.FILTERING.INPUT, '필터링 단어 테스트');
+        const randomWord = `필터_${generateRandomString(8)}_${Date.now()}`;
+        await page.fill(SELECTORS.ADMIN.FILTERING.INPUT, randomWord);
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT_1);
-        await page.type(SELECTORS.ADMIN.FILTERING.INPUT_1, '필터링 사유 테스트');
+        const randomReason = `테스트사유_${generateRandomString(6)}_${getNewTimeStamp()}`;
+        await page.fill(SELECTORS.ADMIN.FILTERING.INPUT_1, randomReason);
         await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_register_write.png` });
@@ -100,9 +116,11 @@ export default async function() {
 
         // 필터링 관리 수정
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT);
-        await page.type(SELECTORS.ADMIN.FILTERING.INPUT, '필터링 단어 테스트 2');
+        const editRandomWord = `수정필터_${generateRandomString(8)}_${Date.now()}`;
+        await page.fill(SELECTORS.ADMIN.FILTERING.INPUT, editRandomWord);
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT_1);
-        await page.type(SELECTORS.ADMIN.FILTERING.INPUT_1, '필터링 사유 테스트 2');
+        const editRandomReason = `수정사유_${generateRandomString(6)}_${getNewTimeStamp()}`;
+        await page.fill(SELECTORS.ADMIN.FILTERING.INPUT_1, editRandomReason);
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.SWITCH);
         await page.click(SELECTORS.ADMIN.FILTERING.SWITCH);
         await wait(2000);
