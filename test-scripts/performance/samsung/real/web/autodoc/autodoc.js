@@ -56,7 +56,7 @@ export default async function() {
 
         // 문서 작성 - 표준 양식, 검색
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
-        await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, '시연용');
+        await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, '개인정보처리방침_삼성닷컴(최종)');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
@@ -155,6 +155,13 @@ export default async function() {
         await page.fill(SELECTORS.FEATURES.AUTODOC.INPUT_1, '문서 작성 테스트 1');
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
+        await page.waitForFunction(
+            (selector) => {
+                const el = document.querySelector(selector);
+                return !el;
+            },
+            SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE
+        );
         await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_edit_save.png` });
@@ -170,6 +177,13 @@ export default async function() {
         await page.fill(SELECTORS.FEATURES.AUTODOC.INPUT_1, '문서 작성 테스트 2');
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
+        await page.waitForFunction(
+            (selector) => {
+                const el = document.querySelector(selector);
+                return !el;
+            },
+            SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE
+        );
         await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_edit_tracking_off.png` });
@@ -223,14 +237,46 @@ export default async function() {
         await page.type(SELECTORS.FEATURES.AUTODOC.TEXTAREA, '조항을 추가해줘');
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SEND);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SEND);
-        await wait(15000);
+        // 클릭 후 버튼에 스핀이 생길 때까지 기다림
+        await page.waitForFunction(
+            (selector) => {
+                const btn = document.querySelector(selector);
+                return btn && btn.querySelector('.animate-spin');
+            },
+            SELECTORS.FEATURES.AUTODOC.BUTTON_SEND
+        );
+        // 스핀이 사라질 때까지 기다림
+        await page.waitForFunction(
+            (selector) => {
+                const btn = document.querySelector(selector);
+                return btn && !btn.querySelector('.animate-spin');
+            },
+            SELECTORS.FEATURES.AUTODOC.BUTTON_SEND
+        );
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_ai_send.png` });
 
         // 문서 작성 - 기존 문서, AI 검토 * 편집, 자동 검토
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AUTO_REVIEW);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_AUTO_REVIEW);
-        await wait(15000);
+        // 클릭 후 버튼에 스핀이 생길 때까지 기다림
+        await page.waitForFunction(
+            (selector) => {
+                const btn = document.querySelector(selector);
+                return btn && btn.querySelector('.animate-spin');
+            },
+            SELECTORS.FEATURES.AUTODOC.BUTTON_SEND
+        );
+        // 스핀이 사라질 때까지 기다림
+        await page.waitForFunction(
+            (selector) => {
+                const btn = document.querySelector(selector);
+                return btn && !btn.querySelector('.animate-spin');
+            },
+            SELECTORS.FEATURES.AUTODOC.BUTTON_SEND
+        );
+        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_ai_auto.png` });
 
