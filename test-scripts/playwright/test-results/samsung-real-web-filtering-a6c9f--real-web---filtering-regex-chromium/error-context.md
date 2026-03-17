@@ -1,0 +1,442 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - navigation [ref=e4]:
+        - generic [ref=e5]:
+          - paragraph [ref=e6]: 개인정보 문서 자동화 솔루션
+          - generic [ref=e7]:
+            - generic [ref=e8]:
+              - img
+              - textbox "문서 검색" [ref=e9]
+            - button "공지사항" [ref=e10] [cursor=pointer]
+            - generic [ref=e11]:
+              - paragraph [ref=e12]: heekun
+              - paragraph [ref=e13]: (테스트1)
+            - button "로그아웃" [ref=e14] [cursor=pointer]
+            - combobox [ref=e15] [cursor=pointer]:
+              - generic: 한국어
+              - img
+      - generic [ref=e16]:
+        - list [ref=e22]:
+          - listitem [ref=e23]:
+            - link "문서 작성" [ref=e24] [cursor=pointer]:
+              - /url: /autodoc
+              - img [ref=e25]
+              - generic [ref=e29]: 문서 작성
+          - listitem [ref=e30]:
+            - link "문서 조회" [ref=e31] [cursor=pointer]:
+              - /url: /drive
+              - img [ref=e32]
+              - generic [ref=e37]: 문서 조회
+          - listitem [ref=e38]:
+            - link "1:1 문의" [ref=e39] [cursor=pointer]:
+              - /url: /qna
+              - img [ref=e40]
+              - generic [ref=e43]: 1:1 문의
+        - main [ref=e44]:
+          - main [ref=e45]:
+            - generic [ref=e48]:
+              - generic [ref=e49]:
+                - tablist [ref=e51]:
+                  - tab "문서 작성" [selected] [ref=e52] [cursor=pointer]
+                  - tab "문서 정보 작성" [ref=e53] [cursor=pointer]
+                - generic [ref=e54]:
+                  - generic [ref=e57]:
+                    - generic [ref=e58]:
+                      - generic [ref=e59]:
+                        - heading "계약상대" [level=3] [ref=e61]
+                        - generic [ref=e62]:
+                          - paragraph [ref=e63]: "1"
+                          - paragraph [ref=e64]: / 8
+                      - generic [ref=e66]:
+                        - generic [ref=e68]: 수탁자
+                        - generic [ref=e72]:
+                          - paragraph [ref=e73]: 법인명
+                          - textbox "개인정보 주식회사" [ref=e75]
+                    - generic [ref=e76]:
+                      - generic [ref=e77]:
+                        - heading "주계약 내용" [level=3] [ref=e79]
+                        - generic [ref=e80]:
+                          - paragraph [ref=e81]: "2"
+                          - paragraph [ref=e82]: / 8
+                      - generic [ref=e84]:
+                        - generic [ref=e86]: 계약명
+                        - generic [ref=e90]:
+                          - paragraph [ref=e91]: 계약명
+                          - textbox "업무위탁계약" [ref=e93]
+                        - generic [ref=e94]:
+                          - generic [ref=e95]:
+                            - generic [ref=e97]: 주계약 체결일
+                            - generic [ref=e104] [cursor=pointer]:
+                              - img [ref=e105]
+                              - text: 2026.01.01.
+                          - generic [ref=e107]:
+                            - generic [ref=e109]: 주계약 업무 내용
+                            - textbox "개인정보처리방침 솔루션 개발 업무" [ref=e115]
+                    - generic [ref=e116]:
+                      - generic [ref=e117]:
+                        - heading "위탁업무의 내용" [level=3] [ref=e119]
+                        - generic [ref=e120]:
+                          - paragraph [ref=e121]: "3"
+                          - paragraph [ref=e122]: / 8
+                      - generic [ref=e124]:
+                        - generic [ref=e126]: 위탁하는 개인정보 처리 업무
+                        - generic [ref=e127]:
+                          - textbox "고객정보 관리 업무" [ref=e132]
+                          - generic [ref=e134]:
+                            - textbox [ref=e138]
+                            - generic [ref=e139]:
+                              - button "추가" [ref=e140] [cursor=pointer]:
+                                - img [ref=e141]
+                                - generic [ref=e142]: 추가
+                              - button "삭제" [ref=e143] [cursor=pointer]:
+                                - img [ref=e144]
+                                - generic [ref=e145]: 삭제
+                    - generic [ref=e146]:
+                      - generic [ref=e147]:
+                        - heading "위약벌" [level=3] [ref=e149]
+                        - generic [ref=e150]:
+                          - paragraph [ref=e151]: "4"
+                          - paragraph [ref=e152]: / 8
+                      - generic [ref=e158]:
+                        - paragraph [ref=e159]: 총 계약금액의
+                        - textbox "10" [ref=e161]
+                        - paragraph [ref=e162]: "%"
+                    - generic [ref=e163]:
+                      - generic [ref=e164]:
+                        - heading "개인정보 국외이전" [level=3] [ref=e166]
+                        - generic [ref=e167]:
+                          - paragraph [ref=e168]: "5"
+                          - paragraph [ref=e169]: / 8
+                      - generic [ref=e171]:
+                        - generic [ref=e173]: 개인정보의 국외이전 여부
+                        - radiogroup [ref=e177]:
+                          - generic [ref=e178] [cursor=pointer]:
+                            - radio "국외이전 함" [ref=e179]
+                            - generic [ref=e180]: 국외이전 함
+                          - generic [ref=e181] [cursor=pointer]:
+                            - radio "국외이전 하지 않음" [ref=e182]
+                            - generic [ref=e183]: 국외이전 하지 않음
+                    - generic [ref=e184]:
+                      - generic [ref=e185]:
+                        - heading "재위탁 사항" [level=3] [ref=e187]
+                        - generic [ref=e188]:
+                          - paragraph [ref=e189]: "6"
+                          - paragraph [ref=e190]: / 8
+                      - generic [ref=e192]:
+                        - generic [ref=e194]: 재위탁의 여부
+                        - radiogroup [ref=e198]:
+                          - generic [ref=e199] [cursor=pointer]:
+                            - radio "재위탁 있음" [ref=e200]
+                            - generic [ref=e201]: 재위탁 있음
+                          - generic [ref=e202] [cursor=pointer]:
+                            - radio "재위탁 없음" [ref=e203]
+                            - generic [ref=e204]: 재위탁 없음
+                    - generic [ref=e205]:
+                      - generic [ref=e206]:
+                        - heading "계약일자" [level=3] [ref=e208]
+                        - generic [ref=e209]:
+                          - paragraph [ref=e210]: "7"
+                          - paragraph [ref=e211]: / 8
+                      - generic [ref=e213]:
+                        - generic [ref=e215]: 계약 체결일
+                        - generic [ref=e222] [cursor=pointer]:
+                          - img [ref=e223]
+                          - text: 2026.01.01
+                    - generic [ref=e225]:
+                      - generic [ref=e226]:
+                        - heading "수탁자 상세정보" [level=3] [ref=e228]
+                        - generic [ref=e229]:
+                          - paragraph [ref=e230]: "8"
+                          - paragraph [ref=e231]: / 8
+                      - generic [ref=e232]:
+                        - generic [ref=e233]:
+                          - generic [ref=e235]: 대표이사
+                          - generic [ref=e239]:
+                            - paragraph [ref=e240]: 대표이사명
+                            - textbox [ref=e242]
+                        - generic [ref=e243]:
+                          - generic [ref=e245]: 본점소재지
+                          - generic [ref=e249]:
+                            - textbox "클릭하여 주소를 검색하세요." [ref=e250] [cursor=pointer]
+                            - textbox "나머지 주소를 입력하세요." [ref=e251]
+                  - generic [ref=e258]:
+                    - paragraph [ref=e260]:
+                      - strong [ref=e264]: 개인정보처리위탁계약서
+                    - paragraph [ref=e266]:
+                      - generic [ref=e268]:
+                        - text: 삼성전자 주식회사(이하 "위탁자"라 한다)와
+                        - text: (이하 "수탁자"라 한다)은/는
+                        - text: 자
+                        - text: 계약 (이하 "주계약"이라 한다)에 부수하여 다음과 같이 개인정보 처리위탁 계약 (이하 "본 계약"이라 한다)을 체결한다.
+                    - paragraph [ref=e279]
+                    - paragraph [ref=e283]:
+                      - generic [ref=e285]: "- 다 음 -"
+                    - paragraph [ref=e287]
+                    - paragraph [ref=e291]
+                    - paragraph [ref=e295]: 제 1조 (목적)
+                    - paragraph [ref=e297]:
+                      - generic [ref=e299]:
+                        - text: 본 계약은 "위탁자"가 "수탁자"에게 위탁한 "주계약"상의
+                        - text: 업무를 "수탁자"가 수행함에 있어서 필수적으로 필요한 개인정보 처리업무를 "위탁자"가 "수탁자"에게 위탁함에 있어서 "위탁자"와 "수탁자" 상호간의 권리 및 의무 등 필요한 사항을 정함에 그 목적이 있다.
+                    - paragraph [ref=e304]
+                    - paragraph [ref=e308]: 제 2조 (용어의 정의)
+                    - list [ref=e309]:
+                      - listitem [ref=e311]:
+                        - paragraph [ref=e315]:
+                          - generic [ref=e317]: "\"개인정보\"라 함은 살아 있는 개인에 관한 정보로서 성명, 주민등록번호 및 영상 등을 통하여 개인을 알아볼 수 있는 정보(해당 정보만으로는 특정 개인을 알아볼 수 없더라도 다른 정보와 쉽게 결합하여 알아볼 수 있는 것을 포함한다)를 말한다."
+                      - listitem [ref=e319]:
+                        - paragraph [ref=e323]:
+                          - generic [ref=e325]: "\"처리\"라 함은 개인정보의 수집, 생성, 기록, 저장, 보유, 가공, 편집, 검색, 출력, 정정(訂正), 복구, 이용, 제공, 공개, 파기, 그 밖에 이와 유사한 행위를 말한다."
+                      - listitem [ref=e327]:
+                        - paragraph [ref=e331]:
+                          - generic [ref=e333]: "\"정보주체\"라 함은 처리되는 정보에 의하여 알아볼 수 있는 사람으로서 그 정보의 주체가 되는 사람을 말한다."
+                      - listitem [ref=e335]:
+                        - paragraph [ref=e339]:
+                          - generic [ref=e341]: 이상에서 정의되지 아니한 용어는 관계 법령 및 일반 상관례에 따라 정의되는 바에 따른다.
+                    - paragraph [ref=e343]
+                    - paragraph [ref=e347]: 제 3조 (계약기간)
+                    - list [ref=e348]:
+                      - listitem [ref=e350]:
+                        - paragraph [ref=e354]:
+                          - generic [ref=e356]: 본 계약의 계약기간은 계약체결일로부터 "주계약"에서 정한 계약기간의 종료일까지로 한다.
+                      - listitem [ref=e358]:
+                        - paragraph [ref=e362]:
+                          - generic [ref=e364]: 전항의 계약기간은 "위탁자"와 "수탁자"의 서면 합의에 의하여 변경할 수 있다.
+                      - listitem [ref=e366]:
+                        - paragraph [ref=e370]:
+                          - generic [ref=e372]: 본 계약은 "주계약"에 따라 본 계약 체결일 이전에 처리된 개인정보에 대해서도 적용된다.
+                    - paragraph [ref=e374]
+                    - paragraph [ref=e378]: 제 4조 (개인정보 처리위탁 목적)
+                    - list [ref=e379]:
+                      - listitem [ref=e381]:
+                        - paragraph [ref=e385]:
+                          - generic [ref=e387]: "\"위탁자\"는 \"주계약\"상 업무를 \"수탁자\"에게 위탁하여 수행하도록 하기 위하여 필수적으로 필요한 범위 내에서 \"수탁자\"에게 개인정보 처리업무를 위탁하고, \"수탁자\"는 \"주계약\"상 업무의 수행을 위하여 필수적으로 필요한 범위 내에서 본 계약에 따라 개인정보를 처리한다."
+                      - listitem [ref=e389]:
+                        - paragraph [ref=e393]:
+                          - generic [ref=e395]: "\"수탁자\"는 전항의 목적에 따라 \"주계약\"상 업무를 수행하는 범위 외에는 정보주체의 개인정보를 처리하여서는 아니 된다."
+                    - paragraph [ref=e397]
+                    - paragraph [ref=e401]: 제 5조 (위탁업무의 내용 및 범위)
+                    - list [ref=e402]:
+                      - listitem [ref=e404]:
+                        - generic [ref=e406]:
+                          - paragraph [ref=e408]:
+                            - generic [ref=e410]: "\"위탁자\"가 본 계약에 따라 \"수탁자\"에게 의뢰하는 위탁업무는 \"수탁자\"가 \"위탁자\"로부터 위탁받은 \"주계약\"상 업무를 수행하는 범위 내에서 \"위탁자\"가 위탁하는 개인정보 처리업무로서, 구체적인 개인정보 처리업무의 범위는 다음 각호와 같다."
+                          - list [ref=e411]:
+                            - listitem [ref=e413]:
+                              - paragraph [ref=e417]
+                            - listitem [ref=e424]:
+                              - paragraph [ref=e428]
+                      - listitem [ref=e435]:
+                        - paragraph [ref=e439]:
+                          - generic [ref=e441]: 전항의 위탁업무 이외에 추가사항이 발생할 경우 "위탁자"와 "수탁자"의 별도 합의에 의하여 결정한다.
+                    - paragraph [ref=e443]
+                    - paragraph [ref=e447]: 제 6조 (개인정보의 안전성 확보조치)
+                    - list [ref=e448]:
+                      - listitem [ref=e450]:
+                        - paragraph [ref=e454]:
+                          - generic [ref=e456]: "\"수탁자\"는 「개인정보 보호법」및 기타 정보 보호에 관한 법률, 관련 하위 법령, 고시, 해설서 등 제반 법규에 따라 개인정보의 안전성 확보에 필요한 기술적∙관리적 조치를 취하여야 한다."
+                      - listitem [ref=e458]:
+                        - paragraph [ref=e462]:
+                          - generic [ref=e464]: "\"수탁자\"는 법령상 필수적으로 요구되는 항목 및 이름, 생년월일, 이메일, 주소, 전화번호, IMEI/IMSI, 연계정보를 포함하여 \"위탁자\"가 요구하는 개인정보 항목에 대한 암호화 조치를 하여야 한다."
+                    - paragraph [ref=e466]
+                    - paragraph [ref=e470]: 제 7조 (개인정보 유출 통지 등)
+                    - list [ref=e471]:
+                      - listitem [ref=e473]:
+                        - generic [ref=e475]:
+                          - paragraph [ref=e477]:
+                            - generic [ref=e479]: "\"수탁자\"는 \"위탁자\"가 24시간내에 정보주체 및 관계기관에 개인정보 유출 사실을 통지 및 신고할 수 있도록 개인정보가 유출되었음을 알게 된 즉시 “위탁자”에 다음 각호의 사실을 알려야 한다."
+                          - list [ref=e480]:
+                            - listitem [ref=e482]:
+                              - paragraph [ref=e486]:
+                                - generic [ref=e488]: 유출된 개인정보의 항목
+                            - listitem [ref=e490]:
+                              - paragraph [ref=e494]:
+                                - generic [ref=e496]: 유출된 시점과 그 경위
+                            - listitem [ref=e498]:
+                              - paragraph [ref=e502]:
+                                - generic [ref=e504]: 유출로 인하여 발생할 수 있는 피해를 최소화하기 위하여 정보주체가 할 수 있는 방법 등에 관한 정보
+                            - listitem [ref=e506]:
+                              - paragraph [ref=e510]:
+                                - generic [ref=e512]: "\"수탁자\"의 대응조치"
+                      - listitem [ref=e514]:
+                        - paragraph [ref=e518]:
+                          - generic [ref=e520]: "\"수탁자\"는 개인정보가 유출된 경우 그 피해를 최소화하기 위한 대책을 마련하고 필요한 조치를 하여야 한다."
+                      - listitem [ref=e522]:
+                        - paragraph [ref=e526]:
+                          - generic [ref=e528]: "\"수탁자\"는 \"위탁자\"가 개인정보 유출에 따른 피해 최소화 등의 대응 조치를 함에 있어 협조 요청시 이에 따라야 한다."
+                    - paragraph [ref=e530]
+                    - paragraph [ref=e534]: 제 8조 (개인정보 관리현황 점검 등)
+                    - paragraph [ref=e536]:
+                      - generic [ref=e538]: "\"위탁자\"는 제6조의 준수 여부를 확인하기 위하여 \"수탁자\"의 개인정보의 처리현황, 개인정보파일 접근대상자 및 접속현황 등에 관한 사항에 대한 기록·관리 실태 관련 자료의 제출, 필요 조치 이행 또는 현장 점검을 요청할 수 있으며, \"수탁자\"는 합리적인 이유가 없는 한 이에 응하여야 한다. 또한 필요한 경우“위탁자”는 업무 위탁으로 인하여 정보주체의 개인정보가 분실ㆍ도난ㆍ유출ㆍ위조ㆍ변조 또는 훼손되지 아니하도록 수탁자를 교육할 수 있다. \"수탁자\"가 관련 자료 제출 요구에 성실히 응하지 아니하거나 합리적 이유 없이 현장 점검을 거부하는 경우 이는 본 계약의 중대한 위반을 구성한다."
+                    - paragraph [ref=e540]
+                    - paragraph [ref=e544]: 제 9조 (개인정보의 파기 등)
+                    - list [ref=e545]:
+                      - listitem [ref=e547]:
+                        - paragraph [ref=e551]:
+                          - generic [ref=e553]: 본 계약이 종료된 경우 "수탁자"는 특별한 사정이 없는 한 지체없이 개인정보를 파기하거나 "위탁자"에게 반환하고, 개인정보가 모두 복구 불가한 방식으로 파기 또는 반환되었음을 확인하는 확인서를 "위탁자"에게 제출하여야 한다.
+                      - listitem [ref=e555]:
+                        - paragraph [ref=e559]:
+                          - generic [ref=e562]: "\"주 계약\" 또는 본 계약의 업무를 수행하는 과정에서 개인정보 또는 개인정보파일의 백업 데이터(복사본 포함, 이하 같음)가 생성되는 경우 백업 데이터의 현황을 \"위탁자\"에게 사전에 서면으로 보고하고, 해당 백업 데이터가 불필요하게 되었을 때는 이를 지체없이 파기한 후 이에 관한 파기확인서를 별도로 제출하여야 한다."
+                      - listitem [ref=e564]:
+                        - paragraph [ref=e568]:
+                          - generic [ref=e570]: 본 조의 위반은 본 계약의 중대한 위반을 구성한다.
+                    - paragraph [ref=e572]
+                    - paragraph [ref=e576]: 제 10조 (비밀유지)
+                    - list [ref=e577]:
+                      - listitem [ref=e579]:
+                        - paragraph [ref=e583]:
+                          - generic [ref=e585]: "\"수탁자\"는 본 계약의 체결사실, 본 위탁업무 수행에 관한 진행상황이나 내용 및 그 결과 등을 \"위탁자\"의 사전 서면 동의 없이 제3자에게 공개, 유출, 제공하여서는 아니 된다."
+                      - listitem [ref=e587]:
+                        - paragraph [ref=e591]:
+                          - generic [ref=e593]: "\"위탁자\"와 \"수탁자\"는 본 계약의 체결 및 이행과 관련하여 알게 된 상대방의 업무상 비밀을 상대방의 사전 서면 동의 없이 제3자에게 공개, 유출, 제공하여서는 아니 된다."
+                      - listitem [ref=e595]:
+                        - paragraph [ref=e599]:
+                          - generic [ref=e601]: "\"위탁자\" 또는 \"수탁자\"가 전2항을 위반하는 경우 상대방은 그로 인한 손해의 배상을 청구할 수 있다."
+                    - paragraph [ref=e603]
+                    - paragraph [ref=e607]: 제 11조 (계약의 해제 및 해지)
+                    - list [ref=e608]:
+                      - listitem [ref=e610]:
+                        - generic [ref=e612]:
+                          - paragraph [ref=e614]:
+                            - generic [ref=e616]: "\"위탁자\" 또는 \"수탁자\" 중 일방에게 다음 각 호에 해당하는 사유가 발생한 경우에는 상대방은 최고 없이 “주 계약” 및 본 계약을 해제 또는 해지할 수 있다."
+                          - list [ref=e617]:
+                            - listitem [ref=e619]:
+                              - paragraph [ref=e623]:
+                                - generic [ref=e625]: 발행한 어음이나 수표가 부도 또는 거래정지된 경우
+                            - listitem [ref=e627]:
+                              - paragraph [ref=e631]:
+                                - generic [ref=e633]: 감독관청으로부터 영업정지 또는 영업면허, 영업등록 등의 취소처분을 받은 경우
+                            - listitem [ref=e635]:
+                              - paragraph [ref=e639]:
+                                - generic [ref=e641]: 파산절차 또는 회생절차가 시작되거나 이러한 신청이 있는 경우
+                            - listitem [ref=e643]:
+                              - paragraph [ref=e647]:
+                                - generic [ref=e649]: 가압류·가처분 등으로 본 계약의 목적달성이 곤란하다고 판단될 경우
+                            - listitem [ref=e651]:
+                              - paragraph [ref=e655]:
+                                - generic [ref=e657]: "\"수탁자\"(\"수탁자\"의 피용자, 재수탁자를 포함)가 처리하는 개인정보가 분실·도난·유출되었거나 그에 준하는 현저한 위험에 노출된 경우"
+                      - listitem [ref=e659]:
+                        - paragraph [ref=e663]:
+                          - generic [ref=e665]: "\"위탁자\" 또는 \"수탁자\" 중 일방이 본 계약을 위반한 경우 상대방은 14일의 기간을 두고 이를 최고한 후, 시정되지 않을 경우 “주 계약” 및 본 계약을 서면통지에 의해 해제 또는 해지할 수 있다."
+                      - listitem [ref=e667]:
+                        - generic [ref=e669]:
+                          - paragraph [ref=e671]:
+                            - generic [ref=e673]: "\"위탁자\"는 \"수탁자\"에게 다음 각 호에 해당하는 사유가 발생하였을 경우 14일의 기간을 두고 이를 최고한 후, 시정되지 않을 경우 “주 계약” 및 본 계약을 서면통지에 의해 해제 또는 해지할 수 있다."
+                          - list [ref=e674]:
+                            - listitem [ref=e676]:
+                              - paragraph [ref=e680]:
+                                - generic [ref=e682]: "\"수탁자\" 또는 \"수탁자\"의 피용자가 제8조에 따른 점검에 필요한 자료 제출 또는 점검활동을 거부하거나, 점검결과 확인된 미흡 사항이 보완되지 않는 경우"
+                            - listitem [ref=e684]:
+                              - paragraph [ref=e688]:
+                                - generic [ref=e690]: 정보주체로부터 개인정보와 관련한 클레임이 2회 이상 있는 경우
+                            - listitem [ref=e692]:
+                              - paragraph [ref=e696]:
+                                - generic [ref=e698]: 본 계약의 중대한 위반을 포함하여 기타 중대한 사유로 인하여 본 업무위탁을 계속할 수 없다고 판단되는 경우
+                      - listitem [ref=e700]:
+                        - paragraph [ref=e704]:
+                          - generic [ref=e706]: "\"주 계약\" 및 본 계약의 해제 또는 해지로 인하여 손해가 발생한 경우에 손해를 입은 당사자는 상대방에게 손해배상을 청구할 수 있다."
+                    - paragraph [ref=e708]
+                    - paragraph [ref=e712]: 제 12조 (손해배상책임)
+                    - list [ref=e713]:
+                      - listitem [ref=e715]:
+                        - paragraph [ref=e719]:
+                          - generic [ref=e721]: "\"위탁자\"와 \"수탁자\" 중 어느 일방이 본 계약에 규정된 의무 이행을 게을리하거나 또는 지연시킬 때에는 그 행위를 야기한 당사자는 그러한 불이행에 대해 전적으로 책임을 지며, 그에 따른 일체의 손해를 배상함과 동시에 상대방이 요청하는 모든 적절한 조치를 취해야 한다."
+                      - listitem [ref=e723]:
+                        - paragraph [ref=e727]:
+                          - generic [ref=e729]: "\"수탁자\"가 선량한 관리자의 주의를 다하지 아니 하고 위탁의 취지에 따라 업무를 처리하지 아니하였을 경우 \"위탁자\"는 \"수탁자\"에게 즉시 완전하게 이행하도록 촉구할 수 있고, \"수탁자\"가 이를 이행하지 않아 \"위탁자\"에게 손해가 발생한 경우 \"수탁자\"는 이에 대하여 배상할 책임을 진다."
+                      - listitem [ref=e731]:
+                        - paragraph [ref=e735]:
+                          - generic [ref=e737]: "\"수탁자\"(\"수탁자\"의피용자, 재수탁자포함)가 개인정보를 처리하는 과정에서 계약 또는 개인정보보호법 등 관계법령을 위반한 경우, \"수탁자\"는 \"위탁자\"에게 그러한 위반행위에 대해 전적으로 책임을 지며, 그에 따른 일체의 손해(정보주체에 대한 손해배상, 법률비용, 규제기관의 과징금 또는 과태료 처분, 회사 평판 또는 브랜드 가치 하락을 포함하나 이에 한정되지 아니함)를 배상함과 동시에 상대방이 요청하는 모든 적절한 조치를 취해야 한다."
+                    - paragraph [ref=e739]
+                    - paragraph [ref=e743]: 제 13조 (위약벌)
+                    - paragraph [ref=e745]:
+                      - generic [ref=e747]:
+                        - text: "\"수탁자\" (\"수탁자\"의 피용자, 재수탁자 포함)가 개인정보를 처리하는 과정에서 개인정보보호법 등 관계법령을 위반하여 유출 사고 등이 발생함으로써 \"위탁자\"에게 행정처분이 내려지는 경우, \"수탁자\"는 \"위탁자\"에게 제12조에 따른 손해배상과는 별개로 주 계약상 총 계약금액의 ["
+                        - text: "%]를 위약벌로 지급하여야 한다."
+                    - paragraph [ref=e752]
+                    - paragraph [ref=e756]: 제 14조 (권리, 의무의 양도 금지)
+                    - list [ref=e757]:
+                      - listitem [ref=e759]:
+                        - paragraph [ref=e763]:
+                          - generic [ref=e765]: "\"위탁자\" 또는 \"수탁자\"는 상대방의 사전 서면 동의 없이 본 계약 상의 권리와 의무를 제3자에게 양도하거나 처분할 수 없으며, \"수탁자\"는 \"위탁자\"의 사전 서면 동의 없이 제3자에게 본 위탁업무의 전부 또는 일부를 재위탁할 수 없다."
+                      - listitem [ref=e767]:
+                        - paragraph [ref=e771]:
+                          - generic [ref=e773]: "\"수탁자\"는 전항에 따라 \"위탁자\"에 사전 서면 동의를 구하는 경우 별첨 양식에 따라 제3자의 명칭, 재위탁 등의 범위, 이전되는 개인정보 항목 등 구체적인 사항을 제공하여야 한다."
+                      - listitem [ref=e775]:
+                        - paragraph [ref=e779]:
+                          - generic [ref=e781]: "\"수탁자\"가 \"위탁자\"의 사전 서면 동의 하에 제3자에게 본 위탁업무의 전부 또는 일부를 재위탁하는 경우 제6조를 준수한다는 내용으로 계약을 체결하여야 한다."
+                    - paragraph [ref=e783]
+                    - paragraph [ref=e787]: 제 15조 (불가항력에 의한 면책)
+                    - list [ref=e788]:
+                      - listitem [ref=e790]:
+                        - paragraph [ref=e794]:
+                          - generic [ref=e796]: "\"위탁자\"와 \"수탁자\"는 화재, 홍수, 지진, 폭풍, 전쟁, 혁명, 정부의 규제 등 불가항력에 의해 본 계약에 기초한 의무를 이행할 수 없는 경우 이행지체 또는 불이행의 책임을 부담하지 아니한다."
+                      - listitem [ref=e798]:
+                        - paragraph [ref=e802]:
+                          - generic [ref=e804]: 전항에 따라 본 계약의 수행이 1개월 이상 지연된 경우 "위탁자"와 "수탁자"는 별도의 최고절차 없이 본 계약을 해지할 수 있다.
+                    - paragraph [ref=e806]
+                    - paragraph [ref=e810]: 제 16조 (계약의 수정 및 변경)
+                    - paragraph [ref=e812]:
+                      - generic [ref=e814]: 본 계약의 내용은 "위탁자"와 "수탁자" 사이에 기명 날인한 서면에 의해서만 수정 또는 변경할 수 있다.
+                    - paragraph [ref=e816]
+                    - paragraph [ref=e820]: 제 17조 (계약의 해석)
+                    - list [ref=e821]:
+                      - listitem [ref=e823]:
+                        - paragraph [ref=e827]:
+                          - generic [ref=e829]: 본 계약에 규정되지 않은 사항 및 본 계약의 내용 중 해석상 이의가 있는 사항은 "위탁자"와 "수탁자" 간 합의로써 해결하고, 합의되지 않은 사항은 일반적으로 인정되는 상관례에 따른다.
+                      - listitem [ref=e831]:
+                        - paragraph [ref=e835]:
+                          - generic [ref=e837]: 본 계약 이전에 서면, 구두로 본 계약과 관련한 합의사항들은 모두 무효이고, 본 계약에 규정된 내용만이 유효하며, 최종적으로 합의된 내용이다.
+                    - paragraph [ref=e839]
+                    - paragraph [ref=e843]: 제 18조 (관할법원)
+                    - paragraph [ref=e845]:
+                      - generic [ref=e847]: 본 계약과 관련하여 분쟁이 발생하는 경우 "주계약"의 관할법원을 그 관할법원으로 한다
+                    - paragraph [ref=e849]
+                    - paragraph [ref=e853]: 제 19조 (존속조항)
+                    - paragraph [ref=e855]:
+                      - generic [ref=e857]: 본 계약의 제9조 및 제10조는 본 계약이 해지되거나 만료되어도 유효하다.
+                    - paragraph [ref=e859]
+                    - paragraph [ref=e863]:
+                      - generic [ref=e865]: 위와 같이 본 계약이 체결되었음을 증명하기 위하여 "위탁자"와 "수탁자"는 본 계약서 2부를 작성하여 기명날인 한 후 각각 1부씩 보관한다.
+                    - paragraph [ref=e867]
+                    - paragraph [ref=e871]
+                    - paragraph [ref=e875]
+                    - paragraph [ref=e882]
+                    - paragraph [ref=e886]
+                    - paragraph [ref=e890]:
+                      - strong [ref=e894]: "\"위탁자\""
+                    - paragraph [ref=e896]:
+                      - generic [ref=e898]: 삼성전자 주식회사
+                    - paragraph [ref=e900]:
+                      - generic [ref=e902]: 경기도 수원시 영통구 삼성로129(매탄동)
+                    - paragraph [ref=e904]:
+                      - generic [ref=e906]: 대표이사 노 태 문 (인)
+                    - paragraph [ref=e908]
+                    - paragraph [ref=e912]
+                    - paragraph [ref=e916]:
+                      - strong [ref=e920]: "\"수탁자\""
+                    - paragraph [ref=e922]
+                    - paragraph [ref=e929]:
+                      - generic [ref=e931]: ","
+                    - paragraph [ref=e939]:
+                      - generic [ref=e941]:
+                        - text: 대표이사
+                        - text: (인)
+                    - paragraph [ref=e946]
+                    - paragraph [ref=e950]
+                    - paragraph [ref=e954]
+                    - paragraph [ref=e958]
+                    - paragraph [ref=e962]
+                    - paragraph [ref=e966]
+              - generic [ref=e970]:
+                - button "목록" [ref=e972] [cursor=pointer]
+                - generic [ref=e973]:
+                  - button "임시저장" [ref=e974] [cursor=pointer]
+                  - button "저장" [ref=e975] [cursor=pointer]
+    - region "Notifications alt+T"
+  - alert [ref=e976]
+```

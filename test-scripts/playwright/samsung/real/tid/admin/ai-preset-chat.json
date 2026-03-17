@@ -2,11 +2,15 @@
   "buttonAiDraft": "23aacfca",
   "buttonCancel": "41afe01c",
   "buttonClose": "fefde07b",
+  "buttonDelete": "b7f2e4d9",
   "buttonRegister": "392eafb7",
   "buttonSave": "3e51bc6d",
   "buttonSubmit": "e232a4f3",
   "input": "90d6473d",
   "inputSearch": "8b8a8ce6",
+  "modalDraftResetConfirm": "bee0b4e9",
+  "modalPresetChatRegister": "c2c745dd",
+  "modalTitle": "ab458dae",
   "pagination": "4a171fd2",
   "textarea": "54130b95"
 }

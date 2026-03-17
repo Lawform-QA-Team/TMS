@@ -59,6 +59,7 @@ export const AUTODOC_URLS = {
     STANDARD: `${WEB_BASE_URL}/autodoc?method=standard&page=1`,
     TEMP: `${WEB_BASE_URL}/autodoc?method=temp&page=1`,
     EXISTING: `${WEB_BASE_URL}/autodoc?method=existing&page=1`,
+    DETAIL: `${WEB_BASE_URL}/autodoc/document/`,
 }
 
 //AI 외부 데이터 관리
