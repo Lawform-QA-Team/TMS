@@ -21,14 +21,14 @@ export async function run(page) {
 
   // 문서 작성 - 기존 문서
   await page.goto(URLS.AUTODOC.EXISTING);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing.png` });
 
   // 문서 작성 - 기존 문서, 페이지네이션
   // await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
   // await page.click(SELECTORS.COMMON.PAGE_LAST);
-  // await wait(2000);
+  // await page.waitForLoadState('domcontentloaded');
   // timestamp = getNewTimeStamp();
   // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_pagination_last.png` });
   // await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
@@ -39,14 +39,14 @@ export async function run(page) {
   await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('heekun');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_search.png` });
 
   // 문서 작성 - 기존 문서, 테이블 클릭
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_table.png` });
 

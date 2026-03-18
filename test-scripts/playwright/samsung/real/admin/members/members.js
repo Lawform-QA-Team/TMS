@@ -20,13 +20,13 @@ export async function run(page) {
   await loginWithPage(page, credentials);
 
   await page.goto(URLS.MEMBER.BACKOFFICE);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE.png` });
 
   // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
   // await page.click(SELECTORS.COMMON.PAGE_LAST);
-  // await wait(2000);
+  // await page.waitForLoadState('domcontentloaded');
   // timestamp = getNewTimeStamp();
   // await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_pagination_last.png` });
   // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
@@ -36,13 +36,13 @@ export async function run(page) {
   await page.locator(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH).fill('임희건');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_search.png` });
 
   await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.TABLE_LIST);
   await page.click(`${SELECTORS.COMMON.TABLE} button`);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_table.png` });
 
@@ -56,7 +56,7 @@ export async function run(page) {
   for (let i = 0; i <= Math.min(3, count - 1); i++) {
     await checkboxes.nth(i).click();
   }
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_edit.png` });
 
@@ -66,7 +66,7 @@ export async function run(page) {
   await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO_1);
   await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
   await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_save.png` });
 }
