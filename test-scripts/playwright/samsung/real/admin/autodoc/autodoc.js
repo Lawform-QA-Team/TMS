@@ -39,7 +39,7 @@ export async function run(page) {
   await page.waitForSelector('button[data-slot="popover-trigger"]');
   await page.click('button[data-slot="popover-trigger"]');
   await page.waitForSelector('input[data-slot="input"][placeholder="카테고리 검색"]');
-  await page.fill('input[data-slot="input"][placeholder="카테고리 검색"]', '카테고리');
+  await page.fill('input[data-slot="input"][placeholder="카테고리 검색"]', 'edit');
   await page.waitForLoadState('load');
   const contents = await page.$$('button.relative.flex.w-full.cursor-pointer.items-center.rounded-sm.text-left');
   await contents[Math.floor(Math.random() * contents.length)].click();
