@@ -47,9 +47,12 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
   await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/qna**', { waitUntil: 'domcontentloaded' });
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_QNA_search.png` });
   await page.goto(URLS.SERVICE.WEB_QNA);
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/qna**', { waitUntil: 'domcontentloaded' });
 
   // 1:1 문의, 문의 등록 진입
   await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CREATE_QNA);

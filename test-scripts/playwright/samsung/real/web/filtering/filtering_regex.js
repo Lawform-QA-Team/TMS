@@ -101,12 +101,14 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
   await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/search**', { waitUntil: 'domcontentloaded' });
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_REGEX_search.png` });
 
   // 문서 테이블 클릭 (상세 진입)
   await page.goto(URLS.AUTODOC.DETAIL + '7');
   await page.waitForLoadState("domcontentloaded")
+  await page.waitForURL('**/autodoc**', { waitUntil: 'domcontentloaded' });
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_REGEX_doc_detail.png` });
 

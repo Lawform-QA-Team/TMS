@@ -40,8 +40,12 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
   await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/notice**', { waitUntil: 'domcontentloaded' });
   await page.screenshot({ path: `screenshots/${timestamp}_search.png` });
   await page.goto(URLS.SERVICE.NOTICE);
+  await page.click(SELECTORS.COMMON.SEARCH);
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/notice**', { waitUntil: 'domcontentloaded' });
 
   // 공지사항 등록 진입
   await page.waitForSelector(SELECTORS.ADMIN.NOTICE.REGISTER);

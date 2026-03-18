@@ -47,6 +47,8 @@ export async function run(page) {
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_qna_search.png` });
   await page.goto(URLS.SERVICE.QNA);
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/qna**', { waitUntil: 'domcontentloaded' });
 
   await page.waitForSelector(SELECTORS.FEATURES.QNA.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);

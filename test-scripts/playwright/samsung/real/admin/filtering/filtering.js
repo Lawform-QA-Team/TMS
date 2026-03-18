@@ -54,11 +54,14 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
   await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/filtering**', { waitUntil: 'domcontentloaded' });
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_search.png` });
 
   // 필터링 관리 필터링 등록 진입
   await page.goto(URLS.FILTERING.FILTERING);
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/filtering**', { waitUntil: 'domcontentloaded' });
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_REGISTER_CLICK);
   await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_REGISTER_CLICK);
   await page.waitForLoadState('domcontentloaded');

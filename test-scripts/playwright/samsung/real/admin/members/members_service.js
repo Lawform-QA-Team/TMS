@@ -40,9 +40,13 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
   await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/members**', { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_search.png` });
   await page.goto(URLS.MEMBER.SERVICE);
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/members**', { waitUntil: 'domcontentloaded' });
 
   await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH);
   await page.locator(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH).fill('임희건');

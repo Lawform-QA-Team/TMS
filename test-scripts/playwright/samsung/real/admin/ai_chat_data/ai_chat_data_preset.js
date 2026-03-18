@@ -32,6 +32,8 @@ export async function run(page) {
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_search.png` });
   await page.goto(URLS.AI_CHAT.CHATDATA);
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/ai-chat-log**', { waitUntil: 'domcontentloaded' });
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_REGISTER);
   await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_REGISTER);

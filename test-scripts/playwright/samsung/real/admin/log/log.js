@@ -59,6 +59,8 @@ export async function run(page) {
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_LOG_search.png` });
   await page.goto(URLS.LOG.LOG);
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/log**', { waitUntil: 'domcontentloaded' });
 
   // 로그, 검색 -> AI 채팅
   await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.SELECT_EVENT);

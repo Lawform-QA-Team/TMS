@@ -54,9 +54,12 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.WEB.DRIVE.BUTTON_SEARCH);
   await page.click(SELECTORS.WEB.DRIVE.BUTTON_SEARCH);
   await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/drive**', { waitUntil: 'domcontentloaded' });
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_DRIVE_search.png` });
   await page.goto(URLS.DRIVE.DRIVE);
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/drive**', { waitUntil: 'domcontentloaded' });
 
   // 문서 조회, 테이블 클릭
   await page.waitForSelector(SELECTORS.WEB.DRIVE.TABLE_LIST);

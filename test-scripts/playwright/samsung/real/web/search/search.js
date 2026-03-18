@@ -48,6 +48,7 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.WEB.SEARCH.BUTTON_FILTER_SEARCH);
   await page.click(SELECTORS.WEB.SEARCH.BUTTON_FILTER_SEARCH);
   await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/drive**', { waitUntil: 'domcontentloaded' });
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_SEARCH_filter.png` });
 
