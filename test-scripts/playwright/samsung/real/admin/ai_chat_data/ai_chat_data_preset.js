@@ -22,20 +22,20 @@ export async function run(page) {
   await page.goto(URLS.AI_CHAT.CHATDATA);
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset.png` });
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.INPUT_SEARCH);
   await page.locator(SELECTORS.ADMIN.AI_PRESET_CHAT.INPUT_SEARCH).fill('테스트');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_search.png` });
   await page.goto(URLS.AI_CHAT.CHATDATA);
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_REGISTER);
   await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_REGISTER);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_data_submit.png` });
   await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_CLOSE);
@@ -49,25 +49,28 @@ export async function run(page) {
   await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_AI_DRAFT);
   await page.waitForSelector(`${SELECTORS.ADMIN.AI_PRESET_CHAT.TEXTAREA}:not([disabled])`);
   await page.locator(SELECTORS.ADMIN.AI_PRESET_CHAT.TEXTAREA).fill('답변 테스트');
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_data_submit_write.png` });
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SAVE);
   await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SAVE);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_data_submit_save.png` });
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.TABLE_LIST);
   await page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_table.png` });
   await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_CANCEL);
   await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_CANCEL);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/ai-chat-log**', { waitUntil: 'domcontentloaded' });
   await page.goto(URLS.AI_CHAT.CHATDATA);
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/ai-chat-log**', { waitUntil: 'domcontentloaded' });
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.TABLE_LIST);
   await page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`);
@@ -75,15 +78,15 @@ export async function run(page) {
   await page.locator(SELECTORS.ADMIN.AI_PRESET_CHAT.INPUT).fill('질문 수정 테스트');
   await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.TEXTAREA);
   await page.locator(SELECTORS.ADMIN.AI_PRESET_CHAT.TEXTAREA).fill('답변 수정 테스트');
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_edit.png` });
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SUBMIT);
   await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SUBMIT);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   await page.goto(URLS.AI_CHAT.CHATDATA);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_edit_submit.png` });
 
@@ -91,16 +94,18 @@ export async function run(page) {
   await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX);
   await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX_1);
   await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX_1);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_checkbox.png` });
   await page.goto(URLS.AI_CHAT.CHATDATA);
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/ai-chat-log**', { waitUntil: 'domcontentloaded' });
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX_1);
   await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX_1);
   await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_DELETE);
   await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_DELETE);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_delete.png` });
 }
