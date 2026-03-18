@@ -23,14 +23,14 @@ export async function run(page) {
 
   // 로그
   await page.goto(URLS.LOG.LOG);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_LOG.png` });
 
   // 로그, 페이지네이션
   // await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.PAGINATION);
   // await page.click(SELECTORS.COMMON.PAGE_LAST);
-  // await page.waitForLoadState('domcontentloaded');
+  // await page.waitForLoadState('load');
   // timestamp = getNewTimeStamp();
   // await page.screenshot({ path: `screenshots/${timestamp}_LOG_pagination_last.png` });
   // await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.PAGINATION);
@@ -41,7 +41,7 @@ export async function run(page) {
   const buttons = page.locator(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.BUTTON);
   const count = await buttons.count();
   await buttons.nth(Math.floor(Math.random() * count)).click();
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_LOG_date.png` });
 
@@ -55,12 +55,13 @@ export async function run(page) {
   await page.locator(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.INPUT_SEARCH).fill('a');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
+  await page.waitForURL('**/log**', { waitUntil: 'load' });
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_LOG_search.png` });
   await page.goto(URLS.LOG.LOG);
-  await page.waitForLoadState('domcontentloaded');
-  await page.waitForURL('**/log**', { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('load');
+  await page.waitForURL('**/log**', { waitUntil: 'load' });
 
   // 로그, 검색 -> AI 채팅
   await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.SELECT_EVENT);
@@ -71,7 +72,7 @@ export async function run(page) {
   await page.click(SELECTORS.COMMON.SEARCH);
   await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.TABLE_LIST);
   await page.click(`${SELECTORS.COMMON.TABLE} span.cursor-pointer`);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_LOG_ai.png` });
 }

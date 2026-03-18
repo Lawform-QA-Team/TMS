@@ -35,14 +35,14 @@ export async function run(page) {
 
   // 필터링 관리
   await page.goto(URLS.FILTERING.FILTERING);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING.png` });
 
   // 필터링 관리 페이지네이션
   // await page.waitForSelector(SELECTORS.ADMIN.FILTERING.PAGINATION);
   // await page.click(SELECTORS.COMMON.PAGE_LAST);
-  // await page.waitForLoadState('domcontentloaded');
+  // await page.waitForLoadState('load');
   // timestamp = getNewTimeStamp();
   // await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_pagination_last.png` });
   // await page.waitForSelector(SELECTORS.ADMIN.FILTERING.PAGINATION);
@@ -53,18 +53,18 @@ export async function run(page) {
   await page.locator(SELECTORS.ADMIN.FILTERING.INPUT_SEARCH).fill('필터');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await page.waitForLoadState('domcontentloaded');
-  await page.waitForURL('**/filtering**', { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('load');
+  await page.waitForURL('**/filtering**', { waitUntil: 'load' });
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_search.png` });
 
   // 필터링 관리 필터링 등록 진입
   await page.goto(URLS.FILTERING.FILTERING);
-  await page.waitForLoadState('domcontentloaded');
-  await page.waitForURL('**/filtering**', { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('load');
+  await page.waitForURL('**/filtering**', { waitUntil: 'load' });
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_REGISTER_CLICK);
   await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_REGISTER_CLICK);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_register.png` });
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_CLOSE);
@@ -79,21 +79,21 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT_1);
   const randomReason = `테스트사유_${generateRandomString(6)}_${getNewTimeStamp()}`;
   await page.locator(SELECTORS.ADMIN.FILTERING.INPUT_1).fill(randomReason);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_register_write.png` });
 
   // 필터링 관리 필터링 등록
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
   await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_register_submit.png` });
 
   // 필터링 관리 테이블 클릭
   await page.waitForSelector(SELECTORS.COMMON.TABLE);
   await page.click(`${SELECTORS.COMMON.TABLE} button`);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_table.png` });
 
@@ -106,14 +106,14 @@ export async function run(page) {
   await page.locator(SELECTORS.ADMIN.FILTERING.INPUT_1).fill(editRandomReason);
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.SWITCH);
   await page.click(SELECTORS.ADMIN.FILTERING.SWITCH);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_register_edit.png` });
 
   // 필터링 관리 수정 저장
   await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
   await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_register_edit_submit.png` });
 }

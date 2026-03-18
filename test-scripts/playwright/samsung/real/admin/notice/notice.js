@@ -21,14 +21,14 @@ export async function run(page) {
 
   // 공지사항 페이지 이동
   await page.goto(URLS.SERVICE.NOTICE);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_notice.png` });
 
   // 공지사항 페이지네이션
   // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
   // await page.click(SELECTORS.COMMON.PAGE_LAST);
-  // await page.waitForLoadState('domcontentloaded');
+  // await page.waitForLoadState('load');
   // timestamp = getNewTimeStamp();
   // await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_pagination_last.png` });
   // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
@@ -39,18 +39,18 @@ export async function run(page) {
   await page.locator(SELECTORS.ADMIN.NOTICE.INPUT_SEARCH).fill('공지');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await page.waitForLoadState('domcontentloaded');
-  await page.waitForURL('**/notice**', { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('load');
+  await page.waitForURL('**/notice**', { waitUntil: 'load' });
   await page.screenshot({ path: `screenshots/${timestamp}_search.png` });
   await page.goto(URLS.SERVICE.NOTICE);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await page.waitForLoadState('domcontentloaded');
-  await page.waitForURL('**/notice**', { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('load');
+  await page.waitForURL('**/notice**', { waitUntil: 'load' });
 
   // 공지사항 등록 진입
   await page.waitForSelector(SELECTORS.ADMIN.NOTICE.REGISTER);
   await page.click(SELECTORS.ADMIN.NOTICE.REGISTER);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   await page.screenshot({ path: `screenshots/${timestamp}_register.png` });
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_LIST);
   await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_LIST);
@@ -64,21 +64,21 @@ export async function run(page) {
   await page.locator('[contenteditable="true"]').first().fill('문의 테스트 1');
   await page.keyboard.press('Enter');
   await page.locator('[contenteditable="true"]').first().type('문의 테스트 2');
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_register_write.png` });
 
   // 공지사항 등록 저장
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_SUBMIT);
   await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_SUBMIT);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_register_submit.png` });
 
   // 공지사항 테이블 클릭
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_table.png` });
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_LIST);
@@ -89,7 +89,7 @@ export async function run(page) {
   await page.click(SELECTORS.COMMON.TABLE);
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_VIEW_HISTORY);
   await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_VIEW_HISTORY);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_history.png` });
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_CLOSE);
@@ -102,14 +102,14 @@ export async function run(page) {
   await page.locator(SELECTORS.FEATURES.NOTICE.INPUT_TITLE).fill('공지사항 수정');
   await page.waitForSelector('[contenteditable="true"]');
   await page.locator('[contenteditable="true"]').first().type('문의 수정');
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_edit.png` });
 
   // 공지사항 수정 저장
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_SUBMIT);
   await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_SUBMIT);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_edit_submit.png` });
 }

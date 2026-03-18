@@ -23,14 +23,14 @@ export async function run(page) {
 
   // 문서 조회
   await page.goto(URLS.DRIVE.DRIVE);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_DRIVE.png` });
 
   // 문서 조회, 페이지네이션
   // await page.waitForSelector(SELECTORS.WEB.DRIVE.PAGINATION);
   // await page.click(SELECTORS.COMMON.PAGE_LAST);
-  // await page.waitForLoadState('domcontentloaded');
+  // await page.waitForLoadState('load');
   // timestamp = getNewTimeStamp();
   // await page.screenshot({ path: `screenshots/${timestamp}_DRIVE_pagination_last.png` });
   // await page.waitForSelector(SELECTORS.WEB.DRIVE.PAGINATION);
@@ -38,13 +38,13 @@ export async function run(page) {
 
   // 문서 조회, 카테고리 검색
   await selectComboboxOption(page, SELECTORS.WEB.DRIVE.SELECT_CATEGORY);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_DRIVE_category.png` });
 
   // 문서 조회, 등록일 검색
   await selectDateRangeInRdpCalendar(page, SELECTORS.WEB.DRIVE.DATEPICKER, SELECTORS.WEB.DRIVE.DATEPICKER_START, '2026-02-01', '2026-02-28');
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_DRIVE_datepicker.png` });
 
@@ -53,18 +53,18 @@ export async function run(page) {
   await page.locator(SELECTORS.WEB.DRIVE.INPUT).fill('heekun');
   await page.waitForSelector(SELECTORS.WEB.DRIVE.BUTTON_SEARCH);
   await page.click(SELECTORS.WEB.DRIVE.BUTTON_SEARCH);
-  await page.waitForLoadState('domcontentloaded');
-  await page.waitForURL('**/drive**', { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('load');
+  await page.waitForURL('**/drive**', { waitUntil: 'load' });
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_DRIVE_search.png` });
   await page.goto(URLS.DRIVE.DRIVE);
-  await page.waitForLoadState('domcontentloaded');
-  await page.waitForURL('**/drive**', { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('load');
+  await page.waitForURL('**/drive**', { waitUntil: 'load' });
 
   // 문서 조회, 테이블 클릭
   await page.waitForSelector(SELECTORS.WEB.DRIVE.TABLE_LIST);
   await page.click(`${SELECTORS.COMMON.TABLE} span.cursor-pointer`);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_DRIVE_table.png` });
 }

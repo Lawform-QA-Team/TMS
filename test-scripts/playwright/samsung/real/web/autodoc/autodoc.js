@@ -21,14 +21,14 @@ export async function run(page) {
 
   // 문서 작성 - 표준 양식
   await page.goto(URLS.AUTODOC.STANDARD);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC.png` });
 
   // 문서 작성 - 표준 양식, 페이지네이션
   // await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
   // await page.click(SELECTORS.COMMON.PAGE_LAST);
-  // await page.waitForLoadState('domcontentloaded');
+  // await page.waitForLoadState('load');
   // timestamp = getNewTimeStamp();
   // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_pagination_last.png` });
   // await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
@@ -39,14 +39,14 @@ export async function run(page) {
   await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('개인정보처리방침_삼성닷컴(최종)');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_search.png` });
 
   // 문서 작성 - 표준 양식, 테이블 클릭
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table.png` });
 
@@ -55,7 +55,7 @@ export async function run(page) {
   await page.click('//button[@role="tab"][contains(text(),"문서 정보 작성")]');
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.INPUT_1);
   await page.locator(SELECTORS.FEATURES.AUTODOC.INPUT_1).fill('문서 작성 테스트');
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_write.png` });
 
@@ -69,7 +69,7 @@ export async function run(page) {
   // 문서 작성 - 표준 양식, 미리보기
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_PREVIEW);
   await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_PREVIEW);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_preview.png` });
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
@@ -94,7 +94,7 @@ export async function run(page) {
     },
     SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING
   );
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_labeling.png` });
   // await page.waitForSelector('//button[contains(text(),"라벨링 되돌리기")]');
@@ -103,28 +103,28 @@ export async function run(page) {
   // 문서 작성 - 표준 양식, 저장
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
   await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_submit.png` });
 
   // 문서 작성 - 기존 문서, 다운로드
   // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_DOWNLOAD);
   // await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_DOWNLOAD);
-  // await page.waitForLoadState('domcontentloaded');
+  // await page.waitForLoadState('load');
   // timestamp = getNewTimeStamp();
   // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_download.png` });
 
   // 문서 작성 - 기존 문서, 클린본 다운로드
   // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_DOWNLOAD_1);
   // await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_DOWNLOAD_1);
-  // await page.waitForLoadState('domcontentloaded');
+  // await page.waitForLoadState('load');
   // timestamp = getNewTimeStamp();
   // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_clean_download.png` });
 
   // 문서 작성 - 기존 문서, 수정모드
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
   await page.click(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_edit.png` });
 
@@ -142,7 +142,7 @@ export async function run(page) {
     },
     SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE
   );
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_edit_save.png` });
 
@@ -164,7 +164,7 @@ export async function run(page) {
     },
     SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE
   );
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_edit_tracking_off.png` });
 
@@ -181,7 +181,7 @@ export async function run(page) {
   // await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON);
   // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.TABLE_LIST);
   // await page.click(SELECTORS.COMMON.TABLE2);
-  // await page.waitForLoadState('domcontentloaded');
+  // await page.waitForLoadState('load');
   // timestamp = getNewTimeStamp();
   // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_log_table.png` });
 
@@ -190,14 +190,14 @@ export async function run(page) {
   // await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_COMPARE);
   // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.TABLE_LIST);
   // await page.click(SELECTORS.COMMON.TABLE);
-  // await page.waitForLoadState('domcontentloaded');
+  // await page.waitForLoadState('load');
   // timestamp = getNewTimeStamp();
   // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_log_compare.png` });
 
   // 문서 작성 - 기존 문서, 수정 이력, 불러오기 -> 확인, 취소 버튼에 tid가 없어서 진행 불가능
   // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_LOAD);
   // await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_LOAD);
-  // await page.waitForLoadState('domcontentloaded');
+  // await page.waitForLoadState('load');
   // timestamp = getNewTimeStamp();
   // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_log_load.png` });
   // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
@@ -208,7 +208,7 @@ export async function run(page) {
   await page.click(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_EDIT);
   await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_EDIT);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_ai.png` });
 
@@ -233,7 +233,7 @@ export async function run(page) {
     },
     SELECTORS.FEATURES.AUTODOC.BUTTON_SEND
   );
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_ai_send.png` });
 
@@ -256,14 +256,14 @@ export async function run(page) {
     },
     SELECTORS.FEATURES.AUTODOC.BUTTON_SEND
   );
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_ai_auto.png` });
 
   // 문서 작성 - 기존 문서, AI 검토 * 편집, 코멘트
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
   await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_1);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_ai_comment.png` });
   await page.waitForSelector('button[data-appearance="outline"][data-size="sm"] svg.lucide-log-out');

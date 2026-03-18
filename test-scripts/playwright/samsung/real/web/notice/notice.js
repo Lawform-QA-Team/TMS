@@ -21,14 +21,14 @@ export async function run(page) {
 
   // 공지사항
   await page.goto(URLS.SERVICE.WEB_NOTICE);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE.png` });
 
   // 공지사항, 페이지네이션
   // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
   // await page.click(SELECTORS.COMMON.PAGE_LAST);
-  // await page.waitForLoadState('domcontentloaded');
+  // await page.waitForLoadState('load');
   // timestamp = getNewTimeStamp();
   // await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_pagination_last.png` });
   // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
@@ -39,42 +39,42 @@ export async function run(page) {
   await page.locator(SELECTORS.WEB.NOTICE.INPUT_SEARCH).fill('공지');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_search.png` });
 
   // 공지사항, 테이블 클릭
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_table.png` });
 
   // 공지사항, 수정 이력
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_VIEW_HISTORY);
   await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_VIEW_HISTORY);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_history.png` });
 
   // 공지사항, 수정 이력 페이지네이션
   // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
   // await page.click(SELECTORS.COMMON.PAGE_LAST);
-  // await page.waitForLoadState('domcontentloaded');
+  // await page.waitForLoadState('load');
   // timestamp = getNewTimeStamp();
   // await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_history_pagination_last.png` });
 
   // 공지사항, 수정 이력 닫기
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_CLOSE);
   await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_CLOSE);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_history_close.png` });
 
   // 공지사항, 목록
   await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_LIST);
   await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_LIST);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_list.png` });
 }

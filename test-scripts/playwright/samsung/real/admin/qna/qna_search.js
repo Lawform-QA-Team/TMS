@@ -21,38 +21,38 @@ export async function run(page) {
   await loginWithPage(page, credentials);
 
   await page.goto(URLS.SERVICE.QNA);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_qna.png` });
 
   // await page.waitForSelector(SELECTORS.COMMON.PAGE_LAST);
   // await page.click(SELECTORS.COMMON.PAGE_LAST);
-  // await page.waitForLoadState('domcontentloaded');
+  // await page.waitForLoadState('load');
   // await page.screenshot({ path: `screenshots/${timestamp}_qna_page_last.png` });
   // await page.waitForSelector(SELECTORS.COMMON.PAGE_FIRST);
   // await page.click(SELECTORS.COMMON.PAGE_FIRST);
-  // await page.waitForLoadState('domcontentloaded');
+  // await page.waitForLoadState('load');
   // await page.screenshot({ path: `screenshots/${timestamp}_qna_page_first.png` });
 
   await selectComboboxOption(page, SELECTORS.ADMIN.QNA.SELECT_ANSWER_STATUS);
   await page.waitForSelector(SELECTORS.ADMIN.QNA.INPUT_SEARCH);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_qna_status.png` });
 
   await page.locator(SELECTORS.ADMIN.QNA.INPUT_SEARCH).fill('문의');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await page.click(SELECTORS.COMMON.SEARCH);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_qna_search.png` });
   await page.goto(URLS.SERVICE.QNA);
-  await page.waitForLoadState('domcontentloaded');
-  await page.waitForURL('**/qna**', { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('load');
+  await page.waitForURL('**/qna**', { waitUntil: 'load' });
 
   await page.waitForSelector(SELECTORS.FEATURES.QNA.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   await page.screenshot({ path: `screenshots/${timestamp}_qna_table.png` });
   await page.waitForSelector(SELECTORS.ADMIN.QNA.BUTTON_LIST);
   await page.click(SELECTORS.ADMIN.QNA.BUTTON_LIST);
@@ -63,14 +63,14 @@ export async function run(page) {
   await page.locator('[contenteditable="true"]').first().fill('문의 테스트 1');
   await page.keyboard.press('Enter');
   await page.locator('[contenteditable="true"]').first().type('문의 테스트 2');
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_qna_answer_write.png` });
 
   await page.waitForSelector(SELECTORS.ADMIN.QNA.BUTTON_SAVE);
   await page.click(SELECTORS.ADMIN.QNA.BUTTON_SAVE);
   await page.goto(URLS.SERVICE.QNA);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_qna_answer_submit.png` });
 }

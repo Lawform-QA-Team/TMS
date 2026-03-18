@@ -25,14 +25,14 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.WEB.NAVBAR.INPUT);
   await page.locator(SELECTORS.WEB.NAVBAR.INPUT).fill('테스트');
   await page.keyboard.press('Enter');
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_SEARCH.png` });
 
   // 통합검색, 페이지네이션
   // await page.waitForSelector(SELECTORS.WEB.SEARCH.PAGINATION);
   // await page.click(SELECTORS.COMMON.PAGE_LAST);
-  // await page.waitForLoadState('domcontentloaded');
+  // await page.waitForLoadState('load');
   // timestamp = getNewTimeStamp();
   // await page.screenshot({ path: `screenshots/${timestamp}_SEARCH_pagination_last.png` });
   // await page.waitForSelector(SELECTORS.WEB.SEARCH.PAGINATION);
@@ -47,24 +47,24 @@ export async function run(page) {
   await selectDateRangeInRdpCalendar(page, SELECTORS.WEB.SEARCH.DATEPICKER, SELECTORS.WEB.SEARCH.DATEPICKER_START, '2026-03-01', '2026-03-31')
   await page.waitForSelector(SELECTORS.WEB.SEARCH.BUTTON_FILTER_SEARCH);
   await page.click(SELECTORS.WEB.SEARCH.BUTTON_FILTER_SEARCH);
-  await page.waitForLoadState('domcontentloaded');
-  await page.waitForURL('**/drive**', { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('load');
+  await page.waitForURL('**/search**', { waitUntil: 'load' });
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_SEARCH_filter.png` });
 
   // 통합검색, 검색 결과 클릭
   await page.goto(URLS.DRIVE.DRIVE);
-  await page.waitForLoadState('domcontentloaded');
-  await page.waitForURL('**/drive**', { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('load');
+  await page.waitForURL('**/drive**', { waitUntil: 'load' });
   await page.waitForSelector(SELECTORS.WEB.NAVBAR.INPUT);
   await page.locator(SELECTORS.WEB.NAVBAR.INPUT).fill('테스트');
   await page.keyboard.press('Enter');
-  await page.waitForLoadState('domcontentloaded');
-  await page.waitForURL('**/search**', { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('load');
+  await page.waitForURL('**/search**', { waitUntil: 'load' });
   await page.waitForSelector('button.text-base.font-semibold.text-foreground.cursor-pointer.text-left');
   const results = await page.$$('button.text-base.font-semibold.text-foreground.cursor-pointer.text-left');
   await results[0].click();
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_SEARCH_result.png` });
 }
