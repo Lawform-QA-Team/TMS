@@ -58,6 +58,7 @@ export async function run(page) {
   await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_GO_BACK);
   await page.waitForLoadState('load');
   await page.waitForURL('**/ai-external-data**', { waitUntil: 'load' });
+  await wait(500);
   await page.goto(URLS.AI_DATA.COMPANY, { waitUntil: 'commit' });
   await page.waitForLoadState('load');
   await page.waitForURL('**/ai-external-data**', { waitUntil: 'load' });
