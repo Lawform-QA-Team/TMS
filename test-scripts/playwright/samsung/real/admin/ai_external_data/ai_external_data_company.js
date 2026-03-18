@@ -57,6 +57,7 @@ export async function run(page) {
   await page.waitForURL('**/ai-external-data', { waitUntil: 'domcontentloaded' });
   await page.goto(URLS.AI_DATA.COMPANY, { waitUntil: 'commit' });
   await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/ai-external-data**', { waitUntil: 'domcontentloaded' });
 
   // AI 외부 데이터 관리 - 타사 문서 등록 작성
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_REGISTER);
@@ -126,6 +127,7 @@ export async function run(page) {
   await page.waitForURL('**/ai-external-data', { waitUntil: 'domcontentloaded' });
   await page.goto(URLS.AI_DATA.COMPANY, { waitUntil: 'commit' });
   await page.waitForLoadState('domcontentloaded');
+  await page.waitForURL('**/ai-external-data**', { waitUntil: 'domcontentloaded' });
 
   // AI 외부 데이터 관리 - 타사 문서 체크 박스
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX);
