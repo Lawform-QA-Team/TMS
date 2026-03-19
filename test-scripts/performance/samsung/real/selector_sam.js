@@ -104,6 +104,8 @@ export const SELECTORS = {
             BUTTON_SEARCH: '[data-tid="f277b3cc"]', //통계 검색 버튼
             EXCEL: '[data-tid="af3387a9"]', // 엑셀 다운로드 버튼
             DATEPICKER: '[data-tid="98f34024"]', // 조회 일자 datepicker
+            MONTH_PICKER_START: '[data-id="b2e14f91"]',
+            MONTH_PICKER_END: '[data-id="c5d38a72"]',
             PAGINATION: '[data-tid="314da712"]',
             SELECT: '[data-tid="4492d4fd"]', // 조회 단위 combobox
             SELECT_1: '[data-tid="eb0a0d09"]',
@@ -119,6 +121,8 @@ export const SELECTORS = {
             SELECT_PERIOD_QUARTER: '[data-tid="0be0c3b9"]',
             SELECT_QUERY_UNIT: '[data-tid="c7498be0"]', // 조회 일자 : 년 combobox
             SELECT_QUERY_UNIT_1: '[data-tid="01f2efab"]', // 조회 일자 : 분기, 반기 combobox
+            MONTH_PICKER_START: '[data-id="b2e14f91"]',
+            MONTH_PICKER_END: '[data-id="c5d38a72"]',
             TABLE_LIST: '[data-tid="5a7867e6"]', // 통계 결과 테이블
         },
         DOCUMENT_UPDATE_REPORT: {

@@ -57,24 +57,12 @@ async function selectDateRangeInRdp(page, startDate, endDate) {
     const inputs = await page.$$(`${wrap} input`);
     if (inputs.length >= 2) {
         await selectDateInRdpCalendar(page, page.locator(`${wrap} input`).first(), startDate);
-        await wait(300);
         await selectDateInRdpCalendar(page, page.locator(`${wrap} input`).nth(1), endDate);
     } else {
         await selectRandomDateFromRdpCalendar(page, wrap);
     }
 }
 
-/** 월 선택: input[type="month"]의 value를 직접 설정 */
-async function selectMonthInPicker(page, year, month) {
-    const monthValue = `${year}-${String(month).padStart(2, '0')}`;
-    const input = page.locator('input[type="month"]');
-    await input.evaluate((el, val) => {
-        el.value = val;
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-    }, monthValue);
-    await wait(200);
-}
 
 export default async function() {
     const context = await browser.newContext({
@@ -98,7 +86,7 @@ export default async function() {
     try {
         await loginWithPage(page, credentials);
         const adminDashPageLoadStart = Date.now();
-        await page.goto(URLS.LOGIN.DASHBOARD);
+        // await page.goto(URLS.LOGIN.DASHBOARD);
 
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_dashboard_home.png` });
@@ -171,7 +159,6 @@ export default async function() {
         console.log('randomValue3 (조회 단위)', randomValue3);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_select_gategory3.png` });
-        await wait(2000);
 
         // 조회 단위에 따른 기간 선택 (randomValue3 = 조회 단위: 일/월/분기/반기/년도)
         const queryUnit = (randomValue3 || '').trim();
@@ -187,13 +174,10 @@ export default async function() {
             await page.screenshot({ path: `screenshots/${timestamp}_datepicker.png` });
         }
         else if (queryUnit.includes('월')) {
-            await page.waitForSelector('input[type="month"]');
-            // 월 단위: 월 선택 캘린더에서 연도·월 클릭 (1~12월 그리드)
-            const d = new Date();
-            d.setMonth(d.getMonth() - Math.floor(Math.random() * 12));
-            const y = d.getFullYear();
-            const m = d.getMonth() + 1; // 1~12
-            await selectMonthInPicker(page, y, m);
+            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.MONTH_PICKER_START);
+            await selectRandomDateFromRdpCalendar(page, SELECTORS.ADMIN.DASHBOARD.MONTH_PICKER_START);
+            await wait(300);
+            await selectRandomDateFromRdpCalendar(page, SELECTORS.ADMIN.DASHBOARD.MONTH_PICKER_END);
             timestamp = getNewTimeStamp();
             await page.screenshot({ path: `screenshots/${timestamp}_datepicker_month.png` });
         }

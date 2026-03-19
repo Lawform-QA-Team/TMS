@@ -33,16 +33,6 @@ async function selectDateRangeInRdp(page, startDate, endDate) {
   }
 }
 
-async function selectMonthInPicker(page, year, month) {
-  const monthValue = `${year}-${String(month).padStart(2, '0')}`;
-  const input = page.locator('input[type="month"]');
-  await input.evaluate((el, val) => {
-    el.value = val;
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  }, monthValue);
-  await wait(200);
-}
 
 /**
  * @param {import('@playwright/test').Page} page
@@ -91,12 +81,10 @@ export async function run(page) {
     timestamp = getNewTimeStamp();
     await page.screenshot({ path: `screenshots/${timestamp}_datepicker.png` });
   } else if (queryUnit.includes('월')) {
-    await page.waitForSelector('input[type="month"]');
-    const d = new Date();
-    d.setMonth(d.getMonth() - Math.floor(Math.random() * 12));
-    const y = d.getFullYear();
-    const m = d.getMonth() + 1;
-    await selectMonthInPicker(page, y, m);
+    await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.MONTH_PICKER_START);
+    await selectRandomDateFromRdpCalendar(page, SELECTORS.ADMIN.DASHBOARD.MONTH_PICKER_START);
+    await wait(300);
+    await selectRandomDateFromRdpCalendar(page, SELECTORS.ADMIN.DASHBOARD.MONTH_PICKER_END);
     timestamp = getNewTimeStamp();
     await page.screenshot({ path: `screenshots/${timestamp}_datepicker_month.png` });
   } else if (queryUnit.includes('분기')) {
