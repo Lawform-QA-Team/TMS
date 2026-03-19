@@ -115,6 +115,35 @@ export function buildK6SummaryMessage(data, testName = 'k6 Test', hasErrors = fa
         });
     }
 
+    // 커스텀 Trend 메트릭 추출 (액션별 응답 시간)
+    const STANDARD_METRICS = new Set([
+        'iterations', 'vus', 'vus_max', 'data_received', 'data_sent',
+        'checks', 'group_duration',
+    ]);
+    const customTrends = Object.entries(metrics)
+        .filter(([name, m]) => {
+            if (STANDARD_METRICS.has(name)) return false;
+            if (name.startsWith('http_') || name.startsWith('browser_')) return false;
+            return m.values != null && 'avg' in m.values;
+        })
+        .map(([name, m]) => ({
+            label: name.replace(/_/g, ' '),
+            avg: m.values.avg != null ? `${m.values.avg.toFixed(0)}ms` : '-',
+            p95: m.values['p(95)'] != null ? `${m.values['p(95)'].toFixed(0)}ms` : '-',
+        }));
+
+    if (customTrends.length > 0) {
+        blocks.push({ type: 'divider' });
+        const fields = customTrends.map(t => ({
+            type: 'mrkdwn',
+            text: `*${t.label}:*\navg ${t.avg}  /  p95 ${t.p95}`,
+        }));
+        // Slack section fields 최대 10개 제한
+        for (let i = 0; i < fields.length; i += 10) {
+            blocks.push({ type: 'section', fields: fields.slice(i, i + 10) });
+        }
+    }
+
     if (failed && hasErrors) {
         blocks.push({
             type: 'section',

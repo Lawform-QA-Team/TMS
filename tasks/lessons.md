@@ -120,6 +120,22 @@ playwright/.../web/qna/qna.js                            ↔  performance/.../we
 
 ---
 
+### k6 Slack - 액션별 응답 시간 자동 포함
+
+**배경**: 각 스크립트에서 `Trend` 메트릭으로 측정한 액션별 응답 시간을 Slack 메시지에 포함하고 싶었으나, 개별 스크립트를 수정하지 않고 공통 헬퍼에서 해결
+
+**해결**: `buildK6SummaryMessage`에서 `data.metrics`를 순회해 커스텀 Trend 메트릭을 자동 추출
+- 표준 k6 메트릭(`http_*`, `browser_*`, `iterations`, `vus`, `data_*`, `checks`, `group_duration`) 제외
+- 나머지 `avg`를 가진 메트릭 = 커스텀 Trend로 판별
+- 메트릭명 snake_case → 공백 변환 후 `avg / p95` 형태로 표시
+
+**교훈**:
+- 개별 스크립트를 수정하지 않고 `handleSummary` data만으로 커스텀 메트릭 추출 가능
+- 새 스크립트에 Trend 메트릭 추가해도 Slack 메시지에 자동 반영됨 — 헬퍼 수정 불필요
+- Slack `section.fields` 최대 10개 제한 → 초과 시 블록 분할 필요
+
+---
+
 ### k6 Slack - Webhook 대신 Bot API 사용 (슬랙봇)
 
 **배경**: Webhook은 파일 첨부, 스레드 답글, 메시지 수정 불가 — 에러 상세를 스레드로 분리 전송하려면 Bot API 필요
