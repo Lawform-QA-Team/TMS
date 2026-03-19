@@ -11,8 +11,6 @@ export function getCredentials() {
     if (!email || !password) {
         throw new Error('로그인 계정 필요. k6 실행 시 -e WEB_LOGIN_EMAIL=... -e WEB_LOGIN_PASSWORD=... 스크립트경로');
     }
-    console.log('EMAIL:', email);
-    console.log('PASSWORD:', password);
     return { EMAIL: email, PASSWORD: password };
 }
 
