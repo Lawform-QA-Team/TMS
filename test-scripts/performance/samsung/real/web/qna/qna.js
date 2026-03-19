@@ -5,7 +5,7 @@ import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
-import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { postSlackMessage, buildK6SummaryMessage, buildK6ErrorThreadBlocks } from '../../../../common/slack_helper.js';
 import { Trend } from 'k6/metrics';
 
 export const webQnaPageLoad = new Trend('web_qna_page_load', true);
@@ -13,6 +13,8 @@ export const webQnaStatusFilter = new Trend('web_qna_status_filter', true);
 export const webQnaSearch = new Trend('web_qna_search', true);
 export const webQnaRegisterSave = new Trend('web_qna_register_save', true);
 export const webQnaTableClick = new Trend('web_qna_table_click', true);
+
+const scriptErrors = [];
 
 export const options = {
     scenarios: {
@@ -147,6 +149,9 @@ export default async function() {
 
         // 모달 관련 내용 추가 필요
 
+    } catch (e) {
+        scriptErrors.push({ message: e.message || String(e), stack: e.stack, time: new Date().toISOString() });
+        throw e;
     } finally {
         if (page) await page.close();
         if (context) await context.close();
@@ -156,13 +161,14 @@ export default async function() {
 export function handleSummary(data) {
     const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
 
-    // 결과 추출 및 Slack 발송
-    const slackWebhookUrl = __ENV.SLACK_WEBHOOK_URL;
-    if (slackWebhookUrl) {
-        const payload = buildK6SummaryMessage(data, 'Web QnA');
-        const result = sendSlackWebhook(slackWebhookUrl, payload);
-        if (!result.ok) {
-            console.warn(`[Slack] 메시지 발송 실패 (status: ${result.status})`);
+    // Slack Bot API 발송
+    const token = __ENV.SLACK_BOT_TOKEN;
+    const channel = __ENV.SLACK_CHANNEL_ID;
+    if (token && channel) {
+        const payload = buildK6SummaryMessage(data, 'Web QnA', scriptErrors.length > 0);
+        const ts = postSlackMessage(token, channel, payload);
+        if (ts && scriptErrors.length > 0) {
+            postSlackMessage(token, channel, buildK6ErrorThreadBlocks(scriptErrors), ts);
         }
     }
 

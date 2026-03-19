@@ -2,7 +2,7 @@ import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporte
 import { browser } from 'k6/browser';
 import { Trend } from 'k6/metrics';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
-import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { postSlackMessage, buildK6SummaryMessage, buildK6ErrorThreadBlocks } from '../../../../common/slack_helper.js';
 import { getCredentials, loginWithPage } from './login_helper.js';
 
 // Custom metrics for each login action
@@ -10,6 +10,8 @@ export const pageLoadDuration = new Trend('page_load_duration', true);
 export const inputCredentialsDuration = new Trend('input_credentials_duration', true);
 export const submitLoginDuration = new Trend('submit_login_duration', true);
 export const totalLoginDuration = new Trend('total_login_duration', true);
+
+const scriptErrors = [];
 
 export const options = {
     scenarios: {
@@ -44,6 +46,9 @@ export default async function() {
             totalLoginDuration
         };
         await loginWithPage(page, credentials, metrics);
+    } catch (e) {
+        scriptErrors.push({ message: e.message || String(e), stack: e.stack, time: new Date().toISOString() });
+        throw e;
     } finally {
         if (page) await page.close();
         if (context) await context.close();
@@ -53,13 +58,14 @@ export default async function() {
 export function handleSummary(data) {
     const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
 
-    // 결과 추출 및 Slack 발송
-    const slackWebhookUrl = __ENV.SLACK_WEBHOOK_URL;
-    if (slackWebhookUrl) {
-        const payload = buildK6SummaryMessage(data, 'Login to Web');
-        const result = sendSlackWebhook(slackWebhookUrl, payload);
-        if (!result.ok) {
-            console.warn(`[Slack] 메시지 발송 실패 (status: ${result.status})`);
+    // Slack Bot API 발송
+    const token = __ENV.SLACK_BOT_TOKEN;
+    const channel = __ENV.SLACK_CHANNEL_ID;
+    if (token && channel) {
+        const payload = buildK6SummaryMessage(data, 'Login to Web', scriptErrors.length > 0);
+        const ts = postSlackMessage(token, channel, payload);
+        if (ts && scriptErrors.length > 0) {
+            postSlackMessage(token, channel, buildK6ErrorThreadBlocks(scriptErrors), ts);
         }
     }
 

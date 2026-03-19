@@ -5,7 +5,7 @@ import { SELECTORS } from '../../selector_sam.js';
 import { URLS } from '../../url_base_sam.js';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
-import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { postSlackMessage, buildK6SummaryMessage, buildK6ErrorThreadBlocks } from '../../../../common/slack_helper.js';
 import { Trend } from 'k6/metrics';
 
 export const adminQnaPageLoad = new Trend('admin_qna_page_load', true);
@@ -13,6 +13,8 @@ export const adminQnaStatusFilter = new Trend('admin_qna_status_filter', true);
 export const adminQnaSearch = new Trend('admin_qna_search', true);
 export const adminQnaTableClick = new Trend('admin_qna_table_click', true);
 export const adminQnaAnswerSave = new Trend('admin_qna_answer_save', true);
+
+const scriptErrors = [];
 
 export const options = {
     scenarios: {
@@ -130,7 +132,10 @@ export default async function() {
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_qna_answer_submit.png` });
 
-        
+
+    } catch (e) {
+        scriptErrors.push({ message: e.message || String(e), stack: e.stack, time: new Date().toISOString() });
+        throw e;
     } finally {
         if (page) await page.close();
         if (context) await context.close();
@@ -140,13 +145,14 @@ export default async function() {
 export function handleSummary(data) {
     const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
 
-    // 결과 추출 및 Slack 발송
-    const slackWebhookUrl = __ENV.SLACK_WEBHOOK_URL;
-    if (slackWebhookUrl) {
-        const payload = buildK6SummaryMessage(data, 'QNA Search');
-        const result = sendSlackWebhook(slackWebhookUrl, payload);
-        if (!result.ok) {
-            console.warn(`[Slack] 메시지 발송 실패 (status: ${result.status})`);
+    // Slack Bot API 발송
+    const token = __ENV.SLACK_BOT_TOKEN;
+    const channel = __ENV.SLACK_CHANNEL_ID;
+    if (token && channel) {
+        const payload = buildK6SummaryMessage(data, 'QNA Search', scriptErrors.length > 0);
+        const ts = postSlackMessage(token, channel, payload);
+        if (ts && scriptErrors.length > 0) {
+            postSlackMessage(token, channel, buildK6ErrorThreadBlocks(scriptErrors), ts);
         }
     }
 

@@ -5,13 +5,15 @@ import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
-import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { postSlackMessage, buildK6SummaryMessage, buildK6ErrorThreadBlocks } from '../../../../common/slack_helper.js';
 import { Trend } from 'k6/metrics';
 
 export const adminAutodocPageLoad = new Trend('admin_autodoc_page_load', true);
 export const adminAutodocSearch = new Trend('admin_autodoc_search', true);
 export const adminAutodocRegister = new Trend('admin_autodoc_register', true);
 export const adminAutodocTableClick = new Trend('admin_autodoc_table_click', true);
+
+const scriptErrors = [];
 
 export const options = {
     scenarios: {
@@ -66,7 +68,7 @@ export default async function() {
         await page.click('button[data-slot="popover-trigger"]');
         await page.waitForSelector('input[data-slot="input"][placeholder="카테고리 검색"]');
         await page.type('input[data-slot="input"][placeholder="카테고리 검색"]', '카테고리');
-        await page.waitForLoadState('load');
+        await page.waitForSelector('button.relative.flex.w-full.cursor-pointer.items-center.rounded-sm.text-left');
         const contents = await page.$$('button.relative.flex.w-full.cursor-pointer.items-center.rounded-sm.text-left');
         await contents[Math.floor(Math.random() * contents.length)].click();
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH);
@@ -129,6 +131,9 @@ export default async function() {
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category.png` });
 
+    } catch (e) {
+        scriptErrors.push({ message: e.message || String(e), stack: e.stack, time: new Date().toISOString() });
+        throw e;
     } finally {
         if (page) await page.close();
         if (context) await context.close();
@@ -138,13 +143,14 @@ export default async function() {
 export function handleSummary(data) {
     const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
 
-    // 결과 추출 및 Slack 발송
-    const slackWebhookUrl = __ENV.SLACK_WEBHOOK_URL;
-    if (slackWebhookUrl) {
-        const payload = buildK6SummaryMessage(data, 'Autodoc');
-        const result = sendSlackWebhook(slackWebhookUrl, payload);
-        if (!result.ok) {
-            console.warn(`[Slack] 메시지 발송 실패 (status: ${result.status})`);
+    // Slack Bot API 발송
+    const token = __ENV.SLACK_BOT_TOKEN;
+    const channel = __ENV.SLACK_CHANNEL_ID;
+    if (token && channel) {
+        const payload = buildK6SummaryMessage(data, 'Autodoc', scriptErrors.length > 0);
+        const ts = postSlackMessage(token, channel, payload);
+        if (ts && scriptErrors.length > 0) {
+            postSlackMessage(token, channel, buildK6ErrorThreadBlocks(scriptErrors), ts);
         }
     }
 

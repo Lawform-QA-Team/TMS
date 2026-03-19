@@ -6,7 +6,7 @@ import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
 import { selectDateRangeInRdpCalendar } from '../../../../common/datepicker_helper.js';
-import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { postSlackMessage, buildK6SummaryMessage, buildK6ErrorThreadBlocks } from '../../../../common/slack_helper.js';
 import { Trend } from 'k6/metrics';
 
 export const webDrivePageLoad = new Trend('web_drive_page_load', true);
@@ -14,6 +14,8 @@ export const webDriveCategorySearch = new Trend('web_drive_category_search', tru
 export const webDriveDatepicker = new Trend('web_drive_datepicker', true);
 export const webDriveSearch = new Trend('web_drive_search', true);
 export const webDriveTableClick = new Trend('web_drive_table_click', true);
+
+const scriptErrors = [];
 
 export const options = {
     scenarios: {
@@ -112,6 +114,9 @@ export default async function() {
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_DRIVE_table.png` });
 
+    } catch (e) {
+        scriptErrors.push({ message: e.message || String(e), stack: e.stack, time: new Date().toISOString() });
+        throw e;
     } finally {
         if (page) await page.close();
         if (context) await context.close();
@@ -121,13 +126,14 @@ export default async function() {
 export function handleSummary(data) {
     const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
 
-    // 결과 추출 및 Slack 발송
-    const slackWebhookUrl = __ENV.SLACK_WEBHOOK_URL;
-    if (slackWebhookUrl) {
-        const payload = buildK6SummaryMessage(data, 'Web Drive');
-        const result = sendSlackWebhook(slackWebhookUrl, payload);
-        if (!result.ok) {
-            console.warn(`[Slack] 메시지 발송 실패 (status: ${result.status})`);
+    // Slack Bot API 발송
+    const token = __ENV.SLACK_BOT_TOKEN;
+    const channel = __ENV.SLACK_CHANNEL_ID;
+    if (token && channel) {
+        const payload = buildK6SummaryMessage(data, 'Web Drive', scriptErrors.length > 0);
+        const ts = postSlackMessage(token, channel, payload);
+        if (ts && scriptErrors.length > 0) {
+            postSlackMessage(token, channel, buildK6ErrorThreadBlocks(scriptErrors), ts);
         }
     }
 
