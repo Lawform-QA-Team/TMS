@@ -3,8 +3,13 @@ import { URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
-import { getCredentials, loginWithPage } from '../../admin/login/login_helper.js';
+import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { Trend } from 'k6/metrics';
+
+const web_autodoc_existing_page_load = new Trend('web_autodoc_existing_page_load');
+const web_autodoc_existing_search = new Trend('web_autodoc_existing_search');
+const web_autodoc_existing_table_click = new Trend('web_autodoc_existing_table_click');
 
 export const options = {
     scenarios: {
@@ -40,112 +45,49 @@ export default async function() {
         await loginWithPage(page, credentials);
 
         // 문서 작성 - 기존 문서
+        const pageLoadStart = Date.now();
         await page.goto(URLS.AUTODOC.EXISTING);
         await wait(2000);
+        const pageLoadDuration = Date.now() - pageLoadStart;
+        web_autodoc_existing_page_load.add(pageLoadDuration);
+        console.log(`[web_autodoc_existing] page_load duration: ${pageLoadDuration}ms`);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing.png` });
 
         // 문서 작성 - 기존 문서, 페이지네이션
-        await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_pagination_last.png` });
-        await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        // await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_LAST);
+        // await wait(2000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_pagination_last.png` });
+        // await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 문서 작성 - 기존 문서, 검색
+        const searchStart = Date.now();
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
-        await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, '삼성');
+        await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, 'heekun');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
+        const searchDuration = Date.now() - searchStart;
+        web_autodoc_existing_search.add(searchDuration);
+        console.log(`[web_autodoc_existing] search duration: ${searchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_search.png` });
 
         // 문서 작성 - 기존 문서, 테이블 클릭
+        const tableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
         await wait(2000);
+        const tableClickDuration = Date.now() - tableClickStart;
+        web_autodoc_existing_table_click.add(tableClickDuration);
+        console.log(`[web_autodoc_existing] table_click duration: ${tableClickDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_table.png` });
-
-        // 문서 작성 - 기존 문서, 다운로드
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_DOWNLOAD);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_DOWNLOAD);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_download.png` });
-
-        // 문서 작성 - 기존 문서, 클린본 다운로드
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_DOWNLOAD_1);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_DOWNLOAD_1);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_clean_download.png` });
-
-        // 문서 작성 - 기존 문서, 수정모드
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
-        await page.click(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_edit.png` });
-
-        // 문서 작성 - 기존 문서, 수정모드, 저장하기
-            // 내용을 작성했다고 가정
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
-        await wait(1000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_edit_save.png` });
-
-        // 문서 작성 - 기존 문서, 수정모드, 트래킹 끄고 저장하기
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_TRACKING_MODE);
-        await page.click(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_TRACKING_MODE);
-            // 내용을 작성했다고 가정
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
-        await wait(1000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_edit_tracking_off.png` });
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
-        await page.click(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_EDIT_MODE);
-
-        // 문서 작성 - 기존 문서, 수정 이력 진입
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_log.png` });
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
-
-        // 문서 작성 - 기존 문서, 수정 이력, 테이블 클릭
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON);
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.TABLE_LIST);
-        await page.click(SELECTORS.COMMON.TABLE2);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_log_table.png` });
-
-        // 문서 작성 - 기존 문서, 수정 이력, 비교하기
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_COMPARE);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_COMPARE);
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.TABLE_LIST);
-        await page.click(SELECTORS.COMMON.TABLE);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_log_compare.png` });
-
-        // 문서 작성 - 기존 문서, 수정 이력, 불러오기 -> 확인, 취소 버튼에 tid가 없어서 진행 불가능
-        // await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_LOAD);
-        // await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_LOAD);
-        // await wait(1000);
-        // timestamp = getNewTimeStamp();
-        // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_log_load.png` });
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
+        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
+        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
 
     } finally {
         if (page) await page.close();
@@ -167,6 +109,6 @@ export function handleSummary(data) {
     }
 
     return {
-        [`Result/notice_${timestamp}.html`]: htmlReport(data),
+        [`Result/web_autodoc_existing_${timestamp}.html`]: htmlReport(data),
     };
 }

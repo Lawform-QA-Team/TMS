@@ -19,16 +19,21 @@ export async function run(page) {
 
   await loginWithPage(page, credentials);
 
-  await page.goto(URLS.SERVICE.IP);
+  await page.goto(URLS.SERVICE.IP, {
+    waitUntil: 'domcontentloaded',
+  });
+  await page.waitForLoadState('domcontentloaded');
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_IP.png` });
-  await wait(2000);
 
   await page.waitForSelector(SELECTORS.ADMIN.IP_MANAGEMENT.INPUT_SEARCH);
   await page.locator(SELECTORS.ADMIN.IP_MANAGEMENT.INPUT_SEARCH).fill('5');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
-  await page.click(SELECTORS.COMMON.SEARCH);
-  await wait(2000);
+   await Promise.all([
+    page.waitForURL('**/ip-management'),
+    page.click(SELECTORS.COMMON.SEARCH),
+  ]);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_IP_search.png` });
 }

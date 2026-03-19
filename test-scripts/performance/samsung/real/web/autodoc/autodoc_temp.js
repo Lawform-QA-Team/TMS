@@ -3,8 +3,13 @@ import { URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
-import { getCredentials, loginWithPage } from '../../admin/login/login_helper.js';
+import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { Trend } from 'k6/metrics';
+
+const web_autodoc_temp_page_load = new Trend('web_autodoc_temp_page_load');
+const web_autodoc_temp_search = new Trend('web_autodoc_temp_search');
+const web_autodoc_temp_table_click = new Trend('web_autodoc_temp_table_click');
 
 export const options = {
     scenarios: {
@@ -40,67 +45,49 @@ export default async function() {
         await loginWithPage(page, credentials);
 
         // 문서 작성 - 임시 저장 문서
+        const pageLoadStart = Date.now();
         await page.goto(URLS.AUTODOC.TEMP);
         await wait(2000);
+        const pageLoadDuration = Date.now() - pageLoadStart;
+        web_autodoc_temp_page_load.add(pageLoadDuration);
+        console.log(`[web_autodoc_temp] page_load duration: ${pageLoadDuration}ms`);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp.png` });
 
         // 문서 작성 - 임시 저장 문서, 페이지네이션
-        await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_pagination_last.png` });
-        await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        // await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_LAST);
+        // await wait(2000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_pagination_last.png` });
+        // await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 문서 작성 - 임시 저장 문서, 검색
+        const searchStart = Date.now();
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
-        await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, '삼성');
+        await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, 'heekun');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
+        const searchDuration = Date.now() - searchStart;
+        web_autodoc_temp_search.add(searchDuration);
+        console.log(`[web_autodoc_temp] search duration: ${searchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_search.png` });
 
         // 문서 작성 - 임시 저장 문서, 테이블 클릭
+        const tableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
         await wait(2000);
+        const tableClickDuration = Date.now() - tableClickStart;
+        web_autodoc_temp_table_click.add(tableClickDuration);
+        console.log(`[web_autodoc_temp] table_click duration: ${tableClickDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_table.png` });
-
-        // 문서 작성 - 표준 양식, 미리보기
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_PREVIEW);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_PREVIEW);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_preview.png` });
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
-
-        // 문서 작성 - 표준 양식, AI 자동 라벨링
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
-        await page.waitForFunction(
-            (selector) => {
-                const el = document.querySelector(selector);
-                return el && !el.disabled;
-            },
-            {},
-            SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING
-        );
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_labeling.png` });
-
-        // 문서 작성 - 표준 양식, 저장
-        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
-        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
-        await wait(1000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_submit.png` });
+        await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
+        await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
 
     } finally {
         if (page) await page.close();
@@ -122,6 +109,6 @@ export function handleSummary(data) {
     }
 
     return {
-        [`Result/notice_${timestamp}.html`]: htmlReport(data),
+        [`Result/web_autodoc_temp_${timestamp}.html`]: htmlReport(data),
     };
 }

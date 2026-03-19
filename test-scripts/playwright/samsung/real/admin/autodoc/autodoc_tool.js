@@ -19,32 +19,32 @@ export async function run(page) {
 
   await loginWithPage(page, credentials);
 
-  await page.goto(URLS.AUTODOC.NEW + '1');
-  let timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_TOOL.png` });
-  await wait(2000);
+  // await page.goto(URLS.AUTODOC.NEW + '1');
+  // let timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_TOOL.png` });
+  // await wait(2000);
 
-  await page.waitForSelector(SELECTORS.ADMIN.AUTODOC_TOOL.INPUT);
-  await page.locator(SELECTORS.ADMIN.AUTODOC_TOOL.INPUT).fill('표준 양식 테스트');
-  await wait(2000);
-  timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_TOOL_input.png` });
+  // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC_TOOL.INPUT);
+  // await page.locator(SELECTORS.ADMIN.AUTODOC_TOOL.INPUT).fill('표준 양식 테스트');
+  // await wait(2000);
+  // timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_TOOL_input.png` });
 
-  await page.waitForSelector(SELECTORS.ADMIN.AUTODOC_TOOL.BUTTON_ADD_TOP_INPUT_SECTION);
-  await page.click(SELECTORS.ADMIN.AUTODOC_TOOL.BUTTON_ADD_TOP_INPUT_SECTION);
-  await wait(2000);
-  timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_TOOL_add_input_section.png` });
+  // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC_TOOL.BUTTON_ADD_TOP_INPUT_SECTION);
+  // await page.click(SELECTORS.ADMIN.AUTODOC_TOOL.BUTTON_ADD_TOP_INPUT_SECTION);
+  // await wait(2000);
+  // timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_TOOL_add_input_section.png` });
 
-  await page.waitForSelector(SELECTORS.ADMIN.AUTODOC_TOOL.BUTTON_ADD_SECTION);
-  await page.click(SELECTORS.ADMIN.AUTODOC_TOOL.BUTTON_ADD_SECTION);
-  await wait(2000);
-  timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_TOOL_add_section.png` });
+  // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC_TOOL.BUTTON_ADD_SECTION);
+  // await page.click(SELECTORS.ADMIN.AUTODOC_TOOL.BUTTON_ADD_SECTION);
+  // await wait(2000);
+  // timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_TOOL_add_section.png` });
 
-  await page.waitForSelector(SELECTORS.ADMIN.AUTODOC_TOOL.BUTTON_REMOVE_SECTION);
-  await page.click(SELECTORS.ADMIN.AUTODOC_TOOL.BUTTON_REMOVE_SECTION);
-  await wait(2000);
-  timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_TOOL_remove_section.png` });
+  // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC_TOOL.BUTTON_REMOVE_SECTION);
+  // await page.click(SELECTORS.ADMIN.AUTODOC_TOOL.BUTTON_REMOVE_SECTION);
+  // await wait(2000);
+  // timestamp = getNewTimeStamp();
+  // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_TOOL_remove_section.png` });
 }

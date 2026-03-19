@@ -3,8 +3,14 @@ import { URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
-import { getCredentials, loginWithPage } from '../../admin/login/login_helper.js';
+import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { Trend } from 'k6/metrics';
+
+export const webNoticePageLoad = new Trend('web_notice_page_load', true);
+export const webNoticeSearch = new Trend('web_notice_search', true);
+export const webNoticeTableClick = new Trend('web_notice_table_click', true);
+export const webNoticeHistory = new Trend('web_notice_history', true);
 
 export const options = {
     scenarios: {
@@ -40,49 +46,65 @@ export default async function() {
         await loginWithPage(page, credentials);
 
         // 공지사항
-        await page.goto(URLS.SERVICE.NOTICE);
+        const webNoticePageLoadStart = Date.now();
+        await page.goto(URLS.SERVICE.WEB_NOTICE);
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_NOTICE.png` });
+        const webNoticePageLoadDuration = Date.now() - webNoticePageLoadStart;
+        webNoticePageLoad.add(webNoticePageLoadDuration);
+        console.log(`web_notice_page_load: ${webNoticePageLoadDuration}ms`);
 
         // 공지사항, 페이지네이션
-        await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_pagination_last.png` });
-        await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_LAST);
+        // await wait(2000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_pagination_last.png` });
+        // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 공지사항, 검색
+        const webNoticeSearchStart = Date.now();
         await page.waitForSelector(SELECTORS.WEB.NOTICE.INPUT_SEARCH);
-        await page.type(SELECTORS.WEB.NOTICE.INPUT_SEARCH, '공지테스트');
+        await page.type(SELECTORS.WEB.NOTICE.INPUT_SEARCH, '공지');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
+        const webNoticeSearchDuration = Date.now() - webNoticeSearchStart;
+        webNoticeSearch.add(webNoticeSearchDuration);
+        console.log(`web_notice_search: ${webNoticeSearchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_search.png` });
 
         // 공지사항, 테이블 클릭
+        const webNoticeTableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.FEATURES.NOTICE.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
         await wait(2000);
+        const webNoticeTableClickDuration = Date.now() - webNoticeTableClickStart;
+        webNoticeTableClick.add(webNoticeTableClickDuration);
+        console.log(`web_notice_table_click: ${webNoticeTableClickDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_table.png` });
 
         // 공지사항, 수정 이력
+        const webNoticeHistoryStart = Date.now();
         await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_VIEW_HISTORY);
         await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_VIEW_HISTORY);
         await wait(2000);
+        const webNoticeHistoryDuration = Date.now() - webNoticeHistoryStart;
+        webNoticeHistory.add(webNoticeHistoryDuration);
+        console.log(`web_notice_history: ${webNoticeHistoryDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_history.png` });
 
         // 공지사항, 수정 이력 페이지네이션
-        await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_history_pagination_last.png` });
+        // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_LAST);
+        // await wait(2000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_history_pagination_last.png` });
         
         // 공지사항, 수정 이력 닫기
         await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_CLOSE);
@@ -118,6 +140,6 @@ export function handleSummary(data) {
     }
 
     return {
-        [`Result/notice_${timestamp}.html`]: htmlReport(data),
+        [`Result/web_notice_${timestamp}.html`]: htmlReport(data),
     };
 }

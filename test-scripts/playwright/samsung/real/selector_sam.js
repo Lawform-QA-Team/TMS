@@ -30,7 +30,9 @@ export const SELECTORS = {
             CHECKBOX: '[data-tid="c4b27674"]',
             CHECKBOX_1: '[data-tid="fe83c919"]',
             INPUT_SEARCH: '[data-tid="acbb58cd"]',
+            MODAL_PRESET_CHAT_REGISTER: '[data-tid="48bd22f4"]',
             PAGINATION: '[data-tid="a7503fc1"]',
+            SELECT: '[data-tid="dc1767aa"]',
             TABLE_LIST: '[data-tid="012e8237"]',
         },
         AI_EXTERNAL_DATA: {
@@ -113,8 +115,12 @@ export const SELECTORS = {
             SELECT_7: '[data-tid="01fe55a8"]',
             SELECT_CATEGORY: '[data-tid="1ee325dd"]', // 구분 combobox
             SELECT_DATA_SELECT: '[data-tid="33e4f23d"]', // 데이터 선택 combobox
+            SELECT_PERIOD_HALF: '[data-tid="8b139039"]',
+            SELECT_PERIOD_QUARTER: '[data-tid="0be0c3b9"]',
             SELECT_QUERY_UNIT: '[data-tid="c7498be0"]', // 조회 일자 : 년 combobox
             SELECT_QUERY_UNIT_1: '[data-tid="01f2efab"]', // 조회 일자 : 분기, 반기 combobox
+            MONTH_PICKER_START: '[data-tid="b2e14f91"]',
+            MONTH_PICKER_END: '[data-tid="c5d38a72"]',
             TABLE_LIST: '[data-tid="5a7867e6"]', // 통계 결과 테이블
         },
         DOCUMENT_UPDATE_REPORT: {
@@ -127,9 +133,10 @@ export const SELECTORS = {
             CHECKBOX: '[data-tid="5abe87ac"]',
             CHECKBOX_1: '[data-tid="e74d49a8"]',
             DATEPICKER: '[data-tid="f351da96"]',
+            DATEPICKER_END: '[data-tid="0381c19b"]',
             PAGINATION: '[data-tid="6b8f4aad"]',
-            DATEPICKER: '[data-tid="0381c19b"]', 
             RADIO: '[data-tid="dd026057"]',
+            SELECT: '[data-tid="17248806"]',
         },
         FILTERING: {
             BUTTON_CLOSE: '[data-tid="e7bdee8d"]',
@@ -171,9 +178,15 @@ export const SELECTORS = {
             OPTION_EN: '[data-tid="b2a3203c"]',
             OPTION_KO: '[data-tid="7b72b2dc"]',
         },
+        NOTFOUND: {
+            BUTTON: '[data-tid="f110093b"]',
+        },
         NOTICE: {
             REGISTER: '[data-tid="2cb75815"]',
             INPUT_SEARCH: '[data-tid="36307578"]',
+        },
+        PENDING_APPROVAL: {
+            BUTTON_CHECK_APPROVAL: '[data-tid="2e835444"]',
         },
         QNA: {
             BUTTON_LIST: '[data-tid="7086abaf"]',
@@ -199,6 +212,8 @@ export const SELECTORS = {
         },
         USER_ACTIVITY_TABLE: {
             BUTTON: '[data-tid="07169478"]',
+            DATEPICKER: '[data-tid="0fb68df1"]',
+            DATEPICKER_START: '[data-tid="ae3d7714"]',
             INPUT_SEARCH: '[data-tid="b00e402f"]',
             PAGINATION: '[data-tid="e7863e33"]',
             SELECT_EVENT: '[data-tid="79fa1ec3"]',
@@ -239,7 +254,9 @@ export const SELECTORS = {
             BUTTON_1: '[data-tid="0e5b22de"]',
             BUTTON_AI_AUTO_LABELING: '[data-tid="262aaa79"]',
             BUTTON_AUTO_REVIEW: '[data-tid="44d75fde"]',
+            BUTTON_BUTTON: '[data-tid="704f9f49"]',
             BUTTON_CHECKLIST_SUGGEST: '[data-tid="9741e28a"]',
+            BUTTON_CLEAN_DOWNLOAD: '[data-tid="09a24c50"]',
             BUTTON_CLICK_MINUS: '[data-tid="7cfd001c"]',
             BUTTON_CLOSE: '[data-tid="d0b2f414"]',
             BUTTON_COMPARE: '[data-tid="d1958383"]',
@@ -247,6 +264,7 @@ export const SELECTORS = {
             BUTTON_DOWNLOAD_1: '[data-tid="2540d31f"]',
             BUTTON_DRAFT_SAVE: '[data-tid="6a6ff793"]',
             BUTTON_EDIT: '[data-tid="fce3552b"]',
+            BUTTON_EDIT_HISTORY: '[data-tid="281c6f25"]',
             BUTTON_END_SESSION: '[data-tid="25174a66"]',
             BUTTON_LIST: '[data-tid="6a5a5f88"]',
             BUTTON_LOAD: '[data-tid="986e1002"]',
@@ -261,6 +279,7 @@ export const SELECTORS = {
             BUTTON_TOGGLE_INPUT_1: '[data-tid="05683d16"]',
             CHECKBOX: '[data-tid="713b2405"]',
             DATEPICKER: '[data-tid="245db5db"]',
+            DATEPICKER_1: '[data-tid="67d9f7b3"]',
             DATEPICKER_END: '[data-tid="fae5ecd4"]',
             EDITOR: '[data-tid="0b65f1ca"]',
             INPUT: '[data-tid="8201c07d"]',
@@ -291,6 +310,8 @@ export const SELECTORS = {
             BUTTON_REMOVE_SECTION: '[data-tid="d2c3534b"]',
             BUTTON_SAVE: '[data-tid="41434785"]',
             BUTTON_TEMP_SAVE: '[data-tid="1982f354"]',
+            BUTTON_TOGGLE_CHAT: '[data-tid="3dc4ea89"]',
+            BUTTON_TOGGLE_CHAT_1: '[data-tid="f109bc5c"]',
             CHECKBOX: '[data-tid="730b57be"]',
             CHECKBOX_1: '[data-tid="d2a3ed49"]',
             INPUT: '[data-tid="68ad1f20"]',
@@ -315,6 +336,7 @@ export const SELECTORS = {
             INPUT_19: '[data-tid="9b6da902"]',
             INPUT_20: '[data-tid="cf5d63b9"]',
             PAGINATION: '[data-tid="fc8693a5"]',
+            RADIO: '[data-tid="42a31be3"]',
             RADIO_AI_REQUIRED_FALSE: '[data-tid="d8d92a60"]',
             RADIO_AI_REQUIRED_TRUE: '[data-tid="d2413c02"]',
             RADIO_FALSE: '[data-tid="dd8363c4"]',
@@ -412,8 +434,13 @@ export const SELECTORS = {
         NAVBAR: {
             BUTTON_LOGOUT: '[data-tid="2d4ec066"]',
             BUTTON_NEWS_CLICK: '[data-tid="d21c61b1"]',
-            BUTTON_TOGGLE_LOCALE: '[data-tid="e04f4bad"]',
+            BUTTON_TOGGLE_LOCALE: '[data-tid="a1b2c3d4"]',
             INPUT: '[data-tid="98d55629"]',
+            OPTION_EN: '[data-tid="c9d0e1f2"]',
+            OPTION_KO: '[data-tid="e5f6a7b8"]',
+        },
+        NOTFOUND: {
+            BUTTON: '[data-tid="1a7d57a5"]',
         },
         NOTICE: {
             INPUT_SEARCH: '[data-tid="323d56ca"]',

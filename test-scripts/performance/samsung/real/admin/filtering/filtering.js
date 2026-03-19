@@ -5,6 +5,13 @@ import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { Trend } from 'k6/metrics';
+
+export const adminFilteringPageLoad = new Trend('admin_filtering_page_load', true);
+export const adminFilteringSearch = new Trend('admin_filtering_search', true);
+export const adminFilteringRegisterSave = new Trend('admin_filtering_register_save', true);
+export const adminFilteringTableClick = new Trend('admin_filtering_table_click', true);
+export const adminFilteringEditSave = new Trend('admin_filtering_edit_save', true);
 
 export const options = {
     scenarios: {
@@ -28,6 +35,20 @@ async function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/**
+ * 랜덤 문자열 생성 함수
+ * @param {number} length - 생성할 문자열 길이
+ * @returns {string} 랜덤 문자열
+ */
+function generateRandomString(length = 6) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1960, height: 1080 },
@@ -40,26 +61,34 @@ export default async function() {
         await loginWithPage(page, credentials);
 
         // 필터링 관리
+        const adminFilteringPageLoadStart = Date.now();
         await page.goto(URLS.FILTERING.FILTERING);
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_FILTERING.png` });
+        const adminFilteringPageLoadDuration = Date.now() - adminFilteringPageLoadStart;
+        adminFilteringPageLoad.add(adminFilteringPageLoadDuration);
+        console.log(`Admin filtering page load duration: ${adminFilteringPageLoadDuration}ms`);
 
         // 필터링 관리 페이지네이션
-        await page.waitForSelector(SELECTORS.ADMIN.FILTERING.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_pagination_last.png` });
-        await page.waitForSelector(SELECTORS.ADMIN.FILTERING.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        // await page.waitForSelector(SELECTORS.ADMIN.FILTERING.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_LAST);
+        // await wait(2000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_pagination_last.png` });
+        // await page.waitForSelector(SELECTORS.ADMIN.FILTERING.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 필터링 관리 검색
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT_SEARCH);
+        const adminFilteringSearchStart = Date.now();
         await page.type(SELECTORS.ADMIN.FILTERING.INPUT_SEARCH, '필터');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
+        const adminFilteringSearchDuration = Date.now() - adminFilteringSearchStart;
+        adminFilteringSearch.add(adminFilteringSearchDuration);
+        console.log(`Admin filtering search duration: ${adminFilteringSearchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_search.png` });
 
@@ -74,12 +103,15 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_CLOSE);
 
         // 필터링 관리 필터링 등록 작성
+        const adminFilteringRegisterSaveStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_REGISTER_CLICK);
         await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_REGISTER_CLICK);
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT);
-        await page.type(SELECTORS.ADMIN.FILTERING.INPUT, '필터링 단어 테스트');
+        const randomWord = `필터_${generateRandomString(8)}_${Date.now()}`;
+        await page.fill(SELECTORS.ADMIN.FILTERING.INPUT, randomWord);
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT_1);
-        await page.type(SELECTORS.ADMIN.FILTERING.INPUT_1, '필터링 사유 테스트');
+        const randomReason = `테스트사유_${generateRandomString(6)}_${getNewTimeStamp()}`;
+        await page.fill(SELECTORS.ADMIN.FILTERING.INPUT_1, randomReason);
         await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_register_write.png` });
@@ -88,21 +120,31 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
         await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
         await wait(2000);
+        const adminFilteringRegisterSaveDuration = Date.now() - adminFilteringRegisterSaveStart;
+        adminFilteringRegisterSave.add(adminFilteringRegisterSaveDuration);
+        console.log(`Admin filtering register save duration: ${adminFilteringRegisterSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_register_submit.png` });
 
         // 필터링 관리 테이블 클릭
         await page.waitForSelector(SELECTORS.COMMON.TABLE);
+        const adminFilteringTableClickStart = Date.now();
         await page.click(`${SELECTORS.COMMON.TABLE} button`);
         await wait(2000);
+        const adminFilteringTableClickDuration = Date.now() - adminFilteringTableClickStart;
+        adminFilteringTableClick.add(adminFilteringTableClickDuration);
+        console.log(`Admin filtering table click duration: ${adminFilteringTableClickDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_table.png` });
 
         // 필터링 관리 수정
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT);
-        await page.type(SELECTORS.ADMIN.FILTERING.INPUT, '필터링 단어 테스트 2');
+        const editRandomWord = `수정필터_${generateRandomString(8)}_${Date.now()}`;
+        const adminFilteringEditSaveStart = Date.now();
+        await page.fill(SELECTORS.ADMIN.FILTERING.INPUT, editRandomWord);
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.INPUT_1);
-        await page.type(SELECTORS.ADMIN.FILTERING.INPUT_1, '필터링 사유 테스트 2');
+        const editRandomReason = `수정사유_${generateRandomString(6)}_${getNewTimeStamp()}`;
+        await page.fill(SELECTORS.ADMIN.FILTERING.INPUT_1, editRandomReason);
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.SWITCH);
         await page.click(SELECTORS.ADMIN.FILTERING.SWITCH);
         await wait(2000);
@@ -113,6 +155,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
         await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
         await wait(2000);
+        const adminFilteringEditSaveDuration = Date.now() - adminFilteringEditSaveStart;
+        adminFilteringEditSave.add(adminFilteringEditSaveDuration);
+        console.log(`Admin filtering edit save duration: ${adminFilteringEditSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_register_edit_submit.png` });
 

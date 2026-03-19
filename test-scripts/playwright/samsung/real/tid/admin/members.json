@@ -4,5 +4,8 @@
   "buttonGoToList": "dd30a91a",
   "buttonSave": "e9cbe3b4",
   "buttonSelectTransferee": "ab36031b",
-  "buttonSelectTransferor": "4bbb8318"
+  "buttonSelectTransferor": "4bbb8318",
+  "modalPermissionChangedTitle": "9d7655fb",
+  "modalUserSelect": "e4a022e2",
+  "modalUserSelect1": "c60a42ae"
 }

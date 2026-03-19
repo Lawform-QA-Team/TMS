@@ -6,6 +6,12 @@ import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { Trend } from 'k6/metrics';
+
+export const adminAutodocPageLoad = new Trend('admin_autodoc_page_load', true);
+export const adminAutodocSearch = new Trend('admin_autodoc_search', true);
+export const adminAutodocRegister = new Trend('admin_autodoc_register', true);
+export const adminAutodocTableClick = new Trend('admin_autodoc_table_click', true);
 
 export const options = {
     scenarios: {
@@ -25,10 +31,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1960, height: 1080 },
@@ -41,65 +43,89 @@ export default async function() {
         await loginWithPage(page, credentials);
 
         // 표준 양식 관리 진입
+        const adminAutodocPageLoadStart = Date.now();
         await page.goto(URLS.AUTODOC.AUTODOC);
-        await wait(2000);
+        const adminAutodocPageLoadDuration = Date.now() - adminAutodocPageLoadStart;
+        adminAutodocPageLoad.add(adminAutodocPageLoadDuration);
+        console.log(`adminAutodocPageLoad duration: ${adminAutodocPageLoadDuration}ms`);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC.png` });
 
         // 표준 양식 테이블 페이지네이션
-        await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST); // 마지막 페이지 이동
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_pagination_last.png` });
-        await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST); // 첫 페이지 이동
+        // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_LAST); // 마지막 페이지 이동
+        // await wait(2000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_pagination_last.png` });
+        // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_FIRST); // 첫 페이지 이동
 
         // 표준 양식 검색
+        const adminAutodocSearchStart = Date.now();
+        await page.waitForSelector('button[data-slot="popover-trigger"]');
+        await page.click('button[data-slot="popover-trigger"]');
+        await page.waitForSelector('input[data-slot="input"][placeholder="카테고리 검색"]');
+        await page.type('input[data-slot="input"][placeholder="카테고리 검색"]', '카테고리');
+        await page.waitForLoadState('load');
+        const contents = await page.$$('button.relative.flex.w-full.cursor-pointer.items-center.rounded-sm.text-left');
+        await contents[Math.floor(Math.random() * contents.length)].click();
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH);
-        await page.type(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH, '표준 양식');
+        await page.type(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH, '시연용');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(2000);
+        const adminAutodocSearchDuration = Date.now() - adminAutodocSearchStart;
+        adminAutodocSearch.add(adminAutodocSearchDuration);
+        console.log(`adminAutodocSearch duration: ${adminAutodocSearchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_search.png` });
         await page.goto(URLS.AUTODOC.AUTODOC);
 
         // 표준 양식 등록 진입
+        const adminAutodocRegisterStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER);
         await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER);
-        await wait(2000);
+        const adminAutodocRegisterDuration = Date.now() - adminAutodocRegisterStart;
+        adminAutodocRegister.add(adminAutodocRegisterDuration);
+        console.log(`adminAutodocRegister duration: ${adminAutodocRegisterDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_register.png` });
 
         // 표준 양식 등록 - 양식 유형 선택
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.SELECT_SELECTED_CATEGORY);
         await selectComboboxOption(page, SELECTORS.ADMIN.AUTODOC.SELECT_SELECTED_CATEGORY);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_register.select.png` });
         await page.goto(URLS.AUTODOC.AUTODOC);
 
         // 표준 양식 테이블 클릭
+        const adminAutodocTableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
-        await wait(2000);
+        const adminAutodocTableClickDuration = Date.now() - adminAutodocTableClickStart;
+        adminAutodocTableClick.add(adminAutodocTableClickDuration);
+        console.log(`adminAutodocTableClick duration: ${adminAutodocTableClickDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table.png` });
         await page.goto(URLS.AUTODOC.AUTODOC);
 
-        // 업데이트 추천 -> 미구현
-        // await page.goto(URLS.AUTODOC.AUTODOC);
-        // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_UPDATE_RECOMMEND);
-        // await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_UPDATE_RECOMMEND);
-        // await wait(2000);
+        // 업데이트 추천
+        await page.locator('button').filter({ hasText: '업데이트 추천' }).waitFor();
+        await page.locator('button').filter({ hasText: '업데이트 추천' }).click();
+        timestamp = getNewTimeStamp();
+        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_update.png` });
+        await page.goto(URLS.AUTODOC.AUTODOC);
+
+        // 표준 양식 테이블 업데이트 클릭
+        // await page.waitForSelector(`span[data-slot="badge"]`);
+        // const badges = await page.$$(`span[data-slot="badge"]`);
+        // await badges[0].click();
         // timestamp = getNewTimeStamp();
-        // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_update.png` });
+        // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table_update.png` });
+        // await page.goto(URLS.AUTODOC.AUTODOC);
 
         // 카테고리 관리
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_CATEGORY_MANAGEMENT);
         await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_CATEGORY_MANAGEMENT);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category.png` });
 

@@ -1,9 +1,14 @@
 {
+  "buttonDelete": "3f7b1c92",
   "buttonList": "149a4e27",
   "buttonRegister": "6ca05f83",
   "checkbox": "c4b27674",
   "checkbox1": "fe83c919",
   "inputSearch": "acbb58cd",
+  "modalPresetChatRegister": "48bd22f4",
+  "modalTitle": "63b39ce4",
+  "option": "f6d91b0a",
   "pagination": "a7503fc1",
+  "select": "dc1767aa",
   "tableList": "012e8237"
 }

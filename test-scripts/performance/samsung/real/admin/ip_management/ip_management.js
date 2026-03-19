@@ -5,6 +5,10 @@ import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { Trend } from 'k6/metrics';
+
+export const adminIpPageLoad = new Trend('admin_ip_page_load', true);
+export const adminIpSearch = new Trend('admin_ip_search', true);
 
 export const options = {
     scenarios: {
@@ -40,17 +44,25 @@ export default async function() {
         await loginWithPage(page, credentials);
 
         // IP 관리
+        const adminIpPageLoadStart = Date.now();
         await page.goto(URLS.SERVICE.IP);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_IP.png` });
         await wait(2000);
+        const adminIpPageLoadDuration = Date.now() - adminIpPageLoadStart;
+        adminIpPageLoad.add(adminIpPageLoadDuration);
+        console.log(`Admin IP page load duration: ${adminIpPageLoadDuration}ms`);
 
         // IP 관리, 검색
         await page.waitForSelector(SELECTORS.ADMIN.IP_MANAGEMENT.INPUT_SEARCH);
+        const adminIpSearchStart = Date.now();
         await page.type(SELECTORS.ADMIN.IP_MANAGEMENT.INPUT_SEARCH, '5');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
+        const adminIpSearchDuration = Date.now() - adminIpSearchStart;
+        adminIpSearch.add(adminIpSearchDuration);
+        console.log(`Admin IP search duration: ${adminIpSearchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_IP_search.png` });
 

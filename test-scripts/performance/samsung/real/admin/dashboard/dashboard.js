@@ -1,4 +1,6 @@
 import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js"
+import http from 'k6/http';
+import { check } from 'k6';
 import { URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
@@ -10,6 +12,10 @@ import {
     selectDateInRdpCalendar,
 } from '../../../../common/datepicker_helper.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { Trend } from 'k6/metrics';
+
+export const adminDashPageLoad = new Trend('admin_dash_page_load', true);
+export const adminDashSearchFilter = new Trend('admin_dash_search_filter', true);
 
 export const options = {
     scenarios: {
@@ -20,6 +26,11 @@ export const options = {
             options: {
                 browser: {
                     type: 'chromium',
+                    args: [
+                        '--disable-features=DownloadBubble,DownloadBubbleV2', // 최신 크롬 다운로드 알림 끄기
+                        '--no-sandbox',
+                        '--disable-setuid-sandbox'
+                    ],
                 },
             },
         },
@@ -46,28 +57,12 @@ async function selectDateRangeInRdp(page, startDate, endDate) {
     const inputs = await page.$$(`${wrap} input`);
     if (inputs.length >= 2) {
         await selectDateInRdpCalendar(page, page.locator(`${wrap} input`).first(), startDate);
-        await wait(300);
         await selectDateInRdpCalendar(page, page.locator(`${wrap} input`).nth(1), endDate);
     } else {
         await selectRandomDateFromRdpCalendar(page, wrap);
     }
 }
 
-/** 월 선택 캘린더에서 연도·월 선택 (팝업 열린 뒤 N월 버튼 클릭) */
-async function selectMonthInPicker(page, year, month) {
-    await page.locator(SELECTORS.ADMIN.DASHBOARD.DATEPICKER).click();
-    await wait(300);
-    // 연도 입력이 있으면 먼저 채움 (선택 사항)
-    const yearInput = page.locator('input[type="number"], input[placeholder*="년"]').first();
-    if (await yearInput.isVisible().catch(() => false)) {
-        await yearInput.fill(String(year));
-        await wait(200);
-    }
-    // "N월" 버튼 클릭 (exact로 1월/10월 구분)
-    const monthLabel = `${month}월`;
-    await page.getByText(monthLabel, { exact: true }).click();
-    await wait(200);
-}
 
 export default async function() {
     const context = await browser.newContext({
@@ -75,40 +70,96 @@ export default async function() {
         viewport: { width: 1960, height: 1080 },
     });
     const page = await context.newPage();
+    let downloadUrl = null;
+
+    page.on('response', (response) => {
+        const disposition = response.headers()['content-disposition'];
+        if (disposition && disposition.includes('attachment')) {
+            downloadUrl = response.url();
+            console.log('Download URL:', downloadUrl);
+        }
+    });
+
     const credentials = getCredentials();
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
     try {
         await loginWithPage(page, credentials);
+        const adminDashPageLoadStart = Date.now();
+        // await page.goto(URLS.LOGIN.DASHBOARD);
 
-        await page.goto(URLS.LOGIN.DASHBOARD);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_dashboard_home.png` });
+        const adminDashPageLoadDuration = Date.now() - adminDashPageLoadStart;
+        adminDashPageLoad.add(adminDashPageLoadDuration);
+        console.log(`Admin dash page load duration: ${adminDashPageLoadDuration}ms`);
 
-        //엑셀 다운로드 (acceptDownloads로 저장 팝업 없이 자동 저장)
-        await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.EXCEL);
-        await page.click(SELECTORS.ADMIN.DASHBOARD.EXCEL);
-        await wait(2000);
-        await page.screenshot({ path: `screenshots/${timestamp}_excel_download.png` });
+        // await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.EXCEL);
+        // await page.click(SELECTORS.ADMIN.DASHBOARD.EXCEL);
+        // await page.waitForTimeout(2000);
+
+        // const cookies = await context.cookies();
+        // const cookieHeader = cookies.map((c) => `${c.name}=${c.value}`).join('; ');
+        // console.log('Cookie Header:', cookieHeader);
+
+        // if (downloadUrl) {
+        //     const result = await page.evaluate(async (url) => {
+        //         try {
+        //             const response = await fetch(url, {
+        //                 method: 'GET',
+        //                 credentials: 'include', // 브라우저 쿠키/토큰 그대로 사용
+        //             });
+        //             const blob = await response.blob();
+        //             return {
+        //                 status: response.status,
+        //                 contentType: response.headers.get('content-type'),
+        //                 size: blob.size,
+        //             };
+        //         } catch (e) {
+        //             return { error: e.message };
+        //         }
+        //     }, downloadUrl);
+
+        //     console.log('Status:', result.status);
+        //     console.log('Content-Type:', result.contentType);
+        //     console.log('File size (bytes):', result.size);
+
+        //     check(result, {
+        //         'download status 200': (r) => r.status === 200,
+        //         'file size > 1KB': (r) => r.size > 1024,
+        //         'content-type is xlsx': (r) =>
+        //             r.contentType &&
+        //             r.contentType.includes(
+        //                 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        //             ),
+        //     });
+        // } else {
+        //     console.error('❌ downloadUrl 캐치 실패');
+        //     check(null, { 'downloadUrl 캐치 성공': () => false });
+        // }
+        // await page.screenshot({ path: `screenshots/${timestamp}_excel_download.png` });
 
         //통계 필터 적용 (combobox: button + role="combobox")
         //구분 - 접속수, 데이터 선택 - 수탁사명, 조회 단위 - 일
+        const adminDashSearchFilterStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_CATEGORY); // 구분
         await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_CATEGORY);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_select_gategory.png` });
 
-        await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT); // 데이터 선택
-        await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_select_gategory2.png` });
+        const dataSelectEl = await page.$(SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT);
+        if (dataSelectEl) {
+            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT); // 데이터 선택
+            await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT);
+            timestamp = getNewTimeStamp();
+            await page.screenshot({ path: `screenshots/${timestamp}_select_gategory2.png` });
+        }
 
         await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT); // 조회 단위
         const randomValue3 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT);
         console.log('randomValue3 (조회 단위)', randomValue3);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_select_gategory3.png` });
-        await wait(2000);
 
         // 조회 단위에 따른 기간 선택 (randomValue3 = 조회 단위: 일/월/분기/반기/년도)
         const queryUnit = (randomValue3 || '').trim();
@@ -124,13 +175,10 @@ export default async function() {
             await page.screenshot({ path: `screenshots/${timestamp}_datepicker.png` });
         }
         else if (queryUnit.includes('월')) {
-            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.DATEPICKER);
-            // 월 단위: 월 선택 캘린더에서 연도·월 클릭 (1~12월 그리드)
-            const d = new Date();
-            d.setMonth(d.getMonth() - Math.floor(Math.random() * 12));
-            const y = d.getFullYear();
-            const m = d.getMonth() + 1; // 1~12
-            await selectMonthInPicker(page, y, m);
+            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.MONTH_PICKER_START);
+            await selectRandomDateFromRdpCalendar(page, SELECTORS.ADMIN.DASHBOARD.MONTH_PICKER_START);
+            await wait(300);
+            await selectRandomDateFromRdpCalendar(page, SELECTORS.ADMIN.DASHBOARD.MONTH_PICKER_END);
             timestamp = getNewTimeStamp();
             await page.screenshot({ path: `screenshots/${timestamp}_datepicker_month.png` });
         }
@@ -146,12 +194,15 @@ export default async function() {
             await page.screenshot({ path: `screenshots/${timestamp}_select_quarter_${randomValue_quarter || 'unknown'}.png` });
         }
         else if (queryUnit.includes('반기')) {
-            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
-            const randomValue_year2 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
+            await page.waitForLoadState('load');
+            const yearCombobox = `${SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1}:nth-of-type(1)`
+            const halfCombobox = `${SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1}:nth-of-type(2)`
+            
+            const randomValue_year2 = await selectComboboxOption(page, yearCombobox);
             timestamp = getNewTimeStamp();
             await page.screenshot({ path: `screenshots/${timestamp}_select_year2_${randomValue_year2 || 'unknown'}.png` });
-            await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
-            const randomValue_half = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
+
+            const randomValue_half = await selectComboboxOption(page, halfCombobox);
             timestamp = getNewTimeStamp();
             await page.screenshot({ path: `screenshots/${timestamp}_select_half_${randomValue_half || 'unknown'}.png` });
         }
@@ -164,7 +215,10 @@ export default async function() {
         
         await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.BUTTON_SEARCH);
         await page.click(SELECTORS.ADMIN.DASHBOARD.BUTTON_SEARCH);
-        
+        const adminDashSearchFilterDuration = Date.now() - adminDashSearchFilterStart;
+        adminDashSearchFilter.add(adminDashSearchFilterDuration);
+        console.log(`Admin dash search filter duration: ${adminDashSearchFilterDuration}ms`);
+
     } finally {
         if (page) await page.close();
         if (context) await context.close();

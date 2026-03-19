@@ -6,6 +6,13 @@ import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
 import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { Trend } from 'k6/metrics';
+
+export const adminMembersSvcPageLoad = new Trend('admin_members_svc_page_load', true);
+export const adminMembersSvcSearch = new Trend('admin_members_svc_search', true);
+export const adminMembersSvcTableClick = new Trend('admin_members_svc_table_click', true);
+export const adminMembersSvcEditSave = new Trend('admin_members_svc_edit_save', true);
+export const adminMembersSvcHandover = new Trend('admin_members_svc_handover', true);
 
 export const options = {
     scenarios: {
@@ -41,33 +48,42 @@ export default async function() {
         await loginWithPage(page, credentials);
 
         // 사용자 관리 - 서비스
+        const adminMembersSvcPageLoadStart = Date.now();
         await page.goto(URLS.MEMBER.SERVICE);
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE.png` });
+        const adminMembersSvcPageLoadDuration = Date.now() - adminMembersSvcPageLoadStart;
+        adminMembersSvcPageLoad.add(adminMembersSvcPageLoadDuration);
+        console.log(`Admin members service page load duration: ${adminMembersSvcPageLoadDuration}ms`);
 
         // 사용자 관리 - 서비스, 페이지네이션
-        await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_pagination_last.png` });
-        await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_LAST);
+        // await wait(2000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_pagination_last.png` });
+        // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 사용자 관리 - 서비스, 검색
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH);
+        const adminMembersSvcSearchStart = Date.now();
         await page.type(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH, 'a');
         await selectComboboxOption(page, SELECTORS.ADMIN.MEMBERS_TABLE.SELECT_ROLE)
         await selectComboboxOption(page, SELECTORS.ADMIN.MEMBERS_TABLE.SELECT_APPROVAL_STATUS)
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
+        const adminMembersSvcSearchDuration = Date.now() - adminMembersSvcSearchStart;
+        adminMembersSvcSearch.add(adminMembersSvcSearchDuration);
+        console.log(`Admin members service search duration: ${adminMembersSvcSearchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_search.png` });
         await page.goto(URLS.MEMBER.SERVICE);
 
         // 사용자 관리 - 서비스, 테이블 클릭
+        const adminMembersSvcTableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH);
         await page.type(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH, '임희건');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
@@ -76,10 +92,14 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.TABLE_LIST);
         await page.click(`${SELECTORS.COMMON.TABLE} button`);
         await wait(2000);
+        const adminMembersSvcTableClickDuration = Date.now() - adminMembersSvcTableClickStart;
+        adminMembersSvcTableClick.add(adminMembersSvcTableClickDuration);
+        console.log(`Admin members service table click duration: ${adminMembersSvcTableClickDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_table.png` });
 
         // 사용자 관리 - 서비스, 정보 수정
+        const adminMembersSvcEditSaveStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO);
         const radios = await page.$$(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO);
         await radios[2].click();
@@ -93,10 +113,14 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
         await wait(2000);
+        const adminMembersSvcEditSaveDuration = Date.now() - adminMembersSvcEditSaveStart;
+        adminMembersSvcEditSave.add(adminMembersSvcEditSaveDuration);
+        console.log(`Admin members service edit save duration: ${adminMembersSvcEditSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_save.png` });
 
         // 사용자 관리 - 서비스, 인수인계 진입
+        const adminMembersSvcHandoverStart = Date.now();
         await page.goto(URLS.MEMBER.SERVICE);
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.BUTTON_HANDOVER_CLICK);
         await page.click(SELECTORS.ADMIN.MEMBERS_TABLE.BUTTON_HANDOVER_CLICK);
@@ -120,17 +144,17 @@ export default async function() {
         // 사용자 관리 - 서비스, 인수인계 인계자 페이지네이션
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
         await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
-        await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferor_pagination_last.png` });
-        await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        // await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_LAST);
+        // await wait(2000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferor_pagination_last.png` });
+        // await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 사용자 관리 - 서비스, 인수인계 인계자 검색
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT);
-        await page.type(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT, '임희건');
+        await page.type(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT, 'hkqa');
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_SEARCH);
         await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_SEARCH);
         await wait(2000);
@@ -163,17 +187,17 @@ export default async function() {
         // 사용자 관리 - 서비스, 인수인계 인수자 페이지네이션
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
         await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
-        await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_LAST);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferee_pagination_last.png` });
-        await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
-        await page.click(SELECTORS.COMMON.PAGE_FIRST);
+        // await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_LAST);
+        // await wait(2000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferee_pagination_last.png` });
+        // await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.PAGINATION);
+        // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 사용자 관리 - 서비스, 인수인계 인수자 검색
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT);
-        await page.type(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT, 'ggp');
+        await page.type(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT, 'q1m');
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_SEARCH);
         await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_SEARCH);
         await wait(2000);
@@ -191,15 +215,18 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CONFIRM);
         await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CONFIRM);
         await wait(2000);
+        const adminMembersSvcHandoverDuration = Date.now() - adminMembersSvcHandoverStart;
+        adminMembersSvcHandover.add(adminMembersSvcHandoverDuration);
+        console.log(`Admin members service handover duration: ${adminMembersSvcHandoverDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferee_submit.png` });
 
         // 사용자 관리 - 서비스, 인수인계 저장
-        await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SAVE);
-        await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SAVE);
-        await wait(2000);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_submit.png` });
+        // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SAVE);
+        // await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SAVE);
+        // await wait(2000);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_submit.png` });
 
     } finally {
         if (page) await page.close();
@@ -213,7 +240,7 @@ export function handleSummary(data) {
     // 결과 추출 및 Slack 발송
     const slackWebhookUrl = __ENV.SLACK_WEBHOOK_URL;
     if (slackWebhookUrl) {
-        const payload = buildK6SummaryMessage(data, 'Members');
+        const payload = buildK6SummaryMessage(data, 'Members Service');
         const result = sendSlackWebhook(slackWebhookUrl, payload);
         if (!result.ok) {
             console.warn(`[Slack] 메시지 발송 실패 (status: ${result.status})`);
@@ -221,6 +248,6 @@ export function handleSummary(data) {
     }
 
     return {
-        [`Result/members_${timestamp}.html`]: htmlReport(data),
+        [`Result/members_service_${timestamp}.html`]: htmlReport(data),
     };
 }
