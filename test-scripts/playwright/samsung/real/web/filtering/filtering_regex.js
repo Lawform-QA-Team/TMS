@@ -150,8 +150,8 @@ export async function run(page) {
 
   await page.waitForSelector(SELECTORS.WEB.DRIVE.TABLE_LIST);
   await Promise.all([
-    page.waitForURL('**/drive**'),
-    page.click(`${SELECTORS.COMMON.TABLE} span.cursor-pointer`),
+    page.waitForURL('**/autodoc**'),
+    page.click(`${SELECTORS.COMMON.TABLE2} span.cursor-pointer`),
   ]);
   await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
@@ -174,4 +174,12 @@ export async function run(page) {
 
     await editInput.fill('');
   }
+
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
+  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
+  await page.waitForSelector('button:has-text("확인")');
+  await Promise.all([
+    page.waitForURL('**/autodoc'),
+    page.click('button:has-text("확인")'),
+  ]);
 }
