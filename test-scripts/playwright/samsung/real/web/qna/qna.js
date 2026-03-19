@@ -21,85 +21,119 @@ export async function run(page) {
   await loginWithPage(page, credentials, URLS.WEB_LOGIN.HOME);
 
   // 1:1 문의
-  await page.goto(URLS.SERVICE.WEB_QNA);
-  await page.waitForLoadState('load');
+  await page.goto(URLS.SERVICE.WEB_QNA, {
+    waitUntil: 'domcontentloaded',
+  });
+  await page.waitForLoadState('domcontentloaded');
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_QNA.png` });
 
   // 1:1 문의, 페이지네이션
   // await page.waitForSelector(SELECTORS.FEATURES.QNA.PAGINATION);
   // await page.click(SELECTORS.COMMON.PAGE_LAST);
-  // await page.waitForLoadState('load');
+  // await page.waitForLoadState('domcontentloaded');
   // timestamp = getNewTimeStamp();
   // await page.screenshot({ path: `screenshots/${timestamp}_QNA_pagination_last.png` });
   // await page.waitForSelector(SELECTORS.FEATURES.QNA.PAGINATION);
   // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
   // 1:1 문의, 상태 필터
-  await selectComboboxOption(page, SELECTORS.WEB.QNA.SELECT_STATUS);
-  await page.waitForSelector(SELECTORS.WEB.QNA.INPUT_SEARCH);
-  await page.waitForLoadState('load');
+  await Promise.all([
+    page.waitForURL('**/qna**'),
+    selectComboboxOption(page, SELECTORS.WEB.QNA.SELECT_STATUS),
+  ]);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_QNA_status.png` });
 
   // 1:1 문의, 검색
+  await page.waitForSelector(SELECTORS.WEB.QNA.INPUT_SEARCH);
   await page.locator(SELECTORS.WEB.QNA.INPUT_SEARCH).fill('문의');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
-  await page.click(SELECTORS.COMMON.SEARCH);
-  await page.waitForLoadState('load');
-  await page.waitForURL('**/qna**', { waitUntil: 'load' });
+  await Promise.all([
+    page.waitForURL('**/qna**'),
+    page.click(SELECTORS.COMMON.SEARCH),
+  ]);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_QNA_search.png` });
-  await page.goto(URLS.SERVICE.WEB_QNA);
-  await page.waitForLoadState('load');
-  await page.waitForURL('**/qna**', { waitUntil: 'load' });
+  await page.waitForSelector(SELECTORS.WEB.QNA.SELECT_STATUS);
+  await page.locator(SELECTORS.WEB.QNA.SELECT_STATUS).click();
+  const statusOption = page.locator('[role="option"]').filter({ hasText: '전체' });
+  await statusOption.click();
+  await page.waitForSelector(SELECTORS.WEB.QNA.INPUT_SEARCH);
+  await page.locator(SELECTORS.WEB.QNA.INPUT_SEARCH).fill('');
+  await page.waitForSelector(SELECTORS.COMMON.SEARCH);
+  await Promise.all([
+    page.waitForURL('**/qna**'),
+    page.click(SELECTORS.COMMON.SEARCH),
+  ]);
 
   // 1:1 문의, 문의 등록 진입
   await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CREATE_QNA);
-  await page.click(SELECTORS.WEB.QNA.BUTTON_CREATE_QNA);
-  await page.waitForLoadState('load');
+  await Promise.all([
+    page.waitForURL('**/qna**'),
+    page.click(SELECTORS.WEB.QNA.BUTTON_CREATE_QNA),
+  ]);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_QNA_create.png` });
   await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CANCEL);
-  await page.click(SELECTORS.WEB.QNA.BUTTON_CANCEL);
+  await Promise.all([
+    page.waitForURL('**/qna**'),
+    page.click(SELECTORS.WEB.QNA.BUTTON_CANCEL),
+  ]);
 
   // 1:1 문의, 문의 등록 작성
   await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CREATE_QNA);
-  await page.click(SELECTORS.WEB.QNA.BUTTON_CREATE_QNA);
+  await Promise.all([
+    page.waitForURL('**/qna**'),
+    page.click(SELECTORS.WEB.QNA.BUTTON_CREATE_QNA),
+  ]);
   await page.waitForSelector(SELECTORS.WEB.QNA.INPUT);
   await page.locator(SELECTORS.WEB.QNA.INPUT).fill('문의 테스트');
   await page.waitForSelector('[contenteditable="true"]');
   await page.locator('[contenteditable="true"]').first().fill('문의 테스트 1');
   await page.keyboard.press('Enter');
   await page.locator('[contenteditable="true"]').first().type('문의 테스트 2');
-  await page.waitForLoadState('load');
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_QNA_create_write.png` });
 
   // 1:1 문의, 문의 등록
   await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CLICK_SUBMIT);
-  await page.click(SELECTORS.WEB.QNA.BUTTON_CLICK_SUBMIT);
-  await page.waitForLoadState('load');
+  await Promise.all([
+    page.waitForURL('**/qna**'),
+    page.click(SELECTORS.WEB.QNA.BUTTON_CLICK_SUBMIT),
+  ]);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_QNA_create_submit.png` });
 
   // 1:1 문의, 테이블 클릭
   await page.waitForSelector(SELECTORS.FEATURES.QNA.TABLE_LIST);
-  await page.click(SELECTORS.COMMON.TABLE);
-  await page.waitForLoadState('load');
+  await Promise.all([
+    page.waitForURL('**/qna**'),
+    page.click(SELECTORS.COMMON.TABLE),
+  ]);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_QNA_table.png` });
   await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CLICK_GO_TO_LIST);
-  await page.click(SELECTORS.WEB.QNA.BUTTON_CLICK_GO_TO_LIST);
+  await Promise.all([
+    page.waitForURL('**/qna**'),
+    page.click(SELECTORS.WEB.QNA.BUTTON_CLICK_GO_TO_LIST),
+  ]);
 
   // 1:1 문의, 취소
   await page.waitForSelector(SELECTORS.FEATURES.QNA.TABLE_LIST);
-  await page.click(SELECTORS.COMMON.TABLE);
+  await Promise.all([
+    page.waitForURL('**/qna**'),
+    page.click(SELECTORS.COMMON.TABLE),
+  ]);
   await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CLICK_CANCEL);
   await page.click(SELECTORS.WEB.QNA.BUTTON_CLICK_CANCEL);
-  await page.waitForLoadState('load');
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_QNA_cancel.png` });
-
-  // 모달 관련 내용 추가 필요
 }

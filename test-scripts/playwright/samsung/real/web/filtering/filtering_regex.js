@@ -91,7 +91,9 @@ export async function run(page) {
   await loginWithPage(page, credentials, URLS.WEB_LOGIN.HOME);
 
   // autodoc 표준 양식 목록 진입
-  await page.goto(URLS.AUTODOC.STANDARD, { waitUntil: 'load' });
+  await page.goto(URLS.AUTODOC.STANDARD, {
+    waitUntil: 'domcontentloaded',
+  });
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_REGEX.png` });
 
@@ -99,19 +101,21 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
   await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('개인정보처리위탁계약서_삼성');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
-  await page.click(SELECTORS.COMMON.SEARCH);
-  await page.waitForLoadState('load');
-  await page.waitForURL('**/search**', { waitUntil: 'load' });
+  await Promise.all([
+    page.waitForURL('**/autodoc**'),
+    page.click(SELECTORS.COMMON.SEARCH),
+  ]);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_REGEX_search.png` });
 
   // 문서 테이블 클릭 (상세 진입)
-  await page.goto(URLS.AUTODOC.DETAIL + '7');
-  await page.waitForLoadState("load")
-  await page.waitForURL('**/autodoc**', { waitUntil: 'load' });
+  await page.goto(URLS.AUTODOC.DETAIL + '7', {
+    waitUntil: 'domcontentloaded',
+  });
+  await page.waitForLoadState('domcontentloaded')
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_REGEX_doc_detail.png` });
-
 
   // PII 샘플 데이터 입력 및 필터링 감지 확인 (전체 순회)
   const docInput = page.getByRole('textbox', { name: '개인정보 주식회사' });
@@ -137,20 +141,25 @@ export async function run(page) {
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_REGEX_input_combined.png` });
 
-  await page.goto(URLS.DRIVE.DRIVE);
-  await page.waitForLoadState('load');
+  await page.goto(URLS.DRIVE.DRIVE, {
+    waitUntil: 'domcontentloaded',
+  });
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_REGEX_drive.png` });
 
   await page.waitForSelector(SELECTORS.WEB.DRIVE.TABLE_LIST);
-  await page.click(`${SELECTORS.COMMON.TABLE} span.cursor-pointer`);
-  await page.waitForLoadState('load');
+  await Promise.all([
+    page.waitForURL('**/drive**'),
+    page.click(`${SELECTORS.COMMON.TABLE} span.cursor-pointer`),
+  ]);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_DRIVE_table.png` });
 
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.SWITCH_EDITOR_EDIT_MODE);
   await page.click(SELECTORS.FEATURES.AUTODOC.SWITCH_EDITOR_EDIT_MODE);
-  await page.waitForLoadState('load');
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_edit.png` });
   await page.waitForSelector('[contenteditable="true"]');

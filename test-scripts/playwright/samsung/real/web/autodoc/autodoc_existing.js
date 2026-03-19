@@ -20,15 +20,17 @@ export async function run(page) {
   await loginWithPage(page, credentials, URLS.WEB_LOGIN.HOME);
 
   // 문서 작성 - 기존 문서
-  await page.goto(URLS.AUTODOC.EXISTING);
-  await page.waitForLoadState('load');
+  await page.goto(URLS.AUTODOC.EXISTING, {
+    waitUntil: 'domcontentloaded',
+  });
+  await page.waitForLoadState('domcontentloaded');
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing.png` });
 
   // 문서 작성 - 기존 문서, 페이지네이션
   // await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
   // await page.click(SELECTORS.COMMON.PAGE_LAST);
-  // await page.waitForLoadState('load');
+  // await page.waitForLoadState('domcontentloaded');
   // timestamp = getNewTimeStamp();
   // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_pagination_last.png` });
   // await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
@@ -38,18 +40,26 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
   await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('heekun');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
-  await page.click(SELECTORS.COMMON.SEARCH);
-  await page.waitForLoadState('load');
+  await Promise.all([
+    page.waitForURL('**/autodoc?method=existing**'),
+    page.click(SELECTORS.COMMON.SEARCH),
+  ]);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_search.png` });
 
   // 문서 작성 - 기존 문서, 테이블 클릭
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
-  await page.click(SELECTORS.COMMON.TABLE);
-  await page.waitForLoadState('load');
+  await Promise.all([
+    page.waitForURL('**/autodoc?method=existing**'),
+    page.click(SELECTORS.COMMON.TABLE),
+  ]);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_table.png` });
-
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
-  await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
+  await Promise.all([
+    page.waitForURL('**/autodoc'),
+    page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST),
+  ]);
 }
