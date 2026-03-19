@@ -21,15 +21,17 @@ export async function run(page) {
   await loginWithPage(page, credentials);
 
   // 표준 양식 관리 진입
-  await page.goto(URLS.AUTODOC.CATEGORY);
-  await wait(2000);
+  await page.goto(URLS.AUTODOC.CATEGORY, {
+    waitUntil: 'domcontentloaded',
+  });
+  await page.waitForLoadState('domcontentloaded');
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category.png` });
 
   // 카테고리 관리 페이지네이션
   // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
   // await page.click(SELECTORS.COMMON.PAGE_LAST);
-  // await wait(2000);
+  // await page.waitForLoadState('domcontentloaded');
   // timestamp = getNewTimeStamp();
   // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_pagination_last.png` });
   // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
@@ -39,16 +41,25 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH);
   await page.locator(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH).fill('카테고리');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
-  await page.click(SELECTORS.COMMON.SEARCH);
-  await wait(2000);
+  await Promise.all([
+    page.waitForURL('**/autodoc/categories**'),
+    page.click(SELECTORS.COMMON.SEARCH),
+  ]);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_search.png` });
-  await page.goto(URLS.AUTODOC.CATEGORY);
+  await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH);
+  await page.locator(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH).fill('');
+  await page.waitForSelector(SELECTORS.COMMON.SEARCH);
+  await Promise.all([
+    page.waitForURL('**/autodoc/categories**'),
+    page.click(SELECTORS.COMMON.SEARCH),
+  ]);
 
   // 카테고리 등록 진입
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER_CATEGORY);
   await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER_CATEGORY);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_register.png` });
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_CLOSE);
@@ -59,21 +70,21 @@ export async function run(page) {
   await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER_CATEGORY);
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT);
   await page.locator(SELECTORS.ADMIN.AUTODOC.INPUT).fill(`cat_${randomStr()}`);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_register_write.png` });
 
   // 카테고리 등록 저장
   await page.waitForSelector(`${SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE}:not([disabled])`);
   await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_register_save.png` });
 
   // 카테고리 테이블 클릭
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
   await page.click(SELECTORS.COMMON.TABLE);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_table.png` });
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_CLOSE);
@@ -84,14 +95,14 @@ export async function run(page) {
   await page.click(SELECTORS.COMMON.TABLE);
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT);
   await page.locator(SELECTORS.ADMIN.AUTODOC.INPUT).fill(`edit_${randomStr()}`);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_edit_category.png` });
 
   // 카테고리 수정 저장
   await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
   await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
-  await wait(2000);
+  await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_edit_category_save.png` });
 }
