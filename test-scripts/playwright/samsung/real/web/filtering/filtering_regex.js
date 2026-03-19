@@ -102,13 +102,13 @@ export async function run(page) {
   await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('개인정보처리위탁계약서_삼성');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await Promise.all([
-    page.waitForURL('**/autodoc**'),
+    page.waitForURL('**/autodoc?**'),
     page.click(SELECTORS.COMMON.SEARCH),
   ]);
   await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_REGEX_search.png` });
-
+  
   // 문서 테이블 클릭 (상세 진입)
   await page.goto(URLS.AUTODOC.DETAIL + '7', {
     waitUntil: 'domcontentloaded',
@@ -151,7 +151,7 @@ export async function run(page) {
   await page.waitForSelector(SELECTORS.WEB.DRIVE.TABLE_LIST);
   await Promise.all([
     page.waitForURL('**/autodoc**'),
-    page.click(`${SELECTORS.COMMON.TABLE2} span.cursor-pointer`),
+    page.click(`${SELECTORS.COMMON.TABLE} span.cursor-pointer`),
   ]);
   await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
