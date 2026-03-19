@@ -54,7 +54,7 @@ export async function loginWithPage(page, credentials, metrics = null) {
     const submitStart = Date.now();
     await page.waitForSelector(SELECTORS.FEATURES.LOGIN.BUTTON_SUBMIT);
     await page.click(SELECTORS.FEATURES.LOGIN.BUTTON_SUBMIT);
-    await wait(2000);
+    // await wait(2000);
     if (metrics?.submitLoginDuration) {
         metrics.submitLoginDuration.add(Date.now() - submitStart);
         console.log(`Submit login duration: ${Date.now() - submitStart}ms`);
