@@ -30,7 +30,7 @@ export async function run(page) {
   await page.locator(SELECTORS.ADMIN.AI_PRESET_CHAT.INPUT_SEARCH).fill('테스트');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await Promise.all([
-    page.waitForURL('**/ai-chat-log**'),
+    page.waitForURL('**/ai-chat-log?tab=preset-chat**'),
     page.click(SELECTORS.COMMON.SEARCH),
   ]);
   await page.waitForLoadState('domcontentloaded');
@@ -40,7 +40,7 @@ export async function run(page) {
   await page.locator(SELECTORS.ADMIN.AI_PRESET_CHAT.INPUT_SEARCH).fill('');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await Promise.all([
-    page.waitForURL('**/ai-chat-log**'),
+    page.waitForURL('**/ai-chat-log?tab=preset-chat**'),
     page.click(SELECTORS.COMMON.SEARCH),
   ]);
 
@@ -74,7 +74,7 @@ export async function run(page) {
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.TABLE_LIST);
   await Promise.all([
-    page.waitForURL('**/ai-chat-log**'),
+    page.waitForURL('**/ai-chat-log?tab=preset-chat**'),
     page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`),
   ]);
   await page.waitForLoadState('domcontentloaded');
@@ -82,13 +82,13 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_table.png` });
   await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_CANCEL);
   await Promise.all([
-    page.waitForURL('**/ai-chat-log**'),
+    page.waitForURL('**/ai-chat-log?tab=preset-chat**'),
     page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_CANCEL),
   ]);
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.TABLE_LIST);
   await Promise.all([
-    page.waitForURL('**/ai-chat-log**'),
+    page.waitForURL('**/ai-chat-log?tab=preset-chat**'),
     page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`),
   ]);
   await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.INPUT);
@@ -101,7 +101,7 @@ export async function run(page) {
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SUBMIT);
   await Promise.all([
-    page.waitForURL('**/ai-chat-log**'),
+    page.waitForURL('**/ai-chat-log?tab=preset-chat**'),
     page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SUBMIT),
   ]);
   await page.waitForLoadState('domcontentloaded');
