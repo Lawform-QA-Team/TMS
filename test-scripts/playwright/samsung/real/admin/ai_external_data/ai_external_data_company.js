@@ -16,6 +16,7 @@ async function wait(ms) {
 export async function run(page) {
   const credentials = getCredentials();
   const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
+  const randomStr = () => Math.random().toString(36).slice(2, 7);
 
   await loginWithPage(page, credentials);
 
@@ -80,7 +81,7 @@ export async function run(page) {
     page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_REGISTER),
   ]);
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_CATEGORY);
-  await page.locator(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_CATEGORY).fill('타사 문서 등록 테스트');
+  await page.locator(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_CATEGORY).fill(`cat_${randomStr()}`);
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_URL);
   await page.locator(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_URL).fill('https://www.google.com');
   await page.waitForLoadState('domcontentloaded');
@@ -114,7 +115,7 @@ export async function run(page) {
   // AI 외부 데이터 관리 - 타사 문서 등록
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_SUBMIT);
   await Promise.all([
-    page.waitForURL('**/ai-external-data?tab=company**'),
+    page.waitForURL('**/ai-external-data'),
     page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_SUBMIT),
   ]);
   await page.goto(URLS.AI_DATA.COMPANY, {
