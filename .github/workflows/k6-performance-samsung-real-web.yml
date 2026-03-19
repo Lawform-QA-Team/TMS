@@ -80,7 +80,7 @@ jobs:
           K6_INFLUXDB_TOKEN: ${{ secrets.K6_INFLUXDB_TOKEN }}
           K6_INFLUXDB_PUSH_INTERVAL: ${{ secrets.K6_INFLUXDB_PUSH_INTERVAL || '60s' }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID_K6 }}
         run: |
           set -euo pipefail
           BASE_DIR="test-scripts/performance/samsung/real/web"
