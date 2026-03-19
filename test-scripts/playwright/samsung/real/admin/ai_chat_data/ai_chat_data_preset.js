@@ -19,7 +19,9 @@ export async function run(page) {
 
   await loginWithPage(page, credentials);
 
-  await page.goto(URLS.AI_CHAT.CHATDATA);
+  await page.goto(URLS.AI_CHAT.CHATDATA, {
+    waitUntil: 'domcontentloaded',
+  });
   await page.waitForLoadState('domcontentloaded');
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset.png` });
@@ -34,9 +36,13 @@ export async function run(page) {
   await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_search.png` });
-  await page.goto(URLS.AI_CHAT.CHATDATA, {
-    waitUntil: 'domcontentloaded',
-  });
+  await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.INPUT_SEARCH);
+  await page.locator(SELECTORS.ADMIN.AI_PRESET_CHAT.INPUT_SEARCH).fill('');
+  await page.waitForSelector(SELECTORS.COMMON.SEARCH);
+  await Promise.all([
+    page.waitForURL('**/ai-chat-log**'),
+    page.click(SELECTORS.COMMON.SEARCH),
+  ]);
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_REGISTER);
   await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_REGISTER);
@@ -79,9 +85,6 @@ export async function run(page) {
     page.waitForURL('**/ai-chat-log**'),
     page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_CANCEL),
   ]);
-  await page.goto(URLS.AI_CHAT.CHATDATA, {
-    waitUntil: 'domcontentloaded',
-  });
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.TABLE_LIST);
   await Promise.all([
@@ -98,10 +101,6 @@ export async function run(page) {
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SUBMIT);
   await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SUBMIT);
-  await page.waitForLoadState('domcontentloaded');
-  await page.goto(URLS.AI_CHAT.CHATDATA, {
-    waitUntil: 'domcontentloaded',
-  });
   await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_edit_submit.png` });
