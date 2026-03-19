@@ -100,7 +100,10 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_edit.png` });
 
   await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SUBMIT);
-  await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SUBMIT);
+  await Promise.all([
+    page.waitForURL('**/ai-chat-log**'),
+    page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SUBMIT),
+  ]);
   await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_edit_submit.png` });
