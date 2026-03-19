@@ -53,8 +53,9 @@ export default async function() {
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset.png` });
         await wait(2000);
-        aiChatPresetPageLoad.add(Date.now() - aiChatPresetPageLoadStart);
-        console.log(`aiChatPresetPageLoad duration: ${Date.now() - aiChatPresetPageLoadStart}ms`);
+        const aiChatPresetPageLoadDuration = Date.now() - aiChatPresetPageLoadStart;
+        aiChatPresetPageLoad.add(aiChatPresetPageLoadDuration);
+        console.log(`aiChatPresetPageLoad duration: ${aiChatPresetPageLoadDuration}ms`);
 
         // AI 채팅 데이터 관리 - 사전 설정 채팅 데이터 검색
         const aiChatPresetSearchStart = Date.now();
@@ -63,8 +64,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
-        aiChatPresetSearch.add(Date.now() - aiChatPresetSearchStart);
-        console.log(`aiChatPresetSearch duration: ${Date.now() - aiChatPresetSearchStart}ms`);
+        const aiChatPresetSearchDuration = Date.now() - aiChatPresetSearchStart;
+        aiChatPresetSearch.add(aiChatPresetSearchDuration);
+        console.log(`aiChatPresetSearch duration: ${aiChatPresetSearchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_search.png` });
         await page.goto(URLS.AI_CHAT.CHATDATA);
@@ -104,8 +106,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SAVE);
         await wait(2000);
-        aiChatPresetRegisterSave.add(Date.now() - aiChatPresetRegisterSaveStart);
-        console.log(`aiChatPresetRegisterSave duration: ${Date.now() - aiChatPresetRegisterSaveStart}ms`);
+        const aiChatPresetRegisterSaveDuration = Date.now() - aiChatPresetRegisterSaveStart;
+        aiChatPresetRegisterSave.add(aiChatPresetRegisterSaveDuration);
+        console.log(`aiChatPresetRegisterSave duration: ${aiChatPresetRegisterSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_data_submit_save.png` });
 
@@ -114,8 +117,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.TABLE_LIST);
         await page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`);
         await wait(2000);
-        aiChatPresetTableClick.add(Date.now() - aiChatPresetTableClickStart);
-        console.log(`aiChatPresetTableClick duration: ${Date.now() - aiChatPresetTableClickStart}ms`);
+        const aiChatPresetTableClickDuration = Date.now() - aiChatPresetTableClickStart;
+        aiChatPresetTableClick.add(aiChatPresetTableClickDuration);
+        console.log(`aiChatPresetTableClick duration: ${aiChatPresetTableClickDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_table.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_CANCEL);
@@ -141,8 +145,9 @@ export default async function() {
         await wait(2000);
         await page.goto(URLS.AI_CHAT.CHATDATA);
         await wait(2000);
-        aiChatPresetEditSave.add(Date.now() - aiChatPresetEditSaveStart);
-        console.log(`aiChatPresetEditSave duration: ${Date.now() - aiChatPresetEditSaveStart}ms`);
+        const aiChatPresetEditSaveDuration = Date.now() - aiChatPresetEditSaveStart;
+        aiChatPresetEditSave.add(aiChatPresetEditSaveDuration);
+        console.log(`aiChatPresetEditSave duration: ${aiChatPresetEditSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_edit_submit.png` });
 
@@ -163,8 +168,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_DELETE);
         await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_DELETE);
         await wait(2000);
-        aiChatPresetDelete.add(Date.now() - aiChatPresetDeleteStart);
-        console.log(`aiChatPresetDelete duration: ${Date.now() - aiChatPresetDeleteStart}ms`);
+        const aiChatPresetDeleteDuration = Date.now() - aiChatPresetDeleteStart;
+        aiChatPresetDelete.add(aiChatPresetDeleteDuration);
+        console.log(`aiChatPresetDelete duration: ${aiChatPresetDeleteDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_delete.png` });
 

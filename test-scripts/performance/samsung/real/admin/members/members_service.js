@@ -53,8 +53,9 @@ export default async function() {
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE.png` });
-        adminMembersSvcPageLoad.add(Date.now() - adminMembersSvcPageLoadStart);
-        console.log(`Admin members service page load duration: ${Date.now() - adminMembersSvcPageLoadStart}ms`);
+        const adminMembersSvcPageLoadDuration = Date.now() - adminMembersSvcPageLoadStart;
+        adminMembersSvcPageLoad.add(adminMembersSvcPageLoadDuration);
+        console.log(`Admin members service page load duration: ${adminMembersSvcPageLoadDuration}ms`);
 
         // 사용자 관리 - 서비스, 페이지네이션
         // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
@@ -74,8 +75,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
-        adminMembersSvcSearch.add(Date.now() - adminMembersSvcSearchStart);
-        console.log(`Admin members service search duration: ${Date.now() - adminMembersSvcSearchStart}ms`);
+        const adminMembersSvcSearchDuration = Date.now() - adminMembersSvcSearchStart;
+        adminMembersSvcSearch.add(adminMembersSvcSearchDuration);
+        console.log(`Admin members service search duration: ${adminMembersSvcSearchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_search.png` });
         await page.goto(URLS.MEMBER.SERVICE);
@@ -90,8 +92,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.TABLE_LIST);
         await page.click(`${SELECTORS.COMMON.TABLE} button`);
         await wait(2000);
-        adminMembersSvcTableClick.add(Date.now() - adminMembersSvcTableClickStart);
-        console.log(`Admin members service table click duration: ${Date.now() - adminMembersSvcTableClickStart}ms`);
+        const adminMembersSvcTableClickDuration = Date.now() - adminMembersSvcTableClickStart;
+        adminMembersSvcTableClick.add(adminMembersSvcTableClickDuration);
+        console.log(`Admin members service table click duration: ${adminMembersSvcTableClickDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_table.png` });
 
@@ -110,8 +113,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
         await wait(2000);
-        adminMembersSvcEditSave.add(Date.now() - adminMembersSvcEditSaveStart);
-        console.log(`Admin members service edit save duration: ${Date.now() - adminMembersSvcEditSaveStart}ms`);
+        const adminMembersSvcEditSaveDuration = Date.now() - adminMembersSvcEditSaveStart;
+        adminMembersSvcEditSave.add(adminMembersSvcEditSaveDuration);
+        console.log(`Admin members service edit save duration: ${adminMembersSvcEditSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_save.png` });
 
@@ -211,8 +215,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CONFIRM);
         await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CONFIRM);
         await wait(2000);
-        adminMembersSvcHandover.add(Date.now() - adminMembersSvcHandoverStart);
-        console.log(`Admin members service handover duration: ${Date.now() - adminMembersSvcHandoverStart}ms`);
+        const adminMembersSvcHandoverDuration = Date.now() - adminMembersSvcHandoverStart;
+        adminMembersSvcHandover.add(adminMembersSvcHandoverDuration);
+        console.log(`Admin members service handover duration: ${adminMembersSvcHandoverDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferee_submit.png` });
 

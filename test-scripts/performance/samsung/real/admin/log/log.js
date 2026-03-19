@@ -56,8 +56,9 @@ export default async function() {
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_LOG.png` });
-        adminLogPageLoad.add(Date.now() - adminLogPageLoadStart);
-        console.log(`Admin log page load duration: ${Date.now() - adminLogPageLoadStart}ms`);
+        const adminLogPageLoadDuration = Date.now() - adminLogPageLoadStart;
+        adminLogPageLoad.add(adminLogPageLoadDuration);
+        console.log(`Admin log page load duration: ${adminLogPageLoadDuration}ms`);
 
         // 로그, 페이지네이션
         // await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.PAGINATION);
@@ -74,8 +75,9 @@ export default async function() {
         const buttons = await page.$$(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.BUTTON);
         await buttons[Math.floor(Math.random() * buttons.length)].click();
         await wait(2000);
-        adminLogDateSelect.add(Date.now() - adminLogDateSelectStart);
-        console.log(`Admin log date select duration: ${Date.now() - adminLogDateSelectStart}ms`);
+        const adminLogDateSelectDuration = Date.now() - adminLogDateSelectStart;
+        adminLogDateSelect.add(adminLogDateSelectDuration);
+        console.log(`Admin log date select duration: ${adminLogDateSelectDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_LOG_date.png` });
 
@@ -91,8 +93,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
-        adminLogSearch.add(Date.now() - adminLogSearchStart);
-        console.log(`Admin log search duration: ${Date.now() - adminLogSearchStart}ms`);
+        const adminLogSearchDuration = Date.now() - adminLogSearchStart;
+        adminLogSearch.add(adminLogSearchDuration);
+        console.log(`Admin log search duration: ${adminLogSearchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_LOG_search.png` });
         await page.goto(URLS.LOG.LOG);
@@ -108,8 +111,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.TABLE_LIST);
         await page.click(`${SELECTORS.COMMON.TABLE} span.cursor-pointer`);
         await wait(2000);
-        adminLogAiChat.add(Date.now() - adminLogAiChatStart);
-        console.log(`Admin log AI chat duration: ${Date.now() - adminLogAiChatStart}ms`);
+        const adminLogAiChatDuration = Date.now() - adminLogAiChatStart;
+        adminLogAiChat.add(adminLogAiChatDuration);
+        console.log(`Admin log AI chat duration: ${adminLogAiChatDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_LOG_ai.png` });
 

@@ -18,10 +18,6 @@ export function getCredentials() {
  * 주어진 page에 로그인 수행 (스크린샷 포함).
  * 각 스크립트에서 page = await browser.newPage() 후 호출.
  */
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export async function loginWithPage(page, credentials, metrics = null) {
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
     const totalStartTime = Date.now();
@@ -30,8 +26,9 @@ export async function loginWithPage(page, credentials, metrics = null) {
     const pageLoadStart = Date.now();
     await page.goto(URLS.LOGIN.HOME);
     if (metrics?.pageLoadDuration) {
-        metrics.pageLoadDuration.add(Date.now() - pageLoadStart);
-        console.log(`Page load duration: ${Date.now() - pageLoadStart}ms`);
+        const pageLoadDuration = Date.now() - pageLoadStart;
+        metrics.pageLoadDuration.add(pageLoadDuration);
+        console.log(`Page load duration: ${pageLoadDuration}ms`);
     }
     let timestamp = getNewTimeStamp();
     await page.screenshot({ path: `screenshots/${timestamp}_login_home.png` });
@@ -43,8 +40,9 @@ export async function loginWithPage(page, credentials, metrics = null) {
     await page.waitForSelector(SELECTORS.FEATURES.LOGIN.INPUT_PASSWORD);
     await page.type(SELECTORS.FEATURES.LOGIN.INPUT_PASSWORD, credentials.PASSWORD);
     if (metrics?.inputCredentialsDuration) {
-        metrics.inputCredentialsDuration.add(Date.now() - inputStart);
-        console.log(`Input credentials duration: ${Date.now() - inputStart}ms`);
+        const inputDuration = Date.now() - inputStart;
+        metrics.inputCredentialsDuration.add(inputDuration);
+        console.log(`Input credentials duration: ${inputDuration}ms`);
     }
 
     timestamp = getNewTimeStamp();
@@ -54,10 +52,11 @@ export async function loginWithPage(page, credentials, metrics = null) {
     const submitStart = Date.now();
     await page.waitForSelector(SELECTORS.FEATURES.LOGIN.BUTTON_SUBMIT);
     await page.click(SELECTORS.FEATURES.LOGIN.BUTTON_SUBMIT);
-    // await wait(2000);
+    await page.waitForURL(URLS.LOGIN.DASHBOARD);
     if (metrics?.submitLoginDuration) {
-        metrics.submitLoginDuration.add(Date.now() - submitStart);
-        console.log(`Submit login duration: ${Date.now() - submitStart}ms`);
+        const submitDuration = Date.now() - submitStart;
+        metrics.submitLoginDuration.add(submitDuration);
+        console.log(`Submit login duration: ${submitDuration}ms`);
     }
 
     // 4. Total login duration

@@ -51,8 +51,9 @@ export default async function() {
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE.png` });
-        adminMembersPageLoad.add(Date.now() - adminMembersPageLoadStart);
-        console.log(`Admin members page load duration: ${Date.now() - adminMembersPageLoadStart}ms`);
+        const adminMembersPageLoadDuration = Date.now() - adminMembersPageLoadStart;
+        adminMembersPageLoad.add(adminMembersPageLoadDuration);
+        console.log(`Admin members page load duration: ${adminMembersPageLoadDuration}ms`);
 
         // 사용자 관리 - 백오피스, 페이지네이션
         // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
@@ -70,8 +71,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
-        adminMembersSearch.add(Date.now() - adminMembersSearchStart);
-        console.log(`Admin members search duration: ${Date.now() - adminMembersSearchStart}ms`);
+        const adminMembersSearchDuration = Date.now() - adminMembersSearchStart;
+        adminMembersSearch.add(adminMembersSearchDuration);
+        console.log(`Admin members search duration: ${adminMembersSearchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_search.png` });
 
@@ -80,8 +82,9 @@ export default async function() {
         const adminMembersTableClickStart = Date.now();
         await page.click(`${SELECTORS.COMMON.TABLE} button`);
         await wait(2000);
-        adminMembersTableClick.add(Date.now() - adminMembersTableClickStart);
-        console.log(`Admin members table click duration: ${Date.now() - adminMembersTableClickStart}ms`);
+        const adminMembersTableClickDuration = Date.now() - adminMembersTableClickStart;
+        adminMembersTableClick.add(adminMembersTableClickDuration);
+        console.log(`Admin members table click duration: ${adminMembersTableClickDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_table.png` });
 
@@ -109,8 +112,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
         await wait(2000);
-        adminMembersEditSave.add(Date.now() - adminMembersEditSaveStart);
-        console.log(`Admin members edit save duration: ${Date.now() - adminMembersEditSaveStart}ms`);
+        const adminMembersEditSaveDuration = Date.now() - adminMembersEditSaveStart;
+        adminMembersEditSave.add(adminMembersEditSaveDuration);
+        console.log(`Admin members edit save duration: ${adminMembersEditSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_save.png` });
 

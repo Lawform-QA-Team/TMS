@@ -52,8 +52,9 @@ export default async function() {
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_data.png` });
         await wait(2000);
-        aiChatPageLoad.add(Date.now() - aiChatPageLoadStart);
-        console.log(`aiChatPageLoad duration: ${Date.now() - aiChatPageLoadStart}ms`);
+        const aiChatPageLoadDuration = Date.now() - aiChatPageLoadStart;
+        aiChatPageLoad.add(aiChatPageLoadDuration);
+        console.log(`aiChatPageLoad duration: ${aiChatPageLoadDuration}ms`);
 
         // AI 채팅 데이터 관리 - 채팅 로그 데이터 페이지네이션
         // await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.PAGINATION);
@@ -71,8 +72,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
-        aiChatSearch.add(Date.now() - aiChatSearchStart);
-        console.log(`aiChatSearch duration: ${Date.now() - aiChatSearchStart}ms`);
+        const aiChatSearchDuration = Date.now() - aiChatSearchStart;
+        aiChatSearch.add(aiChatSearchDuration);
+        console.log(`aiChatSearch duration: ${aiChatSearchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_data_search.png` });
         await page.goto(URLS.AI_CHAT.CHATLOG);
@@ -82,8 +84,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.TABLE_LIST);
         await page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`);
         await wait(2000);
-        aiChatTableClick.add(Date.now() - aiChatTableClickStart);
-        console.log(`aiChatTableClick duration: ${Date.now() - aiChatTableClickStart}ms`);
+        const aiChatTableClickDuration = Date.now() - aiChatTableClickStart;
+        aiChatTableClick.add(aiChatTableClickDuration);
+        console.log(`aiChatTableClick duration: ${aiChatTableClickDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_data_table.png` });
         
@@ -122,8 +125,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SAVE);
         await wait(2000);
-        aiChatRegisterSave.add(Date.now() - aiChatRegisterSaveStart);
-        console.log(`aiChatRegisterSave duration: ${Date.now() - aiChatRegisterSaveStart}ms`);
+        const aiChatRegisterSaveDuration = Date.now() - aiChatRegisterSaveStart;
+        aiChatRegisterSave.add(aiChatRegisterSaveDuration);
+        console.log(`aiChatRegisterSave duration: ${aiChatRegisterSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_data_submit_save.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.BUTTON_LIST);
@@ -146,8 +150,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.BUTTON_DELETE);
         await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.BUTTON_DELETE);
         await wait(2000);
-        aiChatDelete.add(Date.now() - aiChatDeleteStart);
-        console.log(`aiChatDelete duration: ${Date.now() - aiChatDeleteStart}ms`);
+        const aiChatDeleteDuration = Date.now() - aiChatDeleteStart;
+        aiChatDelete.add(aiChatDeleteDuration);
+        console.log(`aiChatDelete duration: ${aiChatDeleteDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_delete.png` });
 

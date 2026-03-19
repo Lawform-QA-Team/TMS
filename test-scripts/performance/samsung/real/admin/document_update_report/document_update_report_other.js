@@ -50,8 +50,9 @@ export default async function() {
         const docUpdateOthPageLoadStart = Date.now();
         await page.goto(URLS.DOCUMENT_UPDATE.OTHER);
         await wait(2000);
-        docUpdateOthPageLoad.add(Date.now() - docUpdateOthPageLoadStart);
-        console.log(`docUpdateOthPageLoad duration: ${Date.now() - docUpdateOthPageLoadStart}ms`);
+        const docUpdateOthPageLoadDuration = Date.now() - docUpdateOthPageLoadStart;
+        docUpdateOthPageLoad.add(docUpdateOthPageLoadDuration);
+        console.log(`docUpdateOthPageLoad duration: ${docUpdateOthPageLoadDuration}ms`);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_LAW.png` });
 
@@ -59,8 +60,9 @@ export default async function() {
         const docUpdateOthDateSelectStart = Date.now();
         await selectComboboxOption(page, SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.DATEPICKER)
         await wait(2000);
-        docUpdateOthDateSelect.add(Date.now() - docUpdateOthDateSelectStart);
-        console.log(`docUpdateOthDateSelect duration: ${Date.now() - docUpdateOthDateSelectStart}ms`);
+        const docUpdateOthDateSelectDuration = Date.now() - docUpdateOthDateSelectStart;
+        docUpdateOthDateSelect.add(docUpdateOthDateSelectDuration);
+        console.log(`docUpdateOthDateSelect duration: ${docUpdateOthDateSelectDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_OTHER_date.png` });
 
@@ -106,8 +108,9 @@ export default async function() {
         const companies = await page.$$('button[data-appearance="outline"][data-size="md"]');
         await companies[Math.floor(Math.random() * companies.length)].click();
         await wait(2000);
-        docUpdateOthCompanySelect.add(Date.now() - docUpdateOthCompanySelectStart);
-        console.log(`docUpdateOthCompanySelect duration: ${Date.now() - docUpdateOthCompanySelectStart}ms`);
+        const docUpdateOthCompanySelectDuration = Date.now() - docUpdateOthCompanySelectStart;
+        docUpdateOthCompanySelect.add(docUpdateOthCompanySelectDuration);
+        console.log(`docUpdateOthCompanySelect duration: ${docUpdateOthCompanySelectDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_OTHER_select_history.png` });
 
@@ -116,8 +119,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_VIEW_ORIGINAL);
         await page.click(SELECTORS.ADMIN.DOCUMENT_UPDATE_REPORT.BUTTON_VIEW_ORIGINAL);
         await wait(2000);
-        docUpdateOthViewOriginal.add(Date.now() - docUpdateOthViewOriginalStart);
-        console.log(`docUpdateOthViewOriginal duration: ${Date.now() - docUpdateOthViewOriginalStart}ms`);
+        const docUpdateOthViewOriginalDuration = Date.now() - docUpdateOthViewOriginalStart;
+        docUpdateOthViewOriginal.add(docUpdateOthViewOriginalDuration);
+        console.log(`docUpdateOthViewOriginal duration: ${docUpdateOthViewOriginalDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_DOCUMENT_UPDATE_OTHER_original.png` });
 

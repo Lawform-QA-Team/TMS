@@ -48,8 +48,9 @@ export default async function() {
         const pageLoadStart = Date.now();
         await page.goto(URLS.AUTODOC.EXISTING);
         await wait(2000);
-        web_autodoc_existing_page_load.add(Date.now() - pageLoadStart);
-        console.log(`[web_autodoc_existing] page_load duration: ${Date.now() - pageLoadStart}ms`);
+        const pageLoadDuration = Date.now() - pageLoadStart;
+        web_autodoc_existing_page_load.add(pageLoadDuration);
+        console.log(`[web_autodoc_existing] page_load duration: ${pageLoadDuration}ms`);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing.png` });
 
@@ -69,8 +70,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
-        web_autodoc_existing_search.add(Date.now() - searchStart);
-        console.log(`[web_autodoc_existing] search duration: ${Date.now() - searchStart}ms`);
+        const searchDuration = Date.now() - searchStart;
+        web_autodoc_existing_search.add(searchDuration);
+        console.log(`[web_autodoc_existing] search duration: ${searchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_search.png` });
 
@@ -79,8 +81,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
         await wait(2000);
-        web_autodoc_existing_table_click.add(Date.now() - tableClickStart);
-        console.log(`[web_autodoc_existing] table_click duration: ${Date.now() - tableClickStart}ms`);
+        const tableClickDuration = Date.now() - tableClickStart;
+        web_autodoc_existing_table_click.add(tableClickDuration);
+        console.log(`[web_autodoc_existing] table_click duration: ${tableClickDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_table.png` });
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);

@@ -90,8 +90,9 @@ export default async function() {
 
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_dashboard_home.png` });
-        adminDashPageLoad.add(Date.now() - adminDashPageLoadStart);
-        console.log(`Admin dash page load duration: ${Date.now() - adminDashPageLoadStart}ms`);
+        const adminDashPageLoadDuration = Date.now() - adminDashPageLoadStart;
+        adminDashPageLoad.add(adminDashPageLoadDuration);
+        console.log(`Admin dash page load duration: ${adminDashPageLoadDuration}ms`);
 
         // await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.EXCEL);
         // await page.click(SELECTORS.ADMIN.DASHBOARD.EXCEL);
@@ -214,8 +215,9 @@ export default async function() {
         
         await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.BUTTON_SEARCH);
         await page.click(SELECTORS.ADMIN.DASHBOARD.BUTTON_SEARCH);
-        adminDashSearchFilter.add(Date.now() - adminDashSearchFilterStart);
-        console.log(`Admin dash search filter duration: ${Date.now() - adminDashSearchFilterStart}ms`);
+        const adminDashSearchFilterDuration = Date.now() - adminDashSearchFilterStart;
+        adminDashSearchFilter.add(adminDashSearchFilterDuration);
+        console.log(`Admin dash search filter duration: ${adminDashSearchFilterDuration}ms`);
 
     } finally {
         if (page) await page.close();

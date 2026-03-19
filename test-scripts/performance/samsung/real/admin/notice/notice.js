@@ -52,8 +52,9 @@ export default async function() {
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_notice.png` });
-        adminNoticePageLoad.add(Date.now() - adminNoticePageLoadStart);
-        console.log(`Admin notice page load duration: ${Date.now() - adminNoticePageLoadStart}ms`);
+        const adminNoticePageLoadDuration = Date.now() - adminNoticePageLoadStart;
+        adminNoticePageLoad.add(adminNoticePageLoadDuration);
+        console.log(`Admin notice page load duration: ${adminNoticePageLoadDuration}ms`);
 
         // 공지사항 페이지네이션
         // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
@@ -71,8 +72,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
-        adminNoticeSearch.add(Date.now() - adminNoticeSearchStart);
-        console.log(`Admin notice search duration: ${Date.now() - adminNoticeSearchStart}ms`);
+        const adminNoticeSearchDuration = Date.now() - adminNoticeSearchStart;
+        adminNoticeSearch.add(adminNoticeSearchDuration);
+        console.log(`Admin notice search duration: ${adminNoticeSearchDuration}ms`);
         await page.screenshot({ path: `screenshots/${timestamp}_search.png` });
         await page.goto(URLS.SERVICE.NOTICE);
 
@@ -103,8 +105,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_SUBMIT);
         await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_SUBMIT);
         await wait(2000);
-        adminNoticeRegisterSave.add(Date.now() - adminNoticeRegisterSaveStart);
-        console.log(`Admin notice register save duration: ${Date.now() - adminNoticeRegisterSaveStart}ms`);
+        const adminNoticeRegisterSaveDuration = Date.now() - adminNoticeRegisterSaveStart;
+        adminNoticeRegisterSave.add(adminNoticeRegisterSaveDuration);
+        console.log(`Admin notice register save duration: ${adminNoticeRegisterSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_register_submit.png` });
 
@@ -113,8 +116,9 @@ export default async function() {
         const adminNoticeTableClickStart = Date.now();
         await page.click(SELECTORS.COMMON.TABLE);
         await wait(2000);
-        adminNoticeTableClick.add(Date.now() - adminNoticeTableClickStart);
-        console.log(`Admin notice table click duration: ${Date.now() - adminNoticeTableClickStart}ms`);
+        const adminNoticeTableClickDuration = Date.now() - adminNoticeTableClickStart;
+        adminNoticeTableClick.add(adminNoticeTableClickDuration);
+        console.log(`Admin notice table click duration: ${adminNoticeTableClickDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_table.png` });
         await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_LIST);
@@ -147,8 +151,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_SUBMIT);
         await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_SUBMIT);
         await wait(2000);
-        adminNoticeEditSave.add(Date.now() - adminNoticeEditSaveStart);
-        console.log(`Admin notice edit save duration: ${Date.now() - adminNoticeEditSaveStart}ms`);
+        const adminNoticeEditSaveDuration = Date.now() - adminNoticeEditSaveStart;
+        adminNoticeEditSave.add(adminNoticeEditSaveDuration);
+        console.log(`Admin notice edit save duration: ${adminNoticeEditSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_edit_submit.png` });
 

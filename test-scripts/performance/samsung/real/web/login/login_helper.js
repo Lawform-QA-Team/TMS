@@ -29,8 +29,9 @@ export async function loginWithPage(page, credentials, metrics = null) {
     const pageLoadStart = Date.now();
     await page.goto(URLS.WEB_LOGIN.HOME);
     if (metrics?.pageLoadDuration) {
-        metrics.pageLoadDuration.add(Date.now() - pageLoadStart);
-        console.log(`Page load duration: ${Date.now() - pageLoadStart}ms`);
+        const pageLoadDuration = Date.now() - pageLoadStart;
+        metrics.pageLoadDuration.add(pageLoadDuration);
+        console.log(`Page load duration: ${pageLoadDuration}ms`);
     }
     let timestamp = getNewTimeStamp();
     await page.screenshot({ path: `screenshots/${timestamp}_login_home.png` });
@@ -42,8 +43,9 @@ export async function loginWithPage(page, credentials, metrics = null) {
     await page.waitForSelector(SELECTORS.FEATURES.LOGIN.INPUT_PASSWORD);
     await page.type(SELECTORS.FEATURES.LOGIN.INPUT_PASSWORD, credentials.PASSWORD);
     if (metrics?.inputCredentialsDuration) {
-        metrics.inputCredentialsDuration.add(Date.now() - inputStart);
-        console.log(`Input credentials duration: ${Date.now() - inputStart}ms`);
+        const inputDuration = Date.now() - inputStart;
+        metrics.inputCredentialsDuration.add(inputDuration);
+        console.log(`Input credentials duration: ${inputDuration}ms`);
     }
 
     timestamp = getNewTimeStamp();
@@ -55,8 +57,9 @@ export async function loginWithPage(page, credentials, metrics = null) {
     await page.click(SELECTORS.FEATURES.LOGIN.BUTTON_SUBMIT);
     await wait(2000);
     if (metrics?.submitLoginDuration) {
-        metrics.submitLoginDuration.add(Date.now() - submitStart);
-        console.log(`Submit login duration: ${Date.now() - submitStart}ms`);
+        const submitDuration = Date.now() - submitStart;
+        metrics.submitLoginDuration.add(submitDuration);
+        console.log(`Submit login duration: ${submitDuration}ms`);
     }
 
     // 4. Total login duration

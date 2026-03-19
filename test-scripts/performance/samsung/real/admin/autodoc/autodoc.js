@@ -31,10 +31,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1960, height: 1080 },
@@ -49,9 +45,9 @@ export default async function() {
         // 표준 양식 관리 진입
         const adminAutodocPageLoadStart = Date.now();
         await page.goto(URLS.AUTODOC.AUTODOC);
-        await wait(2000);
-        adminAutodocPageLoad.add(Date.now() - adminAutodocPageLoadStart);
-        console.log(`adminAutodocPageLoad duration: ${Date.now() - adminAutodocPageLoadStart}ms`);
+        const adminAutodocPageLoadDuration = Date.now() - adminAutodocPageLoadStart;
+        adminAutodocPageLoad.add(adminAutodocPageLoadDuration);
+        console.log(`adminAutodocPageLoad duration: ${adminAutodocPageLoadDuration}ms`);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC.png` });
 
@@ -77,9 +73,9 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH, '시연용');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(2000);
-        adminAutodocSearch.add(Date.now() - adminAutodocSearchStart);
-        console.log(`adminAutodocSearch duration: ${Date.now() - adminAutodocSearchStart}ms`);
+        const adminAutodocSearchDuration = Date.now() - adminAutodocSearchStart;
+        adminAutodocSearch.add(adminAutodocSearchDuration);
+        console.log(`adminAutodocSearch duration: ${adminAutodocSearchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_search.png` });
         await page.goto(URLS.AUTODOC.AUTODOC);
@@ -88,16 +84,15 @@ export default async function() {
         const adminAutodocRegisterStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER);
         await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER);
-        await wait(2000);
-        adminAutodocRegister.add(Date.now() - adminAutodocRegisterStart);
-        console.log(`adminAutodocRegister duration: ${Date.now() - adminAutodocRegisterStart}ms`);
+        const adminAutodocRegisterDuration = Date.now() - adminAutodocRegisterStart;
+        adminAutodocRegister.add(adminAutodocRegisterDuration);
+        console.log(`adminAutodocRegister duration: ${adminAutodocRegisterDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_register.png` });
 
         // 표준 양식 등록 - 양식 유형 선택
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.SELECT_SELECTED_CATEGORY);
         await selectComboboxOption(page, SELECTORS.ADMIN.AUTODOC.SELECT_SELECTED_CATEGORY);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_register.select.png` });
         await page.goto(URLS.AUTODOC.AUTODOC);
@@ -106,9 +101,9 @@ export default async function() {
         const adminAutodocTableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
-        await wait(2000);
-        adminAutodocTableClick.add(Date.now() - adminAutodocTableClickStart);
-        console.log(`adminAutodocTableClick duration: ${Date.now() - adminAutodocTableClickStart}ms`);
+        const adminAutodocTableClickDuration = Date.now() - adminAutodocTableClickStart;
+        adminAutodocTableClick.add(adminAutodocTableClickDuration);
+        console.log(`adminAutodocTableClick duration: ${adminAutodocTableClickDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table.png` });
         await page.goto(URLS.AUTODOC.AUTODOC);
@@ -116,7 +111,6 @@ export default async function() {
         // 업데이트 추천
         await page.locator('button').filter({ hasText: '업데이트 추천' }).waitFor();
         await page.locator('button').filter({ hasText: '업데이트 추천' }).click();
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_update.png` });
         await page.goto(URLS.AUTODOC.AUTODOC);
@@ -125,7 +119,6 @@ export default async function() {
         // await page.waitForSelector(`span[data-slot="badge"]`);
         // const badges = await page.$$(`span[data-slot="badge"]`);
         // await badges[0].click();
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table_update.png` });
         // await page.goto(URLS.AUTODOC.AUTODOC);
@@ -133,7 +126,6 @@ export default async function() {
         // 카테고리 관리
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_CATEGORY_MANAGEMENT);
         await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_CATEGORY_MANAGEMENT);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category.png` });
 

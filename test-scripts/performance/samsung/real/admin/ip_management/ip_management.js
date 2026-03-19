@@ -49,8 +49,9 @@ export default async function() {
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_IP.png` });
         await wait(2000);
-        adminIpPageLoad.add(Date.now() - adminIpPageLoadStart);
-        console.log(`Admin IP page load duration: ${Date.now() - adminIpPageLoadStart}ms`);
+        const adminIpPageLoadDuration = Date.now() - adminIpPageLoadStart;
+        adminIpPageLoad.add(adminIpPageLoadDuration);
+        console.log(`Admin IP page load duration: ${adminIpPageLoadDuration}ms`);
 
         // IP 관리, 검색
         await page.waitForSelector(SELECTORS.ADMIN.IP_MANAGEMENT.INPUT_SEARCH);
@@ -59,8 +60,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
-        adminIpSearch.add(Date.now() - adminIpSearchStart);
-        console.log(`Admin IP search duration: ${Date.now() - adminIpSearchStart}ms`);
+        const adminIpSearchDuration = Date.now() - adminIpSearchStart;
+        adminIpSearch.add(adminIpSearchDuration);
+        console.log(`Admin IP search duration: ${adminIpSearchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_IP_search.png` });
 

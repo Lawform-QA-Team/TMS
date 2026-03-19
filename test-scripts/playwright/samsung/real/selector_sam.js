@@ -119,8 +119,8 @@ export const SELECTORS = {
             SELECT_PERIOD_QUARTER: '[data-tid="0be0c3b9"]',
             SELECT_QUERY_UNIT: '[data-tid="c7498be0"]', // 조회 일자 : 년 combobox
             SELECT_QUERY_UNIT_1: '[data-tid="01f2efab"]', // 조회 일자 : 분기, 반기 combobox
-            MONTH_PICKER_START: '[data-id="b2e14f91"]',
-            MONTH_PICKER_END: '[data-id="c5d38a72"]',
+            MONTH_PICKER_START: '[data-tid="b2e14f91"]',
+            MONTH_PICKER_END: '[data-tid="c5d38a72"]',
             TABLE_LIST: '[data-tid="5a7867e6"]', // 통계 결과 테이블
         },
         DOCUMENT_UPDATE_REPORT: {

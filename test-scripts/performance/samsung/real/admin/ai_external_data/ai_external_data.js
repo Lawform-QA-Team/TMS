@@ -52,8 +52,9 @@ export default async function() {
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA.png` });
         await wait(2000);
-        aiExtPageLoad.add(Date.now() - aiExtPageLoadStart);
-        console.log(`aiExtPageLoad duration: ${Date.now() - aiExtPageLoadStart}ms`);
+        const aiExtPageLoadDuration = Date.now() - aiExtPageLoadStart;
+        aiExtPageLoad.add(aiExtPageLoadDuration);
+        console.log(`aiExtPageLoad duration: ${aiExtPageLoadDuration}ms`);
         
         // AI 외부 데이터 관리 - 법령 페이지네이션
         // await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.PAGINATION);
@@ -71,8 +72,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
-        aiExtSearch.add(Date.now() - aiExtSearchStart);
-        console.log(`aiExtSearch duration: ${Date.now() - aiExtSearchStart}ms`);
+        const aiExtSearchDuration = Date.now() - aiExtSearchStart;
+        aiExtSearch.add(aiExtSearchDuration);
+        console.log(`aiExtSearch duration: ${aiExtSearchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_search.png` });
         await page.goto(URLS.AI_DATA.LAW);
@@ -82,8 +84,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.TABLE_LIST);
         await page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`);
         await wait(2000);
-        aiExtTableClick.add(Date.now() - aiExtTableClickStart);
-        console.log(`aiExtTableClick duration: ${Date.now() - aiExtTableClickStart}ms`);
+        const aiExtTableClickDuration = Date.now() - aiExtTableClickStart;
+        aiExtTableClick.add(aiExtTableClickDuration);
+        console.log(`aiExtTableClick duration: ${aiExtTableClickDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_table.png` });
 
@@ -97,8 +100,9 @@ export default async function() {
             await views[Math.floor(Math.random() * (views.length - 1)) + 1].click();
         }
         await wait(2000);
-        aiExtDataView.add(Date.now() - aiExtDataViewStart);
-        console.log(`aiExtDataView duration: ${Date.now() - aiExtDataViewStart}ms`);
+        const aiExtDataViewDuration = Date.now() - aiExtDataViewStart;
+        aiExtDataView.add(aiExtDataViewDuration);
+        console.log(`aiExtDataView duration: ${aiExtDataViewDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_table_detail.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
@@ -124,8 +128,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_DELETE);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_DELETE);
         await wait(2000);
-        aiExtDelete.add(Date.now() - aiExtDeleteStart);
-        console.log(`aiExtDelete duration: ${Date.now() - aiExtDeleteStart}ms`);
+        const aiExtDeleteDuration = Date.now() - aiExtDeleteStart;
+        aiExtDelete.add(aiExtDeleteDuration);
+        console.log(`aiExtDelete duration: ${aiExtDeleteDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_delete.png` });
 

@@ -51,8 +51,9 @@ export default async function() {
         const adminAutodocCatPageLoadStart = Date.now();
         await page.goto(URLS.AUTODOC.CATEGORY);
         await wait(2000);
-        adminAutodocCatPageLoad.add(Date.now() - adminAutodocCatPageLoadStart);
-        console.log(`adminAutodocCatPageLoad duration: ${Date.now() - adminAutodocCatPageLoadStart}ms`);
+        const adminAutodocCatPageLoadDuration = Date.now() - adminAutodocCatPageLoadStart;
+        adminAutodocCatPageLoad.add(adminAutodocCatPageLoadDuration);
+        console.log(`adminAutodocCatPageLoad duration: ${adminAutodocCatPageLoadDuration}ms`);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category.png` });
 
@@ -72,8 +73,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
-        adminAutodocCatSearch.add(Date.now() - adminAutodocCatSearchStart);
-        console.log(`adminAutodocCatSearch duration: ${Date.now() - adminAutodocCatSearchStart}ms`);
+        const adminAutodocCatSearchDuration = Date.now() - adminAutodocCatSearchStart;
+        adminAutodocCatSearch.add(adminAutodocCatSearchDuration);
+        console.log(`adminAutodocCatSearch duration: ${adminAutodocCatSearchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_search.png` });
         await page.goto(URLS.AUTODOC.CATEGORY);
@@ -101,8 +103,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
         await wait(2000);
-        adminAutodocCatRegisterSave.add(Date.now() - adminAutodocCatRegisterSaveStart);
-        console.log(`adminAutodocCatRegisterSave duration: ${Date.now() - adminAutodocCatRegisterSaveStart}ms`);
+        const adminAutodocCatRegisterSaveDuration = Date.now() - adminAutodocCatRegisterSaveStart;
+        adminAutodocCatRegisterSave.add(adminAutodocCatRegisterSaveDuration);
+        console.log(`adminAutodocCatRegisterSave duration: ${adminAutodocCatRegisterSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_register_save.png` });
 
@@ -111,8 +114,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
         await wait(2000);
-        adminAutodocCatTableClick.add(Date.now() - adminAutodocCatTableClickStart);
-        console.log(`adminAutodocCatTableClick duration: ${Date.now() - adminAutodocCatTableClickStart}ms`);
+        const adminAutodocCatTableClickDuration = Date.now() - adminAutodocCatTableClickStart;
+        adminAutodocCatTableClick.add(adminAutodocCatTableClickDuration);
+        console.log(`adminAutodocCatTableClick duration: ${adminAutodocCatTableClickDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_table.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_CLOSE);
@@ -132,8 +136,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
         await wait(2000);
-        adminAutodocCatEditSave.add(Date.now() - adminAutodocCatEditSaveStart);
-        console.log(`adminAutodocCatEditSave duration: ${Date.now() - adminAutodocCatEditSaveStart}ms`);
+        const adminAutodocCatEditSaveDuration = Date.now() - adminAutodocCatEditSaveStart;
+        adminAutodocCatEditSave.add(adminAutodocCatEditSaveDuration);
+        console.log(`adminAutodocCatEditSave duration: ${adminAutodocCatEditSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_edit_category_save.png` });
 

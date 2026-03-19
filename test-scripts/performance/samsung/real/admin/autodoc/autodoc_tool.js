@@ -42,8 +42,9 @@ export default async function() {
     try {
         const loginStart = Date.now();
         await loginWithPage(page, credentials);
-        admin_autodoc_tool_login.add(Date.now() - loginStart);
-        console.log(`[admin_autodoc_tool] login duration: ${Date.now() - loginStart}ms`);
+        const loginDuration = Date.now() - loginStart;
+        admin_autodoc_tool_login.add(loginDuration);
+        console.log(`[admin_autodoc_tool] login duration: ${loginDuration}ms`);
 
         // // 미완성 상태
         // // 표준 양식 관리 등록 진입

@@ -56,8 +56,9 @@ export default async function() {
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC.png` });
-        webAutodocPageLoad.add(Date.now() - webAutodocPageLoadStart);
-        console.log(`web_autodoc_page_load: ${Date.now() - webAutodocPageLoadStart}ms`);
+        const webAutodocPageLoadDuration = Date.now() - webAutodocPageLoadStart;
+        webAutodocPageLoad.add(webAutodocPageLoadDuration);
+        console.log(`web_autodoc_page_load: ${webAutodocPageLoadDuration}ms`);
 
         // 문서 작성 - 표준 양식, 페이지네이션
         // await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
@@ -75,8 +76,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
-        webAutodocSearch.add(Date.now() - webAutodocSearchStart);
-        console.log(`web_autodoc_search: ${Date.now() - webAutodocSearchStart}ms`);
+        const webAutodocSearchDuration = Date.now() - webAutodocSearchStart;
+        webAutodocSearch.add(webAutodocSearchDuration);
+        console.log(`web_autodoc_search: ${webAutodocSearchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_search.png` });
 
@@ -85,8 +87,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
         await wait(2000);
-        webAutodocTableClick.add(Date.now() - webAutodocTableClickStart);
-        console.log(`web_autodoc_table_click: ${Date.now() - webAutodocTableClickStart}ms`);
+        const webAutodocTableClickDuration = Date.now() - webAutodocTableClickStart;
+        webAutodocTableClick.add(webAutodocTableClickDuration);
+        console.log(`web_autodoc_table_click: ${webAutodocTableClickDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table.png` });
 
@@ -104,8 +107,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_DRAFT_SAVE);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_DRAFT_SAVE);
         await wait(5000);
-        webAutodocDraftSave.add(Date.now() - webAutodocDraftSaveStart);
-        console.log(`web_autodoc_draft_save: ${Date.now() - webAutodocDraftSaveStart}ms`);
+        const webAutodocDraftSaveDuration = Date.now() - webAutodocDraftSaveStart;
+        webAutodocDraftSave.add(webAutodocDraftSaveDuration);
+        console.log(`web_autodoc_draft_save: ${webAutodocDraftSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_submit.png` });
 
@@ -139,8 +143,9 @@ export default async function() {
             SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING
           );
         await wait(2000);
-        webAutodocAiLabeling.add(Date.now() - webAutodocAiLabelingStart);
-        console.log(`web_autodoc_ai_labeling: ${Date.now() - webAutodocAiLabelingStart}ms`);
+        const webAutodocAiLabelingDuration = Date.now() - webAutodocAiLabelingStart;
+        webAutodocAiLabeling.add(webAutodocAiLabelingDuration);
+        console.log(`web_autodoc_ai_labeling: ${webAutodocAiLabelingDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_labeling.png` });
         // await page.waitForSelector('//button[contains(text(),"라벨링 되돌리기")]');
@@ -151,8 +156,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
         await wait(1000);
-        webAutodocSave.add(Date.now() - webAutodocSaveStart);
-        console.log(`web_autodoc_save: ${Date.now() - webAutodocSaveStart}ms`);
+        const webAutodocSaveDuration = Date.now() - webAutodocSaveStart;
+        webAutodocSave.add(webAutodocSaveDuration);
+        console.log(`web_autodoc_save: ${webAutodocSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_submit.png` });
 
@@ -215,8 +221,9 @@ export default async function() {
             SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE
         );
         await wait(2000);
-        webAutodocEditSave.add(Date.now() - webAutodocEditSaveStart);
-        console.log(`web_autodoc_edit_save: ${Date.now() - webAutodocEditSaveStart}ms`);
+        const webAutodocEditSaveDuration = Date.now() - webAutodocEditSaveStart;
+        webAutodocEditSave.add(webAutodocEditSaveDuration);
+        console.log(`web_autodoc_edit_save: ${webAutodocEditSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_edit_tracking_off.png` });
 
@@ -287,8 +294,9 @@ export default async function() {
             SELECTORS.FEATURES.AUTODOC.BUTTON_SEND
         );
         await wait(2000);
-        webAutodocAiChat.add(Date.now() - webAutodocAiChatStart);
-        console.log(`web_autodoc_ai_chat: ${Date.now() - webAutodocAiChatStart}ms`);
+        const webAutodocAiChatDuration = Date.now() - webAutodocAiChatStart;
+        webAutodocAiChat.add(webAutodocAiChatDuration);
+        console.log(`web_autodoc_ai_chat: ${webAutodocAiChatDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_ai_send.png` });
 
@@ -313,8 +321,9 @@ export default async function() {
             SELECTORS.FEATURES.AUTODOC.BUTTON_SEND
         );
         await wait(2000);
-        webAutodocAutoReview.add(Date.now() - webAutodocAutoReviewStart);
-        console.log(`web_autodoc_auto_review: ${Date.now() - webAutodocAutoReviewStart}ms`);
+        const webAutodocAutoReviewDuration = Date.now() - webAutodocAutoReviewStart;
+        webAutodocAutoReview.add(webAutodocAutoReviewDuration);
+        console.log(`web_autodoc_auto_review: ${webAutodocAutoReviewDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_ai_auto.png` });
 

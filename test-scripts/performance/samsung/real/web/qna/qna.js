@@ -53,8 +53,9 @@ export default async function() {
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA.png` });
-        webQnaPageLoad.add(Date.now() - webQnaPageLoadStart);
-        console.log(`web_qna_page_load: ${Date.now() - webQnaPageLoadStart}ms`);
+        const webQnaPageLoadDuration = Date.now() - webQnaPageLoadStart;
+        webQnaPageLoad.add(webQnaPageLoadDuration);
+        console.log(`web_qna_page_load: ${webQnaPageLoadDuration}ms`);
 
         // 1:1 문의, 페이지네이션
         // await page.waitForSelector(SELECTORS.FEATURES.QNA.PAGINATION);
@@ -70,8 +71,9 @@ export default async function() {
         await selectComboboxOption(page, SELECTORS.WEB.QNA.SELECT_STATUS);
         await page.waitForSelector(SELECTORS.WEB.QNA.INPUT_SEARCH);
         await wait(2000);
-        webQnaStatusFilter.add(Date.now() - webQnaStatusFilterStart);
-        console.log(`web_qna_status_filter: ${Date.now() - webQnaStatusFilterStart}ms`);
+        const webQnaStatusFilterDuration = Date.now() - webQnaStatusFilterStart;
+        webQnaStatusFilter.add(webQnaStatusFilterDuration);
+        console.log(`web_qna_status_filter: ${webQnaStatusFilterDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_status.png` });
 
@@ -81,8 +83,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
-        webQnaSearch.add(Date.now() - webQnaSearchStart);
-        console.log(`web_qna_search: ${Date.now() - webQnaSearchStart}ms`);
+        const webQnaSearchDuration = Date.now() - webQnaSearchStart;
+        webQnaSearch.add(webQnaSearchDuration);
+        console.log(`web_qna_search: ${webQnaSearchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_search.png` });
         await page.goto(URLS.SERVICE.WEB_QNA);
@@ -114,8 +117,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CLICK_SUBMIT);
         await page.click(SELECTORS.WEB.QNA.BUTTON_CLICK_SUBMIT);
         await wait(2000);
-        webQnaRegisterSave.add(Date.now() - webQnaRegisterSaveStart);
-        console.log(`web_qna_register_save: ${Date.now() - webQnaRegisterSaveStart}ms`);
+        const webQnaRegisterSaveDuration = Date.now() - webQnaRegisterSaveStart;
+        webQnaRegisterSave.add(webQnaRegisterSaveDuration);
+        console.log(`web_qna_register_save: ${webQnaRegisterSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_create_submit.png` });
 
@@ -124,8 +128,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.FEATURES.QNA.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
         await wait(2000);
-        webQnaTableClick.add(Date.now() - webQnaTableClickStart);
-        console.log(`web_qna_table_click: ${Date.now() - webQnaTableClickStart}ms`);
+        const webQnaTableClickDuration = Date.now() - webQnaTableClickStart;
+        webQnaTableClick.add(webQnaTableClickDuration);
+        console.log(`web_qna_table_click: ${webQnaTableClickDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_table.png` });
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CLICK_GO_TO_LIST);

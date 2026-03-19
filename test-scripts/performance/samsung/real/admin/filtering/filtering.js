@@ -66,8 +66,9 @@ export default async function() {
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_FILTERING.png` });
-        adminFilteringPageLoad.add(Date.now() - adminFilteringPageLoadStart);
-        console.log(`Admin filtering page load duration: ${Date.now() - adminFilteringPageLoadStart}ms`);
+        const adminFilteringPageLoadDuration = Date.now() - adminFilteringPageLoadStart;
+        adminFilteringPageLoad.add(adminFilteringPageLoadDuration);
+        console.log(`Admin filtering page load duration: ${adminFilteringPageLoadDuration}ms`);
 
         // 필터링 관리 페이지네이션
         // await page.waitForSelector(SELECTORS.ADMIN.FILTERING.PAGINATION);
@@ -85,8 +86,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
-        adminFilteringSearch.add(Date.now() - adminFilteringSearchStart);
-        console.log(`Admin filtering search duration: ${Date.now() - adminFilteringSearchStart}ms`);
+        const adminFilteringSearchDuration = Date.now() - adminFilteringSearchStart;
+        adminFilteringSearch.add(adminFilteringSearchDuration);
+        console.log(`Admin filtering search duration: ${adminFilteringSearchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_search.png` });
 
@@ -118,8 +120,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
         await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
         await wait(2000);
-        adminFilteringRegisterSave.add(Date.now() - adminFilteringRegisterSaveStart);
-        console.log(`Admin filtering register save duration: ${Date.now() - adminFilteringRegisterSaveStart}ms`);
+        const adminFilteringRegisterSaveDuration = Date.now() - adminFilteringRegisterSaveStart;
+        adminFilteringRegisterSave.add(adminFilteringRegisterSaveDuration);
+        console.log(`Admin filtering register save duration: ${adminFilteringRegisterSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_register_submit.png` });
 
@@ -128,8 +131,9 @@ export default async function() {
         const adminFilteringTableClickStart = Date.now();
         await page.click(`${SELECTORS.COMMON.TABLE} button`);
         await wait(2000);
-        adminFilteringTableClick.add(Date.now() - adminFilteringTableClickStart);
-        console.log(`Admin filtering table click duration: ${Date.now() - adminFilteringTableClickStart}ms`);
+        const adminFilteringTableClickDuration = Date.now() - adminFilteringTableClickStart;
+        adminFilteringTableClick.add(adminFilteringTableClickDuration);
+        console.log(`Admin filtering table click duration: ${adminFilteringTableClickDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_table.png` });
 
@@ -151,8 +155,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
         await page.click(SELECTORS.ADMIN.FILTERING.BUTTON_SUBMIT);
         await wait(2000);
-        adminFilteringEditSave.add(Date.now() - adminFilteringEditSaveStart);
-        console.log(`Admin filtering edit save duration: ${Date.now() - adminFilteringEditSaveStart}ms`);
+        const adminFilteringEditSaveDuration = Date.now() - adminFilteringEditSaveStart;
+        adminFilteringEditSave.add(adminFilteringEditSaveDuration);
+        console.log(`Admin filtering edit save duration: ${adminFilteringEditSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_register_edit_submit.png` });
 

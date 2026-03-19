@@ -51,8 +51,9 @@ export default async function() {
         await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_NOTICE.png` });
-        webNoticePageLoad.add(Date.now() - webNoticePageLoadStart);
-        console.log(`web_notice_page_load: ${Date.now() - webNoticePageLoadStart}ms`);
+        const webNoticePageLoadDuration = Date.now() - webNoticePageLoadStart;
+        webNoticePageLoad.add(webNoticePageLoadDuration);
+        console.log(`web_notice_page_load: ${webNoticePageLoadDuration}ms`);
 
         // 공지사항, 페이지네이션
         // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
@@ -70,8 +71,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await wait(2000);
-        webNoticeSearch.add(Date.now() - webNoticeSearchStart);
-        console.log(`web_notice_search: ${Date.now() - webNoticeSearchStart}ms`);
+        const webNoticeSearchDuration = Date.now() - webNoticeSearchStart;
+        webNoticeSearch.add(webNoticeSearchDuration);
+        console.log(`web_notice_search: ${webNoticeSearchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_search.png` });
 
@@ -80,8 +82,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.FEATURES.NOTICE.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
         await wait(2000);
-        webNoticeTableClick.add(Date.now() - webNoticeTableClickStart);
-        console.log(`web_notice_table_click: ${Date.now() - webNoticeTableClickStart}ms`);
+        const webNoticeTableClickDuration = Date.now() - webNoticeTableClickStart;
+        webNoticeTableClick.add(webNoticeTableClickDuration);
+        console.log(`web_notice_table_click: ${webNoticeTableClickDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_table.png` });
 
@@ -90,8 +93,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_VIEW_HISTORY);
         await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_VIEW_HISTORY);
         await wait(2000);
-        webNoticeHistory.add(Date.now() - webNoticeHistoryStart);
-        console.log(`web_notice_history: ${Date.now() - webNoticeHistoryStart}ms`);
+        const webNoticeHistoryDuration = Date.now() - webNoticeHistoryStart;
+        webNoticeHistory.add(webNoticeHistoryDuration);
+        console.log(`web_notice_history: ${webNoticeHistoryDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_history.png` });
 
