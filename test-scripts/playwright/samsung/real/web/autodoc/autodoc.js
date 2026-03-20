@@ -38,7 +38,7 @@ export async function run(page) {
 
   // 문서 작성 - 표준 양식, 검색
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
-  await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('개인정보처리방침_삼성닷컴(수정v1)');
+  await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('개인정보처리방침_삼성닷컴');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await Promise.all([
     page.waitForURL('**/autodoc**'),
@@ -84,6 +84,7 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_preview.png` });
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
   await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_CLOSE);
+  await wait(1000);
 
   // 문서 작성 - 표준 양식, AI 자동 라벨링
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);

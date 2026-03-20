@@ -81,10 +81,7 @@ export async function run(page) {
 
   // 문서 조회, 테이블 클릭
   await page.waitForSelector(SELECTORS.WEB.DRIVE.TABLE_LIST);
-  await Promise.all([
-    page.waitForURL('**/autodoc**'),
-    page.click(`${SELECTORS.COMMON.TABLE} span.cursor-pointer`),
-  ]);
+  await page.click(`${SELECTORS.COMMON.TABLE} span.cursor-pointer`);
   await page.waitForLoadState('domcontentloaded');
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_DRIVE_table.png` });
