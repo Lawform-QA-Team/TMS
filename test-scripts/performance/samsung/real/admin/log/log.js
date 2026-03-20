@@ -34,10 +34,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         acceptDownloads: true,
@@ -55,7 +51,6 @@ export default async function() {
         // 로그
         const adminLogPageLoadStart = Date.now();
         await page.goto(URLS.LOG.LOG);
-        await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_LOG.png` });
         const adminLogPageLoadDuration = Date.now() - adminLogPageLoadStart;
@@ -65,7 +60,6 @@ export default async function() {
         // 로그, 페이지네이션
         // await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_LOG_pagination_last.png` });
         // await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.PAGINATION);
@@ -76,7 +70,6 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.BUTTON);
         const buttons = await page.$$(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.BUTTON);
         await buttons[Math.floor(Math.random() * buttons.length)].click();
-        await wait(2000);
         const adminLogDateSelectDuration = Date.now() - adminLogDateSelectStart;
         adminLogDateSelect.add(adminLogDateSelectDuration);
         console.log(`Admin log date select duration: ${adminLogDateSelectDuration}ms`);
@@ -94,7 +87,6 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.INPUT_SEARCH, 'a');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(2000);
         const adminLogSearchDuration = Date.now() - adminLogSearchStart;
         adminLogSearch.add(adminLogSearchDuration);
         console.log(`Admin log search duration: ${adminLogSearchDuration}ms`);
@@ -112,7 +104,6 @@ export default async function() {
         await page.click(SELECTORS.COMMON.SEARCH);
         await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.TABLE_LIST);
         await page.click(`${SELECTORS.COMMON.TABLE} span.cursor-pointer`);
-        await wait(2000);
         const adminLogAiChatDuration = Date.now() - adminLogAiChatStart;
         adminLogAiChat.add(adminLogAiChatDuration);
         console.log(`Admin log AI chat duration: ${adminLogAiChatDuration}ms`);

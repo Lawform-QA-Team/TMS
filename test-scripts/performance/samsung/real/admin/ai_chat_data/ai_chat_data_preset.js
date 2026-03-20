@@ -34,10 +34,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1960, height: 1080 },
@@ -54,7 +50,6 @@ export default async function() {
         await page.goto(URLS.AI_CHAT.CHATDATA);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset.png` });
-        await wait(2000);
         const aiChatPresetPageLoadDuration = Date.now() - aiChatPresetPageLoadStart;
         aiChatPresetPageLoad.add(aiChatPresetPageLoadDuration);
         console.log(`aiChatPresetPageLoad duration: ${aiChatPresetPageLoadDuration}ms`);
@@ -65,7 +60,6 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.AI_PRESET_CHAT.INPUT_SEARCH, '테스트');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(2000);
         const aiChatPresetSearchDuration = Date.now() - aiChatPresetSearchStart;
         aiChatPresetSearch.add(aiChatPresetSearchDuration);
         console.log(`aiChatPresetSearch duration: ${aiChatPresetSearchDuration}ms`);
@@ -76,7 +70,6 @@ export default async function() {
         // AI 채팅 데이터 관리 - 사전 설정 채팅 데이터 채팅 데이터 등록 진입
         await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_REGISTER);
         await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_REGISTER);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_data_submit.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_CLOSE);
@@ -100,14 +93,12 @@ export default async function() {
             SELECTORS.ADMIN.AI_PRESET_CHAT.TEXTAREA
         );
         await page.type(SELECTORS.ADMIN.AI_PRESET_CHAT.TEXTAREA, '답변 테스트');
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_data_submit_write.png` });
 
         // AI 채팅 데이터 관리 - 사전 설정 채팅 데이터 채팅 데이터 등록 저장
         await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SAVE);
-        await wait(2000);
         const aiChatPresetRegisterSaveDuration = Date.now() - aiChatPresetRegisterSaveStart;
         aiChatPresetRegisterSave.add(aiChatPresetRegisterSaveDuration);
         console.log(`aiChatPresetRegisterSave duration: ${aiChatPresetRegisterSaveDuration}ms`);
@@ -118,7 +109,6 @@ export default async function() {
         const aiChatPresetTableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.TABLE_LIST);
         await page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`);
-        await wait(2000);
         const aiChatPresetTableClickDuration = Date.now() - aiChatPresetTableClickStart;
         aiChatPresetTableClick.add(aiChatPresetTableClickDuration);
         console.log(`aiChatPresetTableClick duration: ${aiChatPresetTableClickDuration}ms`);
@@ -126,7 +116,6 @@ export default async function() {
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_table.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_CANCEL);
         await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_CANCEL);
-        await wait(2000);
         await page.goto(URLS.AI_CHAT.CHATDATA);
 
         // AI 채팅 데이터 관리 - 사전 설정 채팅 데이터 테이블 수정
@@ -137,16 +126,13 @@ export default async function() {
         await page.locator(SELECTORS.ADMIN.AI_PRESET_CHAT.INPUT).fill('질문 수정 테스트');
         await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.TEXTAREA);
         await page.locator(SELECTORS.ADMIN.AI_PRESET_CHAT.TEXTAREA).fill('답변 수정 테스트');
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_edit.png` });
 
         // AI 채팅 데이터 관리 - 사전 설정 채팅 데이터 테이블 수정 저장
         await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SUBMIT);
         await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SUBMIT);
-        await wait(2000);
         await page.goto(URLS.AI_CHAT.CHATDATA);
-        await wait(2000);
         const aiChatPresetEditSaveDuration = Date.now() - aiChatPresetEditSaveStart;
         aiChatPresetEditSave.add(aiChatPresetEditSaveDuration);
         console.log(`aiChatPresetEditSave duration: ${aiChatPresetEditSaveDuration}ms`);
@@ -158,7 +144,6 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX);
         await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX_1);
         await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX_1);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_preset_checkbox.png` });
         await page.goto(URLS.AI_CHAT.CHATDATA);
@@ -169,7 +154,6 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX_1);
         await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_DELETE);
         await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_DELETE);
-        await wait(2000);
         const aiChatPresetDeleteDuration = Date.now() - aiChatPresetDeleteStart;
         aiChatPresetDelete.add(aiChatPresetDeleteDuration);
         console.log(`aiChatPresetDelete duration: ${aiChatPresetDeleteDuration}ms`);

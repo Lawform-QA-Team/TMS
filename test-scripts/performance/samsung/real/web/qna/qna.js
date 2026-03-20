@@ -34,10 +34,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1960, height: 1080 },
@@ -52,7 +48,6 @@ export default async function() {
         // 1:1 문의
         const webQnaPageLoadStart = Date.now();
         await page.goto(URLS.SERVICE.WEB_QNA);
-        await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA.png` });
         const webQnaPageLoadDuration = Date.now() - webQnaPageLoadStart;
@@ -62,7 +57,6 @@ export default async function() {
         // 1:1 문의, 페이지네이션
         // await page.waitForSelector(SELECTORS.FEATURES.QNA.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_QNA_pagination_last.png` });
         // await page.waitForSelector(SELECTORS.FEATURES.QNA.PAGINATION);
@@ -72,7 +66,6 @@ export default async function() {
         const webQnaStatusFilterStart = Date.now();
         await selectComboboxOption(page, SELECTORS.WEB.QNA.SELECT_STATUS);
         await page.waitForSelector(SELECTORS.WEB.QNA.INPUT_SEARCH);
-        await wait(2000);
         const webQnaStatusFilterDuration = Date.now() - webQnaStatusFilterStart;
         webQnaStatusFilter.add(webQnaStatusFilterDuration);
         console.log(`web_qna_status_filter: ${webQnaStatusFilterDuration}ms`);
@@ -84,7 +77,6 @@ export default async function() {
         await page.type(SELECTORS.WEB.QNA.INPUT_SEARCH, '문의');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(2000);
         const webQnaSearchDuration = Date.now() - webQnaSearchStart;
         webQnaSearch.add(webQnaSearchDuration);
         console.log(`web_qna_search: ${webQnaSearchDuration}ms`);
@@ -95,7 +87,6 @@ export default async function() {
         // 1:1 문의, 문의 등록 진입
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CREATE_QNA);
         await page.click(SELECTORS.WEB.QNA.BUTTON_CREATE_QNA);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_create.png` });
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CANCEL);
@@ -111,14 +102,12 @@ export default async function() {
         await page.locator(`[contenteditable="true"]`).first().fill('문의 테스트 1');
         await page.keyboard.press('Enter');
         await page.locator(`[contenteditable="true"]`).first().type('문의 테스트 2');
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_create_write.png` });
 
         // 1:1 문의, 문의 등록
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CLICK_SUBMIT);
         await page.click(SELECTORS.WEB.QNA.BUTTON_CLICK_SUBMIT);
-        await wait(2000);
         const webQnaRegisterSaveDuration = Date.now() - webQnaRegisterSaveStart;
         webQnaRegisterSave.add(webQnaRegisterSaveDuration);
         console.log(`web_qna_register_save: ${webQnaRegisterSaveDuration}ms`);
@@ -129,7 +118,6 @@ export default async function() {
         const webQnaTableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.FEATURES.QNA.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
-        await wait(2000);
         const webQnaTableClickDuration = Date.now() - webQnaTableClickStart;
         webQnaTableClick.add(webQnaTableClickDuration);
         console.log(`web_qna_table_click: ${webQnaTableClickDuration}ms`);
@@ -143,7 +131,6 @@ export default async function() {
         await page.click(SELECTORS.COMMON.TABLE);
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CLICK_CANCEL);
         await page.click(SELECTORS.WEB.QNA.BUTTON_CLICK_CANCEL);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_cancel.png` });
 

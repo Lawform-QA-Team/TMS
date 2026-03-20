@@ -31,10 +31,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1960, height: 1080 },
@@ -49,7 +45,6 @@ export default async function() {
         // 문서 작성 - 임시 저장 문서
         const pageLoadStart = Date.now();
         await page.goto(URLS.AUTODOC.TEMP);
-        await wait(2000);
         const pageLoadDuration = Date.now() - pageLoadStart;
         web_autodoc_temp_page_load.add(pageLoadDuration);
         console.log(`[web_autodoc_temp] page_load duration: ${pageLoadDuration}ms`);
@@ -59,7 +54,6 @@ export default async function() {
         // 문서 작성 - 임시 저장 문서, 페이지네이션
         // await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_temp_pagination_last.png` });
         // await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
@@ -71,7 +65,6 @@ export default async function() {
         await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, 'heekun');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(2000);
         const searchDuration = Date.now() - searchStart;
         web_autodoc_temp_search.add(searchDuration);
         console.log(`[web_autodoc_temp] search duration: ${searchDuration}ms`);
@@ -82,7 +75,6 @@ export default async function() {
         const tableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
-        await wait(2000);
         const tableClickDuration = Date.now() - tableClickStart;
         web_autodoc_temp_table_click.add(tableClickDuration);
         console.log(`[web_autodoc_temp] table_click duration: ${tableClickDuration}ms`);

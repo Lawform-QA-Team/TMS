@@ -32,10 +32,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1960, height: 1080 },
@@ -50,7 +46,6 @@ export default async function() {
         // 사용자 관리 - 백오피스
         const adminMembersPageLoadStart = Date.now();
         await page.goto(URLS.MEMBER.BACKOFFICE);
-        await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE.png` });
         const adminMembersPageLoadDuration = Date.now() - adminMembersPageLoadStart;
@@ -60,7 +55,6 @@ export default async function() {
         // 사용자 관리 - 백오피스, 페이지네이션
         // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_pagination_last.png` });
         // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
@@ -72,7 +66,6 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH, '임희건');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(2000);
         const adminMembersSearchDuration = Date.now() - adminMembersSearchStart;
         adminMembersSearch.add(adminMembersSearchDuration);
         console.log(`Admin members search duration: ${adminMembersSearchDuration}ms`);
@@ -83,7 +76,6 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.TABLE_LIST);
         const adminMembersTableClickStart = Date.now();
         await page.click(`${SELECTORS.COMMON.TABLE} button`);
-        await wait(2000);
         const adminMembersTableClickDuration = Date.now() - adminMembersTableClickStart;
         adminMembersTableClick.add(adminMembersTableClickDuration);
         console.log(`Admin members table click duration: ${adminMembersTableClickDuration}ms`);
@@ -92,7 +84,7 @@ export default async function() {
 
         // 사용자 관리 - 백오피스, 정보 수정
         const adminMembersEditSaveStart = Date.now();
-        await page.waitForLoadState('load');
+        await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO);
         const radios = await page.$$(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO);
         await radios[0].click();
         await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO_2);
@@ -102,7 +94,6 @@ export default async function() {
         for (let i = 0; i <= 3; i++) {
             await checkboxes[i].click();
         }
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_edit.png` });
 
@@ -113,7 +104,6 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO_1);
         await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
-        await wait(2000);
         const adminMembersEditSaveDuration = Date.now() - adminMembersEditSaveStart;
         adminMembersEditSave.add(adminMembersEditSaveDuration);
         console.log(`Admin members edit save duration: ${adminMembersEditSaveDuration}ms`);

@@ -42,10 +42,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 /** YYYY-MM-DD 형식의 임의 날짜 생성 (과거 N일 이내) */
 function getRandomDate(daysBack = 365) {
     const d = new Date();
@@ -179,7 +175,6 @@ export default async function() {
         else if (queryUnit.includes('월')) {
             await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.MONTH_PICKER_START);
             await selectRandomDateFromRdpCalendar(page, SELECTORS.ADMIN.DASHBOARD.MONTH_PICKER_START);
-            await wait(300);
             await selectRandomDateFromRdpCalendar(page, SELECTORS.ADMIN.DASHBOARD.MONTH_PICKER_END);
             timestamp = getNewTimeStamp();
             await page.screenshot({ path: `screenshots/${timestamp}_datepicker_month.png` });

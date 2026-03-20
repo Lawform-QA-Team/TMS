@@ -33,10 +33,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1960, height: 1080 },
@@ -52,7 +48,6 @@ export default async function() {
         // 표준 양식 관리 진입
         const adminAutodocCatPageLoadStart = Date.now();
         await page.goto(URLS.AUTODOC.CATEGORY);
-        await wait(2000);
         const adminAutodocCatPageLoadDuration = Date.now() - adminAutodocCatPageLoadStart;
         adminAutodocCatPageLoad.add(adminAutodocCatPageLoadDuration);
         console.log(`adminAutodocCatPageLoad duration: ${adminAutodocCatPageLoadDuration}ms`);
@@ -62,7 +57,6 @@ export default async function() {
         // 카테고리 관리 페이지네이션
         // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_pagination_last.png` });
         // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
@@ -74,7 +68,6 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH, '카테고리');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(2000);
         const adminAutodocCatSearchDuration = Date.now() - adminAutodocCatSearchStart;
         adminAutodocCatSearch.add(adminAutodocCatSearchDuration);
         console.log(`adminAutodocCatSearch duration: ${adminAutodocCatSearchDuration}ms`);
@@ -85,7 +78,6 @@ export default async function() {
         // 카테고리 등록 진입
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER_CATEGORY);
         await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER_CATEGORY);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_register.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_CLOSE);
@@ -97,14 +89,12 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER_CATEGORY);
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT);
         await page.fill(SELECTORS.ADMIN.AUTODOC.INPUT, `cat_${randomStr()}`);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_register_write.png` });
 
         // 카테고리 등록 저장
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
-        await wait(2000);
         const adminAutodocCatRegisterSaveDuration = Date.now() - adminAutodocCatRegisterSaveStart;
         adminAutodocCatRegisterSave.add(adminAutodocCatRegisterSaveDuration);
         console.log(`adminAutodocCatRegisterSave duration: ${adminAutodocCatRegisterSaveDuration}ms`);
@@ -115,7 +105,6 @@ export default async function() {
         const adminAutodocCatTableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
-        await wait(2000);
         const adminAutodocCatTableClickDuration = Date.now() - adminAutodocCatTableClickStart;
         adminAutodocCatTableClick.add(adminAutodocCatTableClickDuration);
         console.log(`adminAutodocCatTableClick duration: ${adminAutodocCatTableClickDuration}ms`);
@@ -130,14 +119,12 @@ export default async function() {
         await page.click(SELECTORS.COMMON.TABLE);
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT);
         await page.fill(SELECTORS.ADMIN.AUTODOC.INPUT, `edit_${randomStr()}`);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_edit_category.png` });
 
         // 카테고리 수정 저장
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
-        await wait(2000);
         const adminAutodocCatEditSaveDuration = Date.now() - adminAutodocCatEditSaveStart;
         adminAutodocCatEditSave.add(adminAutodocCatEditSaveDuration);
         console.log(`adminAutodocCatEditSave duration: ${adminAutodocCatEditSaveDuration}ms`);

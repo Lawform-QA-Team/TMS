@@ -17,10 +17,6 @@ export function getCredentials() {
 /**
  * 주어진 page에 웹 서비스 로그인 수행 (스크린샷 포함).
  */
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export async function loginWithPage(page, credentials, metrics = null) {
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
     const totalStartTime = Date.now();
@@ -55,7 +51,6 @@ export async function loginWithPage(page, credentials, metrics = null) {
     const submitStart = Date.now();
     await page.waitForSelector(SELECTORS.FEATURES.LOGIN.BUTTON_SUBMIT);
     await page.click(SELECTORS.FEATURES.LOGIN.BUTTON_SUBMIT);
-    await wait(2000);
     if (metrics?.submitLoginDuration) {
         const submitDuration = Date.now() - submitStart;
         metrics.submitLoginDuration.add(submitDuration);

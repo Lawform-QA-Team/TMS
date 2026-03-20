@@ -32,10 +32,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1960, height: 1080 },
@@ -50,7 +46,6 @@ export default async function() {
         // 공지사항
         const webNoticePageLoadStart = Date.now();
         await page.goto(URLS.SERVICE.WEB_NOTICE);
-        await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_NOTICE.png` });
         const webNoticePageLoadDuration = Date.now() - webNoticePageLoadStart;
@@ -60,7 +55,6 @@ export default async function() {
         // 공지사항, 페이지네이션
         // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_pagination_last.png` });
         // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
@@ -72,7 +66,6 @@ export default async function() {
         await page.type(SELECTORS.WEB.NOTICE.INPUT_SEARCH, '공지');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(2000);
         const webNoticeSearchDuration = Date.now() - webNoticeSearchStart;
         webNoticeSearch.add(webNoticeSearchDuration);
         console.log(`web_notice_search: ${webNoticeSearchDuration}ms`);
@@ -83,7 +76,6 @@ export default async function() {
         const webNoticeTableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.FEATURES.NOTICE.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
-        await wait(2000);
         const webNoticeTableClickDuration = Date.now() - webNoticeTableClickStart;
         webNoticeTableClick.add(webNoticeTableClickDuration);
         console.log(`web_notice_table_click: ${webNoticeTableClickDuration}ms`);
@@ -94,7 +86,6 @@ export default async function() {
         const webNoticeHistoryStart = Date.now();
         await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_VIEW_HISTORY);
         await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_VIEW_HISTORY);
-        await wait(2000);
         const webNoticeHistoryDuration = Date.now() - webNoticeHistoryStart;
         webNoticeHistory.add(webNoticeHistoryDuration);
         console.log(`web_notice_history: ${webNoticeHistoryDuration}ms`);
@@ -104,21 +95,18 @@ export default async function() {
         // 공지사항, 수정 이력 페이지네이션
         // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_history_pagination_last.png` });
         
         // 공지사항, 수정 이력 닫기
         await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_CLOSE);
         await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_CLOSE);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_history_close.png` });
 
         // 공지사항, 목록
         await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_LIST);
         await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_LIST);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_list.png` });
 

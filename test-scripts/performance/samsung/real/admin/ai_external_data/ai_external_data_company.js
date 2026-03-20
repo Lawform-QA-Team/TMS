@@ -34,10 +34,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1960, height: 1080 },
@@ -54,7 +50,6 @@ export default async function() {
         await page.goto(URLS.AI_DATA.COMPANY);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company.png` });
-        await wait(2000);
         const aiExtCoPageLoadDuration = Date.now() - aiExtCoPageLoadStart;
         aiExtCoPageLoad.add(aiExtCoPageLoadDuration);
         console.log(`aiExtCoPageLoad duration: ${aiExtCoPageLoadDuration}ms`);
@@ -62,7 +57,6 @@ export default async function() {
         // AI 외부 데이터 관리 - 타사 문서 페이지네이션
         // await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_pagination_last.png` });
         // await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.PAGINATION);
@@ -74,7 +68,6 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_SEARCH, '타사');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(2000);
         const aiExtCoSearchDuration = Date.now() - aiExtCoSearchStart;
         aiExtCoSearch.add(aiExtCoSearchDuration);
         console.log(`aiExtCoSearch duration: ${aiExtCoSearchDuration}ms`);
@@ -85,7 +78,6 @@ export default async function() {
         // AI 외부 데이터 관리 - 타사 문서 등록 진입
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_REGISTER);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_REGISTER);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_register.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_GO_BACK);
@@ -100,7 +92,6 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_CATEGORY, '타사 문서 등록 테스트');
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_URL);
         await page.type(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_URL, 'https://www.google.com');
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_register_write.png` });
 
@@ -122,7 +113,6 @@ export default async function() {
         // AI 외부 데이터 관리 - 미리보기
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_PREVIEW);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_PREVIEW);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_register_preview.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_CLOSE);
@@ -131,9 +121,7 @@ export default async function() {
         // AI 외부 데이터 관리 - 타사 문서 등록
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_SUBMIT);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_SUBMIT);
-        await wait(2000);
         await page.goto(URLS.AI_DATA.COMPANY);
-        await wait(2000);
         const aiExtCoRegisterSaveDuration = Date.now() - aiExtCoRegisterSaveStart;
         aiExtCoRegisterSave.add(aiExtCoRegisterSaveDuration);
         console.log(`aiExtCoRegisterSave duration: ${aiExtCoRegisterSaveDuration}ms`);
@@ -144,7 +132,6 @@ export default async function() {
         const aiExtCoTableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.TABLE_LIST);
         await page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`);
-        await wait(2000);
         const aiExtCoTableClickDuration = Date.now() - aiExtCoTableClickStart;
         aiExtCoTableClick.add(aiExtCoTableClickDuration);
         console.log(`aiExtCoTableClick duration: ${aiExtCoTableClickDuration}ms`);
@@ -160,7 +147,6 @@ export default async function() {
         if (views.length >= 2) {
             await views[Math.floor(Math.random() * (views.length - 1)) + 1].click();
         }
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_table_detail.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
@@ -175,7 +161,6 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX);
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_checkbox.png` });
         await page.goto(URLS.AI_DATA.COMPANY);
@@ -186,7 +171,6 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_DELETE);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_DELETE);
-        await wait(2000);
         const aiExtCoDeleteDuration = Date.now() - aiExtCoDeleteStart;
         aiExtCoDelete.add(aiExtCoDeleteDuration);
         console.log(`aiExtCoDelete duration: ${aiExtCoDeleteDuration}ms`);

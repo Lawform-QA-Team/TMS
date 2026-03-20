@@ -35,10 +35,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1960, height: 1080 },
@@ -53,7 +49,6 @@ export default async function() {
         // 문서 조회
         const webDrivePageLoadStart = Date.now();
         await page.goto(URLS.DRIVE.DRIVE);
-        await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_DRIVE.png` });
         const webDrivePageLoadDuration = Date.now() - webDrivePageLoadStart;
@@ -63,7 +58,6 @@ export default async function() {
         // 문서 조회, 페이지네이션
         // await page.waitForSelector(SELECTORS.WEB.DRIVE.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_DRIVE_pagination_last.png` });
         // await page.waitForSelector(SELECTORS.WEB.DRIVE.PAGINATION);
@@ -72,7 +66,6 @@ export default async function() {
         // 문서 조회, 카테고리 검색
         const webDriveCategorySearchStart = Date.now();
         await selectComboboxOption(page, SELECTORS.WEB.DRIVE.SELECT_CATEGORY);
-        await wait(2000);
         const webDriveCategorySearchDuration = Date.now() - webDriveCategorySearchStart;
         webDriveCategorySearch.add(webDriveCategorySearchDuration);
         console.log(`web_drive_category_search: ${webDriveCategorySearchDuration}ms`);
@@ -82,7 +75,6 @@ export default async function() {
         // 문서 조회, 등록일 검색
         const webDriveDatepickerStart = Date.now();
         await selectDateRangeInRdpCalendar(page, SELECTORS.WEB.DRIVE.DATEPICKER, SELECTORS.WEB.DRIVE.DATEPICKER_START, '2026-02-01', '2026-02-28')
-        await wait(2000);
         const webDriveDatepickerDuration = Date.now() - webDriveDatepickerStart;
         webDriveDatepicker.add(webDriveDatepickerDuration);
         console.log(`web_drive_datepicker: ${webDriveDatepickerDuration}ms`);
@@ -95,7 +87,6 @@ export default async function() {
         await page.type(SELECTORS.WEB.DRIVE.INPUT, 'heekun');
         await page.waitForSelector(SELECTORS.WEB.DRIVE.BUTTON_SEARCH);
         await page.click(SELECTORS.WEB.DRIVE.BUTTON_SEARCH);
-        await wait(2000);
         const webDriveSearchDuration = Date.now() - webDriveSearchStart;
         webDriveSearch.add(webDriveSearchDuration);
         console.log(`web_drive_search: ${webDriveSearchDuration}ms`);
@@ -107,7 +98,6 @@ export default async function() {
         const webDriveTableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.WEB.DRIVE.TABLE_LIST);
         await page.click(`${SELECTORS.COMMON.TABLE} span.cursor-pointer`);
-        await wait(2000);
         const webDriveTableClickDuration = Date.now() - webDriveTableClickStart;
         webDriveTableClick.add(webDriveTableClickDuration);
         console.log(`web_drive_table_click: ${webDriveTableClickDuration}ms`);

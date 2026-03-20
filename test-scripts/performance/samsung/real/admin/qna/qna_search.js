@@ -34,10 +34,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1960, height: 1080 },
@@ -48,7 +44,6 @@ export default async function() {
 
     try {
         await loginWithPage(page, credentials);
-        await wait(3000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_login_success.png` });
         
@@ -56,7 +51,6 @@ export default async function() {
         const adminQnaPageLoadStart = Date.now();
         await page.goto(URLS.SERVICE.QNA);
         await page.waitForLoadState('load');
-        await wait(2000);
         console.log('QNA URL:', await page.url());
         await page.screenshot({ path: `screenshots/${timestamp}_qna.png` });
         const adminQnaPageLoadDuration = Date.now() - adminQnaPageLoadStart;
@@ -66,18 +60,15 @@ export default async function() {
         // 1:1 문의 관리, 페이지네이션
         // await page.waitForSelector(SELECTORS.COMMON.PAGE_LAST);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(2000);
         // await page.screenshot({ path: `screenshots/${timestamp}_qna_page_last.png` });
         // await page.waitForSelector(SELECTORS.COMMON.PAGE_FIRST);
         // await page.click(SELECTORS.COMMON.PAGE_FIRST);
-        // await wait(2000);
         // await page.screenshot({ path: `screenshots/${timestamp}_qna_page_first.png` });
 
         // 1:1 문의 관리, 상태 필터
         const adminQnaStatusFilterStart = Date.now();
         await selectComboboxOption(page, SELECTORS.ADMIN.QNA.SELECT_ANSWER_STATUS);
         await page.waitForSelector(SELECTORS.ADMIN.QNA.INPUT_SEARCH);
-        await wait(2000);
         const adminQnaStatusFilterDuration = Date.now() - adminQnaStatusFilterStart;
         adminQnaStatusFilter.add(adminQnaStatusFilterDuration);
         console.log(`Admin QNA status filter duration: ${adminQnaStatusFilterDuration}ms`);
@@ -89,7 +80,6 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.QNA.INPUT_SEARCH, '문의');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(2000);
         const adminQnaSearchDuration = Date.now() - adminQnaSearchStart;
         adminQnaSearch.add(adminQnaSearchDuration);
         console.log(`Admin QNA search duration: ${adminQnaSearchDuration}ms`);
@@ -101,7 +91,6 @@ export default async function() {
         await page.waitForSelector(SELECTORS.FEATURES.QNA.TABLE_LIST);
         const adminQnaTableClickStart = Date.now();
         await page.click(SELECTORS.COMMON.TABLE);
-        await wait(2000);
         const adminQnaTableClickDuration = Date.now() - adminQnaTableClickStart;
         adminQnaTableClick.add(adminQnaTableClickDuration);
         console.log(`Admin QNA table click duration: ${adminQnaTableClickDuration}ms`);
@@ -117,7 +106,6 @@ export default async function() {
         await page.type(`[contenteditable="true"]`, '문의 테스트 1');
         await page.keyboard.press('Enter')
         await page.type(`[contenteditable="true"]`, '문의 테스트 2');
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_qna_answer_write.png` });
         
@@ -125,7 +113,6 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.QNA.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.QNA.BUTTON_SAVE);
         await page.goto(URLS.SERVICE.QNA);
-        await wait(2000);
         const adminQnaAnswerSaveDuration = Date.now() - adminQnaAnswerSaveStart;
         adminQnaAnswerSave.add(adminQnaAnswerSaveDuration);
         console.log(`Admin QNA answer save duration: ${adminQnaAnswerSaveDuration}ms`);

@@ -33,10 +33,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1960, height: 1080 },
@@ -51,7 +47,6 @@ export default async function() {
         // 공지사항 페이지 이동
         const adminNoticePageLoadStart = Date.now();
         await page.goto(URLS.SERVICE.NOTICE);
-        await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_notice.png` });
         const adminNoticePageLoadDuration = Date.now() - adminNoticePageLoadStart;
@@ -61,7 +56,6 @@ export default async function() {
         // 공지사항 페이지네이션
         // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_pagination_last.png` });
         // await page.waitForSelector(SELECTORS.FEATURES.NOTICE.PAGINATION);
@@ -73,7 +67,6 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.NOTICE.INPUT_SEARCH, '공지');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(2000);
         const adminNoticeSearchDuration = Date.now() - adminNoticeSearchStart;
         adminNoticeSearch.add(adminNoticeSearchDuration);
         console.log(`Admin notice search duration: ${adminNoticeSearchDuration}ms`);
@@ -83,7 +76,6 @@ export default async function() {
         // 공지사항 등록 진입 (id 셀렉터 우선, 실패 시 button 셀렉터)
         await page.waitForSelector(SELECTORS.ADMIN.NOTICE.REGISTER);
         await page.click(SELECTORS.ADMIN.NOTICE.REGISTER);
-        await wait(1000);
         console.log('NOTICE REGISTER SUCCESS URL:', await page.url());
         await page.screenshot({ path: `screenshots/${timestamp}_register.png` });
         await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_LIST);
@@ -99,14 +91,12 @@ export default async function() {
         await page.locator(`[contenteditable="true"]`).first().fill('문의 테스트 1');
         await page.keyboard.press('Enter');
         await page.locator(`[contenteditable="true"]`).first().type('문의 테스트 2');
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_register_write.png` });
         
         // 공지사항 등록 저장
         await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_SUBMIT);
         await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_SUBMIT);
-        await wait(2000);
         const adminNoticeRegisterSaveDuration = Date.now() - adminNoticeRegisterSaveStart;
         adminNoticeRegisterSave.add(adminNoticeRegisterSaveDuration);
         console.log(`Admin notice register save duration: ${adminNoticeRegisterSaveDuration}ms`);
@@ -117,7 +107,6 @@ export default async function() {
         await page.waitForSelector(SELECTORS.FEATURES.NOTICE.TABLE_LIST);
         const adminNoticeTableClickStart = Date.now();
         await page.click(SELECTORS.COMMON.TABLE);
-        await wait(2000);
         const adminNoticeTableClickDuration = Date.now() - adminNoticeTableClickStart;
         adminNoticeTableClick.add(adminNoticeTableClickDuration);
         console.log(`Admin notice table click duration: ${adminNoticeTableClickDuration}ms`);
@@ -131,7 +120,6 @@ export default async function() {
         await page.click(SELECTORS.COMMON.TABLE);
         await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_VIEW_HISTORY);
         await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_VIEW_HISTORY);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_history.png` });
         await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_CLOSE);
@@ -145,14 +133,12 @@ export default async function() {
         await page.locator(SELECTORS.FEATURES.NOTICE.INPUT_TITLE).fill('공지사항 수정');
         await page.waitForSelector(`[contenteditable="true"]`);
         await page.locator(`[contenteditable="true"]`).first().type('문의 수정');
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_NOTICE_edit.png` });
 
         // 공지사항 수정 저장
         await page.waitForSelector(SELECTORS.FEATURES.NOTICE.BUTTON_SUBMIT);
         await page.click(SELECTORS.FEATURES.NOTICE.BUTTON_SUBMIT);
-        await wait(2000);
         const adminNoticeEditSaveDuration = Date.now() - adminNoticeEditSaveStart;
         adminNoticeEditSave.add(adminNoticeEditSaveDuration);
         console.log(`Admin notice edit save duration: ${adminNoticeEditSaveDuration}ms`);

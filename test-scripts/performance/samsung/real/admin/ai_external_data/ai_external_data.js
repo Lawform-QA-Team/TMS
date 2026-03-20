@@ -33,10 +33,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1600, height: 900 },
@@ -53,7 +49,6 @@ export default async function() {
         await page.goto(URLS.AI_DATA.LAW);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA.png` });
-        await wait(2000);
         const aiExtPageLoadDuration = Date.now() - aiExtPageLoadStart;
         aiExtPageLoad.add(aiExtPageLoadDuration);
         console.log(`aiExtPageLoad duration: ${aiExtPageLoadDuration}ms`);
@@ -61,7 +56,6 @@ export default async function() {
         // AI 외부 데이터 관리 - 법령 페이지네이션
         // await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_pagination_last.png` });
         // await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.PAGINATION);
@@ -73,7 +67,6 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.AI_EXTERNAL_DATA.INPUT_SEARCH, '고시');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(2000);
         const aiExtSearchDuration = Date.now() - aiExtSearchStart;
         aiExtSearch.add(aiExtSearchDuration);
         console.log(`aiExtSearch duration: ${aiExtSearchDuration}ms`);
@@ -85,7 +78,6 @@ export default async function() {
         const aiExtTableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.TABLE_LIST);
         await page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`);
-        await wait(2000);
         const aiExtTableClickDuration = Date.now() - aiExtTableClickStart;
         aiExtTableClick.add(aiExtTableClickDuration);
         console.log(`aiExtTableClick duration: ${aiExtTableClickDuration}ms`);
@@ -101,7 +93,6 @@ export default async function() {
         if (views.length >= 2) {
             await views[Math.floor(Math.random() * (views.length - 1)) + 1].click();
         }
-        await wait(2000);
         const aiExtDataViewDuration = Date.now() - aiExtDataViewStart;
         aiExtDataView.add(aiExtDataViewDuration);
         console.log(`aiExtDataView duration: ${aiExtDataViewDuration}ms`);
@@ -111,14 +102,12 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.SWITCH);
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
-        await wait(2000);
 
         // AI 외부 데이터 관리 - 법령 체크 박스
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX);
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_checkbox.png` });
         await page.goto(URLS.AI_DATA.LAW);
@@ -129,7 +118,6 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX_1);
         await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_DELETE);
         await page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_DELETE);
-        await wait(2000);
         const aiExtDeleteDuration = Date.now() - aiExtDeleteStart;
         aiExtDelete.add(aiExtDeleteDuration);
         console.log(`aiExtDelete duration: ${aiExtDeleteDuration}ms`);

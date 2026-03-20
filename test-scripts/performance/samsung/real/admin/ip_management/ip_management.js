@@ -30,10 +30,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1960, height: 1080 },
@@ -50,7 +46,6 @@ export default async function() {
         await page.goto(URLS.SERVICE.IP);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_SERVICE_IP.png` });
-        await wait(2000);
         const adminIpPageLoadDuration = Date.now() - adminIpPageLoadStart;
         adminIpPageLoad.add(adminIpPageLoadDuration);
         console.log(`Admin IP page load duration: ${adminIpPageLoadDuration}ms`);
@@ -61,7 +56,6 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.IP_MANAGEMENT.INPUT_SEARCH, '5');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(2000);
         const adminIpSearchDuration = Date.now() - adminIpSearchStart;
         adminIpSearch.add(adminIpSearchDuration);
         console.log(`Admin IP search duration: ${adminIpSearchDuration}ms`);

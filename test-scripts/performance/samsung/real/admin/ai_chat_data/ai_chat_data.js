@@ -33,10 +33,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1960, height: 1080 },
@@ -53,7 +49,6 @@ export default async function() {
         await page.goto(URLS.AI_CHAT.CHATLOG);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_data.png` });
-        await wait(2000);
         const aiChatPageLoadDuration = Date.now() - aiChatPageLoadStart;
         aiChatPageLoad.add(aiChatPageLoadDuration);
         console.log(`aiChatPageLoad duration: ${aiChatPageLoadDuration}ms`);
@@ -61,7 +56,6 @@ export default async function() {
         // AI 채팅 데이터 관리 - 채팅 로그 데이터 페이지네이션
         // await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_data_pagination_last.png` });
         // await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.PAGINATION);
@@ -73,7 +67,6 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.AI_CHAT_LOG.INPUT_SEARCH, '테스트');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(2000);
         const aiChatSearchDuration = Date.now() - aiChatSearchStart;
         aiChatSearch.add(aiChatSearchDuration);
         console.log(`aiChatSearch duration: ${aiChatSearchDuration}ms`);
@@ -85,7 +78,6 @@ export default async function() {
         const aiChatTableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.TABLE_LIST);
         await page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`);
-        await wait(2000);
         const aiChatTableClickDuration = Date.now() - aiChatTableClickStart;
         aiChatTableClick.add(aiChatTableClickDuration);
         console.log(`aiChatTableClick duration: ${aiChatTableClickDuration}ms`);
@@ -95,7 +87,6 @@ export default async function() {
         // AI 채팅 데이터 관리 - 채팅 로그 데이터 채팅 데이터 등록 진입
         await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.BUTTON_REGISTER);
         await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.BUTTON_REGISTER);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_data_submit.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_CLOSE);
@@ -119,14 +110,12 @@ export default async function() {
             SELECTORS.ADMIN.AI_PRESET_CHAT.TEXTAREA
         );
         await page.type(SELECTORS.ADMIN.AI_PRESET_CHAT.TEXTAREA, '답변 테스트');
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_data_submit_write.png` });
 
         // AI 채팅 데이터 관리 - 채팅 로그 데이터 채팅 데이터 등록 저장
         await page.waitForSelector(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.AI_PRESET_CHAT.BUTTON_SAVE);
-        await wait(2000);
         const aiChatRegisterSaveDuration = Date.now() - aiChatRegisterSaveStart;
         aiChatRegisterSave.add(aiChatRegisterSaveDuration);
         console.log(`aiChatRegisterSave duration: ${aiChatRegisterSaveDuration}ms`);
@@ -140,7 +129,6 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX);
         await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX_1);
         await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX_1);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_checkbox.png` });
         await page.goto(URLS.AI_CHAT.CHATLOG);
@@ -151,7 +139,6 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX_1);
         await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.BUTTON_DELETE);
         await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.BUTTON_DELETE);
-        await wait(2000);
         const aiChatDeleteDuration = Date.now() - aiChatDeleteStart;
         aiChatDelete.add(aiChatDeleteDuration);
         console.log(`aiChatDelete duration: ${aiChatDeleteDuration}ms`);
