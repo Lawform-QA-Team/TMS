@@ -5,7 +5,7 @@ import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
-import { postSlackMessage, buildK6SummaryMessage, buildK6ErrorThreadBlocks } from '../../../../common/slack_helper.js';
+import { buildK6SummaryMessage } from '../../../../common/slack_helper.js';
 import { Trend } from 'k6/metrics';
 
 export const adminAutodocPageLoad = new Trend('admin_autodoc_page_load', true);
@@ -99,22 +99,22 @@ export default async function() {
         await page.goto(URLS.AUTODOC.AUTODOC);
 
         // 표준 양식 테이블 클릭
-        const adminAutodocTableClickStart = Date.now();
-        await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
-        await page.click(SELECTORS.COMMON.TABLE);
-        const adminAutodocTableClickDuration = Date.now() - adminAutodocTableClickStart;
-        adminAutodocTableClick.add(adminAutodocTableClickDuration);
-        console.log(`adminAutodocTableClick duration: ${adminAutodocTableClickDuration}ms`);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table.png` });
-        await page.goto(URLS.AUTODOC.AUTODOC);
+        // const adminAutodocTableClickStart = Date.now();
+        // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
+        // await page.click(SELECTORS.COMMON.TABLE);
+        // const adminAutodocTableClickDuration = Date.now() - adminAutodocTableClickStart;
+        // adminAutodocTableClick.add(adminAutodocTableClickDuration);
+        // console.log(`adminAutodocTableClick duration: ${adminAutodocTableClickDuration}ms`);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_table.png` });
+        // await page.goto(URLS.AUTODOC.AUTODOC);
 
         // 업데이트 추천
-        await page.locator('button').filter({ hasText: '업데이트 추천' }).waitFor();
-        await page.locator('button').filter({ hasText: '업데이트 추천' }).click();
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_update.png` });
-        await page.goto(URLS.AUTODOC.AUTODOC);
+        // await page.locator('button').filter({ hasText: '업데이트 추천' }).waitFor();
+        // await page.locator('button').filter({ hasText: '업데이트 추천' }).click();
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_update.png` });
+        // await page.goto(URLS.AUTODOC.AUTODOC);
 
         // 표준 양식 테이블 업데이트 클릭
         // await page.waitForSelector(`span[data-slot="badge"]`);
@@ -125,10 +125,10 @@ export default async function() {
         // await page.goto(URLS.AUTODOC.AUTODOC);
 
         // 카테고리 관리
-        await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_CATEGORY_MANAGEMENT);
-        await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_CATEGORY_MANAGEMENT);
-        timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category.png` });
+        // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_CATEGORY_MANAGEMENT);
+        // await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_CATEGORY_MANAGEMENT);
+        // timestamp = getNewTimeStamp();
+        // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category.png` });
 
     } catch (e) {
         scriptErrors.push({ message: e.message || String(e), stack: e.stack, time: new Date().toISOString() });
@@ -141,19 +141,15 @@ export default async function() {
 
 export function handleSummary(data) {
     const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
-
-    // Slack Bot API 발송
-    const token = __ENV.SLACK_BOT_TOKEN;
-    const channel = __ENV.SLACK_CHANNEL_ID;
-    if (token && channel) {
-        const payload = buildK6SummaryMessage(data, 'Autodoc', scriptErrors.length > 0);
-        const ts = postSlackMessage(token, channel, payload);
-        if (ts && scriptErrors.length > 0) {
-            postSlackMessage(token, channel, buildK6ErrorThreadBlocks(scriptErrors), ts);
-        }
-    }
-
-    return {
+    const metricsFile = __ENV._K6_METRICS_FILE;
+    const output = {
         [`Result/autodoc_${timestamp}.html`]: htmlReport(data),
     };
+    if (metricsFile) {
+        output[metricsFile] = JSON.stringify({
+            payload: buildK6SummaryMessage(data, 'Autodoc', scriptErrors.length > 0),
+            scriptErrors,
+        });
+    }
+    return output;
 }

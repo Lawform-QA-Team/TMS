@@ -122,6 +122,13 @@ console.log(`... ${duration}ms`);
   - 원인: `pty.spawn` 내부 `select()`에서 KeyboardInterrupt 미처리
   - 수정: `KeyboardInterrupt` 예외 처리 추가, exit code 130으로 정상 종료
   - 추가: exit code 130(Ctrl+C)은 Slack 경고 대상에서 제외
+- [x] Slack 이중 발송 구조 개선
+  - 현상 1: ERRO 없어도 exit_code=1로 false positive 경고 발송
+    원인: OSError break 시 exit_code 초기값(1) 유지 → k6 실제 종료 코드 미반영
+    수정: finally에서 waitpid로 실제 종료 코드 획득
+  - 현상 2: 실제 ERRO 발생 시 handleSummary 성공 메시지 + run.sh 경고 메시지 충돌
+    원인: handleSummary(k6 내부)와 run.sh(외부) 두 곳에서 각각 Slack 발송
+    수정: handleSummary에서 Slack 제거, 메트릭을 JSON 파일로 저장 → run.sh에서 ERRO + 메트릭 합쳐 한 번만 발송
 - [x] `run.sh` — ERRO 여전히 감지 안 됨 (복합 버그 2건)
   - 버그 1: `mktemp /tmp/k6_XXXXXX.log` → macOS mktemp는 X가 맨 끝이어야 함, `.log` suffix로 인해 실패 → TMPFILE 빈 문자열 → FileNotFoundError
     수정: `mktemp /tmp/k6_XXXXXX` (suffix 제거)
@@ -138,6 +145,39 @@ console.log(`... ${duration}ms`);
 - [x] `dashboard.js` 오류 발생 시 실패 메시지 + 스레드 에러 상세 확인
 - [x] `members.js` ERRO 발생 시 run.sh 레벨 경고 Slack 발송 확인
 - [x] 터미널 `INFO[XXXX]` 포맷 유지 확인 (Python PTY 적용 후)
+- [ ] 이중 발송 구조 수정 후 `login_to_web.js` 실행 → Slack 단일 발송 확인 (성공 시 ✅)
+- [ ] 이중 발송 구조 수정 후 `members.js` ERRO 발생 시 단일 경고 발송 확인 (주황색, CDP 오류 포함)
+
+---
+
+# Task: CDP 런타임 오류 실패 처리 강화
+
+## 배경
+ERRO 로그가 있어도 Slack에 "성공"으로 발송되는 문제:
+- CDP 런타임 오류는 JS try/catch를 우회 → `scriptErrors` 미수집
+- `checks` threshold가 vacuously true (check() 호출 없음)
+- run.sh에서 ERRO를 주황 경고로만 표시, 실패로 처리하지 않음
+
+## 수정 계획
+
+### k6 스크립트 (`members_service.js`)
+- [x] `import { check } from 'k6'` 추가
+- [x] `const pageErrors = []` 모듈 레벨 선언
+- [x] `page.on('pageerror', ...)` 리스너 등록 (page 생성 직후)
+- [x] try 블록 끝에 `check(null, { '런타임 오류 없음': () => pageErrors.length === 0 })` 추가
+- [x] `handleSummary`에서 `pageErrors`를 `scriptErrors`와 병합해 `allErrors`로 전달
+
+### run.sh
+- [x] ERRO 존재 시 주황 경고 → 빨간 실패로 격상
+  - payload text `': 성공'` → `': 실패'` 치환
+  - attachment color `#ff9900` → `#ff0000`
+  - header 블록 `✅` → `❌` 치환
+  - section fields 중 `*상태:*` → `*상태:*\n실패` 갱신
+  - "대상 페이지 성능 측정 완료!" 블록 제거
+
+## 검증
+- [ ] members_service.js 실행 후 ERRO 발생 시 Slack에 ❌ 실패로 발송 확인
+- [ ] ERRO 없을 때는 기존대로 ✅ 성공 발송 확인
 
 ---
 
