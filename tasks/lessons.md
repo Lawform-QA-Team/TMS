@@ -101,6 +101,61 @@ playwright/.../web/qna/qna.js                            ↔  performance/.../we
 
 ---
 
+### run.sh - tee 파이프 사용 시 k6 로그 포맷이 변경됨
+
+**현상**: `2>&1 | tee` 로 출력 캡처 시 로그 포맷이 `INFO[0003] msg` → `time="2026-03-20T..." level=info msg="..."` 로 변경됨. 실시간 progress bar도 인플레이스 갱신이 아닌 줄 단위 반복으로 변경됨
+
+**원인**: k6는 stderr가 TTY인지 감지해 TTY일 때 상대 타임스탬프(`INFO[XXXX]`) + 인플레이스 progress bar를 사용함. 파이프(`tee`)를 통하면 TTY 감지 실패 → ISO 타임스탬프 + 줄 단위 출력으로 전환됨
+
+**해결**: Python `pty` 모듈로 가짜 PTY를 생성해 k6에게 TTY처럼 보이게 실행하면서 출력을 동시에 캡처
+```python
+import pty, os, sys
+
+captured = bytearray()
+
+def read(fd):
+    try:
+        data = os.read(fd, 4096)
+        sys.stdout.buffer.write(data)
+        sys.stdout.buffer.flush()
+        captured.extend(data)
+        return data
+    except OSError:
+        return b''
+
+status = pty.spawn(cmd, read)
+# 캡처된 데이터에서 ANSI 코드 제거 후 ERRO 라인 추출
+```
+
+**교훈**:
+- k6 출력을 캡처하면서 포맷을 유지하려면 반드시 PTY 래퍼 필요
+- Python `pty` 모듈은 macOS 기본 내장 → 추가 설치 없이 사용 가능
+- 캡처된 PTY 출력에는 ANSI 코드가 포함되므로 grep 전에 반드시 제거 (`tr -d '\r' | sed $'s/\x1b\\[[0-9;]*[A-Za-z]//g'`)
+- `pty.spawn`의 `master_read` 콜백은 **캡처 전용**으로만 사용할 것. 콜백 내에서 직접 stdout에 쓰면 `_copy` 내부 출력과 중복되어 로그가 2번 출력됨
+- `pty.spawn`은 stdin도 함께 모니터링함 → 자식 프로세스 종료 후에도 stdin 대기로 hang 발생. **`pty.fork()` + 직접 select 루프**로 구현해야 stdin 모니터링 없이 자식 종료 즉시 반환 가능
+- PTY 출력에서 ERRO 라인 grep 시 `tr -d '\r'` 사용 금지. progress bar가 `\r`로 ERRO와 같은 줄에 합쳐져 `^ERRO`가 매칭 안 됨. `tr '\r' '\n'`으로 변환해도 shell sed의 ANSI 제거가 불완전함 → **Python에서 포괄적 ANSI regex로 처리하고 ERRO 라인만 파일에 저장**하는 것이 가장 안전
+- shell의 ANSI 제거 regex(`\x1b\\[[0-9;]*[A-Za-z]`)는 `\x1b[?25l` 같은 `?` 포함 CSI 시퀀스를 처리 못 함. Python `re.compile(rb'\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]|\][^\x07]*\x07)')` 사용
+- macOS `mktemp`는 X가 반드시 **맨 끝**에 있어야 함. `mktemp /tmp/k6_XXXXXX.log`는 실패(빈 문자열 반환) → `mktemp /tmp/k6_XXXXXX` 사용
+- Ctrl+C(exit code 130)는 정상 인터럽트이므로 Slack 오류 알림 대상에서 제외해야 함
+
+---
+
+### k6 browser - CDP 에러는 JS try/catch를 우회함
+
+**현상**: `try/catch`와 `scriptErrors` 배열을 추가했음에도 ERRO 발생 시 `scriptErrors`가 비어있어 Slack에 성공으로 발송됨
+
+**원인**: k6 browser 모듈에서 발생하는 일부 에러(`page.$$()` 빈 배열 클릭 등)는 CDP(Chrome DevTools Protocol) 레이어에서 k6 런타임으로 올라오는 "Uncaught (in promise)"로 처리됨. 이 에러는 JS의 `try/catch`를 우회하기 때문에 catch 블록이 실행되지 않음
+
+**이중 감지 구조로 해결**:
+1. **JS 레벨** (`scriptErrors`): 일반 JS 예외는 `try/catch`로 수집 → `handleSummary`에서 스레드 발송
+2. **Shell 레벨** (`run.sh`): k6 출력에서 `ERRO` 라인 감지 → CDP 에러 포함 전체 커버 → 별도 경고 Slack 발송 (주황색 구분)
+
+**교훈**:
+- k6 browser 에러는 JS try/catch만으로는 완전히 감지할 수 없음
+- `run.sh` 레벨의 ERRO 감지를 반드시 함께 운영할 것
+
+---
+
 ### k6 Slack 발송 - ERRO 로그가 handleSummary에 노출되지 않음
 
 **현상**: k6 실행 중 `ERRO` 로그가 출력되어도 Slack에는 항상 성공으로 발송됨

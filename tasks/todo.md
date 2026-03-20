@@ -109,9 +109,35 @@ console.log(`... ${duration}ms`);
 ### 환경 변수
 - [x] `test-scripts/performance/.env` — `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID` 추가
 
+### 추가 개선
+- [x] `slack_helper.js` — 커스텀 Trend 메트릭 자동 추출해 액션별 응답 시간 Slack 메시지에 포함
+- [x] `run.sh` — Python PTY로 k6 실행: `INFO[XXXX]` 포맷 유지 + ERRO 캡처 + Slack 경고 발송
+- [x] `admin/members/members.js` — `waitForLoadState` → `waitForSelector` 수정 (RADIO 셀렉터)
+
+### 버그 수정
+- [x] `run.sh` — PTY read 콜백에서 stdout 이중 출력 버그 수정
+  - 원인: `pty.spawn` 내부 `_copy`가 이미 stdout 출력 + 콜백에서도 중복 출력
+  - 수정: `read` 콜백에서 `sys.stdout.buffer.write` 제거, 캡처만 수행
+- [x] `run.sh` — Ctrl+C 시 Python PTY traceback 출력 문제
+  - 원인: `pty.spawn` 내부 `select()`에서 KeyboardInterrupt 미처리
+  - 수정: `KeyboardInterrupt` 예외 처리 추가, exit code 130으로 정상 종료
+  - 추가: exit code 130(Ctrl+C)은 Slack 경고 대상에서 제외
+- [x] `run.sh` — ERRO 여전히 감지 안 됨 (복합 버그 2건)
+  - 버그 1: `mktemp /tmp/k6_XXXXXX.log` → macOS mktemp는 X가 맨 끝이어야 함, `.log` suffix로 인해 실패 → TMPFILE 빈 문자열 → FileNotFoundError
+    수정: `mktemp /tmp/k6_XXXXXX` (suffix 제거)
+  - 버그 2: shell sed의 ANSI 제거 패턴이 `\x1b[?25l` 등 `?` 포함 시퀀스 미처리
+    수정: shell sed 제거, Python의 포괄적 ANSI regex로 교체 + ERRO 라인만 TMPFILE에 저장
+- [x] `run.sh` — ERRO Slack 미발송 + k6 종료 후 hang 두 가지 버그
+  - 버그 1: `tr -d '\r'` → progress bar와 ERRO가 같은 줄로 합쳐져 `^ERRO` grep 실패
+    수정: `tr '\r' '\n'` 으로 변경
+  - 버그 2: `pty.spawn`이 stdin도 모니터링 → k6 종료 후에도 stdin 대기로 hang
+    수정: `pty.spawn` → `pty.fork()` 직접 구현, stdin 모니터링 제거
+
 ## 검증
-- [ ] `login_to_web.js` 정상 실행 시 성공 메시지 발송 확인
-- [ ] `dashboard.js` 오류 발생 시 실패 메시지 + 스레드 에러 상세 확인
+- [x] `login_to_web.js` 정상 실행 시 성공 메시지 발송 확인
+- [x] `dashboard.js` 오류 발생 시 실패 메시지 + 스레드 에러 상세 확인
+- [x] `members.js` ERRO 발생 시 run.sh 레벨 경고 Slack 발송 확인
+- [x] 터미널 `INFO[XXXX]` 포맷 유지 확인 (Python PTY 적용 후)
 
 ---
 
