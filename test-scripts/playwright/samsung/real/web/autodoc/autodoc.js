@@ -163,8 +163,10 @@ export async function run(page) {
   await page.click(SELECTORS.FEATURES.AUTODOC.SWITCH_WRITING_TRACKING_MODE);
   await page.waitForSelector('//button[@role="tab"][contains(text(),"문서 정보 작성")]');
   await page.click('//button[@role="tab"][contains(text(),"문서 정보 작성")]');
+  await page.waitForLoadState('domcontentloaded')
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.INPUT_1);
   await page.locator(SELECTORS.FEATURES.AUTODOC.INPUT_1).fill('문서 작성 테스트 2');
+  await page.waitForLoadState('domcontentloaded')
   await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
   await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE);
   await page.waitForFunction(
