@@ -82,7 +82,7 @@ export async function run(page) {
   // 문서 조회, 테이블 클릭
   await page.waitForSelector(SELECTORS.WEB.DRIVE.TABLE_LIST);
   await Promise.all([
-    page.waitForURL('**/drive**'),
+    page.waitForURL('**/autodoc**'),
     page.click(`${SELECTORS.COMMON.TABLE} span.cursor-pointer`),
   ]);
   await page.waitForLoadState('domcontentloaded');
