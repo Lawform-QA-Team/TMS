@@ -148,12 +148,9 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_AI_EXTERNAL_DATA_company_table_detail.png` });
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST);
   await Promise.all([
-    page.waitForURL('**/ai-external-data'),
+    page.waitForURL('**/ai-external-data?tab=company**'),
     page.click(SELECTORS.ADMIN.AI_EXTERNAL_DATA.BUTTON_LIST),
   ]);
-  await page.goto(URLS.AI_DATA.COMPANY, {
-    waitUntil: 'domcontentloaded',
-  });
 
   // AI 외부 데이터 관리 - 타사 문서 체크 박스
   await page.waitForSelector(SELECTORS.ADMIN.AI_EXTERNAL_DATA.CHECKBOX);

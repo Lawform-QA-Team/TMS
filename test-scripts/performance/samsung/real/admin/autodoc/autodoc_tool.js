@@ -4,10 +4,12 @@ import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
-import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { postSlackMessage, buildK6SummaryMessage, buildK6ErrorThreadBlocks } from '../../../../common/slack_helper.js';
 import { Trend } from 'k6/metrics';
 
 const admin_autodoc_tool_login = new Trend('admin_autodoc_tool_login');
+
+const scriptErrors = [];
 
 export const options = {
     scenarios: {
@@ -26,10 +28,6 @@ export const options = {
         checks: ['rate==1.0'],
     },
 };
-
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 export default async function() {
     const context = await browser.newContext({
@@ -51,36 +49,34 @@ export default async function() {
         // await page.goto(URLS.AUTODOC.NEW + "1");
         // let timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_TOOL.png` });
-        // await wait(2000);
         
         // // 본문 제목
         // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC_TOOL.INPUT);
         // await page.type(SELECTORS.ADMIN.AUTODOC_TOOL.INPUT, '표준 양식 테스트');
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_TOOL_input.png` });
 
         // // 최상단 인풋 섹션 추가
         // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC_TOOL.BUTTON_ADD_TOP_INPUT_SECTION);
         // await page.click(SELECTORS.ADMIN.AUTODOC_TOOL.BUTTON_ADD_TOP_INPUT_SECTION);
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_TOOL_add_input_section.png` });
 
         // // 섹션 추가
         // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC_TOOL.BUTTON_ADD_SECTION);
         // await page.click(SELECTORS.ADMIN.AUTODOC_TOOL.BUTTON_ADD_SECTION);
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_TOOL_add_section.png` });
 
         // // 섹션 추가
         // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC_TOOL.BUTTON_REMOVE_SECTION);
         // await page.click(SELECTORS.ADMIN.AUTODOC_TOOL.BUTTON_REMOVE_SECTION);
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_TOOL_remove_section.png` });
         
+    } catch (e) {
+        scriptErrors.push({ message: e.message || String(e), stack: e.stack, time: new Date().toISOString() });
+        throw e;
     } finally {
         if (page) await page.close();
         if (context) await context.close();
@@ -90,13 +86,14 @@ export default async function() {
 export function handleSummary(data) {
     const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
 
-    // 결과 추출 및 Slack 발송
-    const slackWebhookUrl = __ENV.SLACK_WEBHOOK_URL;
-    if (slackWebhookUrl) {
-        const payload = buildK6SummaryMessage(data, 'Autodoc Tool');
-        const result = sendSlackWebhook(slackWebhookUrl, payload);
-        if (!result.ok) {
-            console.warn(`[Slack] 메시지 발송 실패 (status: ${result.status})`);
+    // Slack Bot API 발송
+    const token = __ENV.SLACK_BOT_TOKEN;
+    const channel = __ENV.SLACK_CHANNEL_ID;
+    if (token && channel) {
+        const payload = buildK6SummaryMessage(data, 'Autodoc Tool', scriptErrors.length > 0);
+        const ts = postSlackMessage(token, channel, payload);
+        if (ts && scriptErrors.length > 0) {
+            postSlackMessage(token, channel, buildK6ErrorThreadBlocks(scriptErrors), ts);
         }
     }
 

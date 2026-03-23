@@ -5,7 +5,7 @@ import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
-import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { postSlackMessage, buildK6SummaryMessage, buildK6ErrorThreadBlocks } from '../../../../common/slack_helper.js';
 import { Trend } from 'k6/metrics';
 
 export const webQnaPageLoad = new Trend('web_qna_page_load', true);
@@ -13,6 +13,8 @@ export const webQnaStatusFilter = new Trend('web_qna_status_filter', true);
 export const webQnaSearch = new Trend('web_qna_search', true);
 export const webQnaRegisterSave = new Trend('web_qna_register_save', true);
 export const webQnaTableClick = new Trend('web_qna_table_click', true);
+
+const scriptErrors = [];
 
 export const options = {
     scenarios: {
@@ -32,10 +34,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1960, height: 1080 },
@@ -50,7 +48,6 @@ export default async function() {
         // 1:1 문의
         const webQnaPageLoadStart = Date.now();
         await page.goto(URLS.SERVICE.WEB_QNA);
-        await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA.png` });
         const webQnaPageLoadDuration = Date.now() - webQnaPageLoadStart;
@@ -60,7 +57,6 @@ export default async function() {
         // 1:1 문의, 페이지네이션
         // await page.waitForSelector(SELECTORS.FEATURES.QNA.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_QNA_pagination_last.png` });
         // await page.waitForSelector(SELECTORS.FEATURES.QNA.PAGINATION);
@@ -70,7 +66,6 @@ export default async function() {
         const webQnaStatusFilterStart = Date.now();
         await selectComboboxOption(page, SELECTORS.WEB.QNA.SELECT_STATUS);
         await page.waitForSelector(SELECTORS.WEB.QNA.INPUT_SEARCH);
-        await wait(2000);
         const webQnaStatusFilterDuration = Date.now() - webQnaStatusFilterStart;
         webQnaStatusFilter.add(webQnaStatusFilterDuration);
         console.log(`web_qna_status_filter: ${webQnaStatusFilterDuration}ms`);
@@ -82,7 +77,6 @@ export default async function() {
         await page.type(SELECTORS.WEB.QNA.INPUT_SEARCH, '문의');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(2000);
         const webQnaSearchDuration = Date.now() - webQnaSearchStart;
         webQnaSearch.add(webQnaSearchDuration);
         console.log(`web_qna_search: ${webQnaSearchDuration}ms`);
@@ -93,7 +87,6 @@ export default async function() {
         // 1:1 문의, 문의 등록 진입
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CREATE_QNA);
         await page.click(SELECTORS.WEB.QNA.BUTTON_CREATE_QNA);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_create.png` });
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CANCEL);
@@ -109,14 +102,12 @@ export default async function() {
         await page.locator(`[contenteditable="true"]`).first().fill('문의 테스트 1');
         await page.keyboard.press('Enter');
         await page.locator(`[contenteditable="true"]`).first().type('문의 테스트 2');
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_create_write.png` });
 
         // 1:1 문의, 문의 등록
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CLICK_SUBMIT);
         await page.click(SELECTORS.WEB.QNA.BUTTON_CLICK_SUBMIT);
-        await wait(2000);
         const webQnaRegisterSaveDuration = Date.now() - webQnaRegisterSaveStart;
         webQnaRegisterSave.add(webQnaRegisterSaveDuration);
         console.log(`web_qna_register_save: ${webQnaRegisterSaveDuration}ms`);
@@ -127,7 +118,6 @@ export default async function() {
         const webQnaTableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.FEATURES.QNA.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
-        await wait(2000);
         const webQnaTableClickDuration = Date.now() - webQnaTableClickStart;
         webQnaTableClick.add(webQnaTableClickDuration);
         console.log(`web_qna_table_click: ${webQnaTableClickDuration}ms`);
@@ -141,12 +131,14 @@ export default async function() {
         await page.click(SELECTORS.COMMON.TABLE);
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CLICK_CANCEL);
         await page.click(SELECTORS.WEB.QNA.BUTTON_CLICK_CANCEL);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_QNA_cancel.png` });
 
         // 모달 관련 내용 추가 필요
 
+    } catch (e) {
+        scriptErrors.push({ message: e.message || String(e), stack: e.stack, time: new Date().toISOString() });
+        throw e;
     } finally {
         if (page) await page.close();
         if (context) await context.close();
@@ -156,13 +148,14 @@ export default async function() {
 export function handleSummary(data) {
     const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
 
-    // 결과 추출 및 Slack 발송
-    const slackWebhookUrl = __ENV.SLACK_WEBHOOK_URL;
-    if (slackWebhookUrl) {
-        const payload = buildK6SummaryMessage(data, 'Web QnA');
-        const result = sendSlackWebhook(slackWebhookUrl, payload);
-        if (!result.ok) {
-            console.warn(`[Slack] 메시지 발송 실패 (status: ${result.status})`);
+    // Slack Bot API 발송
+    const token = __ENV.SLACK_BOT_TOKEN;
+    const channel = __ENV.SLACK_CHANNEL_ID;
+    if (token && channel) {
+        const payload = buildK6SummaryMessage(data, 'Web QnA', scriptErrors.length > 0);
+        const ts = postSlackMessage(token, channel, payload);
+        if (ts && scriptErrors.length > 0) {
+            postSlackMessage(token, channel, buildK6ErrorThreadBlocks(scriptErrors), ts);
         }
     }
 

@@ -4,13 +4,15 @@ import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
-import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { postSlackMessage, buildK6SummaryMessage, buildK6ErrorThreadBlocks } from '../../../../common/slack_helper.js';
 import { Trend } from 'k6/metrics';
 
 export const adminMembersPageLoad = new Trend('admin_members_page_load', true);
 export const adminMembersSearch = new Trend('admin_members_search', true);
 export const adminMembersTableClick = new Trend('admin_members_table_click', true);
 export const adminMembersEditSave = new Trend('admin_members_edit_save', true);
+
+const scriptErrors = [];
 
 export const options = {
     scenarios: {
@@ -30,10 +32,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1960, height: 1080 },
@@ -48,7 +46,6 @@ export default async function() {
         // 사용자 관리 - 백오피스
         const adminMembersPageLoadStart = Date.now();
         await page.goto(URLS.MEMBER.BACKOFFICE);
-        await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE.png` });
         const adminMembersPageLoadDuration = Date.now() - adminMembersPageLoadStart;
@@ -58,7 +55,6 @@ export default async function() {
         // 사용자 관리 - 백오피스, 페이지네이션
         // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_pagination_last.png` });
         // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.PAGINATION);
@@ -70,7 +66,6 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH, '임희건');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(2000);
         const adminMembersSearchDuration = Date.now() - adminMembersSearchStart;
         adminMembersSearch.add(adminMembersSearchDuration);
         console.log(`Admin members search duration: ${adminMembersSearchDuration}ms`);
@@ -81,7 +76,6 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.TABLE_LIST);
         const adminMembersTableClickStart = Date.now();
         await page.click(`${SELECTORS.COMMON.TABLE} button`);
-        await wait(2000);
         const adminMembersTableClickDuration = Date.now() - adminMembersTableClickStart;
         adminMembersTableClick.add(adminMembersTableClickDuration);
         console.log(`Admin members table click duration: ${adminMembersTableClickDuration}ms`);
@@ -90,7 +84,7 @@ export default async function() {
 
         // 사용자 관리 - 백오피스, 정보 수정
         const adminMembersEditSaveStart = Date.now();
-        await page.waitForLoadState('load');
+        await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO);
         const radios = await page.$$(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO);
         await radios[0].click();
         await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO_2);
@@ -100,7 +94,6 @@ export default async function() {
         for (let i = 0; i <= 3; i++) {
             await checkboxes[i].click();
         }
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_edit.png` });
 
@@ -111,13 +104,15 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO_1);
         await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
-        await wait(2000);
         const adminMembersEditSaveDuration = Date.now() - adminMembersEditSaveStart;
         adminMembersEditSave.add(adminMembersEditSaveDuration);
         console.log(`Admin members edit save duration: ${adminMembersEditSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_save.png` });
 
+    } catch (e) {
+        scriptErrors.push({ message: e.message || String(e), stack: e.stack, time: new Date().toISOString() });
+        throw e;
     } finally {
         if (page) await page.close();
         if (context) await context.close();
@@ -127,13 +122,14 @@ export default async function() {
 export function handleSummary(data) {
     const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
 
-    // 결과 추출 및 Slack 발송
-    const slackWebhookUrl = __ENV.SLACK_WEBHOOK_URL;
-    if (slackWebhookUrl) {
-        const payload = buildK6SummaryMessage(data, 'Members');
-        const result = sendSlackWebhook(slackWebhookUrl, payload);
-        if (!result.ok) {
-            console.warn(`[Slack] 메시지 발송 실패 (status: ${result.status})`);
+    // Slack Bot API 발송
+    const token = __ENV.SLACK_BOT_TOKEN;
+    const channel = __ENV.SLACK_CHANNEL_ID;
+    if (token && channel) {
+        const payload = buildK6SummaryMessage(data, 'Members', scriptErrors.length > 0);
+        const ts = postSlackMessage(token, channel, payload);
+        if (ts && scriptErrors.length > 0) {
+            postSlackMessage(token, channel, buildK6ErrorThreadBlocks(scriptErrors), ts);
         }
     }
 

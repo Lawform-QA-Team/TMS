@@ -6,13 +6,15 @@ import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
 import { selectDateRangeInRdpCalendar } from '../../../../common/datepicker_helper.js';
-import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { postSlackMessage, buildK6SummaryMessage, buildK6ErrorThreadBlocks } from '../../../../common/slack_helper.js';
 import { Trend } from 'k6/metrics';
 
 export const adminLogPageLoad = new Trend('admin_log_page_load', true);
 export const adminLogDateSelect = new Trend('admin_log_date_select', true);
 export const adminLogSearch = new Trend('admin_log_search', true);
 export const adminLogAiChat = new Trend('admin_log_ai_chat', true);
+
+const scriptErrors = [];
 
 export const options = {
     scenarios: {
@@ -32,10 +34,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         acceptDownloads: true,
@@ -53,7 +51,6 @@ export default async function() {
         // 로그
         const adminLogPageLoadStart = Date.now();
         await page.goto(URLS.LOG.LOG);
-        await wait(2000);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_LOG.png` });
         const adminLogPageLoadDuration = Date.now() - adminLogPageLoadStart;
@@ -63,7 +60,6 @@ export default async function() {
         // 로그, 페이지네이션
         // await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_LOG_pagination_last.png` });
         // await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.PAGINATION);
@@ -74,7 +70,6 @@ export default async function() {
         await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.BUTTON);
         const buttons = await page.$$(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.BUTTON);
         await buttons[Math.floor(Math.random() * buttons.length)].click();
-        await wait(2000);
         const adminLogDateSelectDuration = Date.now() - adminLogDateSelectStart;
         adminLogDateSelect.add(adminLogDateSelectDuration);
         console.log(`Admin log date select duration: ${adminLogDateSelectDuration}ms`);
@@ -92,7 +87,6 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.INPUT_SEARCH, 'a');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(2000);
         const adminLogSearchDuration = Date.now() - adminLogSearchStart;
         adminLogSearch.add(adminLogSearchDuration);
         console.log(`Admin log search duration: ${adminLogSearchDuration}ms`);
@@ -110,13 +104,15 @@ export default async function() {
         await page.click(SELECTORS.COMMON.SEARCH);
         await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.TABLE_LIST);
         await page.click(`${SELECTORS.COMMON.TABLE} span.cursor-pointer`);
-        await wait(2000);
         const adminLogAiChatDuration = Date.now() - adminLogAiChatStart;
         adminLogAiChat.add(adminLogAiChatDuration);
         console.log(`Admin log AI chat duration: ${adminLogAiChatDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_LOG_ai.png` });
 
+    } catch (e) {
+        scriptErrors.push({ message: e.message || String(e), stack: e.stack, time: new Date().toISOString() });
+        throw e;
     } finally {
         if (page) await page.close();
         if (context) await context.close();
@@ -126,13 +122,14 @@ export default async function() {
 export function handleSummary(data) {
     const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
 
-    // 결과 추출 및 Slack 발송
-    const slackWebhookUrl = __ENV.SLACK_WEBHOOK_URL;
-    if (slackWebhookUrl) {
-        const payload = buildK6SummaryMessage(data, 'User Activity Log');
-        const result = sendSlackWebhook(slackWebhookUrl, payload);
-        if (!result.ok) {
-            console.warn(`[Slack] 메시지 발송 실패 (status: ${result.status})`);
+    // Slack Bot API 발송
+    const token = __ENV.SLACK_BOT_TOKEN;
+    const channel = __ENV.SLACK_CHANNEL_ID;
+    if (token && channel) {
+        const payload = buildK6SummaryMessage(data, 'User Activity Log', scriptErrors.length > 0);
+        const ts = postSlackMessage(token, channel, payload);
+        if (ts && scriptErrors.length > 0) {
+            postSlackMessage(token, channel, buildK6ErrorThreadBlocks(scriptErrors), ts);
         }
     }
 

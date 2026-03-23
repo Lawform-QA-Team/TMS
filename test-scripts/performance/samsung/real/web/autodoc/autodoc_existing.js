@@ -4,12 +4,14 @@ import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
-import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { postSlackMessage, buildK6SummaryMessage, buildK6ErrorThreadBlocks } from '../../../../common/slack_helper.js';
 import { Trend } from 'k6/metrics';
 
 const web_autodoc_existing_page_load = new Trend('web_autodoc_existing_page_load');
 const web_autodoc_existing_search = new Trend('web_autodoc_existing_search');
 const web_autodoc_existing_table_click = new Trend('web_autodoc_existing_table_click');
+
+const scriptErrors = [];
 
 export const options = {
     scenarios: {
@@ -29,10 +31,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1960, height: 1080 },
@@ -47,7 +45,6 @@ export default async function() {
         // 문서 작성 - 기존 문서
         const pageLoadStart = Date.now();
         await page.goto(URLS.AUTODOC.EXISTING);
-        await wait(2000);
         const pageLoadDuration = Date.now() - pageLoadStart;
         web_autodoc_existing_page_load.add(pageLoadDuration);
         console.log(`[web_autodoc_existing] page_load duration: ${pageLoadDuration}ms`);
@@ -57,7 +54,6 @@ export default async function() {
         // 문서 작성 - 기존 문서, 페이지네이션
         // await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_existing_pagination_last.png` });
         // await page.waitForSelector(SELECTORS.WEB.AUTODOC.PAGINATION);
@@ -69,7 +65,6 @@ export default async function() {
         await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, 'heekun');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(2000);
         const searchDuration = Date.now() - searchStart;
         web_autodoc_existing_search.add(searchDuration);
         console.log(`[web_autodoc_existing] search duration: ${searchDuration}ms`);
@@ -80,7 +75,6 @@ export default async function() {
         const tableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
-        await wait(2000);
         const tableClickDuration = Date.now() - tableClickStart;
         web_autodoc_existing_table_click.add(tableClickDuration);
         console.log(`[web_autodoc_existing] table_click duration: ${tableClickDuration}ms`);
@@ -89,6 +83,9 @@ export default async function() {
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
 
+    } catch (e) {
+        scriptErrors.push({ message: e.message || String(e), stack: e.stack, time: new Date().toISOString() });
+        throw e;
     } finally {
         if (page) await page.close();
         if (context) await context.close();
@@ -98,13 +95,14 @@ export default async function() {
 export function handleSummary(data) {
     const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
 
-    // 결과 추출 및 Slack 발송
-    const slackWebhookUrl = __ENV.SLACK_WEBHOOK_URL;
-    if (slackWebhookUrl) {
-        const payload = buildK6SummaryMessage(data, 'Web Autodoc existing');
-        const result = sendSlackWebhook(slackWebhookUrl, payload);
-        if (!result.ok) {
-            console.warn(`[Slack] 메시지 발송 실패 (status: ${result.status})`);
+    // Slack Bot API 발송
+    const token = __ENV.SLACK_BOT_TOKEN;
+    const channel = __ENV.SLACK_CHANNEL_ID;
+    if (token && channel) {
+        const payload = buildK6SummaryMessage(data, 'Web Autodoc existing', scriptErrors.length > 0);
+        const ts = postSlackMessage(token, channel, payload);
+        if (ts && scriptErrors.length > 0) {
+            postSlackMessage(token, channel, buildK6ErrorThreadBlocks(scriptErrors), ts);
         }
     }
 

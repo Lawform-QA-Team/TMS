@@ -109,6 +109,8 @@ export async function run(page) {
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_REGEX_search.png` });
   
+  await wait(1000);
+  
   // 문서 테이블 클릭 (상세 진입)
   await page.goto(URLS.AUTODOC.DETAIL + '7', {
     waitUntil: 'domcontentloaded',
@@ -118,7 +120,7 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_REGEX_doc_detail.png` });
 
   // PII 샘플 데이터 입력 및 필터링 감지 확인 (전체 순회)
-  const docInput = page.getByRole('textbox', { name: '개인정보 주식회사' });
+  const docInput = page.getByRole('textbox', { name: '로폼 주식회사' });
 
   for (const pii of PII_SAMPLES) {
     await docInput.waitFor();
@@ -140,6 +142,14 @@ export async function run(page) {
   await wait(1000);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_FILTERING_REGEX_input_combined.png` });
+
+  await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
+  page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_LIST);
+  await page.waitForSelector('button:has-text("확인")');
+  await Promise.all([
+    page.waitForURL('**/autodoc'),
+    page.click('button:has-text("확인")'),
+  ]);
 
   await page.goto(URLS.DRIVE.DRIVE, {
     waitUntil: 'domcontentloaded',
