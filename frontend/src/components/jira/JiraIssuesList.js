@@ -297,6 +297,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
   };
 
   // 이슈 수정 모달 열기
+  // eslint-disable-next-line no-unused-vars
   const openEditModal = (issue) => {
     setSelectedIssue(issue);
     setEditFormData({
@@ -392,6 +393,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
   useEffect(() => {
     fetchJiraIssues();
     fetchAllUsers();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [testCaseId]);
 
   if (loading) {

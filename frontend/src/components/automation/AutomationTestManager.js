@@ -19,7 +19,7 @@ const AutomationTestManager = () => {
   const [editingTest, setEditingTest] = useState(null);
   // 하단 전체 화면 구조로 변경
   const [selectedTest, setSelectedTest] = useState(null);
-  const [showDetail, setShowDetail] = useState(false);
+  const [, setShowDetail] = useState(false);
   const [users, setUsers] = useState([]);
   const [newTest, setNewTest] = useState({
     name: '',
@@ -38,10 +38,12 @@ const AutomationTestManager = () => {
   const [assigneeFilter, setAssigneeFilter] = useState('all');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
+  // eslint-disable-next-line no-unused-vars
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   useEffect(() => {
     fetchAutomationTests();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchAutomationTests = async () => {
@@ -164,6 +166,7 @@ const AutomationTestManager = () => {
   };
 
   // 상세보기 닫기
+  // eslint-disable-next-line no-unused-vars
   const closeDetail = () => {
     setSelectedTest(null);
     setShowDetail(false);

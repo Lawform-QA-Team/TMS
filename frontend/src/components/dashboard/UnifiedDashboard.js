@@ -117,6 +117,7 @@ const UnifiedDashboard = ({ setActiveTab }) => {
   // 드래그 앤 드롭 상태
   const [draggedCard, setDraggedCard] = useState(null);
   const [dragOverCard, setDragOverCard] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [isDragging, setIsDragging] = useState(false);
   
   // 페이징 상태 추가
@@ -578,12 +579,14 @@ const UnifiedDashboard = ({ setActiveTab }) => {
     setTestExecutionsPage(1);
   };
 
+  // eslint-disable-next-line no-unused-vars
   const getStatusColor = (passRate) => {
     if (passRate >= 90) return '#4CAF50'; // Green
     if (passRate >= 70) return '#FF9800'; // Orange
     return '#F44336'; // Red
   };
 
+  // eslint-disable-next-line no-unused-vars
   const createChartData = (environment) => {
     const summary = getEnvironmentSummary(environment);
     const passed = summary.passed_tests;

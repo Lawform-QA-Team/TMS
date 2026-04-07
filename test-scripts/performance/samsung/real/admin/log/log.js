@@ -78,7 +78,7 @@ export default async function() {
 
         // 로그, 검색
         const adminLogSearchStart = Date.now();
-        await page.waitForLoadState("load");
+        await page.waitForSelector('button[data-slot="popover-trigger"]');
         const datepickers = await page.$$('button[data-slot="popover-trigger"]');
         await selectDateRangeInRdpCalendar(page, datepickers[0], datepickers[1], '2026-02-01', '2026-02-28')
         await selectComboboxOption(page, SELECTORS.ADMIN.USER_ACTIVITY_TABLE.SELECT_EVENT)

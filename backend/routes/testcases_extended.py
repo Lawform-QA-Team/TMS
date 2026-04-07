@@ -139,7 +139,12 @@ def upload_testcases():
         if file and file.filename.endswith('.xlsx'):
             # Excel 파일 처리 로직
             df = pd.read_excel(file)
-            
+
+            # 업로드 시 지정한 폴더가 있으면 우선 적용
+            override_folder_id = request.form.get('folder_id')
+            if override_folder_id:
+                override_folder_id = int(override_folder_id)
+
             # 데이터 검증 및 저장
             success_count = 0
             for _, row in df.iterrows():
@@ -148,7 +153,7 @@ def upload_testcases():
                         name=row.get('name', ''),
                         description=row.get('description', ''),
                         project_id=row.get('project_id'),
-                        folder_id=row.get('folder_id')
+                        folder_id=override_folder_id if override_folder_id else row.get('folder_id')
                     )
                     db.session.add(testcase)
                     success_count += 1

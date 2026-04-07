@@ -29,6 +29,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // UTC를 KST로 변환하는 함수
+  // eslint-disable-next-line no-unused-vars
   const toKST = (timestamp) => {
     try {
       const date = new Date(timestamp * 1000);
@@ -159,6 +160,7 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   // 주기적 토큰 만료 체크 (5분마다)
@@ -166,16 +168,6 @@ export const AuthProvider = ({ children }) => {
     if (!token) return;
     
     const checkTokenExpiry = () => {
-      const now = new Date().toLocaleString('ko-KR', {
-        timeZone: 'Asia/Seoul',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true
-      });
       
       if (isTokenExpired(token)) {
         logout();

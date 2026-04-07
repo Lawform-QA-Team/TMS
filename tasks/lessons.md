@@ -209,6 +209,47 @@ status = pty.spawn(cmd, read)
 
 ---
 
+### React ESLint 경고 수정 패턴
+
+**현상**: 빌드 경고가 여러 파일에 분산되어 누적됨
+
+**수정 원칙 (우선순위 순)**:
+
+1. **미사용 변수를 완전히 제거할 수 있으면 제거**
+   - 구조분해에서 getter만 미사용 → `const [, setter] = useState(...)` 패턴으로 교체
+   - 단순 대입 미사용 → 대입 제거 (`const response = await...` → `await ...`)
+   - import에서 미사용 → import 목록에서 제거
+
+2. **제거하면 로직 변경이 되는 경우 → `eslint-disable-next-line` 주석**
+   - `useEffect` missing deps: 의도적 deps 배열인 경우 `// eslint-disable-next-line react-hooks/exhaustive-deps`
+   - 미사용이지만 향후 사용 예정인 함수/변수: `// eslint-disable-next-line no-unused-vars`
+
+3. **실제 코드 버그 수정**
+   - `no-dupe-keys`: 중복 객체 키 → 하나 제거
+   - `default-case`: switch에 `default: break` 추가
+
+**교훈**:
+- `useEffect` deps 경고를 억제할 때, 억제 이유를 주석으로 남기면 나중에 혼란 방지 (단, 이번 프로젝트는 간결함 우선으로 이유 주석 생략)
+- 한 번에 여러 파일을 수정할 때 병렬 Read → 병렬 Edit 패턴으로 처리
+- 빌드로 최종 검증 (`Compiled successfully.` 확인 필수)
+
+---
+
+### 업로드 모달 - 폴더 선택 드롭다운 추가 패턴
+
+**배경**: 엑셀 업로드 시 `folder_id` 컬럼에만 의존하면 사용자가 업로드 시점에 폴더를 지정할 수 없음
+
+**해결**:
+- Frontend: 업로드 모달에 폴더 드롭다운 추가, `folder_id`를 FormData에 포함
+- Backend: `request.form.get('folder_id')`로 수신, 엑셀 컬럼보다 우선 적용
+
+**교훈**:
+- 주석 처리된 state/훅(`allFolders`)은 필요 시 즉시 주석 해제 후 활용할 것
+- FormData 전송 시 파일 외 추가 필드는 `formData.append(key, value)`로 붙임
+- 모달 닫기/완료 시 추가한 state도 반드시 리셋할 것 (`setUploadFolderId('')`)
+
+---
+
 ### k6 성능 측정 - Date.now() 이중 계산
 
 **현상**: 메트릭에 기록된 값과 로그에 출력된 값이 항상 다름

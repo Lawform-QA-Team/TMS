@@ -1,5 +1,5 @@
 // src/PerformanceTestManager.js
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '@tms/config';
 import { useAuth } from '@tms/contexts/AuthContext';
@@ -315,7 +315,7 @@ const PerformanceTestManager = () => {
         test_ids: selectedTests
       });
 
-      const { deleted_count, total_requested, failed_deletions, warning } = response.data;
+      const { deleted_count, failed_deletions, warning } = response.data;
       
       let message = `${deleted_count}개의 성능 테스트가 성공적으로 삭제되었습니다.`;
       if (warning) {
@@ -439,6 +439,8 @@ const PerformanceTestManager = () => {
           break;
         case 'updated_at':
           comparison = new Date(a.updated_at || 0).getTime() - new Date(b.updated_at || 0).getTime();
+          break;
+        default:
           break;
       }
       return sortOrder === 'asc' ? comparison : -comparison;

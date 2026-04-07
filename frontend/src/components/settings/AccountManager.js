@@ -72,6 +72,7 @@ const AccountManager = () => {
         last_name: currentUser.last_name || ''
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
 

@@ -12,6 +12,7 @@ import UserProfile from '@tms/components/auth/UserProfile';
 import JiraIssuesList from '@tms/components/jira/JiraIssuesList';
 import NotificationBell from '@tms/components/notifications/NotificationBell';
 import { ErrorBoundary } from '@tms/components/utils';
+import GrafanaDashboard from '@tms/components/monitoring/GrafanaDashboard';
 import { AuthProvider, useAuth } from '@tms/contexts/AuthContext';
 import ProtectedRoute from '@tms/components/auth/ProtectedRoute';
 
@@ -90,6 +91,12 @@ function AppContent() {
             <FolderManager />
           </ErrorBoundary>
         );
+      case 'monitoring':
+        return (
+          <ErrorBoundary>
+            <GrafanaDashboard />
+          </ErrorBoundary>
+        );
       case 'settings':
         return (
           <ErrorBoundary>
@@ -143,6 +150,7 @@ function AppContent() {
 
   const navItems = [
     { id: 'dashboard', label: '대시보드', icon: '📊' },
+    { id: 'monitoring', label: '모니터링', icon: '📈' },
     { id: 'testcases', label: '테스트 케이스', icon: '🧪' },
     ...(canAccessJira() ? [{ id: 'jira', label: '이슈', icon: '🔗' }] : []),
     ...(canAccessAutomation() ? [{ id: 'automation', label: '자동화 테스트', icon: '🤖' }] : []),
