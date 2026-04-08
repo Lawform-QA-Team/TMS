@@ -123,7 +123,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
     testCases,
     setTestCases,
     folderTree,
-    // allFolders,
+    allFolders,
     users,
     loading,
     error,
@@ -163,7 +163,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
   const [editingTestCase, setEditingTestCase] = useState(null);
   const [selectedTestCase, setSelectedTestCase] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [, setTargetFolderId] = useState('');
+  const [uploadFolderId, setUploadFolderId] = useState('');
   
   // 댓글 관련 상태
   const [comments, setComments] = useState([]);
@@ -512,6 +512,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
         delete window.openTestCaseDetail;
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [testCases, setActiveTab]);
 
   // 이벤트 핸들러들
@@ -913,6 +914,9 @@ const TestCaseAPP = ({ setActiveTab }) => {
 
     const formData = new FormData();
     formData.append('file', selectedFile);
+    if (uploadFolderId) {
+      formData.append('folder_id', uploadFolderId);
+    }
 
     try {
       const response = await axios.post(`${config.apiUrl}/testcases/upload`, formData, {
@@ -924,6 +928,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
       alert(response.data.message);
       setShowUploadModal(false);
       setSelectedFile(null);
+      setUploadFolderId('');
       refetch();
     } catch (err) {
       alert('파일 업로드 중 오류가 발생했습니다: ' + err.response?.data?.error || err.message);
@@ -1609,6 +1614,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
         onClose={() => {
           setShowUploadModal(false);
           setSelectedFile(null);
+          setUploadFolderId('');
         }}
         title="엑셀 파일 업로드"
         size="medium"
@@ -1634,13 +1640,29 @@ const TestCaseAPP = ({ setActiveTab }) => {
       >
         <div className="form-group">
           <label>엑셀 파일 선택</label>
-          <input 
-            type="file" 
+          <input
+            type="file"
             accept=".xlsx"
             onChange={(e) => setSelectedFile(e.target.files[0])}
           />
           <p className="help-text">지원 형식: .xlsx 파일</p>
-            </div>
+        </div>
+        <div className="form-group">
+          <label>폴더 선택 (선택 사항)</label>
+          <select
+            value={uploadFolderId}
+            onChange={(e) => setUploadFolderId(e.target.value)}
+            className="form-control"
+          >
+            <option value="">-- 폴더 미지정 (엑셀 데이터 사용) --</option>
+            {allFolders.map((folder) => (
+              <option key={folder.id} value={folder.id}>
+                {folder.folder_name} ({folder.folder_type})
+              </option>
+            ))}
+          </select>
+          <p className="help-text">선택 시 모든 행에 해당 폴더가 적용됩니다</p>
+        </div>
       </TestCaseModal>
     </div>
   );

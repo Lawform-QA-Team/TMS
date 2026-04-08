@@ -11,7 +11,7 @@ const TestScriptsManager = () => {
   const [s3Files, setS3Files] = useState([]);
   const [localFiles, setLocalFiles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileContent, setFileContent] = useState('');
   const [activeTab, setActiveTab] = useState('local'); // 's3' or 'local'
@@ -21,6 +21,7 @@ const TestScriptsManager = () => {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [newFileName, setNewFileName] = useState('');
   const [newFileContent, setNewFileContent] = useState('');
+  // eslint-disable-next-line no-unused-vars
   const [showFolderUploadModal, setShowFolderUploadModal] = useState(false);
   const [uploadingFolder, setUploadingFolder] = useState(false);
   const [currentPath, setCurrentPath] = useState('test-scripts');
@@ -96,6 +97,7 @@ const TestScriptsManager = () => {
     const handleGlobalClick = () => setContextMenu({ visible: false, x: 0, y: 0, folder: null });
     window.addEventListener('click', handleGlobalClick);
     return () => window.removeEventListener('click', handleGlobalClick);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   // S3 파일 목록 로드
@@ -467,7 +469,7 @@ const TestScriptsManager = () => {
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await axios.post(`${config.apiUrl}/api/test-scripts/s3/upload`, formData, {
+      await axios.post(`${config.apiUrl}/api/test-scripts/s3/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`
@@ -576,6 +578,7 @@ const TestScriptsManager = () => {
       }
       loadLocalFiles(localBasePath);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, loadS3Files, loadLocalFiles, s3BasePrefix, localBasePath]);
 
   const currentFiles = activeTab === 's3' ? s3Files : localFiles;
@@ -848,7 +851,6 @@ const TestScriptsManager = () => {
                     selectOnLineNumbers: true,
                     roundedSelection: false,
                     cursorStyle: 'line',
-                    automaticLayout: true,
                   }}
                 />
               </div>

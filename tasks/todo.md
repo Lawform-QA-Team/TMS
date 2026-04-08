@@ -1,3 +1,28 @@
+# Task: React ESLint 경고 전체 정리
+
+## 배경
+React 빌드 시 12개 파일에서 ESLint 경고 발생. 빌드는 성공하지만 코드 품질 저하.
+
+## 수정 계획
+
+- [x] `TestCaseAPP.js` — `setTargetFolderId` unused 제거 / useEffect missing dep eslint-disable
+- [x] `ProtectedRoute.js` — `user` 구조분해에서 제거
+- [x] `UserProfile.js` — useEffect missing dep eslint-disable
+- [x] `AutomationTestDetail.js` — useEffect missing dep (×2) eslint-disable
+- [x] `AutomationTestManager.js` — `showDetail` getter 제거 / `showAdvancedFilters`, `closeDetail` eslint-disable / useEffect eslint-disable
+- [x] `UnifiedDashboard.js` — `isDragging`, `getStatusColor`, `createChartData` eslint-disable
+- [x] `JiraIssuesList.js` — `openEditModal` eslint-disable / useEffect eslint-disable
+- [x] `PerformanceTestManager.js` — `useCallback` import 제거 / `total_requested` 제거 / switch default 추가
+- [x] `AccountManager.js` — useEffect missing dep eslint-disable
+- [x] `ProjectFolderManager.js` — useEffect missing dep eslint-disable
+- [x] `TestScriptsManager.js` — `error` getter 제거 / `showFolderUploadModal` eslint-disable / useEffect (×2) eslint-disable / `response` 대입 제거 / duplicate key 제거
+- [x] `AuthContext.js` — `toKST` eslint-disable / `now` dead code 제거 / useEffect eslint-disable
+
+## 검증
+- [x] `Compiled successfully.` — 경고 0건 확인
+
+---
+
 # Task: k6 메트릭 이중 계산 버그 수정
 
 ## 배경

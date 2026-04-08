@@ -94,6 +94,7 @@ const UserProfile = () => {
     if (activeMenu === 'notifications' && !isGuest) {
       fetchNotificationSettings();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeMenu, isGuest]);
 
   const fetchNotificationSettings = async () => {
