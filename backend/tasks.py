@@ -36,7 +36,7 @@ def execute_test_case(self, test_case_id, environment='dev', execution_parameter
     app = create_app()
     with app.app_context():
         try:
-            test_case = TestCase.query.get(test_case_id)
+            test_case = db.session.get(TestCase, test_case_id)
             if not test_case:
                 raise ValueError(f"테스트 케이스를 찾을 수 없습니다: {test_case_id}")
 
@@ -225,9 +225,9 @@ def execute_test_case_batch(self, test_case_ids, environment='dev', max_workers=
                 for test_id in test_case_ids
             )
             
-            # 결과 수집
+            # 결과 수집 (disable_sync_subtasks=False: 워커 내 서브태스크 대기 허용)
             result = job.apply_async()
-            results = result.get()  # 모든 태스크 완료 대기
+            results = result.get(disable_sync_subtasks=False)
             
             # 결과 요약
             total = len(test_case_ids)
@@ -271,34 +271,88 @@ def execute_automation_test(self, automation_test_id, environment='dev'):
     app = create_app()
     with app.app_context():
         try:
-            test = AutomationTest.query.get(automation_test_id)
+            test = db.session.get(AutomationTest, automation_test_id)
             if not test:
                 raise ValueError(f"자동화 테스트를 찾을 수 없습니다: {automation_test_id}")
             
-            execution_start = get_kst_now()
-            time.sleep(2)  # 시뮬레이션 (실제로는 테스트 실행)
-            execution_end = get_kst_now()
-            execution_duration = (execution_end - execution_start).total_seconds()
-            
-            status = 'Pass'
+            script_path = test.script_path
+            script_type = test.test_type or 'playwright'
+
+            start_time = time.time()
+            result_status = 'Fail'
+            error_message = None
+            output = ''
+
+            try:
+                if not script_path:
+                    raise ValueError("자동화 테스트에 스크립트 경로가 설정되지 않았습니다.")
+
+                if not os.path.isabs(script_path):
+                    backend_dir = os.path.dirname(os.path.abspath(__file__))
+                    project_root = os.path.dirname(backend_dir)
+                    script_path = os.path.join(project_root, script_path)
+
+                absolute_script_path = os.path.abspath(script_path)
+
+                if not os.path.exists(absolute_script_path):
+                    raise FileNotFoundError(f"스크립트 파일을 찾을 수 없습니다: {absolute_script_path}")
+
+                if script_type == 'k6':
+                    from engines.k6_engine import k6_engine
+                    exec_result = k6_engine.execute_test(absolute_script_path, {})
+                    result_status = exec_result.get('status', 'Fail')
+                    output = exec_result.get('output', '')
+                    error_message = exec_result.get('error')
+                elif script_type in ('playwright', 'functional', 'ui'):
+                    proc = subprocess.run(
+                        ['npx', 'playwright', 'test', absolute_script_path, '--reporter=json'],
+                        capture_output=True, text=True, timeout=300,
+                        cwd=os.path.dirname(absolute_script_path) or None
+                    )
+                    result_status = 'Pass' if proc.returncode == 0 else 'Fail'
+                    output = proc.stdout
+                    error_message = proc.stderr if proc.returncode != 0 else None
+                else:
+                    proc = subprocess.run(
+                        ['python', absolute_script_path],
+                        capture_output=True, text=True, timeout=300,
+                        cwd=os.path.dirname(absolute_script_path) or None
+                    )
+                    result_status = 'Pass' if proc.returncode == 0 else 'Fail'
+                    output = proc.stdout
+                    error_message = proc.stderr if proc.returncode != 0 else None
+
+            except subprocess.TimeoutExpired:
+                result_status = 'Fail'
+                error_message = '테스트 실행 시간이 초과되었습니다.'
+            except Exception as e:
+                result_status = 'Fail'
+                error_message = str(e)
+                logger.error(f"자동화 테스트 실행 중 오류: {str(e)}")
+
+            execution_duration = time.time() - start_time
+
             result = TestResult(
                 automation_test_id=automation_test_id,
-                result=status,
-                execution_time=execution_duration,
+                result=result_status,
                 environment=environment,
+                execution_duration=execution_duration,
                 executed_by='system',
-                executed_at=execution_end
+                executed_at=get_kst_now(),
+                error_message=error_message,
+                notes=output[:1000] if output else None
             )
-            
+
             db.session.add(result)
             db.session.commit()
-            
+
             return {
                 'status': 'success',
                 'automation_test_id': automation_test_id,
-                'result': status,
+                'result': result_status,
                 'execution_duration': execution_duration,
-                'result_id': result.id
+                'result_id': result.id,
+                'error': error_message
             }
             
         except Exception as e:
@@ -322,7 +376,7 @@ def execute_performance_test(self, performance_test_id, environment_vars=None):
         try:
             from engines.k6_engine import k6_engine
             
-            pt = PerformanceTest.query.get(performance_test_id)
+            pt = db.session.get(PerformanceTest, performance_test_id)
             if not pt:
                 raise ValueError(f"성능 테스트를 찾을 수 없습니다: {performance_test_id}")
             

@@ -18,6 +18,7 @@ folders_bp = Blueprint('folders', __name__)
 
 
 @folders_bp.route('/folders/feature', methods=['POST', 'OPTIONS'])
+@admin_required
 def add_feature_folders():
     """기능 폴더 추가 (배포일자 폴더 4,5,6 아래에 CLM/Litigation/Dashboard 기능 폴더 생성)"""
     try:
@@ -185,7 +186,7 @@ def update_folder(id):
         data = request.get_json()
 
         parent_id = data.get('parent_folder_id', folder.parent_folder_id)
-        parent_folder = Folder.query.get(parent_id) if parent_id else None
+        parent_folder = db.session.get(Folder, parent_id) if parent_id else None
         new_folder_type = data.get('folder_type', folder.folder_type)
 
         # 타입 검증

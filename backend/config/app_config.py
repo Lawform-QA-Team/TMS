@@ -2,6 +2,7 @@
 Flask 앱 설정 관리
 """
 import os
+import secrets
 from datetime import timedelta
 from urllib.parse import urlparse, quote_plus, unquote
 from dotenv import load_dotenv
@@ -31,13 +32,42 @@ def _normalize_mysql_url(url):
         logger.warning(f"MySQL URL 정규화 중 오류, 원본 사용: {e}")
         return url
 
+
+def _build_mysql_url(db_user, db_password, db_host, db_port, db_name):
+    """환경 변수 조합으로 MySQL 접속 URL 생성"""
+    password_part = f":{quote_plus(db_password)}" if db_password else ""
+    return f'mysql+pymysql://{db_user}{password_part}@{db_host}:{db_port}/{db_name}'
+
+
+def _is_strict_runtime_environment():
+    """로컬 개발 외 환경에서는 시크릿 누락을 허용하지 않음"""
+    environment_names = {
+        os.environ.get('FLASK_ENV', '').lower(),
+        os.environ.get('APP_ENV', '').lower(),
+        os.environ.get('ENV', '').lower(),
+    }
+    return is_vercel_environment() or any(name in {'production', 'staging'} for name in environment_names)
+
+
+def _get_runtime_secret(env_name):
+    """런타임 시크릿을 조회하고 로컬 개발에서만 임시 값 생성"""
+    secret_value = os.environ.get(env_name)
+    if secret_value:
+        return secret_value
+
+    if _is_strict_runtime_environment():
+        raise RuntimeError(f'{env_name} 환경 변수가 필요합니다.')
+
+    logger.warning(f"⚠️ {env_name}가 설정되지 않아 로컬 개발용 임시 시크릿을 생성합니다.")
+    return secrets.token_urlsafe(48)
+
 # .env 파일 로드 (backend/.env 우선, 기존 환경 변수 덮어쓰기)
 env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
 load_dotenv(env_path, override=True)
 
 def get_database_url():
     """데이터베이스 URL 설정"""
-    is_vercel = 'vercel.app' in os.environ.get('VERCEL_URL', '') or os.environ.get('VERCEL') == '1'
+    is_vercel = is_vercel_environment()
     
     if is_vercel:
         # Vercel 환경에서는 환경 변수 사용
@@ -73,9 +103,11 @@ def get_database_url():
                 db_host = os.environ.get('DB_HOST', 'localhost')
                 db_port = os.environ.get('DB_PORT', '3306')
                 db_user = os.environ.get('DB_USER', 'root')
-                db_password = os.environ.get('DB_PASSWORD', '1q2w#E$R')
+                db_password = os.environ.get('DB_PASSWORD') or ''
                 db_name = os.environ.get('DB_NAME', 'test_management')
-                database_url = f'mysql+pymysql://{db_user}:{quote_plus(db_password)}@{db_host}:{db_port}/{db_name}'
+                if not db_password:
+                    logger.warning("DB_PASSWORD가 설정되지 않았습니다. 빈 비밀번호로 MySQL 연결을 시도합니다.")
+                database_url = _build_mysql_url(db_user, db_password, db_host, db_port, db_name)
                 logger.info(f"로컬 환경에서 MySQL 사용: {db_host}:{db_port}/{db_name}")
         elif db_type == 'sqlite':
             # SQLite 사용
@@ -94,7 +126,14 @@ def get_database_url():
                 database_url = _normalize_mysql_url(mysql_database_url)
                 logger.info("로컬 환경에서 MYSQL_DATABASE_URL 사용 (DB_TYPE 미지원 시 기본)")
             else:
-                database_url = f"mysql+pymysql://{os.environ.get('DB_USER', 'root')}:{quote_plus(os.environ.get('DB_PASSWORD', '1q2w#E$R'))}@{os.environ.get('DB_HOST', 'localhost')}:{os.environ.get('DB_PORT', '3306')}/{os.environ.get('DB_NAME', 'test_management')}"
+                db_user = os.environ.get('DB_USER', 'root')
+                db_password = os.environ.get('DB_PASSWORD') or ''
+                db_host = os.environ.get('DB_HOST', 'localhost')
+                db_port = os.environ.get('DB_PORT', '3306')
+                db_name = os.environ.get('DB_NAME', 'test_management')
+                if not db_password:
+                    logger.warning("DB_PASSWORD가 설정되지 않았습니다. 빈 비밀번호로 MySQL 연결을 시도합니다.")
+                database_url = _build_mysql_url(db_user, db_password, db_host, db_port, db_name)
                 logger.info("로컬 환경에서 MySQL 사용 (DB_* 변수)")
     
     # URL 정규화 (중복 드라이버 제거)
@@ -105,8 +144,8 @@ def get_database_url():
 
 def get_database_engine_options(database_url):
     """데이터베이스 엔진 옵션 설정"""
-    is_vercel = 'vercel.app' in os.environ.get('VERCEL_URL', '') or os.environ.get('VERCEL') == '1'
-    
+    is_vercel = is_vercel_environment()
+
     if 'sqlite' in database_url:
         # SQLite 환경
         if is_vercel:
@@ -137,16 +176,10 @@ def get_database_engine_options(database_url):
 def configure_app(app):
     """Flask 앱 설정 적용"""
     # 기본 설정
-    secret_key = os.environ.get('SECRET_KEY')
-    if not secret_key or secret_key == 'fallback-secret-key':
-        logger.warning("⚠️ SECRET_KEY가 환경 변수로 설정되지 않았습니다. 프로덕션 환경에서는 반드시 설정하세요.")
-    app.config['SECRET_KEY'] = secret_key or 'fallback-secret-key'
+    app.config['SECRET_KEY'] = _get_runtime_secret('SECRET_KEY')
     
     # JWT 설정
-    jwt_secret_key = os.environ.get('JWT_SECRET_KEY')
-    if not jwt_secret_key or jwt_secret_key == 'your-secret-key-change-in-production':
-        logger.warning("⚠️ JWT_SECRET_KEY가 환경 변수로 설정되지 않았습니다. 프로덕션 환경에서는 반드시 강력한 시크릿 키를 설정하세요.")
-    app.config['JWT_SECRET_KEY'] = jwt_secret_key or 'your-secret-key-change-in-production'
+    app.config['JWT_SECRET_KEY'] = _get_runtime_secret('JWT_SECRET_KEY')
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)  # 24시간으로 연장
     app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)  # 30일로 연장
     
@@ -157,10 +190,10 @@ def configure_app(app):
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = get_database_engine_options(database_url)
     
     # 환경 변수 로깅 (디버깅용)
-    is_vercel = 'vercel.app' in os.environ.get('VERCEL_URL', '') or os.environ.get('VERCEL') == '1'
-    logger.debug(f"Database URL: {app.config['SQLALCHEMY_DATABASE_URI']}")
-    logger.debug(f"Secret Key: {app.config['SECRET_KEY']}")
-    logger.debug(f"JWT Secret Key: {app.config['JWT_SECRET_KEY']}")
+    is_vercel = is_vercel_environment()
+    logger.debug(f"Database URL configured: {bool(app.config['SQLALCHEMY_DATABASE_URI'])}")
+    logger.debug(f"Secret Key configured: {bool(app.config['SECRET_KEY'])}")
+    logger.debug(f"JWT Secret Key configured: {bool(app.config['JWT_SECRET_KEY'])}")
     logger.info(f"Environment: {'production' if is_vercel else 'development'}")
     logger.debug(f"Vercel URL: {os.environ.get('VERCEL_URL', 'Not Vercel')}")
     logger.debug(f".env 파일 경로: {env_path}")
@@ -169,7 +202,7 @@ def configure_app(app):
     # Slack webhook URL 확인
     slack_webhook_url = os.getenv('SLACK_WEBHOOK_URL')
     if slack_webhook_url:
-        logger.info(f"✅ SLACK_WEBHOOK_URL 환경 변수 로드됨: {slack_webhook_url[:30]}...")
+        logger.info("✅ SLACK_WEBHOOK_URL 환경 변수가 로드되었습니다.")
     else:
         logger.warning("⚠️ SLACK_WEBHOOK_URL 환경 변수가 설정되지 않았습니다. .env 파일을 확인하세요.")
     
@@ -178,4 +211,3 @@ def configure_app(app):
 def is_vercel_environment():
     """Vercel 환경 여부 확인"""
     return 'vercel.app' in os.environ.get('VERCEL_URL', '') or os.environ.get('VERCEL') == '1'
-

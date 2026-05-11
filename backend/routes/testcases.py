@@ -26,6 +26,7 @@ testcases_bp = Blueprint('testcases', __name__)
 
 # 기존 TCM API 엔드포인트들
 @testcases_bp.route('/projects', methods=['GET'])
+@guest_allowed
 def get_projects():
     from sqlalchemy.sql import case
     from sqlalchemy import func
@@ -143,7 +144,7 @@ def get_testcase(id):
     effective_project_id = get_testcase_effective_project_id(tc)
     project_name = None
     if effective_project_id:
-        proj = Project.query.get(effective_project_id)
+        proj = db.session.get(Project, effective_project_id)
         project_name = proj.name if proj else None
     
     # alpha DB 스키마에 맞춤: Screenshot은 test_result_id를 통해 연결됨
@@ -348,7 +349,7 @@ def create_testcase():
     # project_id: 요청값 우선, 없으면 연결 폴더의 프로젝트로 설정
     project_id = data.get('project_id')
     if not project_id and folder_id:
-        folder = Folder.query.get(folder_id)
+        folder = db.session.get(Folder, folder_id)
         if folder and folder.project_id:
             project_id = folder.project_id
     if not project_id:
@@ -358,7 +359,7 @@ def create_testcase():
     # 폴더의 환경 정보를 자동으로 가져오기
     folder_environment = 'dev'  # 기본값
     if folder_id:
-        folder = Folder.query.get(folder_id)
+        folder = db.session.get(Folder, folder_id)
         if folder:
             folder_environment = folder.environment
             logger.debug(f"폴더 '{folder.folder_name}'의 환경: {folder_environment}")
@@ -400,7 +401,7 @@ def create_testcase():
                     test_case_name = ' > '.join([c for c in categories if c]) or f"테스트 케이스 #{tc.id}"
                 else:
                     test_case_name = f"테스트 케이스 #{tc.id}"
-                new_assignee = User.query.get(tc.assignee_id)
+                new_assignee = db.session.get(User, tc.assignee_id)
                 new_assignee_display = new_assignee.get_display_name() if new_assignee else str(tc.assignee_id)
                 metadata = {
                     'test_case_name': test_case_name,
@@ -586,7 +587,7 @@ def update_testcase(id):
         new_folder_id = data.get('folder_id', tc.folder_id)
         if new_folder_id != tc.folder_id:
             # 새 폴더의 환경·프로젝트 정보로 자동 업데이트
-            new_folder = Folder.query.get(new_folder_id)
+            new_folder = db.session.get(Folder, new_folder_id)
             if new_folder:
                 tc.environment = new_folder.environment
                 if new_folder.project_id is not None:
@@ -630,8 +631,8 @@ def update_testcase(id):
                         test_case_name = ' > '.join([c for c in categories if c]) or f"테스트 케이스 #{tc.id}"
                     else:
                         test_case_name = f"테스트 케이스 #{tc.id}"
-                    old_assignee = User.query.get(old_assignee_id) if old_assignee_id else None
-                    new_assignee = User.query.get(new_assignee_id) if new_assignee_id else None
+                    old_assignee = db.session.get(User, old_assignee_id) if old_assignee_id else None
+                    new_assignee = db.session.get(User, new_assignee_id) if new_assignee_id else None
                     old_assignee_display = old_assignee.get_display_name() if old_assignee else '(없음)'
                     new_assignee_display = new_assignee.get_display_name() if new_assignee else str(new_assignee_id)
                     metadata = {
@@ -802,6 +803,7 @@ def bulk_delete_testcases():
         return add_cors_headers(response), 500
 
 @testcases_bp.route('/testresults/<int:test_case_id>', methods=['GET'])
+@guest_allowed
 def get_test_results(test_case_id):
     """특정 테스트 케이스의 실행 결과 조회"""
     try:
@@ -829,6 +831,7 @@ def get_test_results(test_case_id):
         return add_cors_headers(response), 500
 
 @testcases_bp.route('/testcases/<int:id>/screenshots', methods=['GET'])
+@guest_allowed
 def get_testcase_screenshots(id):
     """테스트 케이스의 스크린샷 목록 조회 (최적화: N+1 쿼리 문제 해결)"""
     try:
@@ -855,11 +858,16 @@ def get_testcase_screenshots(id):
         return add_cors_headers(response), 500
 
 @testcases_bp.route('/screenshots/<path:filename>', methods=['GET'])
+@user_required
 def get_screenshot(filename):
     """스크린샷 파일 조회"""
     try:
         import os
-        screenshot_path = os.path.join('screenshots', filename)
+        screenshots_root = os.path.abspath('screenshots')
+        screenshot_path = os.path.abspath(os.path.join(screenshots_root, filename))
+        if os.path.commonpath([screenshots_root, screenshot_path]) != screenshots_root:
+            response = jsonify({'error': '허용되지 않은 경로입니다'})
+            return add_cors_headers(response), 403
         if os.path.exists(screenshot_path):
             return send_file(screenshot_path, mimetype='image/png')
         else:
@@ -967,6 +975,7 @@ def upload_testcases_excel():
 
 # 엑셀 다운로드 API
 @testcases_bp.route('/testcases/download', methods=['GET'])
+@user_required
 def download_testcases_excel():
     """테스트 케이스를 엑셀 파일로 다운로드 (필터 적용 가능)"""
     try:
@@ -1017,7 +1026,7 @@ def download_testcases_excel():
         
         # 폴더 필터
         if folder_id:
-            folder = Folder.query.get(folder_id)
+            folder = db.session.get(Folder, folder_id)
             if folder:
                 # 폴더 타입에 따라 필터링
                 if folder.folder_type == 'environment':
@@ -1131,6 +1140,7 @@ def download_testcases_excel():
 
 # 자동화 코드 실행 API
 @testcases_bp.route('/testcases/<int:id>/execute', methods=['POST'])
+@user_required
 def execute_automation_code(id):
     """테스트 케이스의 자동화 코드 실행 (스크립트 경로 또는 test_steps JSON 지원)"""
     try:

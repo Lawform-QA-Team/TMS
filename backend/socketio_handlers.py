@@ -6,7 +6,7 @@ from flask_socketio import emit, join_room, leave_room, disconnect
 from flask import request
 from utils.logger import get_logger
 from utils.auth_decorators import get_user_from_token
-from models import Notification, TestResult, TestCase
+from models import db, Notification, TestResult, TestCase
 from services.notification_service import notification_service
 from datetime import datetime
 from utils.timezone_utils import get_kst_now
@@ -140,11 +140,11 @@ def emit_test_result(test_result_id):
     try:
         from app import socketio
         
-        test_result = TestResult.query.get(test_result_id)
+        test_result = db.session.get(TestResult, test_result_id)
         if not test_result:
             return
         
-        test_case = TestCase.query.get(test_result.test_case_id)
+        test_case = db.session.get(TestCase, test_result.test_case_id)
         if not test_case:
             return
         

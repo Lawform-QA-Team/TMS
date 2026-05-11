@@ -111,7 +111,7 @@ def create_new_user(data):
         email=data['email'],
         first_name=data.get('first_name', ''),
         last_name=data.get('last_name', ''),
-        role=data.get('role', 'user')
+        role='user'
     )
     user.set_password(data['password'])
     return user
@@ -278,7 +278,7 @@ def get_profile():
             return success_response(data=guest_user)
         
         # 일반 사용자 처리
-        user = User.query.get(int(current_user_id))
+        user = db.session.get(User, int(current_user_id))
         
         if not user:
             return not_found_response(MESSAGES['USER_NOT_FOUND'])
@@ -298,7 +298,7 @@ def update_profile():
     """사용자 프로필 수정"""
     try:
         current_user_id = get_jwt_identity()
-        user = User.query.get(int(current_user_id))
+        user = db.session.get(User, int(current_user_id))
         
         if not user:
             return not_found_response(MESSAGES['USER_NOT_FOUND'])
@@ -325,7 +325,7 @@ def change_password():
     """비밀번호 변경"""
     try:
         current_user_id = get_jwt_identity()
-        user = User.query.get(int(current_user_id))
+        user = db.session.get(User, int(current_user_id))
         
         if not user:
             return not_found_response(MESSAGES['USER_NOT_FOUND'])

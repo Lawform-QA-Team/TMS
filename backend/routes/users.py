@@ -1,9 +1,9 @@
+import secrets
 from flask import Blueprint, request, jsonify
 from models import db, User
-from utils.auth_decorators import admin_required, user_required, owner_required, guest_allowed
+from utils.auth_decorators import admin_required, user_required, owner_required, login_required
 from utils.cors import add_cors_headers
 from utils.timezone_utils import get_kst_now
-from datetime import datetime
 
 # Blueprint 생성
 users_bp = Blueprint('users', __name__)
@@ -40,7 +40,7 @@ def get_users():
         return add_cors_headers(response), 500
 
 @users_bp.route('/users/list', methods=['GET'])
-@guest_allowed
+@login_required
 def get_users_list():
     """사용자 목록 조회 (게스트 포함 - 담당자 선택용)"""
     try:
@@ -90,8 +90,12 @@ def create_user():
             response = jsonify({'error': '이미 존재하는 이메일입니다.'})
             return add_cors_headers(response), 400
         
-        # 기본 비밀번호 설정 (1q2w#E$R)
-        default_password = '1q2w#E$R'
+        temp_password = None
+        user_password = data.get('password')
+        if not user_password:
+            # 고정 기본 비밀번호 대신 관리자에게만 전달되는 임시 비밀번호를 발급
+            temp_password = secrets.token_urlsafe(12)
+            user_password = temp_password
         
         user = User(
             username=data['username'],
@@ -103,7 +107,7 @@ def create_user():
         )
         
         # 비밀번호 설정 (해시화됨)
-        user.set_password(data.get('password', default_password))
+        user.set_password(user_password)
         
         db.session.add(user)
         db.session.commit()
@@ -111,7 +115,7 @@ def create_user():
         response = jsonify({
             'message': '사용자가 성공적으로 생성되었습니다.',
             'user_id': user.id,
-            'default_password': default_password if not data.get('password') else None
+            'temporary_password': temp_password
         })
         return add_cors_headers(response), 200
         
@@ -127,6 +131,7 @@ def update_user(user_id):
     try:
         user = User.query.get_or_404(user_id)
         data = request.get_json()
+        actor = getattr(request, 'user', None)
         
         if 'username' in data:
             # 중복 사용자명 검증
@@ -150,23 +155,25 @@ def update_user(user_id):
         if 'last_name' in data:
             user.last_name = data['last_name']
         
-        if 'role' in data:
-            user.role = data['role']
-        
-        if 'is_active' in data:
-            user.is_active = data['is_active']
-        
         user.updated_at = get_kst_now()
         
         if 'password' in data:
-            # 비밀번호 변경
+            # admin은 현재 비밀번호 없이 변경 가능, 일반 user는 현재 비밀번호 검증 필요
+            if actor and actor.role != 'admin':
+                current_password = data.get('current_password')
+                if not current_password:
+                    response = jsonify({'error': '비밀번호 변경 시 현재 비밀번호를 입력해야 합니다.'})
+                    return add_cors_headers(response), 400
+                if not user.check_password(current_password):
+                    response = jsonify({'error': '현재 비밀번호가 올바르지 않습니다.'})
+                    return add_cors_headers(response), 400
             user.set_password(data['password'])
         
-        if 'role' in data:
-            user.role = data['role']
-        
-        if 'is_active' in data:
-            user.is_active = data['is_active']
+        if actor and actor.role == 'admin':
+            if 'role' in data:
+                user.role = data['role']
+            if 'is_active' in data:
+                user.is_active = data['is_active']
         
         db.session.commit()
         
@@ -200,25 +207,24 @@ def delete_user(user_id):
 def get_current_user():
     """현재 로그인한 사용자 정보 조회"""
     try:
-        # 임시로 admin 사용자 정보 반환 (실제로는 JWT 토큰에서 사용자 ID를 가져와야 함)
-        admin_user = User.query.filter_by(username='admin').first()
-        if admin_user:
-            response = jsonify({
-                'id': admin_user.id,
-                'username': admin_user.username,
-                'email': admin_user.email,
-                'first_name': admin_user.first_name,
-                'last_name': admin_user.last_name,
-                'role': admin_user.role,
-                'is_active': admin_user.is_active,
-                'created_at': admin_user.created_at.isoformat() if admin_user.created_at else None,
-                'updated_at': admin_user.updated_at.isoformat() if admin_user.updated_at else None,
-                'last_login': admin_user.last_login.isoformat() if admin_user.last_login else None
-            })
-            return add_cors_headers(response), 200
-        else:
-            response = jsonify({'error': 'admin 사용자를 찾을 수 없습니다.'})
+        current_user = getattr(request, 'user', None)
+        if not current_user:
+            response = jsonify({'error': '현재 사용자 정보를 찾을 수 없습니다.'})
             return add_cors_headers(response), 404
+        
+        response = jsonify({
+            'id': current_user.id,
+            'username': current_user.username,
+            'email': current_user.email,
+            'first_name': current_user.first_name,
+            'last_name': current_user.last_name,
+            'role': current_user.role,
+            'is_active': current_user.is_active,
+            'created_at': current_user.created_at.isoformat() if current_user.created_at else None,
+            'updated_at': current_user.updated_at.isoformat() if current_user.updated_at else None,
+            'last_login': current_user.last_login.isoformat() if current_user.last_login else None
+        })
+        return add_cors_headers(response), 200
         
     except Exception as e:
         response = jsonify({'error': str(e)})
