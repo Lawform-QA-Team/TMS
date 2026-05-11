@@ -192,7 +192,7 @@ const canViewUsers = () => {
 
 ---
 
-**마지막 업데이트**: 2026년 5월 4일
+**마지막 업데이트**: 2026년 5월 11일
 **버전**: 2.8.0
 
 **작성자**: Integrated Test Platform Team
