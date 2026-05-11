@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from models import db, TestCase, Project, Folder
 from utils.cors import add_cors_headers
+from utils.auth_decorators import guest_allowed
 from datetime import datetime
 from sqlalchemy import func, text
 from sqlalchemy.sql import case
@@ -13,6 +14,7 @@ dashboard_extended_bp = Blueprint('dashboard_extended', __name__)
 # 프로젝트별 테스트 케이스 통계 (대시보드 프로젝트 카드용)
 # 테스트케이스의 project_id 우선, 없으면 연결 폴더의 project_id로 프로젝트 연결
 @dashboard_extended_bp.route('/dashboard/project-stats', methods=['GET', 'OPTIONS'])
+@guest_allowed
 def get_project_stats():
     try:
         # 유효 프로젝트 ID = COALESCE(TestCase.project_id, Folder.project_id)
@@ -86,6 +88,7 @@ def get_project_stats():
 
 # 대시보드 요약 목록 조회 (프론트엔드에서 사용)
 @dashboard_extended_bp.route('/dashboard-summaries', methods=['GET', 'OPTIONS'])
+@guest_allowed
 def get_dashboard_summaries():
     try:
         # DashboardSummary 테이블이 있으면 사용, 없으면 실시간 계산
@@ -115,6 +118,7 @@ def get_dashboard_summaries():
 
 # 테스트 케이스 전체 요약 (프론트엔드에서 사용) - 실제 DB 값 사용
 @dashboard_extended_bp.route('/testcases/summary/all', methods=['GET', 'OPTIONS'])
+@guest_allowed
 def get_testcases_summary_all():
     if request.method == 'OPTIONS':
         return jsonify({'status': 'preflight_ok'}), 200

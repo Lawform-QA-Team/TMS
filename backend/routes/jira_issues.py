@@ -13,6 +13,7 @@ import uuid
 jira_issues_bp = Blueprint('jira_issues', __name__, url_prefix='/api/jira')
 
 @jira_issues_bp.route('/stats', methods=['GET'])
+@guest_allowed
 def get_jira_stats():
     """JIRA 통계 정보 조회"""
     try:
@@ -159,6 +160,7 @@ def get_issues():
         }), 500
 
 @jira_issues_bp.route('/issues/testcase/<int:test_case_id>', methods=['GET'])
+@guest_allowed
 def get_issues_by_testcase(test_case_id):
     """특정 테스트 케이스와 연결된 이슈 목록 조회"""
     try:
@@ -368,6 +370,7 @@ def update_issue(issue_key):
         }), 500
 
 @jira_issues_bp.route('/issues/<issue_key>', methods=['DELETE'])
+@user_required
 def delete_issue(issue_key):
     """이슈 삭제"""
     try:
@@ -514,7 +517,8 @@ def add_comment(issue_key):
             'error': str(e)
         }), 500
 
-@jira_issues_bp.route('/stats', methods=['GET'])
+@jira_issues_bp.route('/stats/summary', methods=['GET'])
+@guest_allowed
 def get_stats():
     """JIRA 통계 조회"""
     try:
@@ -555,6 +559,7 @@ def get_stats():
         }), 500
 
 @jira_issues_bp.route('/stats/environment', methods=['GET'])
+@guest_allowed
 def get_jira_stats_by_environment():
     """환경별 JIRA 통계 조회"""
     try:
@@ -598,4 +603,3 @@ def get_jira_stats_by_environment():
             'success': False,
             'error': str(e)
         }), 500
-
