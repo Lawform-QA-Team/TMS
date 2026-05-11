@@ -250,6 +250,75 @@ status = pty.spawn(cmd, read)
 
 ---
 
+### Flask Blueprint route 충돌 감지
+
+**현상**: 앱 기동 시 에러 없이 실행되지만 일부 엔드포인트가 예상과 다른 핸들러로 처리됨
+
+**원인**: 두 Blueprint가 동일한 URL + method를 등록할 때, Flask는 먼저 등록된 것을 우선하고 나머지는 무시함 (에러 없음)
+
+**감지 방법**:
+```python
+from app import app
+with app.app_context():
+    rules = [(str(r), r.endpoint) for r in app.url_map.iter_rules()]
+    from collections import Counter
+    counts = Counter(f"{r.methods} {str(r)}" for r in app.url_map.iter_rules())
+    for url, count in counts.items():
+        if count > 1:
+            print(f"충돌: {url}")
+```
+
+**교훈**:
+- Blueprint를 추가하면 반드시 전체 route 충돌 검사를 실행할 것
+- 기존 Blueprint와 동일 URL을 등록하는 신규 Blueprint는 에러 없이 묻힘 → 침묵 버그
+- `url_prefix`가 없는 Blueprint는 다른 Blueprint와 충돌 가능성이 높음
+
+---
+
+### CORS `supports_credentials=True` + wildcard origin 충돌
+
+**현상**: 브라우저 콘솔에 `The value of the 'Access-Control-Allow-Origin' header must not be the wildcard '*' when credentials mode is 'include'` 오류
+
+**원인**: `Flask-CORS`에서 `supports_credentials=True`와 `origins="*"` 동시 사용 불가. 브라우저 스펙상 wildcard + credentials 조합 금지.
+
+**수정**: 프로덕션에서는 `origins` 명시적 목록 지정. 개발 환경에서는 `supports_credentials=False`로 유지.
+
+---
+
+### SQLAlchemy 2.0 - `Model.query.get()` deprecation
+
+**현상**: SQLAlchemy 2.0에서 `Model.query.get(id)` 사용 시 deprecation warning 또는 에러
+
+**수정**: `db.session.get(Model, id)`로 교체
+```python
+# 이전 (deprecated)
+user = User.query.get(user_id)
+
+# 신규 (SQLAlchemy 2.0+)
+user = db.session.get(User, user_id)
+```
+
+**일괄 치환**: Python regex로 자동화 가능
+```python
+re.sub(r'(\w+)\.query\.get\((.+?)\)', r'db.session.get(\1, \2)', code)
+```
+
+---
+
+### 백엔드 인증 누락 패턴
+
+**현상**: 인증 없이 민감 데이터 조회 가능. 프론트엔드 동작은 정상처럼 보임.
+
+**체크리스트**:
+- 공개 읽기가 허용된 엔드포인트 → `@guest_allowed`
+- 로그인 필요 엔드포인트 → `@login_required` 또는 `@user_required`
+- 관리자 전용 엔드포인트 → `@admin_required`
+- `/init-db`, `/db-status` 등 인프라 엔드포인트 → 반드시 `@admin_required`
+
+**교훈**: 신규 Blueprint 파일 작성 시 각 route에 데코레이터 누락 여부를 먼저 확인할 것
+
+---
+
 ### k6 성능 측정 - Date.now() 이중 계산
 
 **현상**: 메트릭에 기록된 값과 로그에 출력된 값이 항상 다름
