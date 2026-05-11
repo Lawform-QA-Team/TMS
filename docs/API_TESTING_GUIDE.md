@@ -13,19 +13,26 @@
 - **프로젝트**: `/projects` - 프로젝트 정보 관리
 - **사용자**: `/users` - 사용자 인증 및 권한 관리
 
-#### 고급 기능 API (v2.5.0)
+#### 고급 기능 API (v2.7.0)
 
-**협업 및 워크플로우** (`/collaboration`)
+**협업 및 워크플로우** (`/api/collaboration`)
 - `GET /comments` - 댓글 목록 조회
 - `POST /comments` - 댓글 생성
 - `PUT /comments/{id}` - 댓글 수정
 - `DELETE /comments/{id}` - 댓글 삭제
 - `GET /mentions` - 멘션 목록 조회
 - `POST /mentions/{id}/read` - 멘션 읽음 처리
-- `GET /workflows` - 워크플로우 목록 조회
-- `POST /workflows` - 워크플로우 생성
-- `POST /workflows/{id}/apply` - 워크플로우 적용
-- `POST /workflows/transition` - 워크플로우 상태 전환
+
+**JIRA 연동 및 이슈 관리** (`/api/jira`)
+- `GET /stats` - 전체 JIRA 이슈 통계
+- `GET /stats/environment` - 환경별 JIRA 이슈 통계 (v2.6.0 추가)
+- `GET /issues` - 이슈 목록 조회
+- `POST /issues` - 이슈 생성
+- `GET /health` - JIRA 서버 연결 상태 확인
+
+**알림 및 Slack 연동** (`/notifications`)
+- `GET /` - 알림 목록 조회
+- `POST /slack/webhook` - Slack 웹훅 설정 및 테스트 (v2.6.0 추가)
 
 **테스트 의존성 관리** (`/dependencies`)
 - `GET /dependencies` - 의존성 목록 조회
@@ -100,10 +107,10 @@ curl http://localhost:8000/folders
 curl http://localhost:8000/testcases
 
 # 댓글 목록 조회
-curl "http://localhost:8000/comments?entity_type=test_case&entity_id=1"
+curl "http://localhost:8000/api/collaboration/comments?entity_type=test_case&entity_id=1"
 
-# 알림 목록 조회 (인증 필요)
-curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8000/notifications
+# JIRA 환경별 통계 조회
+curl http://localhost:8000/api/jira/stats/environment
 ```
 
 ### 2. Vercel 배포 환경 테스트
@@ -119,9 +126,35 @@ curl https://backend-alpha-liard.vercel.app/folders
 
 ## 🔍 API 응답 형식
 
+### JIRA 환경별 통계 응답 예시
+
+#### GET /api/jira/stats/environment
+```json
+{
+  "success": true,
+  "data": {
+    "dev": {
+      "totalIssues": 15,
+      "issuesByStatus": {
+        "Open": 5,
+        "In Progress": 3,
+        "Resolved": 7
+      }
+    },
+    "prod": {
+      "totalIssues": 2,
+      "issuesByStatus": {
+        "Open": 1,
+        "Resolved": 1
+      }
+    }
+  }
+}
+```
+
 ### 댓글 API 응답 예시
 
-#### GET /comments?entity_type=test_case&entity_id=1
+#### GET /api/collaboration/comments?entity_type=test_case&entity_id=1
 ```json
 [
   {
@@ -131,7 +164,7 @@ curl https://backend-alpha-liard.vercel.app/folders
     "content": "이 테스트 케이스는 잘 작성되었습니다.",
     "author_id": 1,
     "author_name": "admin",
-    "created_at": "2025-01-09T10:00:00",
+    "created_at": "2026-05-11T10:00:00",
     "replies": []
   }
 ]
@@ -359,6 +392,6 @@ cd test-scripts
 
 ---
 
-**마지막 업데이트**: 2025년 1월 9일
-**API 버전**: 2.5.0
+**마지막 업데이트**: 2026년 5월 11일
+**API 버전**: 2.7.0
 **상태**: 모든 API 엔드포인트 정상 작동
