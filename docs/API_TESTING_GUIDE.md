@@ -24,7 +24,7 @@
 - `POST /mentions/{id}/read` - 멘션 읽음 처리
 
 **JIRA 연동 및 이슈 관리** (`/api/jira`)
-- `GET /stats` - 전체 JIRA 이슈 통계
+- `GET /stats/summary` - 전체 JIRA 이슈 통계
 - `GET /stats/environment` - 환경별 JIRA 이슈 통계 (v2.6.0 추가)
 - `GET /issues` - 이슈 목록 조회
 - `POST /issues` - 이슈 생성
@@ -392,6 +392,6 @@ cd test-scripts
 
 ---
 
-**마지막 업데이트**: 2026년 5월 11일
-**API 버전**: 2.7.0
+**마지막 업데이트**: 2026년 5월 4일
+**API 버전**: 2.8.0
 **상태**: 모든 API 엔드포인트 정상 작동

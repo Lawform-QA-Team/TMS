@@ -22,6 +22,31 @@
 - **프론트엔드 URL**: `https://integrated-test-platform-dydlxktca-gyeonggong-parks-projects.vercel.app`
 - **상태**: 배포 완료, 모든 기능 정상 작동 ✅
 
+## 🔐 v2.8.0 보안 및 품질 개선 (2026-05-04)
+
+### 9. 백엔드 보안 이슈 전면 수정 ✅
+**수정 항목**:
+- CORS `supports_credentials=True` + wildcard origin 충돌 → `False`로 수정
+- `/init-db`, `/db-status` 관리자 인증 누락 → `@admin_required` 추가
+- JWT 콜백 이중 등록 제거
+- health check degraded 응답 200 → 503
+- dashboard/jira/test_scripts 엔드포인트 인증 데코레이터 누락 보완
+- 비밀번호 변경 시 non-admin 현재 비밀번호 검증 추가
+- `os.path.commonpath` 기반 path traversal 보안 강화
+- SQLAlchemy 2.0: `Model.query.get()` 47건 → `db.session.get()` 전환
+- Jira Blueprint 중복 route 7개 제거, testcases_extended 중복 8개 제거
+
+### 10. 프론트엔드 UX 및 보안 개선 ✅
+**수정 항목**:
+- 사이드바 접기/펼치기 토글 기능 추가
+- 계정 관리: first_name/last_name 필드 추가, 임시 비밀번호 자동 생성 방식으로 전환
+- AuthContext: 로그인 로그에서 JWT 토큰 직접 노출 제거, `/me` 응답 payload wrapper 처리
+
+### 11. 의존성 업데이트 ✅
+- Flask 2.3.3 → 3.1.3
+- requests 2.32.4 → 2.33.1
+- cryptography 44.0.1 → 46.0.5
+
 ## 🔧 해결된 주요 문제들
 
 ### 1. 폴더 API 500 에러 ✅
@@ -153,7 +178,7 @@ get_kst_datetime_string() # KST 문자열 형식
 
 ---
 
-**마지막 업데이트**: 2026년 5월 11일  
-**버전**: 2.7.0  
-**상태**: 프로덕션 배포 및 모든 이슈 해결 완료 ✅ 
+**마지막 업데이트**: 2026년 5월 4일
+**버전**: 2.8.0
+**상태**: 프로덕션 배포 및 모든 이슈 해결 완료 ✅
  

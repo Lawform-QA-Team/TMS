@@ -21,7 +21,7 @@
 
 ### Backend
 - **Python 3.13+**
-- **Flask 2.3+**
+- **Flask 3.1+**
 - **SQLAlchemy 2.0+**
 - **MySQL 8.0+**
 - **Docker**
@@ -205,7 +205,21 @@ npx playwright test
 5. Open a Pull Request
 
 
-## 🆕 최신 기능 (v2.7.0)
+## 🆕 최신 기능 (v2.8.0)
+
+### 🔐 백엔드 보안 및 코드 품질 개선 (v2.8.0)
+- **CORS 보안 수정**: `supports_credentials` + wildcard origin 충돌 해소
+- **인증 강화**: 인증 누락 엔드포인트 일괄 보완 (`@guest_allowed`, `@login_required`, `@admin_required`)
+- **비밀번호 변경 보안**: non-admin 사용자 비밀번호 변경 시 현재 비밀번호 검증 추가
+- **Path Traversal 보안**: `startswith` 방식 → `os.path.commonpath` 방식으로 강화
+- **SQLAlchemy 2.0 마이그레이션**: `Model.query.get()` 47건 → `db.session.get()` 일괄 전환
+- **의존성 업데이트**: Flask 3.1.3, requests 2.33.1, cryptography 46.0.5
+- **Route 충돌 해소**: Jira Blueprint 중복 7개 제거, testcases_extended 중복 8개 제거
+
+### 💻 프론트엔드 UX 개선 (v2.8.0)
+- **사이드바 토글**: 접기/펼치기 버튼으로 화면 공간 확장
+- **계정 관리 개선**: 사용자 생성 시 first_name/last_name 필드 추가, 임시 비밀번호 자동 생성
+- **인증 보안 강화**: 로그인 로그에서 토큰 직접 노출 제거
 
 ### 🧹 문서 및 시스템 최신화 (v2.7.0)
 - **문서 전면 업데이트**: `docs/` 하위 모든 가이드 문서의 경로 및 내용 최신화
@@ -300,11 +314,11 @@ npx playwright test
 
 ---
 
-**마지막 업데이트**: 2026년 5월 11일  
-**버전**: 2.7.0  
-**상태**: 프로덕션 배포 완료 ✅  
-**주요 업데이트**: 
-- 문서 및 가이드 전면 최신화 (May 2026)
-- 백엔드 API 버전 동기화 (v2.7.0)
-- 테스트 스크립트 디렉토리 구조 반영
-- Slack 리포트 및 JIRA 통계 기능 문서 보강
+**마지막 업데이트**: 2026년 5월 4일
+**버전**: 2.8.0
+**상태**: 프로덕션 배포 완료 ✅
+**주요 업데이트**:
+- 백엔드 보안 이슈 전면 점검 및 수정 (May 2026)
+- 프론트엔드 UX 개선 (사이드바 토글, 계정 관리)
+- SQLAlchemy 2.0 마이그레이션 완료
+- Flask 3.1 업그레이드
