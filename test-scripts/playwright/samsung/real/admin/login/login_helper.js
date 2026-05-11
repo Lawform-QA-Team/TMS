@@ -46,15 +46,15 @@ export function getWebCredentials() {
     return { EMAIL: email, PASSWORD: password };
 }
 
-/**
- * 주어진 page에 로그인 수행 (스크린샷 포함).
- * 각 스크립트에서 page = await browser.newPage() 후 호출.
- */
 async function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export async function loginWithPage(page, credentials, loginUrl = URLS.LOGIN.HOME) {
+/**
+ * 동일 로그인 UI(이메일/비밀번호/제출)를 쓰는 URL로 이동 후 로그인.
+ * 어드민·웹 모두 이 흐름을 공유하고, 진입 URL만 다르게 둔다.
+ */
+async function loginWithPageAtUrl(page, credentials, loginUrl) {
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
     await page.goto(loginUrl);
@@ -72,4 +72,19 @@ export async function loginWithPage(page, credentials, loginUrl = URLS.LOGIN.HOM
     await page.waitForSelector(SELECTORS.FEATURES.LOGIN.BUTTON_SUBMIT);
     await page.click(SELECTORS.FEATURES.LOGIN.BUTTON_SUBMIT);
     await wait(2000);
+}
+
+/**
+ * 백오피스(어드민) 로그인. 기본 URL은 `URLS.LOGIN.LOGIN`.
+ */
+export async function loginWithPage(page, credentials, loginUrl = URLS.LOGIN.LOGIN) {
+    return loginWithPageAtUrl(page, credentials, loginUrl);
+}
+
+/**
+ * 서비스(웹) 로그인. 기본 URL은 `URLS.WEB_LOGIN.LOGIN` (`/id-login`).
+ * 루트(`WEB_LOGIN.HOME`)만 열면 로그인 폼이 없을 수 있으므로 기본값을 여기로 둔다.
+ */
+export async function loginWebWithPage(page, credentials, loginUrl = URLS.WEB_LOGIN.LOGIN) {
+    return loginWithPageAtUrl(page, credentials, loginUrl);
 }

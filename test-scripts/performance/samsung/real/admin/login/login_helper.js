@@ -15,16 +15,29 @@ export function getCredentials() {
 }
 
 /**
- * 주어진 page에 로그인 수행 (스크린샷 포함).
- * 각 스크립트에서 page = await browser.newPage() 후 호출.
+ * k6 환경변수에서 웹 서비스 로그인 계정 반환 (WEB_LOGIN_EMAIL, WEB_LOGIN_PASSWORD)
  */
-export async function loginWithPage(page, credentials, metrics = null) {
+export function getWebCredentials() {
+    const email = (typeof __ENV !== 'undefined' && (__ENV.WEB_LOGIN_EMAIL || __ENV.LOGIN_EMAIL || __ENV.EMAIL)) || '';
+    const password = (typeof __ENV !== 'undefined' && (__ENV.WEB_LOGIN_PASSWORD || __ENV.LOGIN_PASSWORD || __ENV.PASSWORD)) || '';
+    if (!email || !password) {
+        throw new Error('로그인 계정 필요. k6 실행 시 -e WEB_LOGIN_EMAIL=... -e WEB_LOGIN_PASSWORD=... 스크립트경로');
+    }
+    return { EMAIL: email, PASSWORD: password };
+}
+
+/**
+ * @param {import('k6/browser').Page} page
+ * @param {{ EMAIL: string, PASSWORD: string }} credentials
+ * @param {{ loginUrl: string, postSubmitWaitUrl?: string | null, metrics?: object | null }} opts
+ */
+async function loginWithPageAtUrl(page, credentials, opts) {
+    const { loginUrl, postSubmitWaitUrl = null, metrics = null } = opts;
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
     const totalStartTime = Date.now();
 
-    // 1. Page load measurement
     const pageLoadStart = Date.now();
-    await page.goto(URLS.LOGIN.HOME);
+    await page.goto(loginUrl);
     if (metrics?.pageLoadDuration) {
         const pageLoadDuration = Date.now() - pageLoadStart;
         metrics.pageLoadDuration.add(pageLoadDuration);
@@ -33,7 +46,6 @@ export async function loginWithPage(page, credentials, metrics = null) {
     let timestamp = getNewTimeStamp();
     await page.screenshot({ path: `screenshots/${timestamp}_login_home.png` });
 
-    // 2. Input credentials measurement
     const inputStart = Date.now();
     await page.waitForSelector(SELECTORS.FEATURES.LOGIN.INPUT_EMAIL);
     await page.type(SELECTORS.FEATURES.LOGIN.INPUT_EMAIL, credentials.EMAIL);
@@ -48,21 +60,43 @@ export async function loginWithPage(page, credentials, metrics = null) {
     timestamp = getNewTimeStamp();
     await page.screenshot({ path: `screenshots/${timestamp}_input_account.png` });
 
-    // 3. Submit login measurement
     const submitStart = Date.now();
     await page.waitForSelector(SELECTORS.FEATURES.LOGIN.BUTTON_SUBMIT);
     await page.click(SELECTORS.FEATURES.LOGIN.BUTTON_SUBMIT);
-    await page.waitForURL(URLS.LOGIN.DASHBOARD);
+    if (postSubmitWaitUrl) {
+        await page.waitForURL(postSubmitWaitUrl);
+    }
     if (metrics?.submitLoginDuration) {
         const submitDuration = Date.now() - submitStart;
         metrics.submitLoginDuration.add(submitDuration);
         console.log(`Submit login duration: ${submitDuration}ms`);
     }
 
-    // 4. Total login duration
     if (metrics?.totalLoginDuration) {
         const totalDuration = Date.now() - totalStartTime;
         metrics.totalLoginDuration.add(totalDuration);
         console.log(`Total login duration: ${totalDuration}ms`);
     }
+}
+
+/**
+ * 백오피스(어드민) 로그인. 제출 후 대시보드 URL까지 대기.
+ */
+export async function loginWithPage(page, credentials, metrics = null) {
+    return loginWithPageAtUrl(page, credentials, {
+        loginUrl: URLS.LOGIN.LOGIN,
+        postSubmitWaitUrl: URLS.LOGIN.DASHBOARD,
+        metrics,
+    });
+}
+
+/**
+ * 서비스(웹) 로그인. 기본은 `/id-login`. 제출 후 별도 URL 대기 없음(기존 k6 웹 스크립트와 동일).
+ */
+export async function loginWebWithPage(page, credentials, metrics = null) {
+    return loginWithPageAtUrl(page, credentials, {
+        loginUrl: URLS.WEB_LOGIN.LOGIN,
+        postSubmitWaitUrl: URLS.DRIVE.DRIVE,
+        metrics,
+    });
 }
