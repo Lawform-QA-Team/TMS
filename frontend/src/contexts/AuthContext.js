@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
     setToken(access_token);
     setUser(userData);
     localStorage.setItem('token', access_token);
-    console.log('🎉 인증 성공 처리 완료 - 토큰과 사용자 정보 설정됨', { access_token, userData });
+    console.log('🎉 인증 성공 처리 완료 - 토큰과 사용자 정보 설정됨', { hasToken: !!access_token, userData });
   };
 
   const handleAuthError = (error, source = '요청') => {
@@ -111,7 +111,8 @@ export const AuthProvider = ({ children }) => {
         });
 
         if (response.ok) {
-          const userData = await response.json();
+          const payload = await response.json();
+          const userData = payload.data || payload;
           console.log('✅ 사용자 정보 복원 성공:', userData);
           setUser(userData);
         } else if (response.status === 401) {
@@ -191,7 +192,8 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (response.ok) {
-        const userData = await response.json();
+        const payload = await response.json();
+        const userData = payload.data || payload;
         setUser(userData);
       } else if (response.status === 401) {
         // 401 오류만 로그아웃 처리 (토큰이 유효하지 않음)
@@ -228,7 +230,7 @@ export const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ 로그인 성공 데이터:', data);
+        console.log('✅ 로그인 성공 데이터 수신:', { hasData: !!data, hasWrappedData: !!data?.data });
         const { access_token, user: userData } = data.data || data;
         
         console.log('🔍 추출된 데이터:', { access_token: !!access_token, userData });
