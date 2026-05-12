@@ -1,6 +1,8 @@
 import secrets
+import json
+import pyotp
 from flask import Blueprint, request, jsonify
-from models import db, User
+from models import db, User, UserSession, UserSecuritySettings, LoginFailLog
 from utils.auth_decorators import admin_required, user_required, owner_required, login_required
 from utils.cors import add_cors_headers
 from utils.timezone_utils import get_kst_now
@@ -230,6 +232,160 @@ def get_current_user():
         response = jsonify({'error': str(e)})
         return add_cors_headers(response), 500
 
+@users_bp.route('/users/security-settings', methods=['GET'])
+@user_required
+def get_security_settings():
+    """현재 사용자 보안 설정 조회"""
+    try:
+        current_user = getattr(request, 'user', None)
+        if not current_user:
+            return add_cors_headers(jsonify({'error': '인증이 필요합니다.'})), 401
+
+        settings = UserSecuritySettings.query.filter_by(user_id=current_user.id).first()
+        allowed_ips = []
+        if settings and settings.allowed_ips:
+            try:
+                allowed_ips = json.loads(settings.allowed_ips)
+            except Exception:
+                allowed_ips = []
+
+        return add_cors_headers(jsonify({
+            'session_timeout_minutes': settings.session_timeout_minutes if settings else 1440,
+            'allowed_ips': allowed_ips,
+            'two_factor_enabled': settings.two_factor_enabled if settings else False,
+        })), 200
+    except Exception as e:
+        return add_cors_headers(jsonify({'error': str(e)})), 500
+
+
+@users_bp.route('/users/security-settings', methods=['PUT'])
+@user_required
+def update_security_settings():
+    """현재 사용자 보안 설정 저장 (세션 만료 시간, IP 화이트리스트)"""
+    try:
+        current_user = getattr(request, 'user', None)
+        if not current_user:
+            return add_cors_headers(jsonify({'error': '인증이 필요합니다.'})), 401
+
+        data = request.get_json()
+        settings = UserSecuritySettings.query.filter_by(user_id=current_user.id).first()
+        if not settings:
+            settings = UserSecuritySettings(user_id=current_user.id)
+            db.session.add(settings)
+
+        if 'session_timeout_minutes' in data:
+            val = int(data['session_timeout_minutes'])
+            settings.session_timeout_minutes = max(15, min(val, 43200))  # 15분 ~ 30일
+
+        if 'allowed_ips' in data:
+            ips = data['allowed_ips']
+            if isinstance(ips, list):
+                settings.allowed_ips = json.dumps(ips) if ips else None
+
+        settings.updated_at = get_kst_now()
+        db.session.commit()
+
+        return add_cors_headers(jsonify({'message': '보안 설정이 저장되었습니다.'})), 200
+    except Exception as e:
+        db.session.rollback()
+        return add_cors_headers(jsonify({'error': str(e)})), 500
+
+
+@users_bp.route('/users/2fa/setup', methods=['POST'])
+@user_required
+def setup_2fa():
+    """2FA 설정 시작 — TOTP 시크릿 생성 및 QR URI 반환"""
+    try:
+        current_user = getattr(request, 'user', None)
+        if not current_user:
+            return add_cors_headers(jsonify({'error': '인증이 필요합니다.'})), 401
+
+        settings = UserSecuritySettings.query.filter_by(user_id=current_user.id).first()
+        if not settings:
+            settings = UserSecuritySettings(user_id=current_user.id)
+            db.session.add(settings)
+
+        if settings.two_factor_enabled:
+            return add_cors_headers(jsonify({'error': '2FA가 이미 활성화되어 있습니다.'})), 400
+
+        secret = pyotp.random_base32()
+        settings.two_factor_secret = secret
+        db.session.commit()
+
+        totp = pyotp.TOTP(secret)
+        otp_uri = totp.provisioning_uri(
+            name=current_user.email or current_user.username,
+            issuer_name='LTMS'
+        )
+
+        return add_cors_headers(jsonify({
+            'secret': secret,
+            'otp_uri': otp_uri,
+        })), 200
+    except Exception as e:
+        db.session.rollback()
+        return add_cors_headers(jsonify({'error': str(e)})), 500
+
+
+@users_bp.route('/users/2fa/verify', methods=['POST'])
+@user_required
+def verify_2fa_setup():
+    """2FA 설정 완료 — OTP 코드 검증 후 활성화"""
+    try:
+        current_user = getattr(request, 'user', None)
+        if not current_user:
+            return add_cors_headers(jsonify({'error': '인증이 필요합니다.'})), 401
+
+        data = request.get_json()
+        otp_code = str(data.get('otp_code', '')).strip()
+        if not otp_code:
+            return add_cors_headers(jsonify({'error': 'OTP 코드를 입력하세요.'})), 400
+
+        settings = UserSecuritySettings.query.filter_by(user_id=current_user.id).first()
+        if not settings or not settings.two_factor_secret:
+            return add_cors_headers(jsonify({'error': '2FA 설정을 먼저 시작하세요.'})), 400
+
+        totp = pyotp.TOTP(settings.two_factor_secret)
+        if not totp.verify(otp_code, valid_window=1):
+            return add_cors_headers(jsonify({'error': 'OTP 코드가 올바르지 않습니다.'})), 400
+
+        settings.two_factor_enabled = True
+        settings.updated_at = get_kst_now()
+        db.session.commit()
+
+        return add_cors_headers(jsonify({'message': '2FA가 활성화되었습니다.'})), 200
+    except Exception as e:
+        db.session.rollback()
+        return add_cors_headers(jsonify({'error': str(e)})), 500
+
+
+@users_bp.route('/users/2fa', methods=['DELETE'])
+@user_required
+def disable_2fa():
+    """2FA 비활성화 — 현재 비밀번호 확인 후"""
+    try:
+        current_user = getattr(request, 'user', None)
+        if not current_user:
+            return add_cors_headers(jsonify({'error': '인증이 필요합니다.'})), 401
+
+        data = request.get_json()
+        password = data.get('password', '')
+        if not current_user.check_password(password):
+            return add_cors_headers(jsonify({'error': '비밀번호가 올바르지 않습니다.'})), 400
+
+        settings = UserSecuritySettings.query.filter_by(user_id=current_user.id).first()
+        if settings:
+            settings.two_factor_enabled = False
+            settings.two_factor_secret = None
+            settings.updated_at = get_kst_now()
+            db.session.commit()
+
+        return add_cors_headers(jsonify({'message': '2FA가 비활성화되었습니다.'})), 200
+    except Exception as e:
+        db.session.rollback()
+        return add_cors_headers(jsonify({'error': str(e)})), 500
+
+
 @users_bp.route('/users/<int:user_id>/change-password', methods=['PUT'])
 @owner_required
 def change_password(user_id):
@@ -254,8 +410,68 @@ def change_password(user_id):
         
         response = jsonify({'message': '비밀번호가 성공적으로 변경되었습니다.'})
         return add_cors_headers(response), 200
-        
+
     except Exception as e:
         db.session.rollback()
         response = jsonify({'error': str(e)})
-        return add_cors_headers(response), 500 
+        return add_cors_headers(response), 500
+
+
+@users_bp.route('/users/login-history', methods=['GET'])
+@user_required
+def get_login_history():
+    """본인 로그인 기록 조회 (최근 100건)"""
+    try:
+        current_user = getattr(request, 'user', None)
+        if not current_user:
+            return add_cors_headers(jsonify({'error': '인증이 필요합니다.'})), 401
+
+        sessions = (
+            UserSession.query
+            .filter_by(user_id=current_user.id)
+            .order_by(UserSession.created_at.desc())
+            .limit(100)
+            .all()
+        )
+
+        data = [
+            {
+                'id': s.id,
+                'created_at': s.created_at.isoformat() if s.created_at else None,
+                'login_type': s.login_type or 'password',
+                'ip_address': s.ip_address,
+                'user_agent': s.user_agent
+            }
+            for s in sessions
+        ]
+        return add_cors_headers(jsonify(data)), 200
+    except Exception as e:
+        return add_cors_headers(jsonify({'error': str(e)})), 500
+
+
+@users_bp.route('/users/login-fail-history', methods=['GET'])
+@admin_required
+def get_login_fail_history():
+    """로그인 실패 기록 조회 (관리자 전용, 최근 200건)"""
+    try:
+        logs = (
+            LoginFailLog.query
+            .order_by(LoginFailLog.created_at.desc())
+            .limit(200)
+            .all()
+        )
+
+        data = [
+            {
+                'id': log.id,
+                'created_at': log.created_at.isoformat() if log.created_at else None,
+                'username': log.username,
+                'login_type': log.login_type or 'password',
+                'ip_address': log.ip_address,
+                'user_agent': log.user_agent
+            }
+            for log in logs
+        ]
+        return add_cors_headers(jsonify(data)), 200
+    except Exception as e:
+        return add_cors_headers(jsonify({'error': str(e)})), 500

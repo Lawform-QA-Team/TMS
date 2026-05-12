@@ -230,21 +230,15 @@ export const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ 로그인 성공 데이터 수신:', { hasData: !!data, hasWrappedData: !!data?.data });
-        const { access_token, user: userData } = data.data || data;
-        
-        console.log('🔍 추출된 데이터:', { access_token: !!access_token, userData });
-        
+        const result = data.data || data;
+
+        // 2FA 필요한 경우 임시 토큰 반환
+        if (result.requires_2fa) {
+          return { success: false, requires_2fa: true, temp_token: result.temp_token };
+        }
+
+        const { access_token, user: userData } = result;
         handleAuthSuccess(access_token, userData, '로그인');
-        
-        // 상태 업데이트 후 확인
-        setTimeout(() => {
-          console.log('🔄 로그인 후 상태 확인:', { 
-            token: !!localStorage.getItem('token'), 
-            user: userData 
-          });
-        }, 100);
-        
         return { success: true };
       } else {
         const errorData = await response.json();
@@ -344,6 +338,28 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const verify2fa = async (tempToken, otpCode) => {
+    try {
+      const response = await fetch(`${config.apiUrl}/auth/verify-2fa`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ temp_token: tempToken, otp_code: otpCode })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const { access_token, user: userData } = data.data || data;
+        handleAuthSuccess(access_token, userData, '2FA 로그인');
+        return { success: true };
+      } else {
+        const errorData = await response.json();
+        return { success: false, error: errorData.error || 'OTP 코드가 올바르지 않습니다.' };
+      }
+    } catch (error) {
+      return { success: false, error: '네트워크 오류가 발생했습니다.' };
+    }
+  };
+
   const value = {
     user,
     token,
@@ -353,6 +369,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     changePassword,
+    verify2fa,
     isAuthenticated: !!token
   };
 

@@ -1,7 +1,10 @@
 from flask import Blueprint, request, jsonify, current_app
-from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
-from models import db, User, UserSession
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, decode_token
+from models import db, User, UserSession, UserSecuritySettings
 from datetime import datetime, timedelta
+import json
+import ipaddress
+import pyotp
 from utils.timezone_utils import get_kst_now, get_kst_isoformat
 from utils.logger import get_logger
 from utils.response_utils import (
@@ -13,8 +16,9 @@ from utils.common_helpers import handle_options_request, create_cors_response
 from utils.auth_constants import MESSAGES, MIN_PASSWORD_LENGTH, ROLE_GUEST
 from utils.auth_helpers import (
     create_user_session, create_tokens, create_guest_tokens,
-    get_guest_user_data, validate_user_credentials, 
-    update_user_last_login, deactivate_user_sessions
+    get_guest_user_data, validate_user_credentials,
+    update_user_last_login, deactivate_user_sessions,
+    create_login_fail_log
 )
 import secrets
 import os
@@ -158,21 +162,49 @@ def login():
         # 사용자 인증
         user, error_message = validate_user_credentials(username, password)
         if error_message:
+            create_login_fail_log(username, request, login_type='password')
             return unauthorized_response(error_message)
         
+        # 보안 설정 조회
+        security_settings = UserSecuritySettings.query.filter_by(user_id=user.id).first()
+
+        # 접속 허용 IP 체크 (화이트리스트가 비어있으면 스킵)
+        if security_settings and security_settings.allowed_ips:
+            try:
+                allowed_list = json.loads(security_settings.allowed_ips)
+            except Exception:
+                allowed_list = []
+            if allowed_list:
+                client_ip = request.remote_addr
+                if not _check_ip_allowed(client_ip, allowed_list):
+                    return unauthorized_response('허용되지 않은 IP에서의 접근입니다.')
+
+        # 2FA 활성화된 경우 임시 토큰 반환 (OTP 검증 단계로 이동)
+        if security_settings and security_settings.two_factor_enabled:
+            temp_token = create_access_token(
+                identity=str(user.id),
+                expires_delta=timedelta(minutes=5),
+                additional_claims={'type': '2fa_temp'}
+            )
+            return success_response(
+                data={'requires_2fa': True, 'temp_token': temp_token},
+                message='OTP 인증이 필요합니다.'
+            )
+
         # 마지막 로그인 시간 업데이트
         if not update_user_last_login(user):
             logger.warning("마지막 로그인 시간 업데이트 실패, 계속 진행")
-        
-        # JWT 토큰 생성
-        access_token, refresh_token = create_tokens(user.id)
-        
+
+        # JWT 토큰 생성 (사용자별 세션 만료 시간 적용)
+        timeout = security_settings.session_timeout_minutes if security_settings else None
+        access_token, refresh_token = create_tokens(user.id, expires_minutes=timeout)
+
         # 세션 정보 저장 (실패해도 계속 진행)
-        create_user_session(user.id, refresh_token, request)
-        
+        create_user_session(user.id, refresh_token, request, login_type='password')
+
         # 응답 데이터 생성
         user_response = user.to_dict()
-        
+
         return success_response(
             data={
                 'access_token': access_token,
@@ -353,6 +385,80 @@ def change_password():
     except Exception as e:
         logger.error(f"비밀번호 변경 중 오류 발생: {str(e)}")
         return error_response('비밀번호 변경 중 오류가 발생했습니다.')
+
+def _check_ip_allowed(client_ip, allowed_list):
+    """클라이언트 IP가 허용 목록에 있는지 확인 (단일 IP 및 CIDR 지원)"""
+    try:
+        client = ipaddress.ip_address(client_ip)
+        for entry in allowed_list:
+            try:
+                if '/' in entry:
+                    if client in ipaddress.ip_network(entry, strict=False):
+                        return True
+                else:
+                    if client == ipaddress.ip_address(entry):
+                        return True
+            except ValueError:
+                continue
+        return False
+    except ValueError:
+        return False
+
+
+@auth_bp.route('/verify-2fa', methods=['POST'])
+def verify_2fa():
+    """2FA 로그인 검증 — 임시 토큰 + OTP 코드로 실제 JWT 발급"""
+    try:
+        data = request.get_json()
+        temp_token = data.get('temp_token', '')
+        otp_code = str(data.get('otp_code', '')).strip()
+
+        if not temp_token or not otp_code:
+            return validation_error_response('temp_token과 otp_code가 필요합니다.')
+
+        # 임시 토큰 검증
+        try:
+            decoded = decode_token(temp_token)
+        except Exception:
+            return unauthorized_response('유효하지 않은 토큰입니다.')
+
+        if decoded.get('type') != '2fa_temp':
+            return unauthorized_response('유효하지 않은 토큰 유형입니다.')
+
+        user_id = int(decoded['sub'])
+        user = db.session.get(User, user_id)
+        if not user or not user.is_active:
+            return unauthorized_response(MESSAGES['USER_NOT_FOUND'])
+
+        # OTP 검증
+        security_settings = UserSecuritySettings.query.filter_by(user_id=user.id).first()
+        if not security_settings or not security_settings.two_factor_secret:
+            return unauthorized_response('2FA 설정이 없습니다.')
+
+        totp = pyotp.TOTP(security_settings.two_factor_secret)
+        if not totp.verify(otp_code, valid_window=1):
+            create_login_fail_log(user.username, request, login_type='2fa')
+            return unauthorized_response('OTP 코드가 올바르지 않습니다.')
+
+        # 마지막 로그인 업데이트 및 실제 토큰 발급
+        update_user_last_login(user)
+        timeout = security_settings.session_timeout_minutes
+        access_token, refresh_token = create_tokens(user.id, expires_minutes=timeout)
+        create_user_session(user.id, refresh_token, request, login_type='2fa')
+
+        return success_response(
+            data={
+                'access_token': access_token,
+                'refresh_token': refresh_token,
+                'user': user.to_dict()
+            },
+            message=MESSAGES['LOGIN_SUCCESS']
+        )
+
+    except Exception as e:
+        logger.error(f"2FA 검증 오류: {str(e)}")
+        return error_response('2FA 검증 중 오류가 발생했습니다.')
+
 
 @auth_bp.route('/health', methods=['GET'])
 def health_check():

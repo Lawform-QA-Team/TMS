@@ -4,6 +4,7 @@ import config from '@tms/config';
 import { useAuth } from '@tms/contexts/AuthContext';
 import PromptModal from '@tms/components/common/PromptModal';
 import { getUserDisplayName } from '@tms/utils/userDisplay';
+import JiraConfigPanel from '@tms/components/jira/JiraConfigPanel';
 import '@tms/components/jira/JiraIssuesList.css';
 import '@tms/components/common/Modal.css';
 
@@ -423,6 +424,9 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
 
   return (
     <div className="jira-issues-list-container">
+      {!testCaseId && user && (user.role === 'admin' || user.role === 'user') && (
+        <JiraConfigPanel onConfigured={fetchJiraIssues} />
+      )}
       <div className="jira-issues-header">
         <h1>🔗 이슈 관리</h1>
         {user && user.role === 'guest' && (

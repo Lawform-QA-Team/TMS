@@ -1,9 +1,28 @@
 import React, { useEffect, useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '@tms/contexts/AuthContext';
 import config from '@tms/config';
 import { formatUTCToKST } from '@tms/utils/dateUtils';
 import '@tms/components/auth/Auth.css';
 import '@tms/components/auth/UserProfile.css';
+
+function parseBrowser(ua) {
+  if (!ua) return '-';
+  if (ua.includes('Edg/')) return 'Edge';
+  if (ua.includes('OPR/') || ua.includes('Opera')) return 'Opera';
+  if (ua.includes('Chrome/')) return 'Chrome';
+  if (ua.includes('Firefox/')) return 'Firefox';
+  if (ua.includes('Safari/') && !ua.includes('Chrome')) return 'Safari';
+  return ua.split(' ')[0] || ua;
+}
+
+function parseAccessType(ua) {
+  if (!ua) return '-';
+  if (/Mobile|Android|iPhone|iPad|iPod|Windows Phone|BlackBerry|IEMobile/i.test(ua)) {
+    return 'WEB(MOBILE)';
+  }
+  return 'WEB(PC)';
+}
 
 const UserProfile = () => {
   const { user, token, changePassword, logout } = useAuth();
@@ -31,6 +50,24 @@ const UserProfile = () => {
   });
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsMessage, setNotificationsMessage] = useState({ type: '', text: '' });
+
+  const [loginHistory, setLoginHistory] = useState([]);
+  const [loginHistoryLoading, setLoginHistoryLoading] = useState(false);
+  const [loginFailHistory, setLoginFailHistory] = useState([]);
+  const [loginFailLoading, setLoginFailLoading] = useState(false);
+
+  const [securitySettings, setSecuritySettings] = useState({
+    session_timeout_minutes: 1440,
+    allowed_ips: [],
+    two_factor_enabled: false
+  });
+  const [securityLoading, setSecurityLoading] = useState(false);
+  const [securityMessage, setSecurityMessage] = useState({ type: '', text: '' });
+  const [twoFaSetup, setTwoFaSetup] = useState(null); // { secret, otp_uri }
+  const [twoFaOtp, setTwoFaOtp] = useState('');
+  const [ipInput, setIpInput] = useState('');
+  const [showDisable2fa, setShowDisable2fa] = useState(false);
+  const [disable2faPassword, setDisable2faPassword] = useState('');
 
   const handlePasswordChange = (e) => {
     setPasswordData({
@@ -93,6 +130,15 @@ const UserProfile = () => {
   useEffect(() => {
     if (activeMenu === 'notifications' && !isGuest) {
       fetchNotificationSettings();
+    }
+    if (activeMenu === 'security' && !isGuest) {
+      fetchSecuritySettings();
+    }
+    if (activeMenu === 'login' && !isGuest) {
+      fetchLoginHistory();
+    }
+    if (activeMenu === 'login-fail' && !isGuest) {
+      fetchLoginFailHistory();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeMenu, isGuest]);
@@ -158,6 +204,158 @@ const UserProfile = () => {
       setNotificationsMessage({ type: 'error', text: '알림 설정 저장에 실패했습니다.' });
     } finally {
       setNotificationsLoading(false);
+    }
+  };
+
+  const fetchLoginHistory = async () => {
+    try {
+      setLoginHistoryLoading(true);
+      const response = await fetch(`${config.apiUrl}/users/login-history`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setLoginHistory(data);
+      }
+    } catch (err) {
+      // silent
+    } finally {
+      setLoginHistoryLoading(false);
+    }
+  };
+
+  const fetchLoginFailHistory = async () => {
+    try {
+      setLoginFailLoading(true);
+      const response = await fetch(`${config.apiUrl}/users/login-fail-history`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setLoginFailHistory(data);
+      }
+    } catch (err) {
+      // silent
+    } finally {
+      setLoginFailLoading(false);
+    }
+  };
+
+  const fetchSecuritySettings = async () => {
+    try {
+      setSecurityLoading(true);
+      const response = await fetch(`${config.apiUrl}/users/security-settings`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setSecuritySettings({
+          session_timeout_minutes: data.session_timeout_minutes ?? 1440,
+          allowed_ips: data.allowed_ips ?? [],
+          two_factor_enabled: data.two_factor_enabled ?? false
+        });
+      }
+    } catch (err) {
+      setSecurityMessage({ type: 'error', text: '보안 설정을 불러오지 못했습니다.' });
+    } finally {
+      setSecurityLoading(false);
+    }
+  };
+
+  const handleSecuritySave = async () => {
+    try {
+      setSecurityLoading(true);
+      setSecurityMessage({ type: '', text: '' });
+      const response = await fetch(`${config.apiUrl}/users/security-settings`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_timeout_minutes: securitySettings.session_timeout_minutes,
+          allowed_ips: securitySettings.allowed_ips
+        })
+      });
+      if (response.ok) {
+        setSecurityMessage({ type: 'success', text: '보안 설정이 저장되었습니다.' });
+      } else {
+        setSecurityMessage({ type: 'error', text: '저장에 실패했습니다.' });
+      }
+    } catch (err) {
+      setSecurityMessage({ type: 'error', text: '저장에 실패했습니다.' });
+    } finally {
+      setSecurityLoading(false);
+    }
+  };
+
+  const handleSetup2fa = async () => {
+    try {
+      setSecurityLoading(true);
+      setSecurityMessage({ type: '', text: '' });
+      const response = await fetch(`${config.apiUrl}/users/2fa/setup`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setTwoFaSetup({ secret: data.secret, otp_uri: data.otp_uri });
+        setTwoFaOtp('');
+      } else {
+        const err = await response.json();
+        setSecurityMessage({ type: 'error', text: err.error || '2FA 설정을 시작하지 못했습니다.' });
+      }
+    } catch (err) {
+      setSecurityMessage({ type: 'error', text: '2FA 설정을 시작하지 못했습니다.' });
+    } finally {
+      setSecurityLoading(false);
+    }
+  };
+
+  const handleVerify2fa = async () => {
+    try {
+      setSecurityLoading(true);
+      setSecurityMessage({ type: '', text: '' });
+      const response = await fetch(`${config.apiUrl}/users/2fa/verify`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ otp_code: twoFaOtp })
+      });
+      if (response.ok) {
+        setSecuritySettings(prev => ({ ...prev, two_factor_enabled: true }));
+        setTwoFaSetup(null);
+        setTwoFaOtp('');
+        setSecurityMessage({ type: 'success', text: '2단계 인증이 활성화되었습니다.' });
+      } else {
+        const err = await response.json();
+        setSecurityMessage({ type: 'error', text: err.error || 'OTP 코드가 올바르지 않습니다.' });
+      }
+    } catch (err) {
+      setSecurityMessage({ type: 'error', text: 'OTP 검증에 실패했습니다.' });
+    } finally {
+      setSecurityLoading(false);
+    }
+  };
+
+  const handleDisable2fa = async () => {
+    try {
+      setSecurityLoading(true);
+      setSecurityMessage({ type: '', text: '' });
+      const response = await fetch(`${config.apiUrl}/users/2fa`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: disable2faPassword })
+      });
+      if (response.ok) {
+        setSecuritySettings(prev => ({ ...prev, two_factor_enabled: false }));
+        setShowDisable2fa(false);
+        setDisable2faPassword('');
+        setSecurityMessage({ type: 'success', text: '2단계 인증이 비활성화되었습니다.' });
+      } else {
+        const err = await response.json();
+        setSecurityMessage({ type: 'error', text: err.error || '2FA 비활성화에 실패했습니다.' });
+      }
+    } catch (err) {
+      setSecurityMessage({ type: 'error', text: '2FA 비활성화에 실패했습니다.' });
+    } finally {
+      setSecurityLoading(false);
     }
   };
 
@@ -417,25 +615,318 @@ const UserProfile = () => {
   );
 
   const renderLoginHistorySection = () => (
-    <div className="profile-placeholder">
-      <h2>로그인 기록</h2>
-      <p>최근 로그인 이력, IP, 브라우저 정보 등을 확인하는 화면으로 확장할 수 있습니다.</p>
-      <p>지금은 UI 레이아웃만 준비해 두었습니다.</p>
+    <div>
+      <div className="profile-section-header">
+        <h2>로그인 기록</h2>
+      </div>
+      {loginHistoryLoading ? (
+        <p className="history-loading">불러오는 중...</p>
+      ) : loginHistory.length === 0 ? (
+        <p className="history-empty">로그인 기록이 없습니다.</p>
+      ) : (
+        <div className="history-table-wrapper">
+          <table className="history-table">
+            <thead>
+              <tr>
+                <th>접속 일시</th>
+                <th>접속 유형</th>
+                <th>접속 IP</th>
+                <th>브라우저/웹</th>
+                <th>기기 정보</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loginHistory.map(row => {
+                const ua = row.user_agent || '';
+                const browser = parseBrowser(ua);
+                const accessType = parseAccessType(ua);
+                return (
+                  <tr key={row.id}>
+                    <td className="history-td-nowrap">{row.created_at ? formatUTCToKST(row.created_at) : '-'}</td>
+                    <td>{accessType}</td>
+                    <td className="history-td-nowrap">{row.ip_address || '-'}</td>
+                    <td>{browser}</td>
+                    <td className="history-td-ua" title={ua}>{ua || '-'}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 
   const renderLoginFailSection = () => (
-    <div className="profile-placeholder">
-      <h2>로그인 실패 기록</h2>
-      <p>보안 강화를 위해 실패한 로그인 시도 내역을 보여줄 수 있습니다.</p>
-      <p>추후 보안 요구사항에 맞춰 구현 가능합니다.</p>
+    <div>
+      <div className="profile-section-header">
+        <h2>로그인 실패 기록</h2>
+      </div>
+      {user?.role !== 'admin' ? (
+        <p className="history-empty">관리자만 조회할 수 있습니다.</p>
+      ) : loginFailLoading ? (
+        <p className="history-loading">불러오는 중...</p>
+      ) : loginFailHistory.length === 0 ? (
+        <p className="history-empty">로그인 실패 기록이 없습니다.</p>
+      ) : (
+        <div className="history-table-wrapper">
+          <table className="history-table">
+            <thead>
+              <tr>
+                <th>접속 일시</th>
+                <th>계정</th>
+                <th>접속 유형</th>
+                <th>접속 IP</th>
+                <th>브라우저/웹</th>
+                <th>기기 정보</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loginFailHistory.map(row => {
+                const ua = row.user_agent || '';
+                const browser = parseBrowser(ua);
+                const accessType = parseAccessType(ua);
+                return (
+                  <tr key={row.id}>
+                    <td className="history-td-nowrap">{row.created_at ? formatUTCToKST(row.created_at) : '-'}</td>
+                    <td>{row.username}</td>
+                    <td>{accessType}</td>
+                    <td className="history-td-nowrap">{row.ip_address || '-'}</td>
+                    <td>{browser}</td>
+                    <td className="history-td-ua" title={ua}>{ua || '-'}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 
+  const SESSION_TIMEOUT_OPTIONS = [
+    { value: 30, label: '30분' },
+    { value: 60, label: '1시간' },
+    { value: 240, label: '4시간' },
+    { value: 480, label: '8시간' },
+    { value: 1440, label: '24시간 (기본값)' },
+    { value: 10080, label: '7일' },
+    { value: 43200, label: '30일' }
+  ];
+
+  const handleAddIp = () => {
+    const trimmed = ipInput.trim();
+    if (!trimmed) return;
+    if (securitySettings.allowed_ips.includes(trimmed)) return;
+    setSecuritySettings(prev => ({ ...prev, allowed_ips: [...prev.allowed_ips, trimmed] }));
+    setIpInput('');
+  };
+
+  const handleRemoveIp = (ip) => {
+    setSecuritySettings(prev => ({ ...prev, allowed_ips: prev.allowed_ips.filter(x => x !== ip) }));
+  };
+
   const renderSecuritySection = () => (
-    <div className="profile-placeholder">
-      <h2>보안 설정</h2>
-      <p>2단계 인증, 세션 만료 시간, 접속 허용 IP 등 고급 보안 설정을 배치할 수 있는 영역입니다.</p>
+    <div className="profile-security">
+      <div className="profile-section-header">
+        <h2>보안 설정</h2>
+        <p>2단계 인증, 세션 만료 시간, 접속 허용 IP 등 고급 보안 설정을 관리합니다.</p>
+      </div>
+
+      {securityMessage.text && (
+        <div className={`auth-${securityMessage.type}`}>
+          {securityMessage.type === 'success' ? '✅' : '❌'} {securityMessage.text}
+        </div>
+      )}
+
+      {/* 세션 만료 시간 */}
+      <div className="security-group">
+        <div className="security-group-title">세션 만료 시간</div>
+        <div className="security-group-desc">로그인 후 자동으로 로그아웃되는 시간입니다.</div>
+        <select
+          className="security-select"
+          value={securitySettings.session_timeout_minutes}
+          onChange={(e) =>
+            setSecuritySettings(prev => ({ ...prev, session_timeout_minutes: Number(e.target.value) }))
+          }
+          disabled={securityLoading}
+        >
+          {SESSION_TIMEOUT_OPTIONS.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* 접속 허용 IP */}
+      <div className="security-group">
+        <div className="security-group-title">접속 허용 IP</div>
+        <div className="security-group-desc">
+          지정한 IP 또는 CIDR 범위에서만 로그인을 허용합니다. 비워두면 제한 없음.
+        </div>
+        <div className="security-ip-input-row">
+          <input
+            type="text"
+            className="security-ip-input"
+            placeholder="예: 192.168.1.1 또는 10.0.0.0/8"
+            value={ipInput}
+            onChange={(e) => setIpInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddIp(); } }}
+            disabled={securityLoading}
+          />
+          <button
+            type="button"
+            className="auth-button auth-button-secondary security-ip-add-btn"
+            onClick={handleAddIp}
+            disabled={securityLoading || !ipInput.trim()}
+          >
+            추가
+          </button>
+        </div>
+        {securitySettings.allowed_ips.length > 0 && (
+          <div className="security-ip-tags">
+            {securitySettings.allowed_ips.map(ip => (
+              <span key={ip} className="security-ip-tag">
+                {ip}
+                <button
+                  type="button"
+                  className="security-ip-tag-remove"
+                  onClick={() => handleRemoveIp(ip)}
+                  disabled={securityLoading}
+                  aria-label={`${ip} 삭제`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 저장 버튼 */}
+      <div className="profile-actions">
+        <button
+          type="button"
+          className="auth-button auth-button-primary"
+          onClick={handleSecuritySave}
+          disabled={securityLoading}
+        >
+          {securityLoading ? '저장 중...' : '설정 저장'}
+        </button>
+      </div>
+
+      {/* 2단계 인증 */}
+      <div className="security-group security-2fa-group">
+        <div className="security-group-title">2단계 인증 (2FA)</div>
+        <div className="security-group-desc">
+          Google Authenticator 등 OTP 앱을 사용한 2단계 인증을 설정합니다.
+        </div>
+
+        <div className="security-2fa-status">
+          <span className={`security-2fa-badge ${securitySettings.two_factor_enabled ? 'enabled' : 'disabled'}`}>
+            {securitySettings.two_factor_enabled ? '활성화됨' : '비활성화됨'}
+          </span>
+        </div>
+
+        {/* 2FA 설정 플로우 */}
+        {!securitySettings.two_factor_enabled && !twoFaSetup && (
+          <button
+            type="button"
+            className="auth-button auth-button-secondary"
+            onClick={handleSetup2fa}
+            disabled={securityLoading}
+          >
+            2FA 설정 시작
+          </button>
+        )}
+
+        {!securitySettings.two_factor_enabled && twoFaSetup && (
+          <div className="security-2fa-setup">
+            <p className="security-2fa-setup-desc">
+              아래 QR 코드를 인증 앱으로 스캔하거나, 키를 직접 입력하세요.
+            </p>
+            <div className="security-qr-container">
+              <QRCodeSVG value={twoFaSetup.otp_uri} size={180} />
+            </div>
+            <div className="security-2fa-secret">
+              <span className="security-2fa-secret-label">수동 입력 키:</span>
+              <code className="security-2fa-secret-value">{twoFaSetup.secret}</code>
+            </div>
+            <div className="security-otp-row">
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]{6}"
+                maxLength={6}
+                className="security-otp-input"
+                placeholder="앱의 6자리 코드 입력"
+                value={twoFaOtp}
+                onChange={(e) => setTwoFaOtp(e.target.value.replace(/\D/g, ''))}
+                disabled={securityLoading}
+              />
+              <button
+                type="button"
+                className="auth-button auth-button-primary"
+                onClick={handleVerify2fa}
+                disabled={securityLoading || twoFaOtp.length !== 6}
+              >
+                {securityLoading ? '확인 중...' : '인증 완료'}
+              </button>
+              <button
+                type="button"
+                className="auth-button auth-button-secondary"
+                onClick={() => { setTwoFaSetup(null); setTwoFaOtp(''); }}
+                disabled={securityLoading}
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 2FA 비활성화 */}
+        {securitySettings.two_factor_enabled && !showDisable2fa && (
+          <button
+            type="button"
+            className="auth-button auth-button-danger"
+            onClick={() => setShowDisable2fa(true)}
+            disabled={securityLoading}
+          >
+            2FA 비활성화
+          </button>
+        )}
+
+        {securitySettings.two_factor_enabled && showDisable2fa && (
+          <div className="security-disable-2fa">
+            <p className="security-group-desc">비밀번호를 입력하면 2단계 인증이 해제됩니다.</p>
+            <div className="security-otp-row">
+              <input
+                type="password"
+                className="security-otp-input"
+                placeholder="현재 비밀번호"
+                value={disable2faPassword}
+                onChange={(e) => setDisable2faPassword(e.target.value)}
+                disabled={securityLoading}
+              />
+              <button
+                type="button"
+                className="auth-button auth-button-danger"
+                onClick={handleDisable2fa}
+                disabled={securityLoading || !disable2faPassword}
+              >
+                {securityLoading ? '처리 중...' : '비활성화'}
+              </button>
+              <button
+                type="button"
+                className="auth-button auth-button-secondary"
+                onClick={() => { setShowDisable2fa(false); setDisable2faPassword(''); }}
+                disabled={securityLoading}
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 

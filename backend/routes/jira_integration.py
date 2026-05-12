@@ -7,13 +7,106 @@ from datetime import datetime
 import json
 from utils.jira_client import JiraClient, JiraIntegrationService
 from utils.auth_decorators import user_required
-from models import db, JiraIntegration
+from models import db, JiraIntegration, SystemConfig
 
 jira_bp = Blueprint('jira', __name__, url_prefix='/api/jira')
 
 # JIRA 클라이언트 초기화
 jira_client = JiraClient()
 jira_service = JiraIntegrationService(jira_client)
+
+@jira_bp.route('/config', methods=['GET'])
+@user_required
+def get_jira_config():
+    """Jira Cloud 연동 설정 조회"""
+    try:
+        url_cfg   = SystemConfig.query.filter_by(key='jira_url').first()
+        email_cfg = SystemConfig.query.filter_by(key='jira_email').first()
+        token_cfg = SystemConfig.query.filter_by(key='jira_api_token').first()
+
+        is_configured = bool(
+            url_cfg and url_cfg.value and
+            email_cfg and email_cfg.value and
+            token_cfg and token_cfg.value
+        )
+
+        return jsonify({
+            'success': True,
+            'data': {
+                'is_configured': is_configured,
+                'url':       url_cfg.value   if url_cfg   else '',
+                'email':     email_cfg.value if email_cfg else '',
+                'has_token': bool(token_cfg and token_cfg.value)
+            }
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@jira_bp.route('/config', methods=['POST'])
+@user_required
+def save_jira_config():
+    """Jira Cloud 연동 설정 저장"""
+    try:
+        data  = request.get_json()
+        url   = (data.get('url') or '').rstrip('/')
+        email = (data.get('email') or '').strip()
+        token = (data.get('token') or '').strip()
+
+        if not url or not email or not token:
+            return jsonify({'success': False, 'error': 'URL, 이메일, API 토큰은 필수입니다.'}), 400
+
+        for key, value in [('jira_url', url), ('jira_email', email), ('jira_api_token', token)]:
+            cfg = SystemConfig.query.filter_by(key=key).first()
+            if cfg:
+                cfg.value = value
+            else:
+                db.session.add(SystemConfig(key=key, value=value))
+
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Jira 설정이 저장되었습니다.'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@jira_bp.route('/config/test', methods=['POST'])
+@user_required
+def test_jira_connection():
+    """Jira Cloud 연결 테스트"""
+    try:
+        import requests as req
+        from requests.auth import HTTPBasicAuth
+
+        data  = request.get_json()
+        url   = (data.get('url') or '').rstrip('/')
+        email = (data.get('email') or '').strip()
+        token = (data.get('token') or '').strip()
+
+        if not url or not email or not token:
+            return jsonify({'success': False, 'error': 'URL, 이메일, API 토큰은 필수입니다.'}), 400
+
+        resp = req.get(
+            f'{url}/rest/api/3/myself',
+            auth=HTTPBasicAuth(email, token),
+            headers={'Accept': 'application/json'},
+            timeout=10
+        )
+
+        if resp.status_code == 200:
+            display_name = resp.json().get('displayName', email)
+            return jsonify({
+                'success': True,
+                'message': f'연결 성공! ({display_name})'
+            })
+        elif resp.status_code == 401:
+            return jsonify({'success': False, 'error': '인증 실패. 이메일 또는 API 토큰을 확인하세요.'}), 401
+        else:
+            return jsonify({'success': False, 'error': f'연결 실패 (HTTP {resp.status_code})'}), 400
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'연결 오류: {str(e)}'}), 500
+
 
 @jira_bp.route('/health', methods=['GET'])
 def health_check():

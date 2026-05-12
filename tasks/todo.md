@@ -1,3 +1,33 @@
+# Task: 보안 설정 기능 구현
+
+## 배경
+회원 정보 > 보안 설정 placeholder를 실제 기능으로 구현.
+- 2단계 인증(2FA/TOTP), 세션 만료 시간, 접속 허용 IP, OTP
+
+## 구현 계획
+
+### 백엔드
+- [ ] `models.py`: UserSecuritySettings 모델 추가
+- [ ] `requirements.txt`: pyotp 추가
+- [ ] `routes/users.py`: 보안 설정 API 5개 (GET/PUT security-settings, POST/POST/DELETE 2fa)
+- [ ] `routes/auth.py`: 로그인 시 IP 체크, 2FA 분기, /verify-2fa 엔드포인트
+- [ ] `utils/auth_helpers.py`: create_tokens에 expires_minutes 파라미터 추가
+
+### 프론트엔드
+- [ ] `frontend/package.json`: qrcode.react 추가
+- [ ] `AuthContext.js`: login 함수 2FA 분기, verify2fa 함수 추가
+- [ ] `Login.js`: 2FA OTP 입력 단계 추가
+- [ ] `UserProfile.js`: renderSecuritySection 실제 구현
+- [ ] `UserProfile.css`: 보안 설정 스타일 추가
+
+## 검증
+- [ ] 2FA 설정 → QR 코드 표시 → 앱에서 등록 → OTP 검증
+- [ ] 세션 만료 시간 저장/조회
+- [ ] IP 화이트리스트 추가/삭제
+- [ ] 2FA 활성화 후 로그인 시 OTP 입력 화면 표시
+
+---
+
 # Task: 백엔드 전체 검수 및 이슈 수정
 
 ## 배경
