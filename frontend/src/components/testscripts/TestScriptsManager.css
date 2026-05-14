@@ -670,33 +670,3 @@
   word-break: break-all;
 }
 
-/* 다크 모드 지원 */
-@media (prefers-color-scheme: dark) {
-  .test-scripts-manager {
-    background: #1a1a1a;
-    color: #e8eaed;
-  }
-  
-  .manager-header, .file-list-panel, .editor-panel {
-    background: #2d2d2d;
-    border-color: #404040;
-  }
-  
-  .file-item:hover {
-    background: #404040;
-  }
-  
-  .file-item.selected {
-    background: #1a3a5c;
-  }
-  
-  .modal-content {
-    background: #2d2d2d;
-  }
-  
-  .form-group input {
-    background: #404040;
-    border-color: #606060;
-    color: #e8eaed;
-  }
-}
