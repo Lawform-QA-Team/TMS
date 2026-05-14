@@ -265,13 +265,35 @@ def _get_current_user_id():
     return None
 
 
+# OpenAI 호환 API base URL 매핑
+_OPENAI_COMPAT_URLS = {
+    'openai':     'https://api.openai.com/v1',
+    'xai':        'https://api.x.ai/v1',
+    'perplexity': 'https://api.perplexity.ai',
+    'mistral':    'https://api.mistral.ai/v1',
+    'groq':       'https://api.groq.com/openai/v1',
+    'upstage':    'https://api.upstage.ai/v1/solar',
+}
+
+# 공급자별 기본 모델
+_DEFAULT_MODELS = {
+    'openai':     'gpt-4o-mini',
+    'xai':        'grok-3-mini',
+    'perplexity': 'sonar',
+    'mistral':    'mistral-small-latest',
+    'groq':       'llama-3.3-70b-versatile',
+    'upstage':    'solar-pro',
+    'anthropic':  'claude-sonnet-4-6',
+    'google':     'gemini-2.0-flash',
+}
+
+
 def _call_ai_api(messages, system_prompt, user_id=None, max_tokens=2000):
     """
     공급자별 AI API 호출 통합 헬퍼.
     사용자 설정 키/모델 우선, 없으면 서버 env var (OpenAI) fallback.
     반환: (content: str, error: str|None)
     """
-    # 사용자 설정 조회
     provider = 'openai'
     api_key = None
     model_name = None
@@ -283,24 +305,18 @@ def _call_ai_api(messages, system_prompt, user_id=None, max_tokens=2000):
             api_key = cfg.api_key
             model_name = cfg.model_name
 
-    # fallback: 서버 env (OpenAI만 지원)
+    # fallback: 서버 env (OpenAI)
     if not api_key:
         provider = 'openai'
         api_key = os.getenv('OPENAI_API_KEY')
         if not api_key:
             return None, 'AI API 키가 설정되지 않았습니다. 프로필 > AI API 설정에서 키를 등록하세요.'
 
-    # 공급자별 기본 모델
-    default_models = {
-        'openai': 'gpt-4o-mini',
-        'anthropic': 'claude-sonnet-4-6',
-        'google': 'gemini-2.0-flash',
-    }
-    model = model_name or default_models.get(provider, 'gpt-4o-mini')
+    model = model_name or _DEFAULT_MODELS.get(provider, 'gpt-4o-mini')
 
     try:
-        if provider == 'openai':
-            return _call_openai(api_key, model, system_prompt, messages, max_tokens)
+        if provider in _OPENAI_COMPAT_URLS:
+            return _call_openai_compat(api_key, model, system_prompt, messages, max_tokens, _OPENAI_COMPAT_URLS[provider])
         elif provider == 'anthropic':
             return _call_anthropic(api_key, model, system_prompt, messages, max_tokens)
         elif provider == 'google':
@@ -314,7 +330,8 @@ def _call_ai_api(messages, system_prompt, user_id=None, max_tokens=2000):
         return None, 'AI 호출 중 오류가 발생했습니다.'
 
 
-def _call_openai(api_key, model, system_prompt, messages, max_tokens):
+def _call_openai_compat(api_key, model, system_prompt, messages, max_tokens, base_url):
+    """OpenAI 호환 API 공통 호출 (OpenAI/xAI/Perplexity/Mistral/DeepSeek/Groq/Upstage)"""
     payload = {
         'model': model,
         'messages': [{'role': 'system', 'content': system_prompt}, *messages],
@@ -322,12 +339,12 @@ def _call_openai(api_key, model, system_prompt, messages, max_tokens):
         'max_tokens': max_tokens,
     }
     r = requests.post(
-        'https://api.openai.com/v1/chat/completions',
+        f'{base_url}/chat/completions',
         headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
         json=payload, timeout=60,
     )
     if not r.ok:
-        return None, f'OpenAI 호출 실패: {r.status_code} {r.text[:200]}'
+        return None, f'AI 호출 실패 ({base_url}): {r.status_code} {r.text[:200]}'
     content = r.json().get('choices', [{}])[0].get('message', {}).get('content', '').strip()
     return content, None
 
@@ -337,7 +354,7 @@ def _call_anthropic(api_key, model, system_prompt, messages, max_tokens):
     filtered = []
     for m in messages:
         if filtered and filtered[-1]['role'] == m['role']:
-            continue  # 같은 역할 연속 제거
+            continue
         filtered.append({'role': m['role'], 'content': m['content']})
     if not filtered or filtered[0]['role'] != 'user':
         filtered = [{'role': 'user', 'content': '안녕하세요'}] + filtered

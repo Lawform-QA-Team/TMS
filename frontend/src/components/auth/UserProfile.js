@@ -71,9 +71,14 @@ const UserProfile = () => {
 
   // AI API 설정
   const AI_PROVIDERS = {
-    openai:    { label: 'OpenAI (GPT)',        models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo'] },
-    anthropic: { label: 'Anthropic (Claude)',  models: ['claude-opus-4-6', 'claude-sonnet-4-6', 'claude-haiku-4-5-20251001'] },
-    google:    { label: 'Google (Gemini)',     models: ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'] },
+    openai:     { label: 'OpenAI (GPT)',             models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo'] },
+    anthropic:  { label: 'Anthropic (Claude)',        models: ['claude-opus-4-6', 'claude-sonnet-4-6', 'claude-haiku-4-5-20251001'] },
+    google:     { label: 'Google (Gemini)',           models: ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'] },
+    xai:        { label: 'xAI (Grok)',               models: ['grok-3', 'grok-3-mini', 'grok-2-1212'] },
+    perplexity: { label: 'Perplexity',               models: ['sonar-pro', 'sonar', 'sonar-reasoning-pro', 'sonar-reasoning'] },
+    mistral:    { label: 'Mistral AI',               models: ['mistral-large-latest', 'mistral-small-latest', 'open-mistral-nemo'] },
+    groq:       { label: 'Groq',                     models: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'gemma2-9b-it', 'mixtral-8x7b-32768'] },
+    upstage:    { label: 'Upstage (Solar)',           models: ['solar-pro', 'solar-mini'] },
   };
   const [aiConfig, setAiConfig] = useState({ provider: 'openai', api_key: '', model_name: 'gpt-4o-mini', has_api_key: false, api_key_masked: '' });
   const [aiConfigLoading, setAiConfigLoading] = useState(false);
