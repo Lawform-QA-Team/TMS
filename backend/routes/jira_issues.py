@@ -6,8 +6,8 @@ Mock JIRA 서버 대신 데이터베이스에 직접 저장
 from flask import Blueprint, request, jsonify
 from models import db, JiraIssue, JiraComment, TestCase
 from utils.auth_decorators import user_required, guest_allowed
-from datetime import datetime
 import json
+from utils.timezone_utils import get_kst_now
 import uuid
 
 jira_issues_bp = Blueprint('jira_issues', __name__, url_prefix='/api/jira')
@@ -97,6 +97,101 @@ def get_jira_stats():
             'success': False,
             'error': f'통계 조회 중 오류가 발생했습니다: {str(e)}'
         }), 500
+
+@jira_issues_bp.route('/issues/import', methods=['POST'])
+@user_required
+def import_issues_from_jira():
+    """Jira Cloud에서 이슈를 가져와 TMS DB에 upsert"""
+    try:
+        import requests as req
+        from requests.auth import HTTPBasicAuth
+        from models import SystemConfig
+
+        url_cfg   = SystemConfig.query.filter_by(key='jira_url').first()
+        email_cfg = SystemConfig.query.filter_by(key='jira_email').first()
+        token_cfg = SystemConfig.query.filter_by(key='jira_api_token').first()
+
+        if not (url_cfg and url_cfg.value and email_cfg and email_cfg.value and token_cfg and token_cfg.value):
+            return jsonify({'success': False, 'error': 'Jira 설정이 없습니다. 먼저 Jira 연동 설정을 완료해주세요.'}), 400
+
+        jira_url = url_cfg.value.rstrip('/')
+        email    = email_cfg.value
+        token    = token_cfg.value
+
+        body = request.get_json() or {}
+        jql  = body.get('jql', '') or 'ORDER BY created DESC'
+
+        payload = {
+            'jql': jql,
+            'startAt': 0,
+            'maxResults': 100,
+            'fields': ['summary', 'status', 'priority', 'issuetype', 'assignee', 'reporter', 'labels', 'description', 'created', 'updated']
+        }
+
+        resp = req.post(
+            f'{jira_url}/rest/api/3/search',
+            auth=HTTPBasicAuth(email, token),
+            headers={'Accept': 'application/json', 'Content-Type': 'application/json'},
+            json=payload,
+            timeout=15
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+        issues_data = data.get('issues', [])
+        imported = 0
+
+        for item in issues_data:
+            issue_key   = item['key']
+            fields      = item.get('fields', {})
+            project_key = issue_key.split('-')[0]
+
+            assignee   = fields.get('assignee') or {}
+            reporter   = fields.get('reporter') or {}
+            priority   = fields.get('priority') or {}
+            status     = fields.get('status') or {}
+            issuetype  = fields.get('issuetype') or {}
+            labels     = fields.get('labels', [])
+            description = fields.get('description') or ''
+            if isinstance(description, dict):
+                description = str(description)
+
+            existing = JiraIssue.query.filter_by(issue_key=issue_key).first()
+            if existing:
+                existing.summary        = fields.get('summary', '')
+                existing.status         = status.get('name', 'To Do')
+                existing.priority       = priority.get('name', 'Medium')
+                existing.issue_type     = issuetype.get('name', 'Task')
+                existing.assignee_email = assignee.get('emailAddress', '')
+                existing.labels         = json.dumps(labels)
+                existing.updated_at     = get_kst_now()
+            else:
+                db.session.add(JiraIssue(
+                    issue_key      = issue_key,
+                    project_key    = project_key,
+                    summary        = fields.get('summary', ''),
+                    status         = status.get('name', 'To Do'),
+                    priority       = priority.get('name', 'Medium'),
+                    issue_type     = issuetype.get('name', 'Task'),
+                    assignee_email = assignee.get('emailAddress', ''),
+                    reporter_email = reporter.get('emailAddress', ''),
+                    labels         = json.dumps(labels),
+                    description    = description,
+                ))
+            imported += 1
+
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': f'{imported}개 이슈를 Jira에서 가져왔습니다.',
+            'data': {'imported': imported, 'total': data.get('total', 0)}
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 
 @jira_issues_bp.route('/issues', methods=['GET'])
 @guest_allowed
@@ -352,7 +447,7 @@ def update_issue(issue_key):
         if 'environment' in data:
             issue.environment = data['environment']
         
-        issue.updated_at = datetime.utcnow()
+        issue.updated_at = get_kst_now()
         
         db.session.commit()
         
