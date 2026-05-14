@@ -233,6 +233,9 @@
   white-space: nowrap;
   flex-shrink: 0;
   width: auto;
+  padding: 9px 16px;
+  font-size: 14px;
+  margin-bottom: 0;
 }
 
 .security-ip-tags {
@@ -349,6 +352,9 @@
 
 .security-otp-row .auth-button {
   width: auto;
+  padding: 9px 16px;
+  font-size: 14px;
+  margin-bottom: 0;
 }
 
 .security-otp-input {

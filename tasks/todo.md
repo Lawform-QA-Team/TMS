@@ -1,3 +1,13 @@
+# Task: 연동 설정 메뉴 통합 (AI API 설정 + Jira 연동)
+
+## 계획
+- [x] UserProfile.js: `AI API 설정` → `연동 설정` 메뉴로 통합
+- [x] UserProfile.js: JiraConfigPanel import 및 연동 설정 섹션에 포함
+- [x] menu key `ai-config` → `integrations` 변경
+- [x] JiraConfigPanel.js: CSS import 추가 (자체 스타일 보장)
+
+---
+
 # Task: Jira 코드 검수 이슈 수정
 
 ## 수정 목록

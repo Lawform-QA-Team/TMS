@@ -3,6 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '@tms/contexts/AuthContext';
 import config from '@tms/config';
 import { formatUTCToKST } from '@tms/utils/dateUtils';
+import JiraConfigPanel from '@tms/components/jira/JiraConfigPanel';
 import '@tms/components/auth/Auth.css';
 import '@tms/components/auth/UserProfile.css';
 
@@ -156,7 +157,7 @@ const UserProfile = () => {
     if (activeMenu === 'login-fail' && !isGuest) {
       fetchLoginFailHistory();
     }
-    if (activeMenu === 'ai-config' && !isGuest) {
+    if (activeMenu === 'integrations' && !isGuest) {
       fetchAiConfig();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1019,98 +1020,108 @@ const UserProfile = () => {
     </div>
   );
 
-  const renderAiConfigSection = () => {
+  const renderIntegrationsSection = () => {
     const providerModels = AI_PROVIDERS[aiConfig.provider]?.models || [];
     return (
       <div className="profile-security">
         <div className="profile-section-header">
-          <h2>AI API 설정</h2>
-          <p>TC 생성에 사용할 AI 공급자와 API 키를 설정합니다. 설정하지 않으면 서버 기본 키를 사용합니다.</p>
+          <h2>연동 설정</h2>
+          <p>외부 서비스 연동 및 API 키를 관리합니다.</p>
         </div>
 
-        {aiConfigMessage.text && (
-          <div className={`auth-${aiConfigMessage.type}`}>
-            {aiConfigMessage.type === 'success' ? '✅' : '❌'} {aiConfigMessage.text}
-          </div>
-        )}
-
-        {/* AI 공급자 선택 */}
+        {/* Jira 연동 */}
         <div className="security-group">
-          <div className="security-group-title">AI 공급자</div>
-          <select
-            className="security-select"
-            value={aiConfig.provider}
-            onChange={(e) => setAiConfig(prev => ({ ...prev, provider: e.target.value, model_name: AI_PROVIDERS[e.target.value]?.models[0] || '' }))}
-            disabled={aiConfigLoading}
-          >
-            {Object.entries(AI_PROVIDERS).map(([key, val]) => (
-              <option key={key} value={key}>{val.label}</option>
-            ))}
-          </select>
+          <div className="security-group-title">Jira 연동</div>
+          <div className="security-group-desc">Jira Cloud와 연동하여 이슈를 TC로 가져올 수 있습니다.</div>
+          <JiraConfigPanel />
         </div>
 
-        {/* 모델 선택 */}
+        {/* AI API 설정 */}
         <div className="security-group">
-          <div className="security-group-title">AI 모델</div>
-          <select
-            className="security-select"
-            value={aiConfig.model_name}
-            onChange={(e) => setAiConfig(prev => ({ ...prev, model_name: e.target.value }))}
-            disabled={aiConfigLoading}
-          >
-            {providerModels.map(m => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
-        </div>
+          <div className="security-group-title">AI API 설정</div>
+          <div className="security-group-desc">TC 생성에 사용할 AI 공급자와 API 키를 설정합니다. 설정하지 않으면 서버 기본 키를 사용합니다.</div>
 
-        {/* API 키 입력 */}
-        <div className="security-group">
-          <div className="security-group-title">API 키</div>
-          <div className="security-group-desc">
-            {aiConfig.has_api_key
-              ? <>현재 저장된 키: <code className="security-2fa-secret-value">{aiConfig.api_key_masked}</code></>
-              : '저장된 API 키가 없습니다. 서버 기본 키를 사용합니다.'}
-          </div>
-          <div className="security-ip-input-row">
-            <input
-              type={showApiKey ? 'text' : 'password'}
-              className="security-ip-input"
-              placeholder="새 API 키를 입력하세요 (비워두면 기존 키 유지)"
-              value={aiConfig.api_key}
-              onChange={(e) => setAiConfig(prev => ({ ...prev, api_key: e.target.value }))}
-              disabled={aiConfigLoading}
-            />
-            <button
-              type="button"
-              className="auth-button auth-button-secondary security-ip-add-btn"
-              onClick={() => setShowApiKey(v => !v)}
-            >
-              {showApiKey ? '숨기기' : '보기'}
-            </button>
-          </div>
-          {aiConfig.has_api_key && (
-            <button
-              type="button"
-              className="auth-button auth-button-danger"
-              style={{ marginTop: 8 }}
-              onClick={handleClearApiKey}
-              disabled={aiConfigLoading}
-            >
-              API 키 삭제
-            </button>
+          {aiConfigMessage.text && (
+            <div className={`auth-${aiConfigMessage.type}`} style={{ marginTop: 8 }}>
+              {aiConfigMessage.type === 'success' ? '✅' : '❌'} {aiConfigMessage.text}
+            </div>
           )}
-        </div>
 
-        <div className="profile-actions">
-          <button
-            type="button"
-            className="auth-button auth-button-primary"
-            onClick={handleAiConfigSave}
-            disabled={aiConfigLoading}
-          >
-            {aiConfigLoading ? '저장 중...' : '설정 저장'}
-          </button>
+          <div style={{ marginTop: 12 }}>
+            <div className="security-group-title" style={{ fontSize: '0.85rem', fontWeight: 500, marginBottom: 4 }}>AI 공급자</div>
+            <select
+              className="security-select"
+              value={aiConfig.provider}
+              onChange={(e) => setAiConfig(prev => ({ ...prev, provider: e.target.value, model_name: AI_PROVIDERS[e.target.value]?.models[0] || '' }))}
+              disabled={aiConfigLoading}
+            >
+              {Object.entries(AI_PROVIDERS).map(([key, val]) => (
+                <option key={key} value={key}>{val.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ marginTop: 12 }}>
+            <div className="security-group-title" style={{ fontSize: '0.85rem', fontWeight: 500, marginBottom: 4 }}>AI 모델</div>
+            <select
+              className="security-select"
+              value={aiConfig.model_name}
+              onChange={(e) => setAiConfig(prev => ({ ...prev, model_name: e.target.value }))}
+              disabled={aiConfigLoading}
+            >
+              {providerModels.map(m => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ marginTop: 12 }}>
+            <div className="security-group-title" style={{ fontSize: '0.85rem', fontWeight: 500, marginBottom: 4 }}>API 키</div>
+            <div className="security-group-desc">
+              {aiConfig.has_api_key
+                ? <>현재 저장된 키: <code className="security-2fa-secret-value">{aiConfig.api_key_masked}</code></>
+                : '저장된 API 키가 없습니다. 서버 기본 키를 사용합니다.'}
+            </div>
+            <div className="security-ip-input-row" style={{ marginTop: 6 }}>
+              <input
+                type={showApiKey ? 'text' : 'password'}
+                className="security-ip-input"
+                placeholder="새 API 키를 입력하세요 (비워두면 기존 키 유지)"
+                value={aiConfig.api_key}
+                onChange={(e) => setAiConfig(prev => ({ ...prev, api_key: e.target.value }))}
+                disabled={aiConfigLoading}
+              />
+              <button
+                type="button"
+                className="auth-button auth-button-secondary security-ip-add-btn"
+                onClick={() => setShowApiKey(v => !v)}
+              >
+                {showApiKey ? '숨기기' : '보기'}
+              </button>
+            </div>
+            {aiConfig.has_api_key && (
+              <button
+                type="button"
+                className="auth-button auth-button-danger"
+                style={{ marginTop: 8 }}
+                onClick={handleClearApiKey}
+                disabled={aiConfigLoading}
+              >
+                API 키 삭제
+              </button>
+            )}
+          </div>
+
+          <div className="profile-actions" style={{ marginTop: 16 }}>
+            <button
+              type="button"
+              className="auth-button auth-button-primary"
+              onClick={handleAiConfigSave}
+              disabled={aiConfigLoading}
+            >
+              {aiConfigLoading ? '저장 중...' : 'AI 설정 저장'}
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -1144,8 +1155,8 @@ const UserProfile = () => {
         return renderLoginFailSection();
       case 'security':
         return renderSecuritySection();
-      case 'ai-config':
-        return renderAiConfigSection();
+      case 'integrations':
+        return renderIntegrationsSection();
       case 'logout':
         return renderLogoutSection();
       default:
@@ -1215,10 +1226,10 @@ const UserProfile = () => {
               {!isGuest && (
                 <li>
                   <button
-                    className={`snb-item ${activeMenu === 'ai-config' ? 'active' : ''}`}
-                    onClick={() => setActiveMenu('ai-config')}
+                    className={`snb-item ${activeMenu === 'integrations' ? 'active' : ''}`}
+                    onClick={() => setActiveMenu('integrations')}
                   >
-                    AI API 설정
+                    연동 설정
                   </button>
                 </li>
               )}
