@@ -191,7 +191,6 @@
 .search-input:focus {
   outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
 .search-input::placeholder {
@@ -243,7 +242,6 @@
 .filter-select:focus {
   outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
 }
 
 /* 페이지네이션 상단 */
@@ -363,7 +361,6 @@
   border-radius: 10px;
   border: 1px solid #e1e5e9;
   background: #fff;
-  box-shadow: 0 1px 3px rgba(15, 76, 129, 0.08);
 }
 
 .jira-issues-table {
@@ -485,11 +482,9 @@
   border-radius: 8px;
   padding: 20px;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .jira-issue-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transform: translateY(-2px);
 }
 
@@ -665,7 +660,6 @@
 .status-select:focus {
   outline: none;
   border-color: #0052cc;
-  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.1);
 }
 
 /* 버튼 스타일 */
@@ -692,13 +686,11 @@
 .jira-issues-list-container .btn-primary {
   background: #0052cc;
   color: white;
-  box-shadow: 0 2px 4px rgba(0, 82, 204, 0.2);
 }
 
 .jira-issues-list-container .btn-primary:hover:not(:disabled) {
   background: #0041a3;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 82, 204, 0.3);
 }
 
 .jira-issues-list-container .btn-secondary {
@@ -870,7 +862,6 @@
 .jira-issues-list-container .modal-overlay .modal {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1178,7 +1169,6 @@
 .form-control:focus {
   outline: none;
   border-color: #0052cc;
-  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
   background: white;
 }
 
@@ -1342,7 +1332,6 @@
 
 .test-case-link:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
 /* 상세 모달용 연결된 테스트 케이스 스타일 */
@@ -1392,12 +1381,10 @@
   color: white;
   text-decoration: none;
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
 }
 
 .test-case-link-detail:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }
 
 /* 반응형 스타일 */

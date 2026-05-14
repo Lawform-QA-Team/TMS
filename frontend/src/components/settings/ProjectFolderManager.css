@@ -112,7 +112,6 @@
   border-radius: 10px;
   border: 1px solid #e9ecef;
   background: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .project-folder-manager .users-table {
@@ -267,7 +266,6 @@
   max-height: 90vh;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -345,7 +343,6 @@
 .project-folder-manager .modal-overlay .modal .form-group select:focus {
   outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
 .project-folder-manager .modal-overlay .modal .form-group textarea {
@@ -371,5 +368,4 @@
 
 .project-folder-manager .modal-overlay .modal-actions .btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }

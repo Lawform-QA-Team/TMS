@@ -19,7 +19,7 @@
   border-radius: var(--tms-radius-md);
   cursor: pointer;
   transition: background-color var(--tms-transition), border-color var(--tms-transition),
-    color var(--tms-transition), transform var(--tms-transition), box-shadow var(--tms-transition);
+    color var(--tms-transition), transform var(--tms-transition);
   white-space: nowrap;
 }
 
@@ -43,13 +43,11 @@
   background: linear-gradient(135deg, var(--tms-primary) 0%, var(--tms-primary-light) 100%);
   color: white;
   border-color: var(--tms-primary);
-  box-shadow: var(--tms-shadow-sm);
 }
 
 .tms-btn--primary:hover:not(:disabled) {
   background: var(--tms-primary-hover);
   border-color: var(--tms-primary-hover);
-  box-shadow: var(--tms-shadow-primary);
   transform: translateY(-1px);
 }
 
@@ -170,7 +168,7 @@
   background: var(--tms-bg-card);
   border: 1px solid var(--tms-border);
   border-radius: var(--tms-radius-md);
-  transition: border-color var(--tms-transition), box-shadow var(--tms-transition);
+  transition: border-color var(--tms-transition);
   box-sizing: border-box;
 }
 
@@ -184,7 +182,6 @@
 .tms-select:focus {
   outline: none;
   border-color: var(--tms-primary);
-  box-shadow: 0 0 0 3px var(--tms-primary-bg);
 }
 
 .tms-input:disabled,
@@ -210,13 +207,11 @@
   background: var(--tms-bg-card);
   border: 1px solid var(--tms-border);
   border-radius: var(--tms-radius-lg);
-  box-shadow: var(--tms-shadow-sm);
   overflow: hidden;
-  transition: box-shadow var(--tms-transition), border-color var(--tms-transition);
+  transition: border-color var(--tms-transition);
 }
 
 .tms-card:hover {
-  box-shadow: var(--tms-shadow-md);
 }
 
 .tms-card__header {

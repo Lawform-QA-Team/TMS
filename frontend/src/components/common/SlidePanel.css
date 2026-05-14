@@ -23,7 +23,6 @@
   width: 50vw;
   min-width: 400px;
   background: #fff;
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
   transform: translateX(100%);
   transition: transform 0.3s ease;
   z-index: 401;

@@ -13,7 +13,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .manager-header h2 {
@@ -51,7 +50,6 @@
 .tab-button.active {
   background: white;
   color: #1a73e8;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .tab-button:hover:not(.active) {
@@ -227,7 +225,6 @@
 .file-item.selected {
   background: #e3f2fd !important;
   border-color: #1a73e8 !important;
-  box-shadow: 0 0 0 1px #1a73e8;
 }
 
 .file-info {
@@ -475,7 +472,6 @@
 .test-scripts-manager .modal-content {
   background: white;
   border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
   width: 90%;
   max-width: 800px;
   max-height: 90vh;
@@ -546,7 +542,6 @@
 .form-group input:focus {
   outline: none;
   border-color: #1a73e8;
-  box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
 }
 
 .test-scripts-manager .modal-footer {
@@ -656,7 +651,6 @@
 .folder-select:focus {
   outline: none;
   border-color: #1a73e8;
-  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
 }
 
 .folder-select option {

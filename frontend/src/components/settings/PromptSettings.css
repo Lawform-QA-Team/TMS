@@ -9,7 +9,6 @@
   padding: 20px;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .prompt-settings-header h2 {
@@ -35,7 +34,6 @@
   background: white;
   border-radius: 8px;
   padding: 24px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .prompt-settings-section h3 {
@@ -68,7 +66,6 @@
 .prompt-textarea:focus {
   outline: none;
   border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
 }
 
 .prompt-settings-actions {
