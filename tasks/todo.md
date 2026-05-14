@@ -316,3 +316,17 @@ console.log(`... ${duration}ms`);
 - [x] Python 문법 검사: `models.py`, `testcases.py`, `users.py` 모두 OK
 - [x] 프론트엔드 빌드: `Compiled with warnings.` (기존 경고만, 신규 없음)
 - [x] DB 테이블: `UserAiConfigs` 생성 확인
+
+---
+
+# Task: AI 공급자 확장 (xAI/Perplexity/Mistral/Groq/Upstage)
+
+## 구현 계획
+- [x] `routes/testcases.py`: `_OPENAI_COMPAT_URLS` 딕셔너리로 OpenAI 호환 공급자 관리
+- [x] `routes/testcases.py`: `_call_openai_compat()` 단일 함수로 통합 (base_url 파라미터)
+- [x] `routes/testcases.py`: xAI, Perplexity, Mistral, Groq, Upstage 추가 (DeepSeek 제외)
+- [x] `UserProfile.js`: `AI_PROVIDERS` 8개 공급자로 확장
+
+## 검토
+- [x] Python 문법 검사 OK
+- [x] 프론트엔드 빌드 OK
