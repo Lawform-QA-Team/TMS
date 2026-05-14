@@ -319,6 +319,31 @@ re.sub(r'(\w+)\.query\.get\((.+?)\)', r'db.session.get(\1, \2)', code)
 
 ---
 
+### Jira 코드 검수 — 재발 방지 패턴
+
+**프론트엔드 API 호출 인증 헤더**
+- 신규 컴포넌트 작성 시 `const { user, token } = useAuth()` + `const authHeader = ...` 선언을 가장 먼저 할 것
+- 같은 파일에서 컴포넌트마다 인증 헤더 적용 여부를 각각 확인할 것 (JiraConfigPanel은 있는데 JiraIssuesList는 없는 케이스 발생)
+
+**백엔드 신규 Blueprint 체크리스트**
+- 시스템 설정 변경 엔드포인트(POST/PUT) → `@admin_required`
+- 조회 전용이라도 인증 없이 노출 금지 → `@user_required` 최소 적용
+- health check, init-db 등 인프라 엔드포인트도 인증 필요
+
+**datetime 일관성**
+- 프로젝트 전체 `get_kst_now()` 사용 → 신규 코드에 `datetime.utcnow()` 절대 금지
+- `from utils.timezone_utils import get_kst_now` 만 import하면 실수 방지
+
+**데드코드 방지**
+- `eslint-disable-next-line no-unused-vars`로 억압된 함수는 제거 대상 신호
+- 해당 함수가 여는 modal state도 함께 제거 대상인지 확인할 것
+
+**JSON.parse 방어**
+- DB에서 온 JSON 컬럼(labels 등)은 렌더 중 직접 `JSON.parse()` 호출 금지
+- `parseLabels()` 같은 try/catch 헬퍼로 감싸서 사용할 것
+
+---
+
 ### k6 성능 측정 - Date.now() 이중 계산
 
 **현상**: 메트릭에 기록된 값과 로그에 출력된 값이 항상 다름
