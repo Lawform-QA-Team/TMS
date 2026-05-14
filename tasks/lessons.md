@@ -423,3 +423,44 @@ def _get_current_user_id():
 - PUT 시 빈 문자열이면 기존 키 유지 (덮어쓰기 방지)
 - 별도 `clear-key` 엔드포인트로 명시적 삭제만 허용
 
+---
+
+## 2026-05-14
+
+### fullscreen-modal → SlidePanel 교체 패턴
+
+모달을 SlidePanel로 교체할 때 두 번의 Edit으로 나눠서 처리:
+1. **상단**: `modal-overlay` + `modal-header` 제거 → `<SlidePanel isOpen=... onClose=... title=...>` + `{children && (<>` 로 교체
+2. **하단**: 남은 `</div></div>)}` (overlay 닫기들) → `</></SlidePanel>` 로 교체
+3. `modal-body` 감싸는 div가 있으면 별도로 제거할 것 (orphan `</div>` 생김 주의)
+
+---
+
+### CSS selector 범위 — 컴포넌트 교체 시 적용 안 되는 문제
+
+`.modal-overlay .modal-actions`처럼 특정 컨텍스트에 묶인 selector는 컴포넌트 구조가 바뀌면 적용되지 않는다.
+- 교체 후 selector에서 중간 컨텍스트(`.modal-overlay`) 제거 필요
+- 컴포넌트 교체 후 반드시 CSS selector 유효성 재확인
+
+---
+
+### SlidePanel — width는 CSS에서 관리
+
+JS props(`width={600}`)로 고정 픽셀을 전달하면 반응형 통일이 어렵다.
+- `SlidePanel.css`에서 `width: 50vw; min-width: 400px`로 CSS 레벨에서 관리
+- JS에서 width prop 제거, 예외적인 크기는 CSS 클래스로 처리
+
+---
+
+### `@media (prefers-color-scheme: dark)` — 앱 전체 다크 모드 미지원 시 금지
+
+앱이 다크 모드를 지원하지 않는데 특정 컴포넌트에만 `prefers-color-scheme: dark` 쿼리가 있으면, OS/브라우저 설정에 따라 해당 컴포넌트만 배경이 바뀌어 흰색/검은색으로 달라 보인다.
+- 앱 전체 다크 모드 지원 전까지 개별 컴포넌트에 dark 미디어 쿼리 추가 금지
+
+---
+
+### box-shadow 일괄 제거 시 transition 참조도 함께 정리
+
+`box-shadow:` 속성을 제거해도 `transition: border-color 0.15s, box-shadow 0.15s;`처럼 transition에 섞인 참조가 남는다.
+- `/box-shadow:/d` 로 속성 줄 제거 후, `grep -rn "box-shadow"` 로 transition 잔여 참조 확인 및 제거
+

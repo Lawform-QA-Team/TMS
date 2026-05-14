@@ -10,6 +10,15 @@
 - [x] `PerformanceTestManager`: fullscreen-modal → SlidePanel
 - [x] `JiraIssuesList`: fullscreen-modal → SlidePanel
 
+## UI 개선 (후속)
+- [x] SlidePanel 폭 `50vw` CSS 고정, width prop 제거
+- [x] 진행현황 파이차트: grid → flex, 파이 `160px` 고정폭
+- [x] SlidePanel 헤더 구분선 완전 제거
+- [x] Jira 상세 버튼 가로 1줄 중앙 정렬, 너비 통일
+- [x] 이슈 메뉴에서 Jira 연동 설정 패널 제거
+- [x] 전체 UI `box-shadow` 완전 제거 (27개 파일)
+- [x] 테스트 스크립트: `prefers-color-scheme: dark` 미디어 쿼리 제거
+
 ---
 
 # Task: 연동 설정 메뉴 통합 (AI API 설정 + Jira 연동)
