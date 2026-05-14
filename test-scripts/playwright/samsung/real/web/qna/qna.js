@@ -4,7 +4,7 @@
 import { URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
-import { getWebCredentials, loginWithPage } from '../../admin/login/login_helper.js';
+import { getWebCredentials, loginWebWithPage } from '../../admin/login/login_helper.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
 
 async function wait(ms) {
@@ -18,7 +18,7 @@ export async function run(page) {
   const credentials = getWebCredentials();
   const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
-  await loginWithPage(page, credentials, URLS.WEB_LOGIN.HOME);
+  await loginWebWithPage(page, credentials);
 
   // 1:1 문의
   await page.goto(URLS.SERVICE.WEB_QNA, {

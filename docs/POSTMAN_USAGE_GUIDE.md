@@ -18,7 +18,7 @@ python app.py
 ```
 
 ### 3. Postman 컬렉션 Import
-- `docs/postman_collection_v2.5.0_complete.json` 파일을 Postman에 Import
+- `docs/postman_collection_v2.4.0_complete.json` 파일을 Postman에 Import
 - 또는 아래 가이드에 따라 수동으로 컬렉션 생성
 
 ## 🌐 환경 설정
@@ -521,6 +521,6 @@ pm.test("Authentication token is valid", function () {
 
 ---
 
-**마지막 업데이트**: 2025년 1월 9일
-**가이드 버전**: 2.5.0
+**마지막 업데이트**: 2026년 5월 11일
+**가이드 버전**: 2.7.0
 **상태**: 모든 API 엔드포인트 테스트 가능

@@ -5,11 +5,9 @@
 ### ✅ 완료된 배포
 - **프론트엔드**: Vercel에 성공적으로 배포됨
 - **백엔드**: Vercel에 성공적으로 배포됨 (backend-alpha 프로젝트)
-- **데이터베이스**: 로컬 Docker MySQL 정상 작동
-- **KST 시간대 처리**: 백엔드 전체 구현 완료
-
-### 🚧 진행 중인 이슈
-- **Vercel 인증**: 401 Authentication Required 오류 (GitHub SSO 관련)
+- **데이터베이스**: 로컬 Docker MySQL 및 클라우드 데이터베이스 연동 완료
+- **KST 시간대 처리**: 시스템 전반에 KST (UTC+9) 적용 완료
+- **Slack 연동**: Playwright 테스트 결과 Slack 자동 전송 완료 (v2.6.0)
 
 ## 📊 배포 환경별 상태
 
@@ -22,7 +20,32 @@
 ### Vercel 프로덕션 환경
 - **백엔드 URL**: `https://backend-alpha-liard.vercel.app`
 - **프론트엔드 URL**: `https://integrated-test-platform-dydlxktca-gyeonggong-parks-projects.vercel.app`
-- **상태**: 배포 완료, 인증 이슈 진행 중
+- **상태**: 배포 완료, 모든 기능 정상 작동 ✅
+
+## 🔐 v2.8.0 보안 및 품질 개선 (2026-05-04)
+
+### 9. 백엔드 보안 이슈 전면 수정 ✅
+**수정 항목**:
+- CORS `supports_credentials=True` + wildcard origin 충돌 → `False`로 수정
+- `/init-db`, `/db-status` 관리자 인증 누락 → `@admin_required` 추가
+- JWT 콜백 이중 등록 제거
+- health check degraded 응답 200 → 503
+- dashboard/jira/test_scripts 엔드포인트 인증 데코레이터 누락 보완
+- 비밀번호 변경 시 non-admin 현재 비밀번호 검증 추가
+- `os.path.commonpath` 기반 path traversal 보안 강화
+- SQLAlchemy 2.0: `Model.query.get()` 47건 → `db.session.get()` 전환
+- Jira Blueprint 중복 route 7개 제거, testcases_extended 중복 8개 제거
+
+### 10. 프론트엔드 UX 및 보안 개선 ✅
+**수정 항목**:
+- 사이드바 접기/펼치기 토글 기능 추가
+- 계정 관리: first_name/last_name 필드 추가, 임시 비밀번호 자동 생성 방식으로 전환
+- AuthContext: 로그인 로그에서 JWT 토큰 직접 노출 제거, `/me` 응답 payload wrapper 처리
+
+### 11. 의존성 업데이트 ✅
+- Flask 2.3.3 → 3.1.3
+- requests 2.32.4 → 2.33.1
+- cryptography 44.0.1 → 46.0.5
 
 ## 🔧 해결된 주요 문제들
 
@@ -61,19 +84,10 @@
 **원인**: 시간대 처리 로직 부재
 **해결**: `timezone_utils.py` 생성, 모든 시간 관련 코드를 KST로 통일
 
-## 🚧 현재 진행 중인 이슈
-
-### Vercel 인증 문제 (401 Authentication Required)
-**상태**: 진행 중
-**증상**: 배포된 백엔드 API 접근 시 401 오류
-**원인**: Vercel의 GitHub SSO 기반 인증 정책
-**시도한 해결책**:
-1. `VERCEL_AUTH_DISABLED=true` 환경 변수 설정
-2. `vercel.json`에 `"public": true` 설정
-3. Vercel Dashboard에서 인증 설정 변경 시도
-
-**현재 상황**: 사용자가 "Vercel Authentication" 설정을 찾을 수 없음
-**다음 단계**: Vercel Dashboard에서 인증 설정 위치 확인 필요
+### 8. Vercel 인증 문제 (401 Authentication Required) ✅
+**문제**: 배포된 백엔드 API 접근 시 401 오류
+**원인**: Vercel의 GitHub SSO 기반 인증 정책 및 CORS 설정 미흡
+**해결**: `vercel.json`의 CORS 헤더 명시적 설정 및 Vercel Deployment Protection 비활성화 완료
 
 ## 📁 최신화된 파일들
 
@@ -164,6 +178,7 @@ get_kst_datetime_string() # KST 문자열 형식
 
 ---
 
-**마지막 업데이트**: 2025년 8월 27일  
-**버전**: 2.1.0  
-**상태**: 프로덕션 배포 완료, KST 시간대 처리 완료 ✅ 
+**마지막 업데이트**: 2026년 5월 11일
+**버전**: 2.8.0
+**상태**: 프로덕션 배포 및 모든 이슈 해결 완료 ✅
+ 

@@ -250,6 +250,100 @@ status = pty.spawn(cmd, read)
 
 ---
 
+### Flask Blueprint route 충돌 감지
+
+**현상**: 앱 기동 시 에러 없이 실행되지만 일부 엔드포인트가 예상과 다른 핸들러로 처리됨
+
+**원인**: 두 Blueprint가 동일한 URL + method를 등록할 때, Flask는 먼저 등록된 것을 우선하고 나머지는 무시함 (에러 없음)
+
+**감지 방법**:
+```python
+from app import app
+with app.app_context():
+    rules = [(str(r), r.endpoint) for r in app.url_map.iter_rules()]
+    from collections import Counter
+    counts = Counter(f"{r.methods} {str(r)}" for r in app.url_map.iter_rules())
+    for url, count in counts.items():
+        if count > 1:
+            print(f"충돌: {url}")
+```
+
+**교훈**:
+- Blueprint를 추가하면 반드시 전체 route 충돌 검사를 실행할 것
+- 기존 Blueprint와 동일 URL을 등록하는 신규 Blueprint는 에러 없이 묻힘 → 침묵 버그
+- `url_prefix`가 없는 Blueprint는 다른 Blueprint와 충돌 가능성이 높음
+
+---
+
+### CORS `supports_credentials=True` + wildcard origin 충돌
+
+**현상**: 브라우저 콘솔에 `The value of the 'Access-Control-Allow-Origin' header must not be the wildcard '*' when credentials mode is 'include'` 오류
+
+**원인**: `Flask-CORS`에서 `supports_credentials=True`와 `origins="*"` 동시 사용 불가. 브라우저 스펙상 wildcard + credentials 조합 금지.
+
+**수정**: 프로덕션에서는 `origins` 명시적 목록 지정. 개발 환경에서는 `supports_credentials=False`로 유지.
+
+---
+
+### SQLAlchemy 2.0 - `Model.query.get()` deprecation
+
+**현상**: SQLAlchemy 2.0에서 `Model.query.get(id)` 사용 시 deprecation warning 또는 에러
+
+**수정**: `db.session.get(Model, id)`로 교체
+```python
+# 이전 (deprecated)
+user = User.query.get(user_id)
+
+# 신규 (SQLAlchemy 2.0+)
+user = db.session.get(User, user_id)
+```
+
+**일괄 치환**: Python regex로 자동화 가능
+```python
+re.sub(r'(\w+)\.query\.get\((.+?)\)', r'db.session.get(\1, \2)', code)
+```
+
+---
+
+### 백엔드 인증 누락 패턴
+
+**현상**: 인증 없이 민감 데이터 조회 가능. 프론트엔드 동작은 정상처럼 보임.
+
+**체크리스트**:
+- 공개 읽기가 허용된 엔드포인트 → `@guest_allowed`
+- 로그인 필요 엔드포인트 → `@login_required` 또는 `@user_required`
+- 관리자 전용 엔드포인트 → `@admin_required`
+- `/init-db`, `/db-status` 등 인프라 엔드포인트 → 반드시 `@admin_required`
+
+**교훈**: 신규 Blueprint 파일 작성 시 각 route에 데코레이터 누락 여부를 먼저 확인할 것
+
+---
+
+### Jira 코드 검수 — 재발 방지 패턴
+
+**프론트엔드 API 호출 인증 헤더**
+- 신규 컴포넌트 작성 시 `const { user, token } = useAuth()` + `const authHeader = ...` 선언을 가장 먼저 할 것
+- 같은 파일에서 컴포넌트마다 인증 헤더 적용 여부를 각각 확인할 것 (JiraConfigPanel은 있는데 JiraIssuesList는 없는 케이스 발생)
+
+**백엔드 신규 Blueprint 체크리스트**
+- 시스템 설정 변경 엔드포인트(POST/PUT) → `@admin_required`
+- 조회 전용이라도 인증 없이 노출 금지 → `@user_required` 최소 적용
+- health check, init-db 등 인프라 엔드포인트도 인증 필요
+
+**datetime 일관성**
+- 프로젝트 전체 `get_kst_now()` 사용 → 신규 코드에 `datetime.utcnow()` 절대 금지
+- `from utils.timezone_utils import get_kst_now` 만 import하면 실수 방지
+
+**데드코드 방지**
+- `eslint-disable-next-line no-unused-vars`로 억압된 함수는 제거 대상 신호
+- 해당 함수가 여는 modal state도 함께 제거 대상인지 확인할 것
+
+**JSON.parse 방어**
+- DB에서 온 JSON 컬럼(labels 등)은 렌더 중 직접 `JSON.parse()` 호출 금지
+- `parseLabels()` 같은 try/catch 헬퍼로 감싸서 사용할 것
+
+---
+
 ### k6 성능 측정 - Date.now() 이중 계산
 
 **현상**: 메트릭에 기록된 값과 로그에 출력된 값이 항상 다름

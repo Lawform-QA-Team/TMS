@@ -70,14 +70,38 @@ class UserSession(db.Model):
     __tablename__ = 'UserSessions'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('Users.id'), nullable=False)
-    session_token = db.Column(db.String(255), unique=True, nullable=False)
+    session_token = db.Column(db.Text, nullable=False)
     ip_address = db.Column(db.String(45))
     user_agent = db.Column(db.Text)
+    login_type = db.Column(db.String(20), default='password')  # password, 2fa, guest
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=get_kst_now)
     expires_at = db.Column(db.DateTime, nullable=False)
-    
+
     user = db.relationship('User', backref='sessions')
+
+
+class LoginFailLog(db.Model):
+    __tablename__ = 'LoginFailLogs'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), nullable=False)
+    login_type = db.Column(db.String(20), default='password')  # password, 2fa
+    ip_address = db.Column(db.String(45))
+    user_agent = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=get_kst_now)
+
+class UserSecuritySettings(db.Model):
+    __tablename__ = 'UserSecuritySettings'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('Users.id'), unique=True, nullable=False)
+    session_timeout_minutes = db.Column(db.Integer, default=1440)  # 기본 24시간
+    allowed_ips = db.Column(db.Text, nullable=True)  # JSON 배열 ['1.2.3.4', '10.0.0.0/24']
+    two_factor_enabled = db.Column(db.Boolean, default=False)
+    two_factor_secret = db.Column(db.String(64), nullable=True)  # TOTP Base32 시크릿
+    created_at = db.Column(db.DateTime, default=get_kst_now)
+    updated_at = db.Column(db.DateTime, default=get_kst_now, onupdate=get_kst_now)
+
+    user = db.relationship('User', backref=db.backref('security_settings', uselist=False))
 
 # 프로젝트 모델
 class Project(db.Model):

@@ -19,6 +19,7 @@ import ProtectedRoute from '@tms/components/auth/ProtectedRoute';
 function AppContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const userMenuRef = useRef(null);
   const { user, logout } = useAuth();
 
@@ -163,7 +164,17 @@ function AppContent() {
     <ErrorBoundary>
       <div className="App app-layout">
         <header className="app-header">
-          <h1 className="app-logo">LTMS</h1>
+          <div className="app-header-left">
+            <button
+              type="button"
+              className="sidebar-toggle-btn"
+              onClick={() => setSidebarCollapsed((v) => !v)}
+              aria-label={sidebarCollapsed ? '메뉴 펼치기' : '메뉴 접기'}
+            >
+              {sidebarCollapsed ? '☰' : '✕'}
+            </button>
+            <h1 className="app-logo">LTMS</h1>
+          </div>
           {user && (
             <div className="app-header-right">
               <NotificationBell />
@@ -210,7 +221,7 @@ function AppContent() {
         </header>
 
         <div className="app-body">
-          <aside className="app-sidebar">
+          <aside className={`app-sidebar${sidebarCollapsed ? ' collapsed' : ''}`}>
             <nav className="sidebar-nav">
               {navItems.map((item) => (
                 <button
@@ -218,6 +229,7 @@ function AppContent() {
                   type="button"
                   className={`sidebar-nav-item ${activeTab === item.id ? 'active' : ''}`}
                   onClick={() => setActiveTab(item.id)}
+                  title={sidebarCollapsed ? item.label : undefined}
                 >
                   <span className="sidebar-nav-icon">{item.icon}</span>
                   <span className="sidebar-nav-label">{item.label}</span>

@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 import mimetypes
 from datetime import datetime
 import stat
+from utils.auth_decorators import login_required
 
 # 상위 디렉토리를 sys.path에 추가
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -128,6 +129,7 @@ def explore_directory(path, base_dir=None):
         return None
 
 @test_scripts_bp.route('/explore', methods=['GET'])
+@login_required
 def explore_test_scripts():
     """테스트 스크립트 폴더 구조를 탐색하는 API"""
     try:
@@ -171,7 +173,12 @@ def explore_test_scripts():
             return jsonify({'error': f'디렉토리가 아닙니다: {base_path}'}), 400
             
         # 경로 검증 (보안상 test-scripts 폴더 내에서만 탐색 허용)
-        if not full_path.startswith(test_scripts_root):
+        try:
+            common = os.path.commonpath([os.path.abspath(full_path), os.path.abspath(test_scripts_root)])
+        except Exception:
+            common = None
+
+        if common != os.path.abspath(test_scripts_root):
             current_app.logger.error(f"허용되지 않은 경로: {full_path}")
             return jsonify({'error': '허용되지 않은 경로입니다.'}), 403
             
@@ -192,6 +199,7 @@ def explore_test_scripts():
         return jsonify({'error': f'서버 오류가 발생했습니다: {str(e)}'}), 500
 
 @test_scripts_bp.route('/file-content', methods=['GET'])
+@login_required
 def get_file_content():
     """파일 내용을 읽는 API"""
     try:
@@ -279,6 +287,7 @@ def get_file_content():
         return jsonify({'error': '파일을 읽을 수 없습니다.'}), 500
 
 @test_scripts_bp.route('/search', methods=['GET'])
+@login_required
 def search_test_scripts():
     """테스트 스크립트 파일을 검색하는 API"""
     try:
@@ -332,6 +341,7 @@ def search_test_scripts():
         return jsonify({'error': '검색 중 오류가 발생했습니다.'}), 500
 
 @test_scripts_bp.route('/stats', methods=['GET'])
+@login_required
 def get_test_scripts_stats():
     """테스트 스크립트 폴더 통계 정보를 가져오는 API"""
     try:
@@ -421,4 +431,3 @@ def get_test_scripts_stats():
     except Exception as e:
         current_app.logger.error(f"테스트 스크립트 통계 오류: {e}")
         return jsonify({'error': '통계 정보를 가져올 수 없습니다.'}), 500
-

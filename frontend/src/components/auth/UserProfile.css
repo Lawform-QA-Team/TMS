@@ -173,6 +173,260 @@
   /* 시각적으로 settings-snb와 동일하게 보이도록 Settings.css의 스타일을 활용함 */
 }
 
+/* 보안 설정 */
+.profile-security {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.security-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  background: #f8f9fa;
+}
+
+.security-2fa-group {
+  margin-top: 8px;
+}
+
+.security-group-title {
+  font-weight: 700;
+  font-size: 0.95em;
+  color: #333;
+}
+
+.security-group-desc {
+  font-size: 0.85em;
+  color: #6c757d;
+  margin: 0;
+}
+
+.security-select {
+  padding: 9px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  max-width: 260px;
+}
+
+.security-ip-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.security-ip-input {
+  flex: 1;
+  padding: 9px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.security-ip-add-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+  width: auto;
+}
+
+.security-ip-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.security-ip-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #e7f3ff;
+  border: 1px solid #b3d4f5;
+  border-radius: 999px;
+  font-size: 0.85em;
+  color: #1a6bbf;
+}
+
+.security-ip-tag-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6c757d;
+  font-size: 1.1em;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.security-ip-tag-remove:hover {
+  color: #dc3545;
+}
+
+.security-group > .auth-button {
+  width: auto;
+  align-self: flex-start;
+}
+
+.security-2fa-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.security-2fa-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.8em;
+  font-weight: 600;
+}
+
+.security-2fa-badge.enabled {
+  background: #d4edda;
+  color: #155724;
+}
+
+.security-2fa-badge.disabled {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.security-2fa-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.security-2fa-setup-desc {
+  font-size: 0.9em;
+  color: #495057;
+  margin: 0;
+}
+
+.security-qr-container {
+  display: flex;
+  justify-content: flex-start;
+  padding: 12px;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  width: fit-content;
+}
+
+.security-2fa-secret {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.security-2fa-secret-label {
+  font-size: 0.85em;
+  color: #6c757d;
+}
+
+.security-2fa-secret-value {
+  font-size: 0.85em;
+  background: #f1f3f5;
+  padding: 3px 8px;
+  border-radius: 4px;
+  color: #333;
+  word-break: break-all;
+}
+
+.security-otp-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.security-otp-row .auth-button {
+  width: auto;
+}
+
+.security-otp-input {
+  padding: 9px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  width: 160px;
+}
+
+.security-disable-2fa {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 로그인 기록 테이블 */
+.history-table-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88em;
+}
+
+.history-table thead tr {
+  background: #f1f3f5;
+}
+
+.history-table th {
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 1px solid #dee2e6;
+  white-space: nowrap;
+}
+
+.history-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #f1f3f5;
+  color: #333;
+  vertical-align: middle;
+}
+
+.history-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.history-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.history-td-nowrap {
+  white-space: nowrap;
+}
+
+.history-td-ua {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #6c757d;
+  font-size: 0.85em;
+  cursor: default;
+}
+
+.history-loading,
+.history-empty {
+  color: #6c757d;
+  font-size: 0.95em;
+  padding: 16px 0;
+}
+
 @media (max-width: 768px) {
   .profile-page-content {
     grid-template-columns: 1fr;

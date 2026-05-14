@@ -4,7 +4,7 @@
 import { URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
-import { getWebCredentials, loginWithPage } from '../../admin/login/login_helper.js';
+import { getWebCredentials, loginWebWithPage } from '../../admin/login/login_helper.js';
 
 async function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -17,7 +17,7 @@ export async function run(page) {
   const credentials = getWebCredentials();
   const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
-  await loginWithPage(page, credentials, URLS.WEB_LOGIN.HOME);
+  await loginWebWithPage(page, credentials);
 
   // 문서 작성 - 임시 저장 문서
   await page.goto(URLS.AUTODOC.TEMP, {

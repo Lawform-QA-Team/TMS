@@ -70,7 +70,7 @@ class ReportService:
             ReportExecution: 실행 기록
         """
         try:
-            report = CustomReport.query.get(report_id)
+            report = db.session.get(CustomReport, report_id)
             if not report:
                 raise ValueError(f"리포트를 찾을 수 없습니다: {report_id}")
             

@@ -1,3 +1,89 @@
+# Task: Jira 코드 검수 이슈 수정
+
+## 수정 목록
+- [x] `jira_integration.py`: `/health` 엔드포인트에 `@user_required` 추가
+- [x] `jira_integration.py`: `/config POST`, `/config/test POST` → `@admin_required`로 격상
+- [x] `jira_integration.py`: `datetime.utcnow()` → `get_kst_now()` 전체 교체
+- [x] `jira_integration.py`: `print()` → `logger.error()`
+- [x] `jira_integration.py`: 전체 동기화 루프에 `updated_at` 업데이트 추가
+- [x] `JiraIssuesList.js`: 모든 API 호출에 Authorization 헤더 추가
+- [x] `JiraIssuesList.js`: `description?.toLowerCase()` null 체크
+- [x] `JiraIssuesList.js`: `status/priority/issue_type` null 크래시 방어
+- [x] `JiraIssuesList.js`: `JSON.parse(labels)` → `parseLabels()` 헬퍼로 통일
+- [x] `JiraIssuesList.js`: `@example.com` 하드코딩 제거
+- [x] `JiraIssuesList.js`: `useModal`, `openEditModal`/`showEditModal` 데드코드 제거
+- [x] `JiraConfigPanel.js`: 기존 토큰 유지 시나리오 처리 (백엔드+프론트)
+
+---
+
+# Task: 보안 설정 기능 구현
+
+## 배경
+회원 정보 > 보안 설정 placeholder를 실제 기능으로 구현.
+- 2단계 인증(2FA/TOTP), 세션 만료 시간, 접속 허용 IP, OTP
+
+## 구현 계획
+
+### 백엔드
+- [ ] `models.py`: UserSecuritySettings 모델 추가
+- [ ] `requirements.txt`: pyotp 추가
+- [ ] `routes/users.py`: 보안 설정 API 5개 (GET/PUT security-settings, POST/POST/DELETE 2fa)
+- [ ] `routes/auth.py`: 로그인 시 IP 체크, 2FA 분기, /verify-2fa 엔드포인트
+- [ ] `utils/auth_helpers.py`: create_tokens에 expires_minutes 파라미터 추가
+
+### 프론트엔드
+- [ ] `frontend/package.json`: qrcode.react 추가
+- [ ] `AuthContext.js`: login 함수 2FA 분기, verify2fa 함수 추가
+- [ ] `Login.js`: 2FA OTP 입력 단계 추가
+- [ ] `UserProfile.js`: renderSecuritySection 실제 구현
+- [ ] `UserProfile.css`: 보안 설정 스타일 추가
+
+## 검증
+- [ ] 2FA 설정 → QR 코드 표시 → 앱에서 등록 → OTP 검증
+- [ ] 세션 만료 시간 저장/조회
+- [ ] IP 화이트리스트 추가/삭제
+- [ ] 2FA 활성화 후 로그인 시 OTP 입력 화면 표시
+
+---
+
+# Task: 백엔드 전체 검수 및 이슈 수정
+
+## 배경
+백엔드 코드 전체 검수 요청. Critical → 일반 순서로 수정.
+
+## Critical 이슈 수정
+- [x] `app.py`: CORS `supports_credentials=True` + wildcard origin 충돌 → `False`로 변경
+- [x] `app.py`: `/init-db`, `/db-status` 엔드포인트에 `@admin_required` 추가
+- [x] `app.py`: JWT 콜백 이중 등록 제거 (setup_jwt_callbacks와 중복)
+- [x] `app.py`: health check degraded 응답 200 → 503
+- [x] `app.py`: `jira_bp` import 및 `register_blueprint` 누락 추가
+
+## 일반 이슈 수정
+- [x] `users.py`: 비밀번호 변경 시 non-admin 사용자 `current_password` 검증 누락
+- [x] `schedules.py`: `execute_scheduled_test`에서 결과 하드코딩 제거 → 실제 실행
+- [x] `tasks.py`: `execute_automation_test` 시뮬레이션(sleep) 제거 → subprocess 실행
+- [x] `tasks.py`: `execute_test_case_batch` `.get()` → `.get(disable_sync_subtasks=False)`
+- [x] `app_config.py`: 인라인 is_vercel 체크 → `is_vercel_environment()` 함수 통일
+
+## Jira Blueprint 충돌 수정
+- [x] `jira_integration.py`: 중복 7개 route 제거 (jira_issues.py와 URL 충돌)
+- [x] `jira_integration.py`: 미사용 import 정리
+
+## Route 충돌 해소
+- [x] `testcases_extended.py`: 8개 중복 함수 제거 → 고유 2개만 유지
+- [x] `automation.py`: `/screenshots/<path:filename>` 취약 버전 제거 (testcases.py의 안전한 버전 유지)
+
+## SQLAlchemy 2.0 마이그레이션
+- [x] 18개 파일, 47곳: `Model.query.get(id)` → `db.session.get(Model, id)` 일괄 치환
+
+## 프론트엔드-백엔드 API 연결 검수
+- [x] 전체 백엔드 엔드포인트 목록 추출
+- [x] 프론트엔드 API 호출 목록 추출 후 교차 비교
+- [x] S3 엔드포인트 누락 → 현재 미사용으로 스킵
+- [x] 최종 route 충돌 검사: 0건 확인
+
+---
+
 # Task: React ESLint 경고 전체 정리
 
 ## 배경

@@ -1,4 +1,124 @@
-/* 이슈 목록 컴포넌트 스타일 */
+/* ===== Jira 연동 설정 패널 ===== */
+.jira-config-panel {
+  margin-bottom: 16px;
+  border: 1px solid #dfe1e6;
+  border-radius: 6px;
+  background: #f8f9fa;
+  overflow: hidden;
+}
+
+.jira-config-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+}
+
+.jira-config-badge {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.jira-config-badge.connected {
+  color: #0a6640;
+}
+
+.jira-config-badge.disconnected {
+  color: #8b572a;
+}
+
+.btn-jira-config-toggle {
+  font-size: 13px;
+  padding: 5px 12px;
+  border: 1px solid #0052cc;
+  border-radius: 4px;
+  background: white;
+  color: #0052cc;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-jira-config-toggle:hover {
+  background: #e8f0fe;
+}
+
+.jira-config-form {
+  border-top: 1px solid #dfe1e6;
+  padding: 16px;
+  background: white;
+}
+
+.jira-config-form h4 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: #172b4d;
+}
+
+.jira-config-desc {
+  font-size: 12px;
+  color: #6b778c;
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+
+.jira-config-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.jira-config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.jira-config-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #344563;
+}
+
+.jira-config-field input {
+  padding: 7px 10px;
+  border: 1px solid #dfe1e6;
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.jira-config-field input:focus {
+  border-color: #0052cc;
+}
+
+.jira-config-message {
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.jira-config-message.success {
+  background: #e3fcef;
+  color: #0a6640;
+  border: 1px solid #abf5d1;
+}
+
+.jira-config-message.error {
+  background: #ffebe6;
+  color: #bf2600;
+  border: 1px solid #ffbdad;
+}
+
+.jira-config-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* ===== 이슈 목록 컴포넌트 스타일 ===== */
 .jira-issues-list-container {
   padding: 20px;
   max-width: auto;

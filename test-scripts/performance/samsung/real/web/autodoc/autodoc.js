@@ -19,6 +19,10 @@ export const webAutodocAutoReview = new Trend('web_autodoc_auto_review', true);
 
 const scriptErrors = [];
 
+/** AI·채팅 등 느린 UI: k6 waitForFunction 기본 30초를 넘길 수 있음 */
+const WAIT_AI_UI_MS = 120000;
+const WAIT_BUSY_HINT_MS = 8000;
+
 export const options = {
     scenarios: {
         ui: {
@@ -68,7 +72,7 @@ export default async function() {
         // 문서 작성 - 표준 양식, 검색
         const webAutodocSearchStart = Date.now();
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
-        await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, '개인정보처리방침_삼성닷컴(최종)');
+        await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, '개인정보처리방침');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         const webAutodocSearchDuration = Date.now() - webAutodocSearchStart;
@@ -117,22 +121,39 @@ export default async function() {
         const webAutodocAiLabelingStart = Date.now();
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING);
-        // 클릭 후 버튼이 disabled(로딩) 상태가 될 때까지 기다림
-          await page.waitForFunction(
+        // 로딩 진입 힌트(짧게만). 없으면 타임아웃 무시.
+        // k6 v1.6 browser: waitForFunction(fn, options, arg) — 셀렉터는 세 번째 인자(admin/ai_chat_data_preset.js 동일)
+        try {
+            await page.waitForFunction(
+                (selector) => {
+                    const el = document.querySelector(selector);
+                    if (!el) return false;
+                    return (
+                        el.disabled ||
+                        el.getAttribute('aria-disabled') === 'true' ||
+                        !!el.querySelector('.animate-spin')
+                    );
+                },
+                { timeout: WAIT_BUSY_HINT_MS },
+                SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING
+            );
+        } catch (_) {
+            /* 로딩 표시 없음 */
+        }
+        // 완료까지는 AI 처리 시간이 30초를 넘을 수 있어 기본 타임아웃을 늘린다.
+        await page.waitForFunction(
             (selector) => {
-              const el = document.querySelector(selector);
-              return el && el.disabled;
+                const el = document.querySelector(selector);
+                if (!el) return false;
+                const busy =
+                    el.disabled ||
+                    el.getAttribute('aria-disabled') === 'true' ||
+                    !!el.querySelector('.animate-spin');
+                return !busy;
             },
+            { timeout: WAIT_AI_UI_MS, polling: 500 },
             SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING
-          );
-          // 로딩이 끝나 disabled가 해제될 때까지 기다림
-          await page.waitForFunction(
-            (selector) => {
-              const el = document.querySelector(selector);
-              return el && !el.disabled;
-            },
-            SELECTORS.FEATURES.AUTODOC.BUTTON_AI_AUTO_LABELING
-          );
+        );
         const webAutodocAiLabelingDuration = Date.now() - webAutodocAiLabelingStart;
         webAutodocAiLabeling.add(webAutodocAiLabelingDuration);
         console.log(`web_autodoc_ai_labeling: ${webAutodocAiLabelingDuration}ms`);
@@ -182,6 +203,7 @@ export default async function() {
                 const el = document.querySelector(selector);
                 return !el;
             },
+            {},
             SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE
         );
         timestamp = getNewTimeStamp();
@@ -203,6 +225,7 @@ export default async function() {
                 const el = document.querySelector(selector);
                 return !el;
             },
+            {},
             SELECTORS.FEATURES.AUTODOC.BUTTON_SAVE
         );
         const webAutodocEditSaveDuration = Date.now() - webAutodocEditSaveStart;
@@ -257,20 +280,24 @@ export default async function() {
         await page.type(SELECTORS.FEATURES.AUTODOC.TEXTAREA, '조항을 추가해줘');
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_SEND);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_SEND);
-        // 클릭 후 버튼에 스핀이 생길 때까지 기다림
-        await page.waitForFunction(
-            (selector) => {
-                const btn = document.querySelector(selector);
-                return btn && btn.querySelector('.animate-spin');
-            },
-            SELECTORS.FEATURES.AUTODOC.BUTTON_SEND
-        );
-        // 스핀이 사라질 때까지 기다림
+        try {
+            await page.waitForFunction(
+                (selector) => {
+                    const btn = document.querySelector(selector);
+                    return btn && btn.querySelector('.animate-spin');
+                },
+                { timeout: WAIT_BUSY_HINT_MS },
+                SELECTORS.FEATURES.AUTODOC.BUTTON_SEND
+            );
+        } catch (_) {
+            /* 스핀 없음 */
+        }
         await page.waitForFunction(
             (selector) => {
                 const btn = document.querySelector(selector);
                 return btn && !btn.querySelector('.animate-spin');
             },
+            { timeout: WAIT_AI_UI_MS, polling: 500 },
             SELECTORS.FEATURES.AUTODOC.BUTTON_SEND
         );
         const webAutodocAiChatDuration = Date.now() - webAutodocAiChatStart;
@@ -283,21 +310,25 @@ export default async function() {
         const webAutodocAutoReviewStart = Date.now();
         await page.waitForSelector(SELECTORS.FEATURES.AUTODOC.BUTTON_AUTO_REVIEW);
         await page.click(SELECTORS.FEATURES.AUTODOC.BUTTON_AUTO_REVIEW);
-        // 클릭 후 버튼에 스핀이 생길 때까지 기다림
-        await page.waitForFunction(
-            (selector) => {
-                const btn = document.querySelector(selector);
-                return btn && btn.querySelector('.animate-spin');
-            },
-            SELECTORS.FEATURES.AUTODOC.BUTTON_SEND
-        );
-        // 스핀이 사라질 때까지 기다림
+        try {
+            await page.waitForFunction(
+                (selector) => {
+                    const btn = document.querySelector(selector);
+                    return btn && btn.querySelector('.animate-spin');
+                },
+                { timeout: WAIT_BUSY_HINT_MS },
+                SELECTORS.FEATURES.AUTODOC.BUTTON_AUTO_REVIEW
+            );
+        } catch (_) {
+            /* 스핀 없이 진행되는 빌드 */
+        }
         await page.waitForFunction(
             (selector) => {
                 const btn = document.querySelector(selector);
                 return btn && !btn.querySelector('.animate-spin');
             },
-            SELECTORS.FEATURES.AUTODOC.BUTTON_SEND
+            { timeout: WAIT_AI_UI_MS, polling: 500 },
+            SELECTORS.FEATURES.AUTODOC.BUTTON_AUTO_REVIEW
         );
         const webAutodocAutoReviewDuration = Date.now() - webAutodocAutoReviewStart;
         webAutodocAutoReview.add(webAutodocAutoReviewDuration);

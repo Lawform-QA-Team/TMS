@@ -3,7 +3,7 @@
 """
 from flask import current_app
 from flask_jwt_extended import create_access_token, create_refresh_token
-from models import User, UserSession, db
+from models import User, UserSession, LoginFailLog, db
 from datetime import timedelta
 from utils.timezone_utils import get_kst_now
 from utils.auth_constants import JWT_GUEST_TOKEN_EXPIRES, GUEST_USER_INFO
@@ -11,7 +11,7 @@ from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-def create_user_session(user_id, refresh_token, request):
+def create_user_session(user_id, refresh_token, request, login_type='password'):
     """사용자 세션 생성"""
     try:
         session = UserSession(
@@ -19,19 +19,41 @@ def create_user_session(user_id, refresh_token, request):
             session_token=refresh_token,
             ip_address=request.remote_addr,
             user_agent=request.headers.get('User-Agent'),
+            login_type=login_type,
             expires_at=get_kst_now() + timedelta(days=7)
         )
         db.session.add(session)
+        db.session.commit()
         logger.info("사용자 세션 생성 완료")
         return True
     except Exception as e:
         logger.error(f"사용자 세션 생성 실패: {e}")
+        db.session.rollback()
         return False
 
-def create_tokens(user_id):
-    """JWT 토큰 생성"""
+
+def create_login_fail_log(username, request, login_type='password'):
+    """로그인 실패 기록 저장"""
     try:
-        access_token = create_access_token(identity=str(user_id))
+        log = LoginFailLog(
+            username=username,
+            login_type=login_type,
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent')
+        )
+        db.session.add(log)
+        db.session.commit()
+        return True
+    except Exception as e:
+        logger.error(f"로그인 실패 기록 저장 실패: {e}")
+        db.session.rollback()
+        return False
+
+def create_tokens(user_id, expires_minutes=None):
+    """JWT 토큰 생성. expires_minutes가 None이면 앱 기본값(24시간) 사용"""
+    try:
+        expires = timedelta(minutes=expires_minutes) if expires_minutes else None
+        access_token = create_access_token(identity=str(user_id), expires_delta=expires)
         refresh_token = create_refresh_token(identity=str(user_id))
         logger.info("JWT 토큰 생성 완료")
         return access_token, refresh_token
