@@ -40,7 +40,7 @@ const JiraConfigPanel = ({ onConfigured }) => {
   const handleTest = async () => {
     setMessage(null);
     if (!form.url || !form.email || !form.token) {
-      setMessage({ type: 'error', text: 'URL, 이메일, API 토큰을 모두 입력하세요.' });
+      setMessage({ type: 'error', text: '연결 테스트는 URL, 이메일, API 토큰을 모두 입력해야 합니다.' });
       return;
     }
     setTesting(true);
@@ -64,8 +64,12 @@ const JiraConfigPanel = ({ onConfigured }) => {
 
   const handleSave = async () => {
     setMessage(null);
-    if (!form.url || !form.email || !form.token) {
-      setMessage({ type: 'error', text: 'URL, 이메일, API 토큰을 모두 입력하세요.' });
+    if (!form.url || !form.email) {
+      setMessage({ type: 'error', text: 'URL과 이메일은 필수입니다.' });
+      return;
+    }
+    if (!form.token && !configState.has_token) {
+      setMessage({ type: 'error', text: 'API 토큰을 입력하세요.' });
       return;
     }
     setSaving(true);

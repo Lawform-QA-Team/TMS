@@ -1,3 +1,21 @@
+# Task: Jira 코드 검수 이슈 수정
+
+## 수정 목록
+- [x] `jira_integration.py`: `/health` 엔드포인트에 `@user_required` 추가
+- [x] `jira_integration.py`: `/config POST`, `/config/test POST` → `@admin_required`로 격상
+- [x] `jira_integration.py`: `datetime.utcnow()` → `get_kst_now()` 전체 교체
+- [x] `jira_integration.py`: `print()` → `logger.error()`
+- [x] `jira_integration.py`: 전체 동기화 루프에 `updated_at` 업데이트 추가
+- [x] `JiraIssuesList.js`: 모든 API 호출에 Authorization 헤더 추가
+- [x] `JiraIssuesList.js`: `description?.toLowerCase()` null 체크
+- [x] `JiraIssuesList.js`: `status/priority/issue_type` null 크래시 방어
+- [x] `JiraIssuesList.js`: `JSON.parse(labels)` → `parseLabels()` 헬퍼로 통일
+- [x] `JiraIssuesList.js`: `@example.com` 하드코딩 제거
+- [x] `JiraIssuesList.js`: `useModal`, `openEditModal`/`showEditModal` 데드코드 제거
+- [x] `JiraConfigPanel.js`: 기존 토큰 유지 시나리오 처리 (백엔드+프론트)
+
+---
+
 # Task: 보안 설정 기능 구현
 
 ## 배경

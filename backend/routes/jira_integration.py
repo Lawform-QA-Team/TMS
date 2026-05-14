@@ -3,11 +3,14 @@ JIRA 연동 API 엔드포인트
 """
 
 from flask import Blueprint, request, jsonify
-from datetime import datetime
 import json
 from utils.jira_client import JiraClient, JiraIntegrationService
-from utils.auth_decorators import user_required
+from utils.auth_decorators import user_required, admin_required
+from utils.timezone_utils import get_kst_now
+from utils.logger import get_logger
 from models import db, JiraIntegration, SystemConfig
+
+logger = get_logger(__name__)
 
 jira_bp = Blueprint('jira', __name__, url_prefix='/api/jira')
 
@@ -44,7 +47,7 @@ def get_jira_config():
 
 
 @jira_bp.route('/config', methods=['POST'])
-@user_required
+@admin_required
 def save_jira_config():
     """Jira Cloud 연동 설정 저장"""
     try:
@@ -53,8 +56,15 @@ def save_jira_config():
         email = (data.get('email') or '').strip()
         token = (data.get('token') or '').strip()
 
-        if not url or not email or not token:
-            return jsonify({'success': False, 'error': 'URL, 이메일, API 토큰은 필수입니다.'}), 400
+        if not url or not email:
+            return jsonify({'success': False, 'error': 'URL과 이메일은 필수입니다.'}), 400
+
+        # token이 비어있으면 기존 저장값 유지
+        existing_token_cfg = SystemConfig.query.filter_by(key='jira_api_token').first()
+        if not token:
+            if not existing_token_cfg or not existing_token_cfg.value:
+                return jsonify({'success': False, 'error': 'API 토큰은 필수입니다.'}), 400
+            token = existing_token_cfg.value
 
         for key, value in [('jira_url', url), ('jira_email', email), ('jira_api_token', token)]:
             cfg = SystemConfig.query.filter_by(key=key).first()
@@ -71,7 +81,7 @@ def save_jira_config():
 
 
 @jira_bp.route('/config/test', methods=['POST'])
-@user_required
+@admin_required
 def test_jira_connection():
     """Jira Cloud 연결 테스트"""
     try:
@@ -100,7 +110,7 @@ def test_jira_connection():
                 'message': f'연결 성공! ({display_name})'
             })
         elif resp.status_code == 401:
-            return jsonify({'success': False, 'error': '인증 실패. 이메일 또는 API 토큰을 확인하세요.'}), 401
+            return jsonify({'success': False, 'error': '인증 실패. 이메일 또는 API 토큰을 확인하세요.'}), 400
         else:
             return jsonify({'success': False, 'error': f'연결 실패 (HTTP {resp.status_code})'}), 400
 
@@ -109,6 +119,7 @@ def test_jira_connection():
 
 
 @jira_bp.route('/health', methods=['GET'])
+@user_required
 def health_check():
     """JIRA 서버 상태 확인"""
     try:
@@ -168,7 +179,7 @@ def sync_issue():
         if not jira_integration:
             jira_integration = JiraIntegration()
             jira_integration.jira_issue_key = issue_key
-            jira_integration.created_at = datetime.utcnow()
+            jira_integration.created_at = get_kst_now()
         
         # 이슈 정보 업데이트
         fields = issue_data.get('fields', {})
@@ -179,8 +190,8 @@ def sync_issue():
         jira_integration.issue_type = fields.get('issuetype', {}).get('name', '')
         jira_integration.assignee_account_id = fields.get('assignee', {}).get('accountId') if fields.get('assignee') else None
         jira_integration.labels = json.dumps(fields.get('labels', [])) if fields.get('labels') else None
-        jira_integration.updated_at = datetime.utcnow()
-        jira_integration.last_sync_at = datetime.utcnow()
+        jira_integration.updated_at = get_kst_now()
+        jira_integration.last_sync_at = get_kst_now()
         
         if not jira_integration.id:
             db.session.add(jira_integration)
@@ -305,8 +316,8 @@ def sync_issues():
             
             # 상태 업데이트
             integration.status = issue['fields']['status']['name']
-            integration.updated_at = datetime.utcnow()
-            integration.last_sync_at = datetime.utcnow()
+            integration.updated_at = get_kst_now()
+            integration.last_sync_at = get_kst_now()
             
             db.session.commit()
             
@@ -323,10 +334,11 @@ def sync_issues():
                 try:
                     issue = jira_client.get_issue(integration.jira_issue_key)
                     integration.status = issue['fields']['status']['name']
-                    integration.last_sync_at = datetime.utcnow()
+                    integration.updated_at = get_kst_now()
+                    integration.last_sync_at = get_kst_now()
                     synced_count += 1
                 except Exception as e:
-                    print(f"동기화 실패: {integration.jira_issue_key} - {str(e)}")
+                    logger.error(f"동기화 실패: {integration.jira_issue_key} - {str(e)}")
                     continue
             
             db.session.commit()
@@ -393,7 +405,7 @@ def auto_create_issue():
                 priority='High' if test_result == 'Error' else 'Medium',
                 summary=issue['fields']['summary'],
                 description=issue['fields']['description'],
-                last_sync_at=datetime.utcnow()
+                last_sync_at=get_kst_now()
             )
             
             db.session.add(jira_integration)
