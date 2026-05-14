@@ -386,3 +386,23 @@ def _get_current_user_id():
 
 **해결**: 대화형 엔드포인트는 `response_format` 미설정. 응답에서 ` ```json ``` ` 블록만 파싱. 스펙 추출처럼 JSON만 필요한 경우는 `response_format: json_object` 유지.
 
+---
+
+### AI 멀티 공급자 통합 - 공급자별 API 차이점
+
+**OpenAI**: `messages` 배열에 `{"role": "system", ...}` 포함 가능, `response_format: json_object` 지원
+
+**Anthropic**: `system`은 별도 최상위 필드. `messages`는 user/assistant 교대로만 가능 (user로 시작해야 함). 같은 역할 연속 시 에러 → 필터링 필요.
+
+**Google Gemini**: role이 `user`/`model` (assistant 아님). `system_instruction`이 별도 최상위 필드. URL에 API 키를 쿼리 파라미터로 전달 (`?key=...`).
+
+**패턴**: 공급자별 함수 분리(`_call_openai`, `_call_anthropic`, `_call_google`) 후 `_call_ai_api()` 헬퍼로 통합. 사용자 설정 우선 → 서버 env fallback.
+
+---
+
+### API 키 저장 - 보안 패턴
+
+- DB에 저장된 API 키는 GET 응답 시 반드시 마스킹 (`앞8자...뒤4자`)
+- PUT 시 빈 문자열이면 기존 키 유지 (덮어쓰기 방지)
+- 별도 `clear-key` 엔드포인트로 명시적 삭제만 허용
+

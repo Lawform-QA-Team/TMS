@@ -292,3 +292,27 @@ console.log(`... ${duration}ms`);
 - [x] 프론트엔드 빌드: `Compiled with warnings.` (기존 경고만, 신규 없음)
 - [x] DB 테이블: `AiConversations`, `AiConversationMessages` 생성 확인
 - [x] alembic_version: `add_ai_conversations` 반영 확인
+
+---
+
+# Task: 사용자별 AI API 설정 및 멀티 공급자 지원
+
+## 구현 계획
+
+### 백엔드
+- [x] `models.py`: `UserAiConfig` 모델 추가 (provider, api_key, model_name)
+- [x] `migrations/versions/add_user_ai_config.py`: 마이그레이션 작성
+- [x] MySQL 직접 적용: `UserAiConfigs` 테이블 생성
+- [x] `routes/users.py`: `GET/PUT /users/ai-config`, `POST /users/ai-config/clear-key` 추가
+- [x] `routes/testcases.py`: `_call_ai_api()` 통합 헬퍼 추가 (OpenAI/Anthropic/Google)
+- [x] `routes/testcases.py`: generate, conversation/messages, extract 엔드포인트 교체
+
+### 프론트엔드
+- [x] `UserProfile.js`: AI API 설정 상태/함수 추가 (fetchAiConfig, handleAiConfigSave, handleClearApiKey)
+- [x] `UserProfile.js`: `renderAiConfigSection()` 추가 (공급자/모델/키 입력 UI)
+- [x] `UserProfile.js`: 사이드바에 'AI API 설정' 메뉴 추가
+
+## 검토
+- [x] Python 문법 검사: `models.py`, `testcases.py`, `users.py` 모두 OK
+- [x] 프론트엔드 빌드: `Compiled with warnings.` (기존 경고만, 신규 없음)
+- [x] DB 테이블: `UserAiConfigs` 생성 확인
