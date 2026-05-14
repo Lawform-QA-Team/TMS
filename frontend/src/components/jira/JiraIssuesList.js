@@ -5,6 +5,7 @@ import { useAuth } from '@tms/contexts/AuthContext';
 import PromptModal from '@tms/components/common/PromptModal';
 import { getUserDisplayName } from '@tms/utils/userDisplay';
 import JiraConfigPanel from '@tms/components/jira/JiraConfigPanel';
+import SlidePanel from '@tms/components/common/SlidePanel';
 import '@tms/components/jira/JiraIssuesList.css';
 import '@tms/components/common/Modal.css';
 
@@ -792,25 +793,15 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
       )}
 
       {/* 이슈 상세보기 */}
-      {showDetailModal && selectedIssue && (
-          <div className="modal-overlay fullscreen-modal">
-            <div className="modal fullscreen-modal-content">
-              <div className="modal-header">
-                <h3>{isEditMode ? '✏️ 이슈 수정' : '📋 이슈 상세 정보'}</h3>
-                <button 
-                  className="modal-close"
-                  onClick={() => {
-                    setShowDetailModal(false);
-                    setSelectedIssue(null);
-                    setIsEditMode(false);
-                  }}
-                >
-                  ×
-                </button>
-              </div>
-              
-              <div className="modal-body" style={{ padding: '24px', overflowY: 'auto' }}>
-                <div className="issue-detail-content">
+      <SlidePanel
+        isOpen={showDetailModal && !!selectedIssue}
+        onClose={() => { setShowDetailModal(false); setSelectedIssue(null); setIsEditMode(false); }}
+        title={isEditMode ? '이슈 수정' : '이슈 상세 정보'}
+        width={640}
+      >
+        {selectedIssue && (
+          <>
+            <div className="issue-detail-content">
                 <div className="detail-section">
                   <h4>기본 정보</h4>
                   <div className="detail-grid">
@@ -1137,8 +1128,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                     </div>
                   )}
                 </div>
-              </div>
-              
+
               <div className="modal-actions">
                 {isEditMode ? (
                   <>
@@ -1200,9 +1190,9 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                   </>
                 )}
               </div>
-            </div>
-          </div>
-      )}
+          </>
+        )}
+      </SlidePanel>
 
       {showAssigneeModal && selectedIssue && (
         <div className="jira-modal-overlay" onClick={() => setShowAssigneeModal(false)}>

@@ -1,3 +1,17 @@
+# Task: 조회 페이지 슬라이드 패널 레이아웃 통일
+
+## 목표
+전체 조회 페이지 상세보기를 오른쪽 슬라이드 패널(C형)으로 통일
+
+## 작업 계획
+- [x] `common/SlidePanel.js` + `SlidePanel.css` 공통 컴포넌트 생성
+- [x] `TestCaseAPP`: 3열 그리드 → 2열, 인라인 상세패널 → SlidePanel
+- [x] `AutomationTestManager`: fullscreen-modal → SlidePanel
+- [x] `PerformanceTestManager`: fullscreen-modal → SlidePanel
+- [x] `JiraIssuesList`: fullscreen-modal → SlidePanel
+
+---
+
 # Task: 연동 설정 메뉴 통합 (AI API 설정 + Jira 연동)
 
 ## 계획

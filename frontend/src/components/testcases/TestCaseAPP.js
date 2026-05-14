@@ -5,6 +5,7 @@ import config from '@tms/config';
 import { useAuth } from '@tms/contexts/AuthContext';
 import { formatUTCToKST } from '@tms/utils/dateUtils';
 import JiraIssuesList from '@tms/components/jira/JiraIssuesList';
+import SlidePanel from '@tms/components/common/SlidePanel';
 
 // 컴포넌트 임포트
 import TestCaseSearch from '@tms/components/testcases/TestCaseSearch';
@@ -1270,23 +1271,12 @@ const TestCaseAPP = ({ setActiveTab }) => {
         </div>
 
         {/* 테스트 케이스 상세 패널 */}
-        <div className="testcase-detail-panel">
-          <div className="detail-panel-header">
-            <h3>상세 정보</h3>
-            {selectedTestCase && (
-              <button
-                type="button"
-                className="testcase-btn testcase-btn-secondary"
-                onClick={() => {
-                  setSelectedTestCase(null);
-                  setComments([]);
-                }}
-              >
-                선택 해제
-              </button>
-            )}
-          </div>
-          {selectedTestCase ? (
+        <SlidePanel
+          isOpen={!!selectedTestCase}
+          onClose={() => { setSelectedTestCase(null); setComments([]); }}
+          title="상세 정보"
+        >
+          {selectedTestCase && (
             <div className="detail-panel-body">
               <div className="testcase-info-table">
                 <table className="info-table">
@@ -1526,16 +1516,11 @@ const TestCaseAPP = ({ setActiveTab }) => {
               {/* 이슈 관리 */}
               <div className="testcase-jira-integration">
                 <h5>🔗 이슈 관리</h5>
-                {console.log('[TestCaseAPP] Render JiraIssuesList inside detail panel, testCaseId=', selectedTestCase?.id)}
                 <JiraIssuesList modalMode={false} testCaseId={selectedTestCase?.id} />
               </div>
             </div>
-          ) : (
-            <div className="detail-panel-empty">
-              <p>테스트 케이스를 선택하면 상세 정보가 표시됩니다.</p>
-            </div>
           )}
-        </div>
+        </SlidePanel>
       </div>
 
       {/* 모달들 */}
