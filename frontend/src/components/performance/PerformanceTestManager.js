@@ -1067,7 +1067,6 @@ const PerformanceTestManager = () => {
         isOpen={showDetailModal && !!selectedTest}
         onClose={() => { setShowDetailModal(false); setSelectedTest(null); }}
         title="성능 테스트 상세 정보"
-        width={640}
       >
         {selectedTest && (
           <div>

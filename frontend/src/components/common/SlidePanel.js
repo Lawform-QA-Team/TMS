@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import './SlidePanel.css';
 
-const SlidePanel = ({ isOpen, onClose, title, children, width = 560 }) => {
+const SlidePanel = ({ isOpen, onClose, title, children }) => {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape' && isOpen) onClose();
@@ -18,7 +18,6 @@ const SlidePanel = ({ isOpen, onClose, title, children, width = 560 }) => {
       />
       <div
         className={`slide-panel ${isOpen ? 'open' : ''}`}
-        style={{ width }}
       >
         <div className="slide-panel-header">
           <h3 className="slide-panel-title">{title}</h3>

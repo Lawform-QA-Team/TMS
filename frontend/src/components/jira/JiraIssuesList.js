@@ -797,7 +797,6 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
         isOpen={showDetailModal && !!selectedIssue}
         onClose={() => { setShowDetailModal(false); setSelectedIssue(null); setIsEditMode(false); }}
         title={isEditMode ? '이슈 수정' : '이슈 상세 정보'}
-        width={640}
       >
         {selectedIssue && (
           <>

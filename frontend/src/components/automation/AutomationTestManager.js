@@ -556,7 +556,6 @@ const AutomationTestManager = () => {
         isOpen={!!selectedTest}
         onClose={() => setSelectedTest(null)}
         title="자동화 테스트 상세 정보"
-        width={600}
       >
         {selectedTest && (
           <AutomationTestDetail
