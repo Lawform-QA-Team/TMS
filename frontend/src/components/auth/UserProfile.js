@@ -69,6 +69,17 @@ const UserProfile = () => {
   const [showDisable2fa, setShowDisable2fa] = useState(false);
   const [disable2faPassword, setDisable2faPassword] = useState('');
 
+  // AI API 설정
+  const AI_PROVIDERS = {
+    openai:    { label: 'OpenAI (GPT)',        models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo'] },
+    anthropic: { label: 'Anthropic (Claude)',  models: ['claude-opus-4-6', 'claude-sonnet-4-6', 'claude-haiku-4-5-20251001'] },
+    google:    { label: 'Google (Gemini)',     models: ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'] },
+  };
+  const [aiConfig, setAiConfig] = useState({ provider: 'openai', api_key: '', model_name: 'gpt-4o-mini', has_api_key: false, api_key_masked: '' });
+  const [aiConfigLoading, setAiConfigLoading] = useState(false);
+  const [aiConfigMessage, setAiConfigMessage] = useState({ type: '', text: '' });
+  const [showApiKey, setShowApiKey] = useState(false);
+
   const handlePasswordChange = (e) => {
     setPasswordData({
       ...passwordData,
@@ -139,6 +150,9 @@ const UserProfile = () => {
     }
     if (activeMenu === 'login-fail' && !isGuest) {
       fetchLoginFailHistory();
+    }
+    if (activeMenu === 'ai-config' && !isGuest) {
+      fetchAiConfig();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeMenu, isGuest]);
@@ -704,6 +718,76 @@ const UserProfile = () => {
     </div>
   );
 
+  const fetchAiConfig = async () => {
+    try {
+      setAiConfigLoading(true);
+      const res = await fetch(`${config.apiUrl}/users/ai-config`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAiConfig(prev => ({
+          ...prev,
+          provider: data.provider || 'openai',
+          model_name: data.model_name || '',
+          has_api_key: data.has_api_key || false,
+          api_key_masked: data.api_key_masked || '',
+          api_key: '',
+        }));
+      }
+    } catch (err) {
+      // silent
+    } finally {
+      setAiConfigLoading(false);
+    }
+  };
+
+  const handleAiConfigSave = async () => {
+    try {
+      setAiConfigLoading(true);
+      setAiConfigMessage({ type: '', text: '' });
+      const res = await fetch(`${config.apiUrl}/users/ai-config`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          provider: aiConfig.provider,
+          api_key: aiConfig.api_key,
+          model_name: aiConfig.model_name,
+        }),
+      });
+      if (res.ok) {
+        setAiConfigMessage({ type: 'success', text: 'AI API 설정이 저장되었습니다.' });
+        setAiConfig(prev => ({ ...prev, api_key: '', has_api_key: prev.has_api_key || !!prev.api_key }));
+        fetchAiConfig();
+      } else {
+        setAiConfigMessage({ type: 'error', text: '저장에 실패했습니다.' });
+      }
+    } catch (err) {
+      setAiConfigMessage({ type: 'error', text: '저장에 실패했습니다.' });
+    } finally {
+      setAiConfigLoading(false);
+    }
+  };
+
+  const handleClearApiKey = async () => {
+    if (!window.confirm('API 키를 삭제하시겠습니까?')) return;
+    try {
+      setAiConfigLoading(true);
+      const res = await fetch(`${config.apiUrl}/users/ai-config/clear-key`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (res.ok) {
+        setAiConfigMessage({ type: 'success', text: 'API 키가 삭제되었습니다.' });
+        setAiConfig(prev => ({ ...prev, has_api_key: false, api_key_masked: '', api_key: '' }));
+      }
+    } catch (err) {
+      setAiConfigMessage({ type: 'error', text: '삭제에 실패했습니다.' });
+    } finally {
+      setAiConfigLoading(false);
+    }
+  };
+
   const SESSION_TIMEOUT_OPTIONS = [
     { value: 30, label: '30분' },
     { value: 60, label: '1시간' },
@@ -930,6 +1014,103 @@ const UserProfile = () => {
     </div>
   );
 
+  const renderAiConfigSection = () => {
+    const providerModels = AI_PROVIDERS[aiConfig.provider]?.models || [];
+    return (
+      <div className="profile-security">
+        <div className="profile-section-header">
+          <h2>AI API 설정</h2>
+          <p>TC 생성에 사용할 AI 공급자와 API 키를 설정합니다. 설정하지 않으면 서버 기본 키를 사용합니다.</p>
+        </div>
+
+        {aiConfigMessage.text && (
+          <div className={`auth-${aiConfigMessage.type}`}>
+            {aiConfigMessage.type === 'success' ? '✅' : '❌'} {aiConfigMessage.text}
+          </div>
+        )}
+
+        {/* AI 공급자 선택 */}
+        <div className="security-group">
+          <div className="security-group-title">AI 공급자</div>
+          <select
+            className="security-select"
+            value={aiConfig.provider}
+            onChange={(e) => setAiConfig(prev => ({ ...prev, provider: e.target.value, model_name: AI_PROVIDERS[e.target.value]?.models[0] || '' }))}
+            disabled={aiConfigLoading}
+          >
+            {Object.entries(AI_PROVIDERS).map(([key, val]) => (
+              <option key={key} value={key}>{val.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* 모델 선택 */}
+        <div className="security-group">
+          <div className="security-group-title">AI 모델</div>
+          <select
+            className="security-select"
+            value={aiConfig.model_name}
+            onChange={(e) => setAiConfig(prev => ({ ...prev, model_name: e.target.value }))}
+            disabled={aiConfigLoading}
+          >
+            {providerModels.map(m => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* API 키 입력 */}
+        <div className="security-group">
+          <div className="security-group-title">API 키</div>
+          <div className="security-group-desc">
+            {aiConfig.has_api_key
+              ? <>현재 저장된 키: <code className="security-2fa-secret-value">{aiConfig.api_key_masked}</code></>
+              : '저장된 API 키가 없습니다. 서버 기본 키를 사용합니다.'}
+          </div>
+          <div className="security-ip-input-row">
+            <input
+              type={showApiKey ? 'text' : 'password'}
+              className="security-ip-input"
+              placeholder="새 API 키를 입력하세요 (비워두면 기존 키 유지)"
+              value={aiConfig.api_key}
+              onChange={(e) => setAiConfig(prev => ({ ...prev, api_key: e.target.value }))}
+              disabled={aiConfigLoading}
+            />
+            <button
+              type="button"
+              className="auth-button auth-button-secondary security-ip-add-btn"
+              onClick={() => setShowApiKey(v => !v)}
+            >
+              {showApiKey ? '숨기기' : '보기'}
+            </button>
+          </div>
+          {aiConfig.has_api_key && (
+            <button
+              type="button"
+              className="auth-button auth-button-danger"
+              style={{ marginTop: 8 }}
+              onClick={handleClearApiKey}
+              disabled={aiConfigLoading}
+            >
+              API 키 삭제
+            </button>
+          )}
+        </div>
+
+        <div className="profile-actions">
+          <button
+            type="button"
+            className="auth-button auth-button-primary"
+            onClick={handleAiConfigSave}
+            disabled={aiConfigLoading}
+          >
+            {aiConfigLoading ? '저장 중...' : '설정 저장'}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const renderLogoutSection = () => (
     <div className="profile-placeholder">
       <h2>로그아웃</h2>
@@ -958,6 +1139,8 @@ const UserProfile = () => {
         return renderLoginFailSection();
       case 'security':
         return renderSecuritySection();
+      case 'ai-config':
+        return renderAiConfigSection();
       case 'logout':
         return renderLogoutSection();
       default:
@@ -1021,6 +1204,16 @@ const UserProfile = () => {
                     onClick={() => setActiveMenu('security')}
                   >
                     보안
+                  </button>
+                </li>
+              )}
+              {!isGuest && (
+                <li>
+                  <button
+                    className={`snb-item ${activeMenu === 'ai-config' ? 'active' : ''}`}
+                    onClick={() => setActiveMenu('ai-config')}
+                  >
+                    AI API 설정
                   </button>
                 </li>
               )}

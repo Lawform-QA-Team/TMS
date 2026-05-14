@@ -2,7 +2,7 @@ import secrets
 import json
 import pyotp
 from flask import Blueprint, request, jsonify
-from models import db, User, UserSession, UserSecuritySettings, LoginFailLog
+from models import db, User, UserSession, UserSecuritySettings, LoginFailLog, UserAiConfig
 from utils.auth_decorators import admin_required, user_required, owner_required, login_required
 from utils.cors import add_cors_headers
 from utils.timezone_utils import get_kst_now
@@ -475,3 +475,64 @@ def get_login_fail_history():
         return add_cors_headers(jsonify(data)), 200
     except Exception as e:
         return add_cors_headers(jsonify({'error': str(e)})), 500
+
+
+# ── AI API 설정 ──────────────────────────────────────────────
+
+@users_bp.route('/users/ai-config', methods=['GET', 'OPTIONS'])
+@user_required
+def get_ai_config():
+    if request.method == 'OPTIONS':
+        from utils.common_helpers import handle_options_request
+        return handle_options_request()
+    user_id = getattr(request, 'current_user_id', None)
+    cfg = UserAiConfig.query.filter_by(user_id=int(user_id)).first()
+    if not cfg:
+        return add_cors_headers(jsonify({'provider': 'openai', 'api_key': '', 'model_name': ''})), 200
+    # api_key는 마스킹해서 반환
+    masked = ''
+    if cfg.api_key:
+        masked = cfg.api_key[:8] + '...' + cfg.api_key[-4:] if len(cfg.api_key) > 12 else '****'
+    return add_cors_headers(jsonify({
+        'provider': cfg.provider,
+        'api_key_masked': masked,
+        'has_api_key': bool(cfg.api_key),
+        'model_name': cfg.model_name or '',
+    })), 200
+
+
+@users_bp.route('/users/ai-config', methods=['PUT'])
+@user_required
+def update_ai_config():
+    user_id = int(getattr(request, 'current_user_id', 0))
+    body = request.get_json() or {}
+    provider = body.get('provider', 'openai').strip()
+    api_key = body.get('api_key', '').strip()
+    model_name = body.get('model_name', '').strip()
+
+    cfg = UserAiConfig.query.filter_by(user_id=user_id).first()
+    if not cfg:
+        cfg = UserAiConfig(user_id=user_id)
+        db.session.add(cfg)
+
+    cfg.provider = provider
+    if api_key:  # 빈 문자열이면 기존 키 유지
+        cfg.api_key = api_key
+    cfg.model_name = model_name or None
+    cfg.updated_at = get_kst_now()
+    db.session.commit()
+
+    return add_cors_headers(jsonify({'message': 'AI API 설정이 저장되었습니다.'})), 200
+
+
+@users_bp.route('/users/ai-config/clear-key', methods=['POST'])
+@user_required
+def clear_ai_api_key():
+    """API 키 삭제"""
+    user_id = int(getattr(request, 'current_user_id', 0))
+    cfg = UserAiConfig.query.filter_by(user_id=user_id).first()
+    if cfg:
+        cfg.api_key = None
+        cfg.updated_at = get_kst_now()
+        db.session.commit()
+    return add_cors_headers(jsonify({'message': 'API 키가 삭제되었습니다.'})), 200

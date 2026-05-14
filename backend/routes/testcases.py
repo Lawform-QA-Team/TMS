@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, send_file
-from models import db, TestCase, TestResult, Screenshot, Project, Folder, User, TestCaseTemplate, TestPlan, TestPlanTestCase, SystemConfig, AiConversation, AiConversationMessage
+from models import db, TestCase, TestResult, Screenshot, Project, Folder, User, TestCaseTemplate, TestPlan, TestPlanTestCase, SystemConfig, AiConversation, AiConversationMessage, UserAiConfig
 from utils.cors import add_cors_headers
 from utils.auth_decorators import admin_required, user_required, guest_allowed
 from utils.serializers import serialize_testcase, serialize_project, serialize_folder, get_testcase_effective_project_id
@@ -197,8 +197,7 @@ def generate_testcases_ai():
     body = request.get_json() or {}
     prompt = body.get('prompt', '').strip()
     if not prompt:
-        response = jsonify({'error': 'prompt가 필요합니다.'})
-        return add_cors_headers(response), 400
+        return add_cors_headers(jsonify({'error': 'prompt가 필요합니다.'})), 400
     count = min(int(body.get('count', 5)), 20)
 
     # 설정에 저장된 기본 프롬프트가 있으면 앞에 붙임
@@ -208,96 +207,47 @@ def generate_testcases_ai():
     else:
         full_prompt = prompt
 
-    api_key = os.getenv('OPENAI_API_KEY')
-    if not api_key:
-        response = jsonify({'error': 'OPENAI_API_KEY가 설정되지 않았습니다.'})
-        return add_cors_headers(response), 500
+    user_id = _get_current_user_id()
+    system_prompt = (
+        "QA 테스트 케이스 설계 전문가입니다. 한국어로 간결하게 작성하세요. "
+        f"정확히 {count}개의 테스트 케이스를 생성하세요. "
+        "반드시 JSON 코드블록으로 감싸 반환하세요. "
+        '형식: ```json { "test_cases": [...] }``` '
+        "각 TC 필드: name, main_category, sub_category, detail_category, "
+        "pre_condition, expected_result, remark. 값은 간결하게."
+    )
+    content, err = _call_ai_api(
+        messages=[{'role': 'user', 'content': full_prompt}],
+        system_prompt=system_prompt,
+        user_id=user_id,
+        max_tokens=2000,
+    )
+    if err:
+        return add_cors_headers(jsonify({'error': err})), 502
 
-    model = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
-    try:
-        payload = {
-            "model": model,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a QA test case designer. Generate concise test cases in Korean. "
-                        f"Generate exactly {count} test cases. "
-                        "Return only JSON with key 'test_cases' containing an array of objects. "
-                        "Each object fields: name, main_category, sub_category, detail_category, "
-                        "pre_condition, expected_result, remark. Keep values short."
-                    ),
-                },
-                {"role": "user", "content": full_prompt},
-            ],
-            "temperature": 0.25,
-            "max_tokens": 2000,
-            "response_format": {"type": "json_object"},
-        }
-
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        }
-
-        r = requests.post(
-            "https://api.openai.com/v1/chat/completions",
-            headers=headers,
-            json=payload,
-            timeout=30,
-        )
-        if not r.ok:
-            response = jsonify({'error': f'OpenAI 호출 실패: {r.status_code} {r.text}'})
-            return add_cors_headers(response), 502
-
-        result = r.json()
-        content = (
-            result.get("choices", [{}])[0]
-            .get("message", {})
-            .get("content", "")
-            .strip()
-        )
-
-        parsed = {}
+    items = _parse_test_cases_from_content(content)
+    # json 블록 파싱 실패 시 직접 JSON 파싱 시도
+    if not items:
         try:
             parsed = json.loads(content) if content else {}
-        except json.JSONDecodeError:
-            parsed = {}
+            raw = parsed.get('test_cases') if isinstance(parsed, dict) else None
+            if isinstance(raw, list):
+                for idx, item in enumerate(raw):
+                    if not isinstance(item, dict):
+                        continue
+                    items.append({
+                        'name': item.get('name') or f'AI 테스트 케이스 {idx+1}',
+                        'main_category': item.get('main_category', ''),
+                        'sub_category': item.get('sub_category', ''),
+                        'detail_category': item.get('detail_category', ''),
+                        'pre_condition': item.get('pre_condition', ''),
+                        'expected_result': item.get('expected_result', ''),
+                        'remark': item.get('remark', ''),
+                    })
+        except (json.JSONDecodeError, ValueError):
+            pass
 
-        items = []
-        raw_items = parsed.get("test_cases") if isinstance(parsed, dict) else None
-        if raw_items is None and isinstance(parsed, list):
-            raw_items = parsed
-
-        if isinstance(raw_items, list):
-            for idx, item in enumerate(raw_items):
-                if not isinstance(item, dict):
-                    continue
-                items.append({
-                    "name": item.get("name") or f"AI 테스트 케이스 {idx+1}",
-                    "main_category": item.get("main_category", ""),
-                    "sub_category": item.get("sub_category", ""),
-                    "detail_category": item.get("detail_category", ""),
-                    "pre_condition": item.get("pre_condition", ""),
-                    "expected_result": item.get("expected_result", ""),
-                    "remark": item.get("remark", ""),
-                })
-
-        response = jsonify({
-            "items": items,
-            "raw": content,
-            "model": model,
-            "usage": result.get("usage", {}),
-        })
-        return add_cors_headers(response), 200
-
-    except requests.exceptions.Timeout:
-        response = jsonify({'error': 'OpenAI 응답 대기 시간 초과'})
-        return add_cors_headers(response), 504
-    except Exception as e:
-        logger.error(f"AI 테스트 케이스 생성 오류: {str(e)}")
-        response = jsonify({'error': 'AI 생성 중 오류가 발생했습니다.'})
-        return add_cors_headers(response), 500
+    return add_cors_headers(jsonify({'items': items, 'raw': content})), 200
 
 
 # ──────────────────────────────────────────────────────────────
@@ -313,6 +263,129 @@ def _get_current_user_id():
         except (TypeError, ValueError):
             pass
     return None
+
+
+def _call_ai_api(messages, system_prompt, user_id=None, max_tokens=2000):
+    """
+    공급자별 AI API 호출 통합 헬퍼.
+    사용자 설정 키/모델 우선, 없으면 서버 env var (OpenAI) fallback.
+    반환: (content: str, error: str|None)
+    """
+    # 사용자 설정 조회
+    provider = 'openai'
+    api_key = None
+    model_name = None
+
+    if user_id:
+        cfg = UserAiConfig.query.filter_by(user_id=user_id).first()
+        if cfg and cfg.api_key:
+            provider = cfg.provider or 'openai'
+            api_key = cfg.api_key
+            model_name = cfg.model_name
+
+    # fallback: 서버 env (OpenAI만 지원)
+    if not api_key:
+        provider = 'openai'
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key:
+            return None, 'AI API 키가 설정되지 않았습니다. 프로필 > AI API 설정에서 키를 등록하세요.'
+
+    # 공급자별 기본 모델
+    default_models = {
+        'openai': 'gpt-4o-mini',
+        'anthropic': 'claude-sonnet-4-6',
+        'google': 'gemini-2.0-flash',
+    }
+    model = model_name or default_models.get(provider, 'gpt-4o-mini')
+
+    try:
+        if provider == 'openai':
+            return _call_openai(api_key, model, system_prompt, messages, max_tokens)
+        elif provider == 'anthropic':
+            return _call_anthropic(api_key, model, system_prompt, messages, max_tokens)
+        elif provider == 'google':
+            return _call_google(api_key, model, system_prompt, messages, max_tokens)
+        else:
+            return None, f'지원하지 않는 AI 공급자: {provider}'
+    except requests.exceptions.Timeout:
+        return None, 'AI 응답 대기 시간 초과'
+    except Exception as e:
+        logger.error(f'AI API 호출 오류 ({provider}): {str(e)}')
+        return None, 'AI 호출 중 오류가 발생했습니다.'
+
+
+def _call_openai(api_key, model, system_prompt, messages, max_tokens):
+    payload = {
+        'model': model,
+        'messages': [{'role': 'system', 'content': system_prompt}, *messages],
+        'temperature': 0.3,
+        'max_tokens': max_tokens,
+    }
+    r = requests.post(
+        'https://api.openai.com/v1/chat/completions',
+        headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
+        json=payload, timeout=60,
+    )
+    if not r.ok:
+        return None, f'OpenAI 호출 실패: {r.status_code} {r.text[:200]}'
+    content = r.json().get('choices', [{}])[0].get('message', {}).get('content', '').strip()
+    return content, None
+
+
+def _call_anthropic(api_key, model, system_prompt, messages, max_tokens):
+    # user/assistant 교대 검증 (Anthropic은 첫 메시지가 user여야 함)
+    filtered = []
+    for m in messages:
+        if filtered and filtered[-1]['role'] == m['role']:
+            continue  # 같은 역할 연속 제거
+        filtered.append({'role': m['role'], 'content': m['content']})
+    if not filtered or filtered[0]['role'] != 'user':
+        filtered = [{'role': 'user', 'content': '안녕하세요'}] + filtered
+
+    payload = {
+        'model': model,
+        'system': system_prompt,
+        'messages': filtered,
+        'max_tokens': max_tokens,
+    }
+    r = requests.post(
+        'https://api.anthropic.com/v1/messages',
+        headers={
+            'x-api-key': api_key,
+            'anthropic-version': '2023-06-01',
+            'Content-Type': 'application/json',
+        },
+        json=payload, timeout=60,
+    )
+    if not r.ok:
+        return None, f'Anthropic 호출 실패: {r.status_code} {r.text[:200]}'
+    content_blocks = r.json().get('content', [])
+    content = ''.join(b.get('text', '') for b in content_blocks if b.get('type') == 'text').strip()
+    return content, None
+
+
+def _call_google(api_key, model, system_prompt, messages, max_tokens):
+    # Gemini는 user/model 역할 사용
+    role_map = {'user': 'user', 'assistant': 'model'}
+    contents = []
+    for m in messages:
+        contents.append({'role': role_map.get(m['role'], 'user'), 'parts': [{'text': m['content']}]})
+    if not contents:
+        contents = [{'role': 'user', 'parts': [{'text': system_prompt}]}]
+
+    payload = {
+        'system_instruction': {'parts': [{'text': system_prompt}]},
+        'contents': contents,
+        'generationConfig': {'maxOutputTokens': max_tokens, 'temperature': 0.3},
+    }
+    url = f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}'
+    r = requests.post(url, headers={'Content-Type': 'application/json'}, json=payload, timeout=60)
+    if not r.ok:
+        return None, f'Google Gemini 호출 실패: {r.status_code} {r.text[:200]}'
+    candidates = r.json().get('candidates', [{}])
+    parts = candidates[0].get('content', {}).get('parts', [{}])
+    content = ''.join(p.get('text', '') for p in parts).strip()
+    return content, None
 
 
 def _parse_test_cases_from_content(content):
@@ -445,83 +518,44 @@ def send_ai_conversation_message(conversation_id):
         for m in history
     ]
 
-    api_key = os.getenv('OPENAI_API_KEY')
-    if not api_key:
+    system_prompt = (
+        'QA 테스트 케이스 설계 전문가입니다. 한국어로 답변하세요. '
+        'TC를 생성할 때는 반드시 JSON 코드블록으로 감싸 반환하세요. '
+        '형식: ```json { "test_cases": [...] }``` '
+        '각 TC 필드: name, main_category, sub_category, detail_category, '
+        'pre_condition, expected_result, remark'
+    )
+    assistant_content, err = _call_ai_api(
+        messages=openai_messages,
+        system_prompt=system_prompt,
+        user_id=user_id,
+        max_tokens=2000,
+    )
+    if err:
         db.session.rollback()
-        return add_cors_headers(jsonify({'error': 'OPENAI_API_KEY가 설정되지 않았습니다.'})), 500
+        return add_cors_headers(jsonify({'error': err})), 502
 
-    model = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
-    try:
-        payload = {
-            'model': model,
-            'messages': [
-                {
-                    'role': 'system',
-                    'content': (
-                        'QA 테스트 케이스 설계 전문가입니다. 한국어로 답변하세요. '
-                        'TC를 생성할 때는 반드시 JSON 코드블록으로 감싸 반환하세요. '
-                        '형식: ```json { "test_cases": [...] }``` '
-                        '각 TC 필드: name, main_category, sub_category, detail_category, '
-                        'pre_condition, expected_result, remark'
-                    ),
-                },
-                *openai_messages,
-            ],
-            'temperature': 0.3,
-            'max_tokens': 2000,
-        }
-        headers = {
-            'Authorization': f'Bearer {api_key}',
-            'Content-Type': 'application/json',
-        }
-        r = requests.post(
-            'https://api.openai.com/v1/chat/completions',
-            headers=headers,
-            json=payload,
-            timeout=60,
-        )
-        if not r.ok:
-            db.session.rollback()
-            return add_cors_headers(jsonify({'error': f'OpenAI 호출 실패: {r.status_code}'})), 502
+    # assistant 메시지 저장
+    asst_msg = AiConversationMessage(
+        conversation_id=conv.id, role='assistant', content=assistant_content
+    )
+    db.session.add(asst_msg)
+    conv.updated_at = get_kst_now()
+    db.session.commit()
 
-        result = r.json()
-        assistant_content = (
-            result.get('choices', [{}])[0]
-            .get('message', {})
-            .get('content', '')
-            .strip()
-        )
+    test_cases = _parse_test_cases_from_content(assistant_content)
 
-        # assistant 메시지 저장
-        asst_msg = AiConversationMessage(
-            conversation_id=conv.id, role='assistant', content=assistant_content
-        )
-        db.session.add(asst_msg)
-        conv.updated_at = get_kst_now()
-        db.session.commit()
-
-        test_cases = _parse_test_cases_from_content(assistant_content)
-
-        response = jsonify({
-            'user_message': {
-                'id': user_msg.id, 'role': 'user', 'content': content,
-                'created_at': user_msg.created_at.isoformat() if user_msg.created_at else None,
-            },
-            'assistant_message': {
-                'id': asst_msg.id, 'role': 'assistant', 'content': assistant_content,
-                'created_at': asst_msg.created_at.isoformat() if asst_msg.created_at else None,
-            },
-            'test_cases': test_cases,
-        })
-        return add_cors_headers(response), 200
-
-    except requests.exceptions.Timeout:
-        db.session.rollback()
-        return add_cors_headers(jsonify({'error': 'OpenAI 응답 대기 시간 초과'})), 504
-    except Exception as e:
-        db.session.rollback()
-        logger.error(f'AI 대화 메시지 오류: {str(e)}')
-        return add_cors_headers(jsonify({'error': 'AI 응답 중 오류가 발생했습니다.'})), 500
+    return add_cors_headers(jsonify({
+        'user_message': {
+            'id': user_msg.id, 'role': 'user', 'content': content,
+            'created_at': user_msg.created_at.isoformat() if user_msg.created_at else None,
+        },
+        'assistant_message': {
+            'id': asst_msg.id, 'role': 'assistant', 'content': assistant_content,
+            'created_at': asst_msg.created_at.isoformat() if asst_msg.created_at else None,
+        },
+        'test_cases': test_cases,
+    })), 200
 
 
 @testcases_bp.route('/testcases/ai/conversations/<int:conversation_id>', methods=['DELETE', 'OPTIONS'])
@@ -551,58 +585,28 @@ def extract_testcases_from_spec():
     if not spec_text:
         return add_cors_headers(jsonify({'error': 'spec_text가 필요합니다.'})), 400
 
-    api_key = os.getenv('OPENAI_API_KEY')
-    if not api_key:
-        return add_cors_headers(jsonify({'error': 'OPENAI_API_KEY가 설정되지 않았습니다.'})), 500
+    user_id = _get_current_user_id()
+    system_prompt = (
+        '스펙 문서에서 테스트 케이스를 추출해 JSON으로 반환하세요. '
+        '반드시 JSON 코드블록으로 감싸 반환하세요. '
+        '형식: ```json { "test_cases": [...] }``` '
+        '각 TC 필드: name, main_category, sub_category, detail_category, '
+        'pre_condition, expected_result, remark. 한국어로 작성.'
+    )
+    content, err = _call_ai_api(
+        messages=[{'role': 'user', 'content': spec_text}],
+        system_prompt=system_prompt,
+        user_id=user_id,
+        max_tokens=4000,
+    )
+    if err:
+        return add_cors_headers(jsonify({'error': err})), 502
 
-    model = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
-    try:
-        payload = {
-            'model': model,
-            'messages': [
-                {
-                    'role': 'system',
-                    'content': (
-                        '스펙 문서에서 테스트 케이스를 추출해 JSON으로 반환하세요. '
-                        '반드시 JSON 코드블록으로 감싸 반환하세요. '
-                        '형식: ```json { "test_cases": [...] }``` '
-                        '각 TC 필드: name, main_category, sub_category, detail_category, '
-                        'pre_condition, expected_result, remark. 한국어로 작성.'
-                    ),
-                },
-                {'role': 'user', 'content': spec_text},
-            ],
-            'temperature': 0.2,
-            'max_tokens': 4000,
-            'response_format': {'type': 'json_object'},
-        }
-        headers = {
-            'Authorization': f'Bearer {api_key}',
-            'Content-Type': 'application/json',
-        }
-        r = requests.post(
-            'https://api.openai.com/v1/chat/completions',
-            headers=headers,
-            json=payload,
-            timeout=60,
-        )
-        if not r.ok:
-            return add_cors_headers(jsonify({'error': f'OpenAI 호출 실패: {r.status_code}'})), 502
-
-        result = r.json()
-        content = (
-            result.get('choices', [{}])[0]
-            .get('message', {})
-            .get('content', '')
-            .strip()
-        )
-
-        items = []
+    items = _parse_test_cases_from_content(content)
+    if not items:
         try:
             parsed = json.loads(content) if content else {}
             raw = parsed.get('test_cases') if isinstance(parsed, dict) else None
-            if raw is None and isinstance(parsed, list):
-                raw = parsed
             if isinstance(raw, list):
                 for idx, item in enumerate(raw):
                     if not isinstance(item, dict):
@@ -619,19 +623,7 @@ def extract_testcases_from_spec():
         except (json.JSONDecodeError, ValueError):
             pass
 
-        response = jsonify({
-            'items': items,
-            'raw': content,
-            'model': model,
-            'usage': result.get('usage', {}),
-        })
-        return add_cors_headers(response), 200
-
-    except requests.exceptions.Timeout:
-        return add_cors_headers(jsonify({'error': 'OpenAI 응답 대기 시간 초과'})), 504
-    except Exception as e:
-        logger.error(f'스펙 추출 오류: {str(e)}')
-        return add_cors_headers(jsonify({'error': '스펙 추출 중 오류가 발생했습니다.'})), 500
+    return add_cors_headers(jsonify({'items': items, 'raw': content})), 200
 
 
 @testcases_bp.route('/testcases/<int:id>/history', methods=['GET'])
