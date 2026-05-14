@@ -12,6 +12,7 @@ import TestCaseTable from '@tms/components/testcases/TestCaseTable';
 import TestCasePagination from '@tms/components/testcases/TestCasePagination';
 import TestCaseModal from '@tms/components/testcases/modals/TestCaseModal';
 import TestCaseFormModal from '@tms/components/testcases/modals/TestCaseFormModal';
+import AiTcModal from '@tms/components/testcases/modals/AiTcModal';
 import { getUserDisplayName } from '@tms/utils/userDisplay';
 
 // 훅 임포트
@@ -216,59 +217,23 @@ const TestCaseAPP = ({ setActiveTab }) => {
   };
 
   const [newTestCase, setNewTestCase] = useState(defaultTestCase);
-  const [aiAddGenerating, setAiAddGenerating] = useState(false);
-  const [aiAddError, setAiAddError] = useState('');
-  const [aiEditGenerating, setAiEditGenerating] = useState(false);
-  const [aiEditError, setAiEditError] = useState('');
+  const [showAiModal, setShowAiModal] = useState(false);
 
-  const applyAiSuggestion = (prev, suggestion) => ({
-    ...prev,
-    name: suggestion.name || prev.name,
-    main_category: suggestion.main_category || prev.main_category,
-    sub_category: suggestion.sub_category || prev.sub_category,
-    detail_category: suggestion.detail_category || prev.detail_category,
-    pre_condition: suggestion.pre_condition || prev.pre_condition,
-    expected_result: suggestion.expected_result || prev.expected_result,
-    remark: suggestion.remark || prev.remark,
-  });
-
-  const fetchAiSuggestion = async (prompt) => {
-    const trimmed = (prompt || '').trim();
-    if (!trimmed) {
-      throw new Error('프롬프트를 입력해주세요.');
+  const handleSaveAiTc = async (tcList) => {
+    for (const tc of tcList) {
+      await axios.post('/testcases', {
+        ...tc,
+        folder_id: selectedFolder,
+        result_status: 'N/T',
+      });
     }
-    const res = await axios.post('/testcases/ai/generate', { prompt: trimmed });
-    const items = res.data?.items || [];
-    if (!items.length) {
-      throw new Error('AI가 테스트 케이스를 생성하지 못했습니다.');
-    }
-    return items[0];
+    refetch();
   };
 
-  const handleAiFillNew = async (prompt) => {
-    setAiAddError('');
-    setAiAddGenerating(true);
-    try {
-      const suggestion = await fetchAiSuggestion(prompt);
-      setNewTestCase((prev) => applyAiSuggestion(prev, suggestion));
-    } catch (err) {
-      setAiAddError(err?.response?.data?.error || err.message || 'AI 생성 오류');
-    } finally {
-      setAiAddGenerating(false);
-    }
-  };
-
-  const handleAiFillEdit = async (prompt) => {
-    setAiEditError('');
-    setAiEditGenerating(true);
-    try {
-      const suggestion = await fetchAiSuggestion(prompt);
-      setEditingTestCase((prev) => applyAiSuggestion(prev || defaultTestCase, suggestion));
-    } catch (err) {
-      setAiEditError(err?.response?.data?.error || err.message || 'AI 생성 오류');
-    } finally {
-      setAiEditGenerating(false);
-    }
+  const handleSendToForm = (tc) => {
+    setNewTestCase({ ...defaultTestCase, ...tc, folder_id: selectedFolder });
+    setShowAiModal(false);
+    setShowAddModal(true);
   };
 
   // 필터링된 테스트 케이스 계산
@@ -1084,7 +1049,13 @@ const TestCaseAPP = ({ setActiveTab }) => {
         <div className="header-actions">
             {user && (user.role === 'admin' || user.role === 'user') && (
               <>
-                <button 
+                <button
+                  className="testcase-btn testcase-btn-ai"
+                  onClick={() => setShowAiModal(true)}
+                >
+                  AI TC 생성
+                </button>
+                <button
                   className="testcase-btn testcase-btn-add"
                   onClick={() => setShowAddModal(true)}
                 >
@@ -1583,9 +1554,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
         }}
         users={users}
         isEdit={false}
-        onAiGenerate={handleAiFillNew}
-        aiGenerating={aiAddGenerating}
-        aiError={aiAddError}
+        onOpenAiModal={() => { setShowAddModal(false); setShowAiModal(true); }}
       />
 
       <TestCaseFormModal
@@ -1603,9 +1572,15 @@ const TestCaseAPP = ({ setActiveTab }) => {
                 }}
         users={users}
         isEdit={true}
-        onAiGenerate={handleAiFillEdit}
-        aiGenerating={aiEditGenerating}
-        aiError={aiEditError}
+        onOpenAiModal={() => { setShowEditModal(false); setShowAiModal(true); }}
+      />
+
+      <AiTcModal
+        isOpen={showAiModal}
+        onClose={() => setShowAiModal(false)}
+        onSaveTc={handleSaveAiTc}
+        onSendToForm={handleSendToForm}
+        selectedFolderId={selectedFolder}
       />
 
       {/* 업로드 모달 */}

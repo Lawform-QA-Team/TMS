@@ -264,3 +264,31 @@ console.log(`... ${duration}ms`);
 
 ## 검토
 - 카테고리 버튼이 실제 DOM에 나타난 후 `$$` 조회하므로 빈 배열 방지
+
+---
+
+# Task: AI TC 에이전트 모달 구현
+
+## 구현 계획
+
+### 백엔드
+- [x] `models.py`: `AiConversation`, `AiConversationMessage` 모델 추가
+- [x] `migrations/versions/add_ai_conversations.py`: 마이그레이션 작성
+- [x] MySQL 직접 적용: `AiConversations`, `AiConversationMessages` 테이블 생성
+- [x] `routes/testcases.py`: generate 강화 (count 파라미터, max_tokens 2000)
+- [x] `routes/testcases.py`: 대화 목록/생성/조회/삭제 엔드포인트 추가
+- [x] `routes/testcases.py`: 대화 메시지 전송 엔드포인트 추가
+- [x] `routes/testcases.py`: 스펙 추출 엔드포인트 추가
+
+### 프론트엔드
+- [x] `AiTcModal.css`: 신규 — 80vh 모달, 3탭, 말풍선, 사이드바 스타일
+- [x] `AiTcModal.js`: 신규 — 빠른 생성 / 대화형 생성 / 스펙 추출 3탭 모달
+- [x] `TestCaseAPP.js`: AI 관련 4개 함수 제거 → `handleSaveAiTc`, `handleSendToForm` 추가, "AI TC 생성" 버튼 추가
+- [x] `TestCaseFormModal.js`: `onAiGenerate` prop → `onOpenAiModal` prop으로 교체
+- [x] `TestCaseAPP.css`: `.testcase-btn-ai` 스타일 추가
+
+## 검토
+- [x] Python 문법 검사: `models.py`, `testcases.py` 모두 OK
+- [x] 프론트엔드 빌드: `Compiled with warnings.` (기존 경고만, 신규 없음)
+- [x] DB 테이블: `AiConversations`, `AiConversationMessages` 생성 확인
+- [x] alembic_version: `add_ai_conversations` 반영 확인

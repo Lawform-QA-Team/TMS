@@ -1377,3 +1377,26 @@ class SystemConfig(db.Model):
 
     def __repr__(self):
         return f'<SystemConfig {self.key}>'
+
+
+class AiConversation(db.Model):
+    __tablename__ = 'AiConversations'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('Users.id'), nullable=False)
+    folder_id = db.Column(db.Integer, db.ForeignKey('Folders.id'), nullable=True)
+    title = db.Column(db.String(200), nullable=False)
+    created_at = db.Column(db.DateTime, default=get_kst_now)
+    updated_at = db.Column(db.DateTime, default=get_kst_now, onupdate=get_kst_now)
+    user = db.relationship('User', backref='ai_conversations')
+    messages = db.relationship('AiConversationMessage', backref='conversation',
+                               lazy='dynamic', cascade='all, delete-orphan',
+                               order_by='AiConversationMessage.created_at')
+
+
+class AiConversationMessage(db.Model):
+    __tablename__ = 'AiConversationMessages'
+    id = db.Column(db.Integer, primary_key=True)
+    conversation_id = db.Column(db.Integer, db.ForeignKey('AiConversations.id'), nullable=False)
+    role = db.Column(db.String(20), nullable=False)  # 'user' or 'assistant'
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=get_kst_now)

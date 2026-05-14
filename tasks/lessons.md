@@ -357,3 +357,32 @@ re.sub(r'(\w+)\.query\.get\((.+?)\)', r'db.session.get(\1, \2)', code)
   metric.add(duration);
   console.log(`duration: ${duration}ms`);
   ```
+
+---
+
+### Flask auth_decorators - 현재 유저 ID 접근 방법
+
+**현상**: `g.current_user`로 접근하면 None 반환
+
+**원인**: `auth_decorators.py`의 `_attach_request_auth`는 `request.current_user_id`와 `request.user`에 저장함. `flask.g`가 아님.
+
+**패턴**:
+```python
+def _get_current_user_id():
+    uid = getattr(request, 'current_user_id', None)
+    if uid is not None:
+        try:
+            return int(uid)
+        except (TypeError, ValueError):
+            pass
+    return None
+```
+
+---
+
+### AI 대화형 TC 엔드포인트 - response_format json_object 사용 불가
+
+**현상**: 대화형 엔드포인트는 json_object 강제 시 JSON만 반환 → 일반 텍스트 응답 불가
+
+**해결**: 대화형 엔드포인트는 `response_format` 미설정. 응답에서 ` ```json ``` ` 블록만 파싱. 스펙 추출처럼 JSON만 필요한 경우는 `response_format: json_object` 유지.
+

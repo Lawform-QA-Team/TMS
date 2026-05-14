@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, send_file
-from models import db, TestCase, TestResult, Screenshot, Project, Folder, User, TestCaseTemplate, TestPlan, TestPlanTestCase, SystemConfig
+from models import db, TestCase, TestResult, Screenshot, Project, Folder, User, TestCaseTemplate, TestPlan, TestPlanTestCase, SystemConfig, AiConversation, AiConversationMessage
 from utils.cors import add_cors_headers
 from utils.auth_decorators import admin_required, user_required, guest_allowed
 from utils.serializers import serialize_testcase, serialize_project, serialize_folder, get_testcase_effective_project_id
@@ -194,10 +194,12 @@ def generate_testcases_ai():
         from utils.common_helpers import handle_options_request
         return handle_options_request()
 
-    prompt = (request.get_json() or {}).get('prompt', '').strip()
+    body = request.get_json() or {}
+    prompt = body.get('prompt', '').strip()
     if not prompt:
         response = jsonify({'error': 'prompt가 필요합니다.'})
         return add_cors_headers(response), 400
+    count = min(int(body.get('count', 5)), 20)
 
     # 설정에 저장된 기본 프롬프트가 있으면 앞에 붙임
     default_row = SystemConfig.query.filter_by(key='tc_default_prompt').first()
@@ -220,6 +222,7 @@ def generate_testcases_ai():
                     "role": "system",
                     "content": (
                         "You are a QA test case designer. Generate concise test cases in Korean. "
+                        f"Generate exactly {count} test cases. "
                         "Return only JSON with key 'test_cases' containing an array of objects. "
                         "Each object fields: name, main_category, sub_category, detail_category, "
                         "pre_condition, expected_result, remark. Keep values short."
@@ -228,7 +231,7 @@ def generate_testcases_ai():
                 {"role": "user", "content": full_prompt},
             ],
             "temperature": 0.25,
-            "max_tokens": 800,
+            "max_tokens": 2000,
             "response_format": {"type": "json_object"},
         }
 
@@ -295,6 +298,341 @@ def generate_testcases_ai():
         logger.error(f"AI 테스트 케이스 생성 오류: {str(e)}")
         response = jsonify({'error': 'AI 생성 중 오류가 발생했습니다.'})
         return add_cors_headers(response), 500
+
+
+# ──────────────────────────────────────────────────────────────
+# AI 대화형 TC 엔드포인트
+# ──────────────────────────────────────────────────────────────
+
+def _get_current_user_id():
+    """request 컨텍스트에서 현재 유저 ID 반환"""
+    uid = getattr(request, 'current_user_id', None)
+    if uid is not None:
+        try:
+            return int(uid)
+        except (TypeError, ValueError):
+            pass
+    return None
+
+
+def _parse_test_cases_from_content(content):
+    """assistant 응답에서 ```json 블록 파싱 → test_cases 추출"""
+    import re
+    items = []
+    # ```json ... ``` 블록 추출
+    match = re.search(r'```json\s*([\s\S]*?)\s*```', content)
+    if match:
+        try:
+            parsed = json.loads(match.group(1))
+            raw = parsed.get('test_cases') if isinstance(parsed, dict) else None
+            if raw is None and isinstance(parsed, list):
+                raw = parsed
+            if isinstance(raw, list):
+                for idx, item in enumerate(raw):
+                    if not isinstance(item, dict):
+                        continue
+                    items.append({
+                        'name': item.get('name') or f'AI 테스트 케이스 {idx+1}',
+                        'main_category': item.get('main_category', ''),
+                        'sub_category': item.get('sub_category', ''),
+                        'detail_category': item.get('detail_category', ''),
+                        'pre_condition': item.get('pre_condition', ''),
+                        'expected_result': item.get('expected_result', ''),
+                        'remark': item.get('remark', ''),
+                    })
+        except (json.JSONDecodeError, ValueError):
+            pass
+    return items
+
+
+@testcases_bp.route('/testcases/ai/conversations', methods=['GET', 'OPTIONS'])
+@user_required
+def list_ai_conversations():
+    if request.method == 'OPTIONS':
+        from utils.common_helpers import handle_options_request
+        return handle_options_request()
+    user_id = _get_current_user_id()
+    convs = (AiConversation.query
+             .filter_by(user_id=user_id)
+             .order_by(AiConversation.updated_at.desc())
+             .all())
+    data = []
+    for c in convs:
+        data.append({
+            'id': c.id,
+            'title': c.title,
+            'folder_id': c.folder_id,
+            'message_count': c.messages.count(),
+            'created_at': c.created_at.isoformat() if c.created_at else None,
+            'updated_at': c.updated_at.isoformat() if c.updated_at else None,
+        })
+    return add_cors_headers(jsonify(data)), 200
+
+
+@testcases_bp.route('/testcases/ai/conversations', methods=['POST'])
+@user_required
+def create_ai_conversation():
+    user_id = _get_current_user_id()
+    body = request.get_json() or {}
+    title = body.get('title', '새 대화').strip() or '새 대화'
+    folder_id = body.get('folder_id')
+    conv = AiConversation(user_id=user_id, title=title, folder_id=folder_id)
+    db.session.add(conv)
+    db.session.commit()
+    response = jsonify({
+        'id': conv.id,
+        'title': conv.title,
+        'folder_id': conv.folder_id,
+        'message_count': 0,
+        'created_at': conv.created_at.isoformat() if conv.created_at else None,
+        'updated_at': conv.updated_at.isoformat() if conv.updated_at else None,
+    })
+    return add_cors_headers(response), 201
+
+
+@testcases_bp.route('/testcases/ai/conversations/<int:conversation_id>', methods=['GET', 'OPTIONS'])
+@user_required
+def get_ai_conversation(conversation_id):
+    if request.method == 'OPTIONS':
+        from utils.common_helpers import handle_options_request
+        return handle_options_request()
+    user_id = _get_current_user_id()
+    conv = db.session.get(AiConversation, conversation_id)
+    if not conv or conv.user_id != user_id:
+        return add_cors_headers(jsonify({'error': '대화를 찾을 수 없습니다.'})), 404
+    msgs = [
+        {'id': m.id, 'role': m.role, 'content': m.content,
+         'created_at': m.created_at.isoformat() if m.created_at else None}
+        for m in conv.messages.all()
+    ]
+    data = {
+        'id': conv.id,
+        'title': conv.title,
+        'folder_id': conv.folder_id,
+        'created_at': conv.created_at.isoformat() if conv.created_at else None,
+        'updated_at': conv.updated_at.isoformat() if conv.updated_at else None,
+        'messages': msgs,
+    }
+    return add_cors_headers(jsonify(data)), 200
+
+
+@testcases_bp.route('/testcases/ai/conversations/<int:conversation_id>/messages', methods=['POST', 'OPTIONS'])
+@user_required
+def send_ai_conversation_message(conversation_id):
+    if request.method == 'OPTIONS':
+        from utils.common_helpers import handle_options_request
+        return handle_options_request()
+    user_id = _get_current_user_id()
+    conv = db.session.get(AiConversation, conversation_id)
+    if not conv or conv.user_id != user_id:
+        return add_cors_headers(jsonify({'error': '대화를 찾을 수 없습니다.'})), 404
+
+    body = request.get_json() or {}
+    content = body.get('content', '').strip()
+    if not content:
+        return add_cors_headers(jsonify({'error': 'content가 필요합니다.'})), 400
+
+    # user 메시지 저장
+    user_msg = AiConversationMessage(conversation_id=conv.id, role='user', content=content)
+    db.session.add(user_msg)
+    db.session.flush()
+
+    # 히스토리 최근 20개
+    history = conv.messages.order_by(AiConversationMessage.created_at.desc()).limit(20).all()
+    history.reverse()
+    openai_messages = [
+        {'role': m.role, 'content': m.content}
+        for m in history
+    ]
+
+    api_key = os.getenv('OPENAI_API_KEY')
+    if not api_key:
+        db.session.rollback()
+        return add_cors_headers(jsonify({'error': 'OPENAI_API_KEY가 설정되지 않았습니다.'})), 500
+
+    model = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
+    try:
+        payload = {
+            'model': model,
+            'messages': [
+                {
+                    'role': 'system',
+                    'content': (
+                        'QA 테스트 케이스 설계 전문가입니다. 한국어로 답변하세요. '
+                        'TC를 생성할 때는 반드시 JSON 코드블록으로 감싸 반환하세요. '
+                        '형식: ```json { "test_cases": [...] }``` '
+                        '각 TC 필드: name, main_category, sub_category, detail_category, '
+                        'pre_condition, expected_result, remark'
+                    ),
+                },
+                *openai_messages,
+            ],
+            'temperature': 0.3,
+            'max_tokens': 2000,
+        }
+        headers = {
+            'Authorization': f'Bearer {api_key}',
+            'Content-Type': 'application/json',
+        }
+        r = requests.post(
+            'https://api.openai.com/v1/chat/completions',
+            headers=headers,
+            json=payload,
+            timeout=60,
+        )
+        if not r.ok:
+            db.session.rollback()
+            return add_cors_headers(jsonify({'error': f'OpenAI 호출 실패: {r.status_code}'})), 502
+
+        result = r.json()
+        assistant_content = (
+            result.get('choices', [{}])[0]
+            .get('message', {})
+            .get('content', '')
+            .strip()
+        )
+
+        # assistant 메시지 저장
+        asst_msg = AiConversationMessage(
+            conversation_id=conv.id, role='assistant', content=assistant_content
+        )
+        db.session.add(asst_msg)
+        conv.updated_at = get_kst_now()
+        db.session.commit()
+
+        test_cases = _parse_test_cases_from_content(assistant_content)
+
+        response = jsonify({
+            'user_message': {
+                'id': user_msg.id, 'role': 'user', 'content': content,
+                'created_at': user_msg.created_at.isoformat() if user_msg.created_at else None,
+            },
+            'assistant_message': {
+                'id': asst_msg.id, 'role': 'assistant', 'content': assistant_content,
+                'created_at': asst_msg.created_at.isoformat() if asst_msg.created_at else None,
+            },
+            'test_cases': test_cases,
+        })
+        return add_cors_headers(response), 200
+
+    except requests.exceptions.Timeout:
+        db.session.rollback()
+        return add_cors_headers(jsonify({'error': 'OpenAI 응답 대기 시간 초과'})), 504
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'AI 대화 메시지 오류: {str(e)}')
+        return add_cors_headers(jsonify({'error': 'AI 응답 중 오류가 발생했습니다.'})), 500
+
+
+@testcases_bp.route('/testcases/ai/conversations/<int:conversation_id>', methods=['DELETE', 'OPTIONS'])
+@user_required
+def delete_ai_conversation(conversation_id):
+    if request.method == 'OPTIONS':
+        from utils.common_helpers import handle_options_request
+        return handle_options_request()
+    user_id = _get_current_user_id()
+    conv = db.session.get(AiConversation, conversation_id)
+    if not conv or conv.user_id != user_id:
+        return add_cors_headers(jsonify({'error': '대화를 찾을 수 없습니다.'})), 404
+    db.session.delete(conv)
+    db.session.commit()
+    return add_cors_headers(jsonify({'message': '대화가 삭제되었습니다.'})), 200
+
+
+@testcases_bp.route('/testcases/ai/extract', methods=['POST', 'OPTIONS'])
+@user_required
+def extract_testcases_from_spec():
+    """스펙 문서에서 TC 추출"""
+    if request.method == 'OPTIONS':
+        from utils.common_helpers import handle_options_request
+        return handle_options_request()
+
+    spec_text = (request.get_json() or {}).get('spec_text', '').strip()
+    if not spec_text:
+        return add_cors_headers(jsonify({'error': 'spec_text가 필요합니다.'})), 400
+
+    api_key = os.getenv('OPENAI_API_KEY')
+    if not api_key:
+        return add_cors_headers(jsonify({'error': 'OPENAI_API_KEY가 설정되지 않았습니다.'})), 500
+
+    model = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
+    try:
+        payload = {
+            'model': model,
+            'messages': [
+                {
+                    'role': 'system',
+                    'content': (
+                        '스펙 문서에서 테스트 케이스를 추출해 JSON으로 반환하세요. '
+                        '반드시 JSON 코드블록으로 감싸 반환하세요. '
+                        '형식: ```json { "test_cases": [...] }``` '
+                        '각 TC 필드: name, main_category, sub_category, detail_category, '
+                        'pre_condition, expected_result, remark. 한국어로 작성.'
+                    ),
+                },
+                {'role': 'user', 'content': spec_text},
+            ],
+            'temperature': 0.2,
+            'max_tokens': 4000,
+            'response_format': {'type': 'json_object'},
+        }
+        headers = {
+            'Authorization': f'Bearer {api_key}',
+            'Content-Type': 'application/json',
+        }
+        r = requests.post(
+            'https://api.openai.com/v1/chat/completions',
+            headers=headers,
+            json=payload,
+            timeout=60,
+        )
+        if not r.ok:
+            return add_cors_headers(jsonify({'error': f'OpenAI 호출 실패: {r.status_code}'})), 502
+
+        result = r.json()
+        content = (
+            result.get('choices', [{}])[0]
+            .get('message', {})
+            .get('content', '')
+            .strip()
+        )
+
+        items = []
+        try:
+            parsed = json.loads(content) if content else {}
+            raw = parsed.get('test_cases') if isinstance(parsed, dict) else None
+            if raw is None and isinstance(parsed, list):
+                raw = parsed
+            if isinstance(raw, list):
+                for idx, item in enumerate(raw):
+                    if not isinstance(item, dict):
+                        continue
+                    items.append({
+                        'name': item.get('name') or f'추출 테스트 케이스 {idx+1}',
+                        'main_category': item.get('main_category', ''),
+                        'sub_category': item.get('sub_category', ''),
+                        'detail_category': item.get('detail_category', ''),
+                        'pre_condition': item.get('pre_condition', ''),
+                        'expected_result': item.get('expected_result', ''),
+                        'remark': item.get('remark', ''),
+                    })
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+        response = jsonify({
+            'items': items,
+            'raw': content,
+            'model': model,
+            'usage': result.get('usage', {}),
+        })
+        return add_cors_headers(response), 200
+
+    except requests.exceptions.Timeout:
+        return add_cors_headers(jsonify({'error': 'OpenAI 응답 대기 시간 초과'})), 504
+    except Exception as e:
+        logger.error(f'스펙 추출 오류: {str(e)}')
+        return add_cors_headers(jsonify({'error': '스펙 추출 중 오류가 발생했습니다.'})), 500
+
 
 @testcases_bp.route('/testcases/<int:id>/history', methods=['GET'])
 @guest_allowed
