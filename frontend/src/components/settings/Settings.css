@@ -11,7 +11,6 @@
   padding: 20px;
   background: var(--tms-bg-card);
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(15, 76, 129, 0.06);
   border: 1px solid var(--tms-border);
 }
 
@@ -65,7 +64,6 @@
   background: var(--tms-bg-card);
   border-radius: 8px;
   padding: 25px;
-  box-shadow: 0 2px 4px rgba(15, 76, 129, 0.06);
   border: 1px solid var(--tms-border);
 }
 
@@ -73,7 +71,6 @@
   background: var(--tms-bg-card);
   border-radius: 8px;
   padding: 25px;
-  box-shadow: 0 2px 4px rgba(15, 76, 129, 0.06);
   border: 1px solid var(--tms-border);
   height: fit-content;
 }
@@ -122,7 +119,6 @@
 .snb-item.active {
   background: #007bff;
   color: white;
-  box-shadow: 0 2px 4px rgba(0,123,255,0.3);
 }
 
 .snb-item.active:hover {

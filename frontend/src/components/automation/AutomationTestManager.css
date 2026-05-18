@@ -15,7 +15,6 @@
   padding: 20px;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .automation-header h1 {
@@ -52,7 +51,6 @@
 
 .automation-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .automation-btn-add {
@@ -271,7 +269,6 @@
 .automation-search-input:focus {
   outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
 .automation-search-input::placeholder {
@@ -349,7 +346,6 @@
 .automation-filter-select:focus {
   outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
 }
 
 /* 검색 결과 요약 */
@@ -372,7 +368,6 @@
 .automation-table-container {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   margin-bottom: 30px;
 }
@@ -543,7 +538,6 @@
   margin-top: 20px;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   overflow: hidden;
 }
 
@@ -569,13 +563,11 @@
 
 .automation-item:hover {
   border-color: #007bff;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
 }
 
 .automation-item.selected {
   border-color: #007bff;
   background: #f8f9ff;
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
 }
 
 /* 테스트 항목 헤더 */
@@ -631,7 +623,6 @@
 
 .automation-detail-inline .automation-detail-container {
   background: transparent;
-  box-shadow: none;
   margin: 0;
   max-height: none;
   border-radius: 0;
@@ -683,7 +674,6 @@
   padding: 60px 20px;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .automation-empty-state p {
@@ -713,7 +703,6 @@
   max-height: 90vh;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -787,7 +776,6 @@
 .automation-container .modal .form-control:focus {
   outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
 .automation-container .modal select.form-control {
@@ -861,7 +849,6 @@
   max-height: 90vh;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -939,7 +926,6 @@
 .automation-container .modal.fullscreen-modal-content .form-group select:focus {
   outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
 .automation-container .modal.fullscreen-modal-content .form-group textarea {
@@ -966,7 +952,6 @@
 
 .automation-container .modal.fullscreen-modal-content .modal-actions .btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* 반응형 디자인 */

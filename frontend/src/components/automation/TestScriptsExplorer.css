@@ -1,7 +1,6 @@
 .test-scripts-explorer {
   background: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   margin: 20px;
   overflow: hidden;
 }
@@ -128,7 +127,6 @@
 /* 폴더 트리 스타일 (테스트 케이스와 동일) */
 .folder-tree {
   padding: 25px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   height: fit-content;
   background: #f7fafc;
   border-radius: 8px;
@@ -262,7 +260,6 @@
   background: white;
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .code-content {

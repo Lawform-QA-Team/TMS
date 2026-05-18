@@ -5,6 +5,7 @@ import config from '@tms/config';
 import { useAuth } from '@tms/contexts/AuthContext';
 import { formatUTCToKST } from '@tms/utils/dateUtils';
 import { getUserDisplayName } from '@tms/utils/userDisplay';
+import SlidePanel from '@tms/components/common/SlidePanel';
 import '@tms/components/performance/PerformanceTestManager.css';
 import '@tms/components/common/Modal.css';
 
@@ -1061,23 +1062,14 @@ const PerformanceTestManager = () => {
         </div>
       )}
 
-      {/* 상세보기 모달 */}
-      {showDetailModal && selectedTest && (
-        <div className="modal-overlay fullscreen-modal">
-          <div className="modal fullscreen-modal-content">
-            <div className="modal-header">
-              <h3>📋 성능 테스트 상세 정보</h3>
-              <button 
-                className="modal-close"
-                onClick={() => {
-                  setShowDetailModal(false);
-                  setSelectedTest(null);
-                }}
-              >
-                ×
-              </button>
-            </div>
-            <div className="modal-body" style={{ padding: '24px', overflowY: 'auto' }}>
+      {/* 상세보기 패널 */}
+      <SlidePanel
+        isOpen={showDetailModal && !!selectedTest}
+        onClose={() => { setShowDetailModal(false); setSelectedTest(null); }}
+        title="성능 테스트 상세 정보"
+      >
+        {selectedTest && (
+          <div>
               <div className="test-info-table">
                 <table className="info-table">
                   <tbody>
@@ -1200,21 +1192,9 @@ const PerformanceTestManager = () => {
                   </div>
                 )}
               </div>
-            </div>
-            <div className="modal-actions">
-              <button 
-                className="btn btn-secondary"
-                onClick={() => {
-                  setShowDetailModal(false);
-                  setSelectedTest(null);
-                }}
-              >
-                닫기
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        )}
+      </SlidePanel>
         </div>
     );
 };

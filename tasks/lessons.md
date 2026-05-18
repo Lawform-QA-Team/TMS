@@ -2,6 +2,23 @@
 
 ---
 
+## 워크플로우 필수 순서
+
+**커밋 전 반드시 .md 업데이트 먼저:**
+1. `tasks/todo.md` — 완료 항목 체크 및 검토 섹션 추가
+2. `tasks/lessons.md` — 새로 얻은 교훈 기록
+3. 그 다음 커밋 (코드 + .md 파일 함께)
+
+---
+
+## UI 메뉴 통합 패턴
+
+- 관련된 외부 서비스 설정들은 하나의 "연동 설정" 메뉴로 묶는 것이 UX상 좋음
+- 독립 컴포넌트(JiraConfigPanel 등)를 다른 페이지에서 재사용할 때: 해당 컴포넌트 파일에 CSS import를 직접 추가해 자립성 확보
+- `JiraIssuesList.css`처럼 여러 컴포넌트 스타일이 하나의 CSS에 혼재할 때, 해당 CSS를 사용하는 각 컴포넌트가 직접 import하면 어디서든 동작 보장
+
+---
+
 ## 워크플로우 규칙 (항상 적용)
 
 ### Playwright ↔ K6 양방향 동기화
@@ -357,3 +374,93 @@ re.sub(r'(\w+)\.query\.get\((.+?)\)', r'db.session.get(\1, \2)', code)
   metric.add(duration);
   console.log(`duration: ${duration}ms`);
   ```
+
+---
+
+### Flask auth_decorators - 현재 유저 ID 접근 방법
+
+**현상**: `g.current_user`로 접근하면 None 반환
+
+**원인**: `auth_decorators.py`의 `_attach_request_auth`는 `request.current_user_id`와 `request.user`에 저장함. `flask.g`가 아님.
+
+**패턴**:
+```python
+def _get_current_user_id():
+    uid = getattr(request, 'current_user_id', None)
+    if uid is not None:
+        try:
+            return int(uid)
+        except (TypeError, ValueError):
+            pass
+    return None
+```
+
+---
+
+### AI 대화형 TC 엔드포인트 - response_format json_object 사용 불가
+
+**현상**: 대화형 엔드포인트는 json_object 강제 시 JSON만 반환 → 일반 텍스트 응답 불가
+
+**해결**: 대화형 엔드포인트는 `response_format` 미설정. 응답에서 ` ```json ``` ` 블록만 파싱. 스펙 추출처럼 JSON만 필요한 경우는 `response_format: json_object` 유지.
+
+---
+
+### AI 멀티 공급자 통합 - 공급자별 API 차이점
+
+**OpenAI**: `messages` 배열에 `{"role": "system", ...}` 포함 가능, `response_format: json_object` 지원
+
+**Anthropic**: `system`은 별도 최상위 필드. `messages`는 user/assistant 교대로만 가능 (user로 시작해야 함). 같은 역할 연속 시 에러 → 필터링 필요.
+
+**Google Gemini**: role이 `user`/`model` (assistant 아님). `system_instruction`이 별도 최상위 필드. URL에 API 키를 쿼리 파라미터로 전달 (`?key=...`).
+
+**패턴**: 공급자별 함수 분리(`_call_openai`, `_call_anthropic`, `_call_google`) 후 `_call_ai_api()` 헬퍼로 통합. 사용자 설정 우선 → 서버 env fallback.
+
+---
+
+### API 키 저장 - 보안 패턴
+
+- DB에 저장된 API 키는 GET 응답 시 반드시 마스킹 (`앞8자...뒤4자`)
+- PUT 시 빈 문자열이면 기존 키 유지 (덮어쓰기 방지)
+- 별도 `clear-key` 엔드포인트로 명시적 삭제만 허용
+
+---
+
+## 2026-05-14
+
+### fullscreen-modal → SlidePanel 교체 패턴
+
+모달을 SlidePanel로 교체할 때 두 번의 Edit으로 나눠서 처리:
+1. **상단**: `modal-overlay` + `modal-header` 제거 → `<SlidePanel isOpen=... onClose=... title=...>` + `{children && (<>` 로 교체
+2. **하단**: 남은 `</div></div>)}` (overlay 닫기들) → `</></SlidePanel>` 로 교체
+3. `modal-body` 감싸는 div가 있으면 별도로 제거할 것 (orphan `</div>` 생김 주의)
+
+---
+
+### CSS selector 범위 — 컴포넌트 교체 시 적용 안 되는 문제
+
+`.modal-overlay .modal-actions`처럼 특정 컨텍스트에 묶인 selector는 컴포넌트 구조가 바뀌면 적용되지 않는다.
+- 교체 후 selector에서 중간 컨텍스트(`.modal-overlay`) 제거 필요
+- 컴포넌트 교체 후 반드시 CSS selector 유효성 재확인
+
+---
+
+### SlidePanel — width는 CSS에서 관리
+
+JS props(`width={600}`)로 고정 픽셀을 전달하면 반응형 통일이 어렵다.
+- `SlidePanel.css`에서 `width: 50vw; min-width: 400px`로 CSS 레벨에서 관리
+- JS에서 width prop 제거, 예외적인 크기는 CSS 클래스로 처리
+
+---
+
+### `@media (prefers-color-scheme: dark)` — 앱 전체 다크 모드 미지원 시 금지
+
+앱이 다크 모드를 지원하지 않는데 특정 컴포넌트에만 `prefers-color-scheme: dark` 쿼리가 있으면, OS/브라우저 설정에 따라 해당 컴포넌트만 배경이 바뀌어 흰색/검은색으로 달라 보인다.
+- 앱 전체 다크 모드 지원 전까지 개별 컴포넌트에 dark 미디어 쿼리 추가 금지
+
+---
+
+### box-shadow 일괄 제거 시 transition 참조도 함께 정리
+
+`box-shadow:` 속성을 제거해도 `transition: border-color 0.15s, box-shadow 0.15s;`처럼 transition에 섞인 참조가 남는다.
+- `/box-shadow:/d` 로 속성 줄 제거 후, `grep -rn "box-shadow"` 로 transition 잔여 참조 확인 및 제거
+

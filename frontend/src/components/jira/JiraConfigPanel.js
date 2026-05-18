@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '@tms/config';
 import { useAuth } from '@tms/contexts/AuthContext';
+import '@tms/components/jira/JiraIssuesList.css';
 
 const JiraConfigPanel = ({ onConfigured }) => {
   const { token } = useAuth();

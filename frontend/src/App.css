@@ -22,7 +22,6 @@
   position: sticky;
   top: 0;
   z-index: 1001;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .app-header-left {
@@ -215,7 +214,6 @@
   background: var(--tms-bg-card);
   border: 1px solid var(--tms-border);
   border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   list-style: none;
   z-index: 1100;
 }
@@ -324,7 +322,6 @@
   background: var(--tms-bg-card);
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(15, 76, 129, 0.06);
   border: 1px solid var(--tms-border);
   margin-bottom: 20px;
 }
@@ -359,7 +356,6 @@
 .test-cases-list {
   background: var(--tms-bg-card);
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(15, 76, 129, 0.06);
   border: 1px solid var(--tms-border);
   overflow: hidden;
 }

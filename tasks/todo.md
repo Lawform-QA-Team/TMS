@@ -1,3 +1,36 @@
+# Task: 조회 페이지 슬라이드 패널 레이아웃 통일
+
+## 목표
+전체 조회 페이지 상세보기를 오른쪽 슬라이드 패널(C형)으로 통일
+
+## 작업 계획
+- [x] `common/SlidePanel.js` + `SlidePanel.css` 공통 컴포넌트 생성
+- [x] `TestCaseAPP`: 3열 그리드 → 2열, 인라인 상세패널 → SlidePanel
+- [x] `AutomationTestManager`: fullscreen-modal → SlidePanel
+- [x] `PerformanceTestManager`: fullscreen-modal → SlidePanel
+- [x] `JiraIssuesList`: fullscreen-modal → SlidePanel
+
+## UI 개선 (후속)
+- [x] SlidePanel 폭 `50vw` CSS 고정, width prop 제거
+- [x] 진행현황 파이차트: grid → flex, 파이 `160px` 고정폭
+- [x] SlidePanel 헤더 구분선 완전 제거
+- [x] Jira 상세 버튼 가로 1줄 중앙 정렬, 너비 통일
+- [x] 이슈 메뉴에서 Jira 연동 설정 패널 제거
+- [x] 전체 UI `box-shadow` 완전 제거 (27개 파일)
+- [x] 테스트 스크립트: `prefers-color-scheme: dark` 미디어 쿼리 제거
+
+---
+
+# Task: 연동 설정 메뉴 통합 (AI API 설정 + Jira 연동)
+
+## 계획
+- [x] UserProfile.js: `AI API 설정` → `연동 설정` 메뉴로 통합
+- [x] UserProfile.js: JiraConfigPanel import 및 연동 설정 섹션에 포함
+- [x] menu key `ai-config` → `integrations` 변경
+- [x] JiraConfigPanel.js: CSS import 추가 (자체 스타일 보장)
+
+---
+
 # Task: Jira 코드 검수 이슈 수정
 
 ## 수정 목록
@@ -264,3 +297,69 @@ console.log(`... ${duration}ms`);
 
 ## 검토
 - 카테고리 버튼이 실제 DOM에 나타난 후 `$$` 조회하므로 빈 배열 방지
+
+---
+
+# Task: AI TC 에이전트 모달 구현
+
+## 구현 계획
+
+### 백엔드
+- [x] `models.py`: `AiConversation`, `AiConversationMessage` 모델 추가
+- [x] `migrations/versions/add_ai_conversations.py`: 마이그레이션 작성
+- [x] MySQL 직접 적용: `AiConversations`, `AiConversationMessages` 테이블 생성
+- [x] `routes/testcases.py`: generate 강화 (count 파라미터, max_tokens 2000)
+- [x] `routes/testcases.py`: 대화 목록/생성/조회/삭제 엔드포인트 추가
+- [x] `routes/testcases.py`: 대화 메시지 전송 엔드포인트 추가
+- [x] `routes/testcases.py`: 스펙 추출 엔드포인트 추가
+
+### 프론트엔드
+- [x] `AiTcModal.css`: 신규 — 80vh 모달, 3탭, 말풍선, 사이드바 스타일
+- [x] `AiTcModal.js`: 신규 — 빠른 생성 / 대화형 생성 / 스펙 추출 3탭 모달
+- [x] `TestCaseAPP.js`: AI 관련 4개 함수 제거 → `handleSaveAiTc`, `handleSendToForm` 추가, "AI TC 생성" 버튼 추가
+- [x] `TestCaseFormModal.js`: `onAiGenerate` prop → `onOpenAiModal` prop으로 교체
+- [x] `TestCaseAPP.css`: `.testcase-btn-ai` 스타일 추가
+
+## 검토
+- [x] Python 문법 검사: `models.py`, `testcases.py` 모두 OK
+- [x] 프론트엔드 빌드: `Compiled with warnings.` (기존 경고만, 신규 없음)
+- [x] DB 테이블: `AiConversations`, `AiConversationMessages` 생성 확인
+- [x] alembic_version: `add_ai_conversations` 반영 확인
+
+---
+
+# Task: 사용자별 AI API 설정 및 멀티 공급자 지원
+
+## 구현 계획
+
+### 백엔드
+- [x] `models.py`: `UserAiConfig` 모델 추가 (provider, api_key, model_name)
+- [x] `migrations/versions/add_user_ai_config.py`: 마이그레이션 작성
+- [x] MySQL 직접 적용: `UserAiConfigs` 테이블 생성
+- [x] `routes/users.py`: `GET/PUT /users/ai-config`, `POST /users/ai-config/clear-key` 추가
+- [x] `routes/testcases.py`: `_call_ai_api()` 통합 헬퍼 추가 (OpenAI/Anthropic/Google)
+- [x] `routes/testcases.py`: generate, conversation/messages, extract 엔드포인트 교체
+
+### 프론트엔드
+- [x] `UserProfile.js`: AI API 설정 상태/함수 추가 (fetchAiConfig, handleAiConfigSave, handleClearApiKey)
+- [x] `UserProfile.js`: `renderAiConfigSection()` 추가 (공급자/모델/키 입력 UI)
+- [x] `UserProfile.js`: 사이드바에 'AI API 설정' 메뉴 추가
+
+## 검토
+- [x] Python 문법 검사: `models.py`, `testcases.py`, `users.py` 모두 OK
+- [x] 프론트엔드 빌드: `Compiled with warnings.` (기존 경고만, 신규 없음)
+- [x] DB 테이블: `UserAiConfigs` 생성 확인
+
+---
+
+# Task: AI 공급자 확장 (xAI/Perplexity/Mistral/Groq/Upstage)
+
+## 구현 계획
+- [x] `routes/testcases.py`: `_OPENAI_COMPAT_URLS` 딕셔너리로 OpenAI 호환 공급자 관리
+- [x] `routes/testcases.py`: `_call_openai_compat()` 단일 함수로 통합 (base_url 파라미터)
+- [x] `routes/testcases.py`: xAI, Perplexity, Mistral, Groq, Upstage 추가 (DeepSeek 제외)
+- [x] `UserProfile.js`: `AI_PROVIDERS` 8개 공급자로 확장
+
+## 검토
+- [x] Python 문법 검사 OK
+- [x] 프론트엔드 빌드 OK
