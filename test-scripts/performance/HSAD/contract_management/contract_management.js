@@ -1,7 +1,8 @@
 import { browser } from 'k6/browser';
 import { check } from 'k6';
 import { Trend } from 'k6/metrics';
-import { URLS, SELECTORS } from '../util/url_base_hsad.js';
+import { URLS } from '../util/url_base_hsad.js';
+import { SELECTORS } from '../selector_hsad.js';
 import { hsadBrowserOptions, loginToDashboard, measure } from '../common/k6_browser_helpers.js';
 
 export const options = hsadBrowserOptions;
@@ -15,15 +16,15 @@ export default async function () {
 
         // LC_001, LC_003: 계약처 관리 타이틀 및 법인 탭 확인
         await measure(contractManagementLoad, () => page.goto(URLS.CONTRACT.CONTRACT));
-        const hasCorporateTab = await page.locator('text="법인"').isVisible();
-        const hasTitle = await page.locator('text="계약처 관리"').isVisible();
+        const hasCorporateTab = await page.locator(SELECTORS.CONTRACT_MANAGEMENT.TAB_CORPORATE).isVisible();
+        const hasTitle = await page.locator(SELECTORS.CONTRACT_MANAGEMENT.TITLE).isVisible();
         check(page, {
             'LC_001: 법인 탭 노출 확인': () => hasCorporateTab,
             'LC_003: 계약처 관리 타이틀 확인': () => hasTitle,
         });
 
         // LC_009: 검색창 placeholder 확인
-        const hasSearchInput = await page.locator('input[placeholder="기업명을 검색해보세요"]').isVisible();
+        const hasSearchInput = await page.locator(SELECTORS.CONTRACT_MANAGEMENT.INPUT_COMPANY_SEARCH).isVisible();
         check(page, {
             'LC_009: 검색창 placeholder 확인': () => hasSearchInput,
         });

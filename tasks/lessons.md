@@ -381,6 +381,7 @@ re.sub(r'(\w+)\.query\.get\((.+?)\)', r'db.session.get(\1, \2)', code)
 
 - HSAD Playwright/K6에서 루트 `url_base_hsad.js`와 `util/url_base_hsad.js`를 동시에 구현하면 URL/selector drift가 생긴다.
 - 루트 파일은 `util/url_base_hsad.js`를 재수출하고, 실제 구현은 `util` 한 곳에서만 관리한다.
+- selector는 URL 파일에 두지 않고 `selector_hsad.js`처럼 별도 파일로 분리한다. FE `test-tid`가 늘어날수록 URL/selector가 섞이면 검색과 유지보수가 어려워진다.
 - k6 `check()`에는 Promise를 직접 반환하지 말고, `await locator.isVisible()` 결과를 boolean 변수로 만든 뒤 전달한다.
 - Playwright config의 `testDir`가 `tests`만 가리키면 `HSAD/**/*.spec.js`는 수집되지 않으므로 `testMatch` 또는 전용 실행 스크립트를 함께 추가한다.
 - TC 매트릭스의 `LC_001~LC_010` 같은 범위를 테스트명에 쓰면 해당 범위의 각 LC assertion을 실제로 포함해야 한다. smoke 수준이면 테스트명을 실제 LC 번호로 줄인다.

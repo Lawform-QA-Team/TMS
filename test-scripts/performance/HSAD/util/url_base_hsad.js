@@ -89,21 +89,6 @@ export const SETTING_URLS = {
     SETUP: `${BASE_URL}/setup` //설정
 };
 
-// 로그인 셀렉터
-export const SELECTORS = {
-    LOGIN: {
-        EMAIL_INPUT: 'input[id="email"]',
-        PASSWORD_INPUT: 'input[id="password"]',
-        SUBMIT_BUTTON: 'button[type="submit"]',
-        LOGOUT: 'img[alt="이동"]'
-    },
-    DASHBOARD: {
-        SETTING: 'img[alt="setting"]',
-        CLOSE: 'img[alt="close"]',
-        GNB: 'img[alt="네비게이션 열기/접기 버튼"]'
-    }
-};
-
 // 현재 환경의 로그인 정보를 가져오는 함수 (k6 __ENV 기반)
 export function getCurrentLoginCredentials() {
     const email = (typeof __ENV !== 'undefined' && __ENV.LOGIN_EMAIL) ? __ENV.LOGIN_EMAIL

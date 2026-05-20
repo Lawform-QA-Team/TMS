@@ -1,6 +1,7 @@
 import { browser } from 'k6/browser';
 import { check } from 'k6';
-import { URLS, SELECTORS } from '../util/url_base_hsad.js';
+import { URLS } from '../util/url_base_hsad.js';
+import { SELECTORS } from '../selector_hsad.js';
 import { Trend } from 'k6/metrics';
 import { hsadBrowserOptions, loginToDashboard, measure } from '../common/k6_browser_helpers.js';
 

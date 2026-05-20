@@ -398,3 +398,20 @@ console.log(`... ${duration}ms`);
 - [x] 수정 spec `node --check` 통과
 - [x] `git diff --check` 통과
 - [x] linter 오류 없음
+
+---
+
+# Task: HSAD K6 selector 분리
+
+## 수정 계획
+- [x] `performance/HSAD/selector_hsad.js` 신규 생성
+- [x] `performance/HSAD/util/url_base_hsad.js`에서 `SELECTORS` 제거
+- [x] HSAD K6 스크립트 import를 `URLS` / `SELECTORS` 분리 구조로 변경
+- [x] 현재 사용 중인 inline selector를 도메인별 selector 틀로 이동
+
+## 검증
+- [x] `url_base_hsad.js`에서 `SELECTORS` export 제거 확인
+- [x] `url_base_hsad.js`에서 `SELECTORS`를 import하는 K6 파일 없음 확인
+- [x] 수정 JS `node --check` 통과
+- [x] `git diff --check` 통과
+- [x] linter 오류 없음
