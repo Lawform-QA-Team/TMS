@@ -363,3 +363,38 @@ console.log(`... ${duration}ms`);
 ## 검토
 - [x] Python 문법 검사 OK
 - [x] 프론트엔드 빌드 OK
+
+---
+
+# Task: HSAD K6/Playwright 테스트 우선순위 이슈 수정
+
+## 수정 계획
+- [x] Playwright HSAD spec 실행 경로와 npm script 추가
+- [x] Playwright dotenv 경로 수정
+- [x] HSAD 루트 `url_base_hsad.js`를 `util/url_base_hsad.js` 재수출로 통합
+- [x] K6 `login_to_dashboard`를 기존 호출부와 page 인자 호출부 모두 호환되게 수정
+- [x] K6 신규 browser 시나리오에 공통 options, threshold, Trend 측정 추가
+- [x] K6 `check()`의 async Promise 반환 패턴을 await 기반 boolean으로 수정
+- [x] Playwright run 파일의 `common/utils.js` import 경로 수정
+
+## 검증
+- [x] 깨진 import 검색
+- [x] K6 `check()` Promise 패턴 검색
+- [x] Playwright HSAD 실행 명령 확인 (`npm run test:hsad -- --list`, 18 tests 수집)
+- [x] JS 문법 체크 및 `git diff --check` 통과
+
+---
+
+# Task: HSAD Playwright P1 상위 TC spec 확장
+
+## 수정 계획
+- [x] 대시보드 P1 LC_001~LC_007 spec 확장
+- [x] 계약서 생성 P1 LC_001~LC_010 spec 확장
+- [x] 법률 자문 설정 P1 LC_005~LC_007 spec 확장
+- [x] 송무 메뉴 P1 LC_001~LC_002 spec 확장
+
+## 검증
+- [x] `npm run test:hsad -- --list` — 5 files / 18 tests 수집 확인
+- [x] 수정 spec `node --check` 통과
+- [x] `git diff --check` 통과
+- [x] linter 오류 없음

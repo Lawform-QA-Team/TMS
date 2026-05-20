@@ -2,7 +2,7 @@
  * 송무 등록 - Playwright용
  */
 import { URLS } from '../util/url_base_hsad.js';
-import { getFormattedTimestamp } from '../../../common/utils.js';
+import { getFormattedTimestamp } from '../../common/utils.js';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 
 /**
