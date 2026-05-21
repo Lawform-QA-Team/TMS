@@ -20,6 +20,7 @@ export const hsadBrowserOptions = {
 
 export async function loginToDashboard(page, URLS, SELECTORS) {
     await page.goto(URLS.LOGIN.LOGIN);
+    console.log('login url:', URLS.LOGIN.LOGIN )
     await page.locator(SELECTORS.LOGIN.EMAIL_INPUT).type(__ENV.LOGIN_EMAIL || 'test@hsad.co.kr');
     await page.locator(SELECTORS.LOGIN.PASSWORD_INPUT).type(__ENV.LOGIN_PASSWORD || 'password');
     await Promise.all([

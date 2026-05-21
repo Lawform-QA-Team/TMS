@@ -1,4 +1,4 @@
-// HSAD k6 browser 스크립트용 selector 모음
+// lawform k6 browser 스크립트용 selector 모음
 // shared-configs/tid/ JSON 파일 기반 [data-tid="..."] selector
 // 네임스페이스: BUSINESS / WEB / SHARED_UI
 export const SELECTORS = {
