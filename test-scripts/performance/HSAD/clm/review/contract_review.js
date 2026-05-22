@@ -19,7 +19,7 @@ export default async function () {
         await measure(contractReviewPageLoad, () => page.goto(URLS.CLM.REVIEW));
 
         const isReviewPage = page.url().includes('/clm/review');
-        const hasTitle = await page.locator(SELECTORS.CONTRACT_REVIEW.TITLE).isVisible();
+        const hasTitle = await page.locator('text="계약 검토 요청 임시저장 리스트"').isVisible();
 
         check(page, {
             'LC_001: 계약 검토 요청 리스트 이동 확인': () => isReviewPage,
@@ -27,8 +27,8 @@ export default async function () {
         });
 
         // LC_004: 버튼 노출 확인 (삭제, 신규 검토 요청)
-        const hasNewReviewButton = await page.locator(SELECTORS.CONTRACT_REVIEW.BUTTON_NEW_REVIEW).isVisible();
-        const hasDeleteButton = await page.locator(SELECTORS.CONTRACT_REVIEW.BUTTON_DELETE).isVisible();
+        const hasNewReviewButton = await page.locator(SELECTORS.BUSINESS.CLM.BUTTON_CREATE).isVisible();
+        const hasDeleteButton = await page.locator(SELECTORS.BUSINESS.CLM.BUTTON_CLICK_DELETE).isVisible();
 
         check(page, {
             'LC_004: 신규 검토 요청 버튼 확인': () => hasNewReviewButton,

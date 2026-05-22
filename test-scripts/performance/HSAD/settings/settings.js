@@ -16,7 +16,7 @@ export default async function () {
 
         // LC_006: 시스템 설정 안내 문구 확인
         await measure(settingsPageLoad, () => page.goto(URLS.SETTING.SETUP));
-        const hasSettingsGuide = await page.locator(SELECTORS.SETTINGS.ADVICE_GUIDE).isVisible();
+        const hasSettingsGuide = await page.locator('text="법률 자문 관리 옵션을 설정해보세요"').isVisible();
 
         check(page, {
             'LC_006: 설정 안내 문구 확인': () => hasSettingsGuide,

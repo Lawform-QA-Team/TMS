@@ -1,7 +1,17 @@
 // HSAD k6 browser 스크립트용 selector 모음
 // shared-configs/tid/ JSON 파일 기반 [data-tid="..."] selector
-// 네임스페이스: BUSINESS / WEB / SHARED_UI
+// 네임스페이스: LOGIN / BUSINESS / WEB / SHARED_UI
 export const SELECTORS = {
+
+    // =========================================================
+    // LOGIN (tid 미적용 - CSS selector 직접 사용)
+    // =========================================================
+    LOGIN: {
+        EMAIL_INPUT: 'input[id="email"]',
+        PASSWORD_INPUT: 'input[id="password"]',
+        SUBMIT_BUTTON: 'button[type="submit"]',
+        LOGOUT: 'img[alt="이동"]',
+    },
 
     // =========================================================
     // BUSINESS

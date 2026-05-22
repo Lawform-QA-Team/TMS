@@ -18,12 +18,12 @@ export default async function () {
         await measure(dashboardSettingsLoad, () => page.goto(URLS.LOGIN.DASHBOARD));
 
         // LC_002: 대시보드 설정 모달 호출 (이미지 alt="setting")
-        const settingBtn = page.locator(SELECTORS.DASHBOARD.SETTING);
+        const settingBtn = page.locator(SELECTORS.BUSINESS.DASHBOARD.BUTTON);
         await settingBtn.click();
-        
+
         // LC_003: '전자서명 대기' 체크박스 노출 및 비활성(Unchecked) 상태 확인
-        const eSignCheckbox = page.locator('input[type="checkbox"]').filter({ hasText: '전자서명 대기' });
-        const hasSettingsClose = await page.locator(SELECTORS.DASHBOARD.CLOSE).isVisible();
+        const eSignCheckbox = page.locator(SELECTORS.BUSINESS.DASHBOARD.CHECKBOX);
+        const hasSettingsClose = await page.locator(SELECTORS.BUSINESS.DASHBOARD.BUTTON_CLOSE_MODAL).isVisible();
         const isESignUnchecked = !(await eSignCheckbox.isChecked());
 
         check(page, {

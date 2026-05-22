@@ -17,10 +17,10 @@ export default async function () {
 
         // 2. 대시보드 진입 및 설정 확인
         await measure(dashboardPageLoad, () => page.goto(URLS.LOGIN.DASHBOARD));
-        const settingBtn = page.locator(SELECTORS.DASHBOARD.SETTING);
+        const settingBtn = page.locator(SELECTORS.BUSINESS.DASHBOARD.BUTTON);
         await settingBtn.click();
 
-        const hasSettingsClose = await page.locator(SELECTORS.DASHBOARD.CLOSE).isVisible();
+        const hasSettingsClose = await page.locator(SELECTORS.BUSINESS.DASHBOARD.BUTTON_CLOSE_MODAL).isVisible();
 
         check(page, {
             'LC_002: 대시보드 설정 노출 확인': () => hasSettingsClose,

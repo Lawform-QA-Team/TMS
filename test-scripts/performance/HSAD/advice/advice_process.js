@@ -17,14 +17,14 @@ export default async function () {
 
         // LC_002: 법률 자문 메뉴 노출 확인 (SNB)
         await measure(adviceDashboardLoad, () => page.goto(URLS.LOGIN.DASHBOARD));
-        const hasAdviceMenu = await page.locator(SELECTORS.ADVICE.MENU).isVisible();
+        const hasAdviceMenu = await page.locator('nav >> text="법률 자문"').isVisible();
         check(page, {
             'LC_002: 법률 자문 메뉴 노출 확인': () => hasAdviceMenu,
         });
 
         // LC_005: 법률 자문 관리 설정 확인
         await measure(adviceSettingsLoad, () => page.goto(URLS.SETTING.SETUP));
-        const hasAdviceSettings = await page.locator(SELECTORS.ADVICE.SETTINGS_TITLE).isVisible();
+        const hasAdviceSettings = await page.locator('text="법률 자문 관리"').isVisible();
         check(page, {
             'LC_005: 법률 자문 관리 메뉴 노출': () => hasAdviceSettings,
         });

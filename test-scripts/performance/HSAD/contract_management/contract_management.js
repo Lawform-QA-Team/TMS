@@ -16,15 +16,15 @@ export default async function () {
 
         // LC_001, LC_003: 계약처 관리 타이틀 및 법인 탭 확인
         await measure(contractManagementLoad, () => page.goto(URLS.CONTRACT.CONTRACT));
-        const hasCorporateTab = await page.locator(SELECTORS.CONTRACT_MANAGEMENT.TAB_CORPORATE).isVisible();
-        const hasTitle = await page.locator(SELECTORS.CONTRACT_MANAGEMENT.TITLE).isVisible();
+        const hasCorporateTab = await page.locator('text="법인"').isVisible();
+        const hasTitle = await page.locator('text="계약처 관리"').isVisible();
         check(page, {
             'LC_001: 법인 탭 노출 확인': () => hasCorporateTab,
             'LC_003: 계약처 관리 타이틀 확인': () => hasTitle,
         });
 
         // LC_009: 검색창 placeholder 확인
-        const hasSearchInput = await page.locator(SELECTORS.CONTRACT_MANAGEMENT.INPUT_COMPANY_SEARCH).isVisible();
+        const hasSearchInput = await page.locator(SELECTORS.BUSINESS.PC.INPUT_SEARCH).isVisible();
         check(page, {
             'LC_009: 검색창 placeholder 확인': () => hasSearchInput,
         });

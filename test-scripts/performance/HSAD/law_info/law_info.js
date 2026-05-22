@@ -17,8 +17,8 @@ export default async function () {
         // LC_001: 법령 캘린더 진입
         await measure(lawPageLoad, () => page.goto(URLS.LAW.SCHEDULE));
         const isLawPage = page.url().includes('/law');
-        const hasCalendar = await page.locator(SELECTORS.LAW.CALENDAR).isVisible()
-            || await page.locator(SELECTORS.LAW.CALENDAR_TITLE).isVisible();
+        const hasCalendar = await page.locator('.calendar-view').isVisible()
+            || await page.locator('text="법령 캘린더"').isVisible();
 
         check(page, {
             'LC_001: 법령 정보 페이지 진입 확인': () => isLawPage,
