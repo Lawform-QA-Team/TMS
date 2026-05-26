@@ -21,21 +21,22 @@ export default async function () {
       let timestamp = getNewTimestamp();
       await page.screenshot({path: `screenshots/${timestamp}_clm.png`});
       // 신규 검토 요청 btn 클릭
-      await page.waitForSelector('//button[text()="신규 검토 요청" and not(@disabled)]');
+      await page.waitForSelector(SELECTORS.BUSINESS.CLM.NEW_REVIEW_REQUEST_BUTTON);
       timestamp = getNewTimestamp();
       await page.screenshot({path: `screenshots/${timestamp}_before_request.png`});
-      await page.locator('//button[text()="신규 검토 요청"]').click();
+      await page.locator(SELECTORS.BUSINESS.CLM.NEW_REVIEW_REQUEST_BUTTON).click();
       timestamp = getNewTimestamp();
       await page.screenshot({path: `screenshots/${timestamp}_after_request.png`});
       // 계약 검토 요청 모달 확인 btn 클릭
-      await page.waitForSelector('//div[contains(@class,"footer-safe-area")]//button[text()="확인" and not(@disabled)]');
+      // TODO: data-tid 없음 (footer-safe-area 모달 확인 버튼)
+      await page.waitForSelector('//div[contains(@class,"footer-safe-area")]//button[text()="확인"]');
       await page.locator('//div[contains(@class,"footer-safe-area")]//button[text()="확인"]').click();
       timestamp = getNewTimestamp();
       await wait(10000);
       await page.screenshot({path: `screenshots/${timestamp}_after_confirm.png`});
       console.log("clm draft page:", await page.url()); // 진입 페이지 URL 확인
       // 계약 검토 요청 작성 시작
-      await page.locator('//label[.//div[text()="신규"]]').click();
+      await page.locator('//label[.//div[text()="신규"]]').click(); // TODO: data-tid 없음 (Radio 컴포넌트가 data-tid를 DOM에 전달하지 않음)
       if ( __ENV.EDITOR_USE === "use") { // 편집기 사용 여부 : 사용
         await page.locator('//label[.//div[text()="사용"]]').click();
         await page.screenshot({path: `screenshots/${timestamp}_draft.png`});
@@ -46,7 +47,7 @@ export default async function () {
       // 계약서 첨부 방식
       if ( __ENV.CONTRACT_TYPE === "file") { // 계약서 첨부 방식 : 파일 업로드
         await page.locator('//label[.//div[text()="파일로 첨부하기"]]').click();
-        await page.screenshot({path: `screenshots/${timestamp}_contrat.png`});
+        await page.screenshot({path: `screenshots/${timestamp}_contract.png`});
         } else { // 계약서 첨부 방식 : My 계약서에서 불러오기
           await page.waitForSelector('//label[.//div[text()="My계약서에서 불러오기"]]')
           await page.locator('//label[.//div[text()="My계약서에서 불러오기"]]').click();
@@ -129,14 +130,15 @@ export default async function () {
         else {// 내부 결재선이 없을 경우 노출되는 모달 처리
           await page.locator('//div[text()="계약서 검토 요청"]').click();
           await page.screenshot({path: `screenshots/${timestamp}_creat.png`});
-          await page.waitForSelector('//div[contains(@class,"footer-safe-area")]//button[text()="확인" and not(@disabled)]');
+          // TODO: data-tid 없음 (footer-safe-area 모달 확인 버튼)
+          await page.waitForSelector('//div[contains(@class,"footer-safe-area")]//button[text()="확인"]');
           // const btn = page.locator('//div[contains(@class, "footer-safe-area")]//button[text()="확인"]')
           // console.log('disabled', await btn.getAttribute('disabled'));
           // console.log('aria-disabled', await btn.getAttribute('aria-disabled'));
-          await page.screenshot({path: `screenshots/${timestamp}_asigness.png`});
+          await page.screenshot({path: `screenshots/${timestamp}_assignees.png`});
           await page.locator('//div[contains(@class,"footer-safe-area")]//button[text()="확인"]').click();
           await page.waitForTimeout(10000)
-          await page.screenshot({path: `screenshots/${timestamp}_new_contrat.png`});
+          await page.screenshot({path: `screenshots/${timestamp}_new_contract.png`});
         }
       }
       return page;

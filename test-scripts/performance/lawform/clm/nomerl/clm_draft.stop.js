@@ -67,7 +67,7 @@ export default async function () {
         // 계약서 첨부 방식
         if ( __ENV.CONTRAT_TYPE === "file") { // 계약서 첨부 방식 : 파일 업로드
           await page.locator('//label[.//div[text()="파일로 첨부하기"]]').click();
-          await page.screenshot({path: `screenshots/${timestamp}_contrat.png`});
+          await page.screenshot({path: `screenshots/${timestamp}_contract.png`});
           } else { // 계약서 첨부 방식 : My 계약서에서 불러오기
             await page.waitForSelector('//label[.//div[text()="My계약서에서 불러오기"]]')
             await page.locator('//label[.//div[text()="My계약서에서 불러오기"]]').click();
@@ -154,10 +154,10 @@ export default async function () {
               // const btn = page.locator('//div[contains(@class, "footer-safe-area")]//button[text()="확인"]')
               // console.log('disabled', await btn.getAttribute('disabled'));
               // console.log('aria-disabled', await btn.getAttribute('aria-disabled'));
-              await page.screenshot({path: `screenshots/${timestamp}_asigness.png`});
+              await page.screenshot({path: `screenshots/${timestamp}_assignees.png`});
               await page.locator('//div[contains(@class,"footer-safe-area")]//button[text()="확인"]').click();
               await page.waitForTimeout(10000)
-              await page.screenshot({path: `screenshots/${timestamp}_new_contrat.png`});
+              await page.screenshot({path: `screenshots/${timestamp}_new_contract.png`});
           }
         }
       }
@@ -200,10 +200,10 @@ export default async function () {
             // const btn = page.locator('//div[contains(@class, "footer-safe-area")]//button[text()="확인"]')
             // console.log('disabled', await btn.getAttribute('disabled'));
             // console.log('aria-disabled', await btn.getAttribute('aria-disabled'));
-            await page.screenshot({path: `screenshots/${timestamp}_asigness.png`});
+            await page.screenshot({path: `screenshots/${timestamp}_assignees.png`});
             await page.locator('//div[contains(@class,"footer-safe-area")]//button[text()="확인"]').click();
             await page.waitForTimeout(10000)
-            await page.screenshot({path: `screenshots/${timestamp}_new_contrat.png`});
+            await page.screenshot({path: `screenshots/${timestamp}_new_contract.png`});
         }
       }
       return page;

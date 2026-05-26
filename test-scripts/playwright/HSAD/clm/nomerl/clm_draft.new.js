@@ -1,7 +1,7 @@
 /**
  * CLM 신규 계약 검토 요청 - Playwright용
  */
-import { URLS } from '../../util/url_base_hsad.js';
+import { URLS, SELECTORS } from '../../util/url_base_hsad.js';
 import { getFormattedTimestamp } from '../../../common/utils.js';
 import { getCredentials, loginWithPage } from '../../login/login_helper.js';
 
@@ -24,15 +24,16 @@ export async function run(page) {
     await page.screenshot({ path: `screenshots/${timestamp}_clm.png` });
 
     // 신규 검토 요청 btn 클릭
-    await page.waitForSelector('//button[text()="신규 검토 요청" and not(@disabled)]');
+    await page.waitForSelector(SELECTORS.BUSINESS.CLM.NEW_REVIEW_REQUEST_BUTTON);
     timestamp = getNewTimestamp();
     await page.screenshot({ path: `screenshots/${timestamp}_before_request.png` });
-    await page.locator('//button[text()="신규 검토 요청"]').click();
+    await page.locator(SELECTORS.BUSINESS.CLM.NEW_REVIEW_REQUEST_BUTTON).click();
     timestamp = getNewTimestamp();
     await page.screenshot({ path: `screenshots/${timestamp}_after_request.png` });
 
     // 계약 검토 요청 모달 확인 btn 클릭
-    await page.waitForSelector('//div[contains(@class,"footer-safe-area")]//button[text()="확인" and not(@disabled)]');
+    // TODO: data-tid 없음 (footer-safe-area 모달 확인 버튼)
+    await page.waitForSelector('//div[contains(@class,"footer-safe-area")]//button[text()="확인"]');
     await page.locator('//div[contains(@class,"footer-safe-area")]//button[text()="확인"]').click();
     timestamp = getNewTimestamp();
     await wait(10000);
@@ -53,7 +54,7 @@ export async function run(page) {
     // 계약서 첨부 방식
     if (process.env.CONTRACT_TYPE === 'file') {
         await page.locator('//label[.//div[text()="파일로 첨부하기"]]').click();
-        await page.screenshot({ path: `screenshots/${timestamp}_contrat.png` });
+        await page.screenshot({ path: `screenshots/${timestamp}_contract.png` });
     } else {
         await page.waitForSelector('//label[.//div[text()="My계약서에서 불러오기"]]');
         await page.locator('//label[.//div[text()="My계약서에서 불러오기"]]').click();
@@ -124,11 +125,12 @@ export async function run(page) {
         } else {
             await page.locator('//div[text()="계약서 검토 요청"]').click();
             await page.screenshot({ path: `screenshots/${timestamp}_creat.png` });
-            await page.waitForSelector('//div[contains(@class,"footer-safe-area")]//button[text()="확인" and not(@disabled)]');
-            await page.screenshot({ path: `screenshots/${timestamp}_asigness.png` });
+            // TODO: data-tid 없음 (footer-safe-area 모달 확인 버튼)
+            await page.waitForSelector('//div[contains(@class,"footer-safe-area")]//button[text()="확인"]');
+            await page.screenshot({ path: `screenshots/${timestamp}_assignees.png` });
             await page.locator('//div[contains(@class,"footer-safe-area")]//button[text()="확인"]').click();
             await page.waitForTimeout(10000);
-            await page.screenshot({ path: `screenshots/${timestamp}_new_contrat.png` });
+            await page.screenshot({ path: `screenshots/${timestamp}_new_contract.png` });
         }
     }
 }
