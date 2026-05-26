@@ -1,17 +1,30 @@
 // k6: __ENV.BASE_URL / Node: process.env.BASE_URL
 // web 스크립트 실행 시 필수.
-let BASE_URL;
-if (typeof __ENV !== 'undefined' && __ENV.BASE_URL) {
-    BASE_URL = __ENV.BASE_URL.replace(/\/$/, '');
-} else if (typeof process !== 'undefined' && process.env && process.env.BASE_URL) {
-    BASE_URL = process.env.BASE_URL.replace(/\/$/, '');
+function getEnvValue(key) {
+    if (typeof __ENV !== 'undefined' && __ENV[key]) {
+        return __ENV[key];
+    }
+    if (typeof process !== 'undefined' && process.env && process.env[key]) {
+        return process.env[key];
+    }
+    return null;
 }
+
+function trimTrailingSlash(value) {
+    return value ? value.replace(/\/$/, '') : value;
+}
+
+const BASE_URL = trimTrailingSlash(getEnvValue('BASE_URL'));
+const SSO_ENTRY_URL = trimTrailingSlash(getEnvValue('SSO_ENTRY_URL'));
+const SSO_CALLBACK_WAIT_URL = getEnvValue('SSO_CALLBACK_WAIT_URL');
 
 // 로그인 관련 URL
 export const LOGIN_URLS = {
     HOME: `${BASE_URL}`,
     LOGIN: `${BASE_URL}/login`,
-    DASHBOARD: `${BASE_URL}/dashboard`
+    DASHBOARD: `${BASE_URL}/dashboard`,
+    SSO_ENTRY: SSO_ENTRY_URL,
+    CALLBACK_WAIT: SSO_CALLBACK_WAIT_URL || `${BASE_URL}/dashboard`
 };
 //계약서 생성 관련 URL
 export const DRIVE_URLS = {
