@@ -1,28 +1,9 @@
-import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
-import login_to_dashboard from "@tms/performance/common/login/login_to_dashboard.js";
-import { URLS } from "../../util/url_base_hsad.js";
+import { browser } from 'k6/browser';
+import { URLS, SELECTORS } from '../../util/url_base_hsad.js';
+import { hsadBrowserOptions, loginToDashboard } from '../../common/k6_browser_helpers.js';
 import { getFormattedTimestamp } from "@tms/performance/common/utils.js";
 
-export const options = {
-  scenarios: {
-    ui: {
-      executor: 'shared-iterations',
-      options: {
-        browser: {
-          type: 'chromium',
-          headless: false,
-          defaultViewport: {
-            width: 1920,
-            height: 1080,
-          },
-        },
-      },
-    },
-  },
-  thresholds: {
-    checks: ['rate==1.0'],
-  },
-};
+export const options = hsadBrowserOptions;
 
 async function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -32,7 +13,9 @@ export default async function () {
     const getNewTimestamp = () => getFormattedTimestamp().replace(/:/g, '_');
     let page;
     try {
-        page = await login_to_dashboard();
+        const context = await browser.newContext();
+        page = await context.newPage();
+        await loginToDashboard(page, URLS, SELECTORS);
       // 임시 저장 리스트 호출
       await page.goto(URLS.CLM.DRAFT);
       let timestamp = getNewTimestamp();
@@ -163,9 +146,3 @@ export default async function () {
     }
 }
 
-export function handleSummary(data) {
-    const timestamp = getFormattedTimestamp().replace(/:/g, '_');  
-    return {
-          [`Result/clm_draft.new_summary_${timestamp}.html`]: htmlReport(data),
-      };
-  }

@@ -1,28 +1,9 @@
-import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
 import { browser } from 'k6/browser';
-import login_to_dashboard from "@tms/performance/common/login/login_to_dashboard.js";
-import { URLS } from "../util/url_base_hsad.js";
+import { URLS, SELECTORS } from '../util/url_base_hsad.js';
+import { hsadBrowserOptions, loginToDashboard } from '../common/k6_browser_helpers.js';
 import { getFormattedTimestamp } from "@tms/performance/common/utils.js";
 
-export const options = {
-  scenarios: {
-    ui: {
-      executor: 'shared-iterations',
-      options: {
-        browser: {
-          type: 'chromium',
-          defaultViewport: {
-            width: 2560,
-            height: 1440,
-          },
-        },
-      },
-    },
-  },
-  thresholds: {
-    checks: ['rate==1.0'],
-  },
-};
+export const options = hsadBrowserOptions;
 
 async function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -33,7 +14,9 @@ export default async function () {
   let page;
 
   try {
-    const page = await login_to_dashboard();
+    const context = await browser.newContext();
+    page = await context.newPage();
+    await loginToDashboard(page, URLS, SELECTORS);
     // 법률 자문 임시 저장 리스트 호출
     await page.goto(URLS.ADVICE.DRAFT);
     let timestamp = getNewTimestamp();
@@ -94,10 +77,3 @@ export default async function () {
     //await page.close();
   }
 }
-export function handleSummary(data) {
-  const timestamp = getFormattedTimestamp().replace(/:/g, '_');  
-  return {
-        [`Result/advice_draft_summary_${timestamp}.html`]: htmlReport(data),
-    };
-}
-

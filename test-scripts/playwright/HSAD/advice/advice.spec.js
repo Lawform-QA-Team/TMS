@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login } from '../common/auth';
+import { login } from '../common/auth.js';
 
 test.describe('HSAD Legal Advice', () => {
     test.beforeEach(async ({ page }) => {

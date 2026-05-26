@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { SELECTORS } from '../util/url_base_hsad.js';
-import { login } from '../common/auth';
+import { login } from '../common/auth.js';
 
 test.describe('HSAD Dashboard - LC Cases', () => {
     test.beforeEach(async ({ page }) => {
