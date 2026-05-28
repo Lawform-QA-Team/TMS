@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { URLS, SELECTORS } from '../util/url_base_hsad.js';
+import { URLS } from '../util/url_base_hsad.js';
+import { SELECTORS } from '../util/selector_hsad.js';
 import { login } from '../common/auth.js';
 
 // 블랙리스트 업체 계약 특별 승인 요청

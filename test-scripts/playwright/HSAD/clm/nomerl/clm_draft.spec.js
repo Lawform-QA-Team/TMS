@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { URLS, SELECTORS } from '../../util/url_base_hsad.js';
+import { URLS } from '../../util/url_base_hsad.js';
+import { SELECTORS } from '../../util/selector_hsad.js';
 import { login } from '../../common/auth.js';
 
 test.describe('CLM 계약 검토 요청 - 임시저장 목록', () => {

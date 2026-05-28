@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { URLS, SELECTORS } from '../util/url_base_hsad.js';
+import { URLS } from '../util/url_base_hsad.js';
+import { SELECTORS } from '../util/selector_hsad.js';
 import { login } from '../common/auth.js';
 
 // 송무 상세 TC 전체 기대결과 미작성 (570건)

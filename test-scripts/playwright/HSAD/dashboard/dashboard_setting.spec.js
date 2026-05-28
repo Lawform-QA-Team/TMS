@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { SELECTORS } from '../util/url_base_hsad.js';
+import { SELECTORS } from '../util/selector_hsad.js';
 import { login } from '../common/auth.js';
 
 test.describe('HSAD Dashboard - LC Cases', () => {
@@ -8,8 +8,8 @@ test.describe('HSAD Dashboard - LC Cases', () => {
     });
 
     async function openDashboardSettings(page) {
-        await page.click(SELECTORS.DASHBOARD.SETTING);
-        await expect(page.locator(SELECTORS.DASHBOARD.CLOSE)).toBeVisible();
+        await page.click(SELECTORS.BUSINESS.DASHBOARD.SETTING);
+        await expect(page.locator(SELECTORS.BUSINESS.DASHBOARD.CLOSE)).toBeVisible();
     }
 
     function eSignSettingCheckbox(page) {
@@ -22,7 +22,7 @@ test.describe('HSAD Dashboard - LC Cases', () => {
 
     async function saveDashboardSettings(page) {
         await page.click('button:has-text("저장")');
-        await expect(page.locator(SELECTORS.DASHBOARD.CLOSE)).toBeHidden();
+        await expect(page.locator(SELECTORS.BUSINESS.DASHBOARD.CLOSE)).toBeHidden();
     }
 
     test('LC_001~LC_007: Dashboard Settings and Tile Visibility', async ({ page }) => {
@@ -34,7 +34,7 @@ test.describe('HSAD Dashboard - LC Cases', () => {
             await eSignCheckbox.uncheck();
             await saveDashboardSettings(page);
         } else {
-            await page.click(SELECTORS.DASHBOARD.CLOSE);
+            await page.click(SELECTORS.BUSINESS.DASHBOARD.CLOSE);
         }
         await expect(page.getByText('전자서명 대기')).toBeHidden();
 
@@ -49,7 +49,7 @@ test.describe('HSAD Dashboard - LC Cases', () => {
         // LC_004: 취소 시 모달이 닫히며 대시보드 변경사항 없음
         await eSignCheckbox.check();
         await page.click('button:has-text("취소")');
-        await expect(page.locator(SELECTORS.DASHBOARD.CLOSE)).toBeHidden();
+        await expect(page.locator(SELECTORS.BUSINESS.DASHBOARD.CLOSE)).toBeHidden();
         await expect(page.getByText('전자서명 대기')).toBeHidden();
 
         await openDashboardSettings(page);

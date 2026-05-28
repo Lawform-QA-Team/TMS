@@ -6,7 +6,8 @@
  *   SIGN_TYPE: 서명 방식 ('esign' = 전자서명, 'direct' = 직접서명)
  *   SEAL_USE:  인감 사용 여부 ('use' = 인감 사용 신청)
  */
-import { URLS, SELECTORS } from '../../util/url_base_hsad.js';
+import { URLS } from '../../util/url_base_hsad.js';
+import { SELECTORS } from '../../util/selector_hsad.js';
 import { getFormattedTimestamp, wait } from '../../../common/utils.js';
 import { getCredentials, loginWithPage } from '../../login/login_helper.js';
 import { run as runSeal } from './clm_seal.js';

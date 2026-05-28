@@ -287,6 +287,9 @@ export const SELECTORS = {
             CANCEL_BUTTON: '[data-tid="8dbacbb5"]',
             CHECKBOX: '[data-tid="1aac1e31"]',
             DATEPICKER: '[data-tid="27f8537e"]',
+            SETTING: 'img[alt="setting"]',
+            CLOSE: 'img[alt="close"]',
+            GNB: 'img[alt="네비게이션 열기/접기 버튼"]',
         },
 
         DEV: {

@@ -1,4 +1,5 @@
-import { URLS, SELECTORS } from '../util/url_base_hsad.js';
+import { URLS } from '../util/url_base_hsad.js';
+import { SELECTORS } from '../util/selector_hsad.js';
 
 /**
  * 환경변수에서 로그인 계정 반환

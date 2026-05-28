@@ -5,7 +5,8 @@
  * 환경변수:
  *   INTERNAL_APPROVAL: 내부 결재선 여부 ('use' = 내부 결재선 있음)
  */
-import { URLS, SELECTORS } from '../../util/url_base_hsad.js';
+import { URLS } from '../../util/url_base_hsad.js';
+import { SELECTORS } from '../../util/selector_hsad.js';
 import { getFormattedTimestamp, wait } from '../../../common/utils.js';
 import { run as runDraft } from './clm_draft.js';
 import { clickFooterConfirm } from '../../util/helpers.js';

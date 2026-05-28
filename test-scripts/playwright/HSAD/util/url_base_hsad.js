@@ -102,19 +102,6 @@ export const SETTING_URLS = {
     SETUP: `${BASE_URL}/setup`
 };
 
-import { SELECTORS as _SELECTORS } from './selector_hsad.js';
-
-// selector_hsad.js 전체를 포함하되, Playwright HSAD 전용 추가 selector 병합
-export const SELECTORS = {
-    ..._SELECTORS,
-    DASHBOARD: {
-        ..._SELECTORS.BUSINESS?.DASHBOARD,
-        SETTING: 'img[alt="setting"]',
-        CLOSE: 'img[alt="close"]',
-        GNB: 'img[alt="네비게이션 열기/접기 버튼"]',
-    },
-};
-
 // 모든 URL을 하나의 객체로 통합
 export const URLS = {
     BASE: BASE_URL,

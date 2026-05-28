@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { URLS, SELECTORS } from '../../util/url_base_hsad.js';
+import { URLS } from '../../util/url_base_hsad.js';
+import { SELECTORS } from '../../util/selector_hsad.js';
 import { login } from '../../common/auth.js';
 
 // 그룹웨어(전자결재) / MDM 거래처 연동

@@ -1,7 +1,8 @@
 /**
  * 법률 자문 요청 - Playwright용
  */
-import { URLS, SELECTORS } from '../util/url_base_hsad.js';
+import { URLS } from '../util/url_base_hsad.js';
+import { SELECTORS } from '../util/selector_hsad.js';
 import { getFormattedTimestamp, wait } from '../../common/utils.js';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { clickFooterConfirm } from '../util/helpers.js';

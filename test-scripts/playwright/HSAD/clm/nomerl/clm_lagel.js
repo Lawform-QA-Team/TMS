@@ -5,7 +5,8 @@
  * 환경변수:
  *   REQUESTER_REVIEW: 요청자 재검토 여부 ('use' = 요청자 검토 있음)
  */
-import { URLS, SELECTORS } from '../../util/url_base_hsad.js';
+import { URLS } from '../../util/url_base_hsad.js';
+import { SELECTORS } from '../../util/selector_hsad.js';
 import { getFormattedTimestamp, wait } from '../../../common/utils.js';
 import { getCredentials, loginWithPage } from '../../login/login_helper.js';
 import { clickFooterConfirm } from '../../util/helpers.js';

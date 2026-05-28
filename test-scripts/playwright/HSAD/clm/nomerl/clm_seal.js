@@ -2,7 +2,8 @@
  * CLM 인감 사용 신청 - Playwright용
  * 플로우: 인감 사용 신청 중 (전자서명/직접서명 시 인감 사용 요청)
  */
-import { URLS, SELECTORS } from '../../util/url_base_hsad.js';
+import { URLS } from '../../util/url_base_hsad.js';
+import { SELECTORS } from '../../util/selector_hsad.js';
 import { getFormattedTimestamp, wait } from '../../../common/utils.js';
 import { getCredentials, loginWithPage } from '../../login/login_helper.js';
 import { clickFooterConfirm } from '../../util/helpers.js';
