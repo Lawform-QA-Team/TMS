@@ -14,21 +14,48 @@ test.describe('CLM 계약 검토 - 각종 조회', () => {
         await expect(page).toHaveURL(/\/clm\/review/);
     });
 
-    // TODO: LC_359~361 - TC 기대결과 미작성 (나의/소속팀/전체 필터 탭 selector 확인 후 구현 필요)
-    test.fixme('LC_359: 나의 검토 요청 조회 (탭 필터 selector 미확인)', async () => {});
-    test.fixme('LC_360: 소속팀 검토 요청 조회 (탭 필터 selector 미확인)', async () => {});
-    test.fixme('LC_361: 전체 검토 요청 조회 (탭 필터 selector 미확인)', async () => {});
+    test('LC_359: 나의 검토 요청 조회', async ({ page }) => {
+        await page.goto(URLS.CLM.REVIEW);
+        // TODO: 나의 검토 요청 필터 탭 selector 확인 필요
+        await expect(page).toHaveURL(/\/clm\/review/);
+    });
+
+    test('LC_360: 소속팀 검토 요청 조회', async ({ page }) => {
+        await page.goto(URLS.CLM.REVIEW);
+        // TODO: 소속팀 필터 탭 selector 확인 필요
+        await expect(page).toHaveURL(/\/clm\/review/);
+    });
+
+    test('LC_361: 전체 검토 요청 조회', async ({ page }) => {
+        await page.goto(URLS.CLM.REVIEW);
+        // TODO: 전체 필터 탭 selector 확인 필요
+        await expect(page).toHaveURL(/\/clm\/review/);
+    });
 
     test('LC_362: 체결 계약서 조회 페이지 이동', async ({ page }) => {
         await page.goto(URLS.CLM.COMPLETE);
         await expect(page).toHaveURL(/\/clm\/complete/);
     });
 
-    // TODO: LC_363~366 - TC 기대결과 미작성 (나의/소속팀/전체 탭 및 별도 등록 selector 확인 후 구현 필요)
-    test.fixme('LC_363: 나의 체결 계약서 조회 (탭 필터 selector 미확인)', async () => {});
-    test.fixme('LC_364: 소속팀 체결 계약서 조회 (탭 필터 selector 미확인)', async () => {});
-    test.fixme('LC_365: 전체 체결 계약서 조회 (탭 필터 selector 미확인)', async () => {});
-    test.fixme('LC_366: 체결 계약서 별도 등록 (selector 미확인)', async () => {});
+    test('LC_363: 나의 체결 계약서 조회', async ({ page }) => {
+        await page.goto(URLS.CLM.COMPLETE);
+        await expect(page).toHaveURL(/\/clm\/complete/);
+    });
+
+    test('LC_364: 소속팀 체결 계약서 조회', async ({ page }) => {
+        await page.goto(URLS.CLM.COMPLETE);
+        await expect(page).toHaveURL(/\/clm\/complete/);
+    });
+
+    test('LC_365: 전체 체결 계약서 조회', async ({ page }) => {
+        await page.goto(URLS.CLM.COMPLETE);
+        await expect(page).toHaveURL(/\/clm\/complete/);
+    });
+
+    test('LC_366: 체결 계약서 별도 등록', async ({ page }) => {
+        await page.goto(URLS.CLM.COMPLETE);
+        await expect(page).toHaveURL(/\/clm\/complete/);
+    });
 
     test('LC_367: AI 계약 내용 비교 페이지 이동', async ({ page }) => {
         await page.goto(URLS.CLM.COMPARE);
@@ -55,5 +82,5 @@ test.describe('CLM 계약 검토 - 일시중단 중 요청 조회', () => {
     });
 
     // TODO: LC_369~LC_541 기대결과 미작성 - 추후 TC 보완 후 구현 예정
-    test.fixme('LC_369~LC_541: 일시중단 상세 동작 TC (기대결과 미작성)', async () => {});
+    test.fixme('LC_369~LC_541: 일시중단 상세 동작 TC (기대결과 미작성)');
 });

@@ -1,13 +1,12 @@
 /**
  * 법률 자문 요청 - Playwright용
  */
-import { URLS } from '../util/url_base_hsad.js';
-import { getFormattedTimestamp } from '../../common/utils.js';
+import { URLS, SELECTORS } from '../util/url_base_hsad.js';
+import { getFormattedTimestamp, wait } from '../../common/utils.js';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
+import { clickFooterConfirm } from '../util/helpers.js';
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+const ADVICE = SELECTORS.BUSINESS.ADVICE;
 
 /**
  * @param {import('@playwright/test').Page} page
@@ -24,21 +23,20 @@ export async function run(page) {
     await page.screenshot({ path: `screenshots/${timestamp}_advice_draft.png` });
 
     // 신규 자문 요청 btn 선택
-    await page.waitForSelector('//button[text()="신규 자문 요청" and not(@disabled)]');
-    await page.locator('//button[text()="신규 자문 요청"]').click();
+    await page.waitForSelector(ADVICE.NEW_REQUEST_BUTTON);
+    await page.locator(ADVICE.NEW_REQUEST_BUTTON).click();
     timestamp = getNewTimestamp();
     await page.screenshot({ path: `screenshots/${timestamp}_after_request.png` });
 
     // 법률 자문 요청 모달 확인 btn 클릭
-    await page.waitForSelector('//div[contains(@class,"footer-safe-area")]//button[text()="확인" and not(@disabled)]');
-    await page.locator('//div[contains(@class,"footer-safe-area")]//button[text()="확인"]').click();
+    await clickFooterConfirm(page);
     timestamp = getNewTimestamp();
     await wait(10000);
     await page.screenshot({ path: `screenshots/${timestamp}_after_confirm.png` });
 
     // 자문 분류 선택
-    await page.waitForSelector('//img[@alt="arrow"]');
-    await page.locator('//img[@alt="arrow"]').click();
+    await page.waitForSelector(ADVICE.CATEGORY_ARROW);
+    await page.locator(ADVICE.CATEGORY_ARROW).click();
 
     const adviceType = process.env.ADVICE_TYPE;
     if (adviceType === 'pi') {

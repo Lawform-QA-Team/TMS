@@ -1,5 +1,6 @@
 import { browser } from 'k6/browser';
-import { URLS, SELECTORS } from '../../util/url_base_hsad.js';
+import { URLS } from '../../util/url_base_hsad.js';
+import { SELECTORS } from '../../selector_hsad.js';
 import { hsadBrowserOptions, loginToDashboard } from '../../common/k6_browser_helpers.js';
 import { getFormattedTimestamp } from "@tms/performance/common/utils.js";
 
@@ -142,7 +143,7 @@ export default async function () {
               // console.log('aria-disabled', await btn.getAttribute('aria-disabled'));
               await page.screenshot({path: `screenshots/${timestamp}_assignees.png`});
               await page.locator('//div[contains(@class,"footer-safe-area")]//button[text()="확인"]').click();
-              await page.waitForTimeout(10000)
+              await wait(10000)
               await page.screenshot({path: `screenshots/${timestamp}_new_contract.png`});
           }
         }
@@ -189,7 +190,7 @@ export default async function () {
             // console.log('aria-disabled', await btn.getAttribute('aria-disabled'));
             await page.screenshot({path: `screenshots/${timestamp}_assignees.png`});
             await page.locator('//div[contains(@class,"footer-safe-area")]//button[text()="확인"]').click();
-            await page.waitForTimeout(10000)
+            await wait(10000)
             await page.screenshot({path: `screenshots/${timestamp}_new_contract.png`});
         }
       }

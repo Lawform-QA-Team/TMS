@@ -28,15 +28,15 @@ export const LOGIN_URLS = {
 };
 //계약서 생성 관련 URL
 export const DRIVE_URLS = {
-    DRIVE: `${BASE_URL}/drive`, //My 게약서
+    DRIVE: `${BASE_URL}/drive`, //My 계약서
     TEAM: `${BASE_URL}/team_standard_contract`, //기업 표준 계약서
     AUTO: `${BASE_URL}/#documents_finder`, //자동작성 
     CHECKLIST: `${BASE_URL}/ai/checklist`, //AI 필수조항검토
     GLD: `https://chatgld.io`
 };
 // 전체 통계
-export const STATISTICES_URLS = {
-    STATISTICES: `${BASE_URL}/statistics` //전체 통계
+export const STATISTICS_URLS = {
+    STATISTICS: `${BASE_URL}/statistics` //전체 통계
 };
 //대량생성 관련 URL
 export const BULK_URLS = {
@@ -54,7 +54,7 @@ export const CLM_URLS = {
 
 //SEAL 관련 URL
 export const SEAL_URLS = {
-    DRAFT: `${BASE_URL}/seal/draft`, //인감 사용 신청청
+    DRAFT: `${BASE_URL}/seal/draft`, //인감 사용 신청
     REVIEW: `${BASE_URL}/seal`, //인감 사용 신청 조회
     LEDGER: `${BASE_URL}/seal/ledger` //인감 관리 대장
 };

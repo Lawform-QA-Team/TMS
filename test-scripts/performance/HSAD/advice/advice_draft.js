@@ -1,5 +1,6 @@
 import { browser } from 'k6/browser';
-import { URLS, SELECTORS } from '../util/url_base_hsad.js';
+import { URLS } from '../util/url_base_hsad.js';
+import { SELECTORS } from '../selector_hsad.js';
 import { hsadBrowserOptions, loginToDashboard } from '../common/k6_browser_helpers.js';
 import { getFormattedTimestamp } from "@tms/performance/common/utils.js";
 
@@ -71,9 +72,8 @@ export default async function () {
     else { 
       console.log("input _ENV.ADVICE_TYPE");
     }
-    return page;
   }
-  finally{
-    //await page.close();
+  finally {
+    if (page) await page.close();
   }
 }

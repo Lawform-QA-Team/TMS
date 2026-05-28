@@ -1,7 +1,7 @@
 import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
 import { getFormattedTimestamp } from "@tms/performance/common/utils.js";
 import clm_draft from "./clm_draft.js";
-import _ENV from "@tms/performance/_ENV.js";
+
 
 
 export const options = {
@@ -37,11 +37,11 @@ export default async function () {
 
         
         
-        if ( _ENV.CLM_PROGRESS === "1") {
+        if ( __ENV.CLM_PROGRESS === "1") {
             
 
         }
-        else if (_ENV.CLM_PROGRESS === "2") {
+        else if (__ENV.CLM_PROGRESS === "2") {
 
         }
         else {
@@ -49,7 +49,7 @@ export default async function () {
         }
     }
     finally {
-        await page.close();
+        if (page) await page.close();
     }
 }
 

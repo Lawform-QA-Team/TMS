@@ -6,12 +6,11 @@
  *   FINANCE_REVIEW: 재무 검토 여부 ('use' = 재무 검토 있음)
  */
 import { URLS, SELECTORS } from '../../util/url_base_hsad.js';
-import { getFormattedTimestamp } from '../../../common/utils.js';
+import { getFormattedTimestamp, wait } from '../../../common/utils.js';
 import { getCredentials, loginWithPage } from '../../login/login_helper.js';
+import { clickFooterConfirm } from '../../util/helpers.js';
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+const CLM = SELECTORS.BUSINESS.CLM;
 
 /**
  * @param {import('@playwright/test').Page} page
@@ -34,16 +33,15 @@ export async function run(page) {
     await page.screenshot({ path: `screenshots/${timestamp}_finance_review_list.png` });
 
     // 재무 검토 중인 계약 항목 클릭
-    await page.waitForSelector('(//tr[contains(@class,"cursor-pointer")])[1]');
-    await page.locator('(//tr[contains(@class,"cursor-pointer")])[1]').click();
+    await page.waitForSelector(CLM.FIRST_ROW);
+    await page.locator(CLM.FIRST_ROW).click();
     timestamp = getNewTimestamp();
     await page.screenshot({ path: `screenshots/${timestamp}_finance_review_detail.png` });
 
     // 재무 검토 완료 처리
-    await page.waitForSelector(SELECTORS.BUSINESS.CLM.COMPLETE_REVIEW_BUTTON);
-    await page.locator(SELECTORS.BUSINESS.CLM.COMPLETE_REVIEW_BUTTON).click();
-    await page.waitForSelector('//div[contains(@class,"footer-safe-area")]//button[text()="확인"]');
-    await page.locator('//div[contains(@class,"footer-safe-area")]//button[text()="확인"]').click();
+    await page.waitForSelector(CLM.COMPLETE_REVIEW_BUTTON);
+    await page.locator(CLM.COMPLETE_REVIEW_BUTTON).click();
+    await clickFooterConfirm(page);
     await wait(3000);
     timestamp = getNewTimestamp();
     await page.screenshot({ path: `screenshots/${timestamp}_finance_review_done.png` });

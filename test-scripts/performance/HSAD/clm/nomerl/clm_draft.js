@@ -49,7 +49,7 @@ export default async function () {
     }
     return page;
   } finally {
-    //await page.close();
+    if (page) await page.close();
   }
 }
 

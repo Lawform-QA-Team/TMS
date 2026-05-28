@@ -260,22 +260,9 @@ console.log(`... ${duration}ms`);
 
 ### 버그 수정
 - [x] `run.sh` — PTY read 콜백에서 stdout 이중 출력 버그 수정
-  - 원인: `pty.spawn` 내부 `_copy`가 이미 stdout 출력 + 콜백에서도 중복 출력
-  - 수정: `read` 콜백에서 `sys.stdout.buffer.write` 제거, 캡처만 수행
 - [x] `run.sh` — Ctrl+C 시 Python PTY traceback 출력 문제
-  - 원인: `pty.spawn` 내부 `select()`에서 KeyboardInterrupt 미처리
-  - 수정: `KeyboardInterrupt` 예외 처리 추가, exit code 130으로 정상 종료
-  - 추가: exit code 130(Ctrl+C)은 Slack 경고 대상에서 제외
 - [x] `run.sh` — ERRO 여전히 감지 안 됨 (복합 버그 2건)
-  - 버그 1: `mktemp /tmp/k6_XXXXXX.log` → macOS mktemp는 X가 맨 끝이어야 함, `.log` suffix로 인해 실패 → TMPFILE 빈 문자열 → FileNotFoundError
-    수정: `mktemp /tmp/k6_XXXXXX` (suffix 제거)
-  - 버그 2: shell sed의 ANSI 제거 패턴이 `\x1b[?25l` 등 `?` 포함 시퀀스 미처리
-    수정: shell sed 제거, Python의 포괄적 ANSI regex로 교체 + ERRO 라인만 TMPFILE에 저장
 - [x] `run.sh` — ERRO Slack 미발송 + k6 종료 후 hang 두 가지 버그
-  - 버그 1: `tr -d '\r'` → progress bar와 ERRO가 같은 줄로 합쳐져 `^ERRO` grep 실패
-    수정: `tr '\r' '\n'` 으로 변경
-  - 버그 2: `pty.spawn`이 stdin도 모니터링 → k6 종료 후에도 stdin 대기로 hang
-    수정: `pty.spawn` → `pty.fork()` 직접 구현, stdin 모니터링 제거
 
 ## 검증
 - [x] `login_to_web.js` 정상 실행 시 성공 메시지 발송 확인
@@ -287,131 +274,66 @@ console.log(`... ${duration}ms`);
 
 # Task: autodoc.js 카테고리 검색 결과 클릭 오류 수정
 
-## 배경
-`autodoc.js` 실행 시 `TypeError: Cannot read property 'click' of undefined or null` 발생.
-카테고리 검색 결과 버튼이 DOM에 나타나기 전에 `$$`로 조회하여 빈 배열 반환.
-
 ## 수정
 - [x] `waitForLoadState('load')` → `waitForSelector(버튼 셀렉터)`로 교체
-  - 파일: `admin/autodoc/autodoc.js` 71번 라인
-
-## 검토
-- 카테고리 버튼이 실제 DOM에 나타난 후 `$$` 조회하므로 빈 배열 방지
 
 ---
 
 # Task: AI TC 에이전트 모달 구현
-
-## 구현 계획
-
-### 백엔드
-- [x] `models.py`: `AiConversation`, `AiConversationMessage` 모델 추가
-- [x] `migrations/versions/add_ai_conversations.py`: 마이그레이션 작성
-- [x] MySQL 직접 적용: `AiConversations`, `AiConversationMessages` 테이블 생성
-- [x] `routes/testcases.py`: generate 강화 (count 파라미터, max_tokens 2000)
-- [x] `routes/testcases.py`: 대화 목록/생성/조회/삭제 엔드포인트 추가
-- [x] `routes/testcases.py`: 대화 메시지 전송 엔드포인트 추가
-- [x] `routes/testcases.py`: 스펙 추출 엔드포인트 추가
-
-### 프론트엔드
-- [x] `AiTcModal.css`: 신규 — 80vh 모달, 3탭, 말풍선, 사이드바 스타일
-- [x] `AiTcModal.js`: 신규 — 빠른 생성 / 대화형 생성 / 스펙 추출 3탭 모달
-- [x] `TestCaseAPP.js`: AI 관련 4개 함수 제거 → `handleSaveAiTc`, `handleSendToForm` 추가, "AI TC 생성" 버튼 추가
-- [x] `TestCaseFormModal.js`: `onAiGenerate` prop → `onOpenAiModal` prop으로 교체
-- [x] `TestCaseAPP.css`: `.testcase-btn-ai` 스타일 추가
-
-## 검토
-- [x] Python 문법 검사: `models.py`, `testcases.py` 모두 OK
-- [x] 프론트엔드 빌드: `Compiled with warnings.` (기존 경고만, 신규 없음)
-- [x] DB 테이블: `AiConversations`, `AiConversationMessages` 생성 확인
-- [x] alembic_version: `add_ai_conversations` 반영 확인
+- [x] 구현 완료
 
 ---
 
 # Task: 사용자별 AI API 설정 및 멀티 공급자 지원
-
-## 구현 계획
-
-### 백엔드
-- [x] `models.py`: `UserAiConfig` 모델 추가 (provider, api_key, model_name)
-- [x] `migrations/versions/add_user_ai_config.py`: 마이그레이션 작성
-- [x] MySQL 직접 적용: `UserAiConfigs` 테이블 생성
-- [x] `routes/users.py`: `GET/PUT /users/ai-config`, `POST /users/ai-config/clear-key` 추가
-- [x] `routes/testcases.py`: `_call_ai_api()` 통합 헬퍼 추가 (OpenAI/Anthropic/Google)
-- [x] `routes/testcases.py`: generate, conversation/messages, extract 엔드포인트 교체
-
-### 프론트엔드
-- [x] `UserProfile.js`: AI API 설정 상태/함수 추가 (fetchAiConfig, handleAiConfigSave, handleClearApiKey)
-- [x] `UserProfile.js`: `renderAiConfigSection()` 추가 (공급자/모델/키 입력 UI)
-- [x] `UserProfile.js`: 사이드바에 'AI API 설정' 메뉴 추가
-
-## 검토
-- [x] Python 문법 검사: `models.py`, `testcases.py`, `users.py` 모두 OK
-- [x] 프론트엔드 빌드: `Compiled with warnings.` (기존 경고만, 신규 없음)
-- [x] DB 테이블: `UserAiConfigs` 생성 확인
+- [x] 구현 완료
 
 ---
 
 # Task: AI 공급자 확장 (xAI/Perplexity/Mistral/Groq/Upstage)
-
-## 구현 계획
-- [x] `routes/testcases.py`: `_OPENAI_COMPAT_URLS` 딕셔너리로 OpenAI 호환 공급자 관리
-- [x] `routes/testcases.py`: `_call_openai_compat()` 단일 함수로 통합 (base_url 파라미터)
-- [x] `routes/testcases.py`: xAI, Perplexity, Mistral, Groq, Upstage 추가 (DeepSeek 제외)
-- [x] `UserProfile.js`: `AI_PROVIDERS` 8개 공급자로 확장
-
-## 검토
-- [x] Python 문법 검사 OK
-- [x] 프론트엔드 빌드 OK
+- [x] 구현 완료
 
 ---
 
 # Task: HSAD K6/Playwright 테스트 우선순위 이슈 수정
-
-## 수정 계획
-- [x] Playwright HSAD spec 실행 경로와 npm script 추가
-- [x] Playwright dotenv 경로 수정
-- [x] HSAD 루트 `url_base_hsad.js`를 `util/url_base_hsad.js` 재수출로 통합
-- [x] K6 `login_to_dashboard`를 기존 호출부와 page 인자 호출부 모두 호환되게 수정
-- [x] K6 신규 browser 시나리오에 공통 options, threshold, Trend 측정 추가
-- [x] K6 `check()`의 async Promise 반환 패턴을 await 기반 boolean으로 수정
-- [x] Playwright run 파일의 `common/utils.js` import 경로 수정
-
-## 검증
-- [x] 깨진 import 검색
-- [x] K6 `check()` Promise 패턴 검색
-- [x] Playwright HSAD 실행 명령 확인 (`npm run test:hsad -- --list`, 18 tests 수집)
-- [x] JS 문법 체크 및 `git diff --check` 통과
+- [x] 완료
 
 ---
 
 # Task: HSAD Playwright P1 상위 TC spec 확장
-
-## 수정 계획
-- [x] 대시보드 P1 LC_001~LC_007 spec 확장
-- [x] 계약서 생성 P1 LC_001~LC_010 spec 확장
-- [x] 법률 자문 설정 P1 LC_005~LC_007 spec 확장
-- [x] 송무 메뉴 P1 LC_001~LC_002 spec 확장
-
-## 검증
-- [x] `npm run test:hsad -- --list` — 5 files / 18 tests 수집 확인
-- [x] 수정 spec `node --check` 통과
-- [x] `git diff --check` 통과
-- [x] linter 오류 없음
+- [x] 완료
 
 ---
 
 # Task: HSAD K6 selector 분리
+- [x] 완료
 
-## 수정 계획
-- [x] `performance/HSAD/selector_hsad.js` 신규 생성
-- [x] `performance/HSAD/util/url_base_hsad.js`에서 `SELECTORS` 제거
-- [x] HSAD K6 스크립트 import를 `URLS` / `SELECTORS` 분리 구조로 변경
-- [x] 현재 사용 중인 inline selector를 도메인별 selector 틀로 이동
+---
 
-## 검증
-- [x] `url_base_hsad.js`에서 `SELECTORS` export 제거 확인
-- [x] `url_base_hsad.js`에서 `SELECTORS`를 import하는 K6 파일 없음 확인
-- [x] 수정 JS `node --check` 통과
-- [x] `git diff --check` 통과
-- [x] linter 오류 없음
+# Task: HSAD performance 스크립트 코드 검수 수정
+
+## P0 — 런타임 오류
+
+- [x] 1. SELECTORS import 경로 오류 수정 (12개 파일)
+- [x] 2. multi 3개 파일 환경변수 오타 수정 (EDITER→EDITOR, CONTRAT→CONTRACT)
+- [ ] 3. selector_hsad.js:184 잘못된 data-tid 해시 — 올바른 값 확인 필요 (보류)
+- [x] 4. clm_draft.js / clm_draft_multi.js finally page 처리
+- [ ] 5. GNB_click.js k6 호환 구조로 재작성 — 기능 스펙 확인 필요 (보류)
+
+## P1 — 로직 오류
+
+- [x] 6. multi 파일 SELECTORS 복원 (하드코딩 XPath 제거)
+- [x] 7. clm_draft_multi.js 브라우저 타입 firefox → chromium
+- [x] 8. clm_draft_multi.js import 변수명 오타 MUlti → Multi
+- [x] 9. advice_draft.js / advice_add_coment.js finally page.close() 수정
+
+## P2 — 코드 품질
+
+- [x] 10. url_base_hsad.js 오타 3개 수정 (게약서, 신청청, STATISTICES)
+- [x] 11. page.waitForTimeout() deprecated → wait() 통일 (6개 파일)
+
+## 스펙 확인 필요 (보류)
+
+- selector_hsad.js:184 올바른 data-tid 해시값
+- GNB_click.js 재작성 스펙
+- clm_process.js 각 조건 분기 구현 내용
+- multi VU/iterations 적절한 설정값

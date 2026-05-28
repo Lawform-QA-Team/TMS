@@ -1,5 +1,6 @@
 import { browser } from 'k6/browser';
-import { URLS, SELECTORS } from '../../util/url_base_hsad.js';
+import { URLS } from '../../util/url_base_hsad.js';
+import { SELECTORS } from '../../selector_hsad.js';
 import { hsadBrowserOptions, loginToDashboard } from '../../common/k6_browser_helpers.js';
 import { getFormattedTimestamp } from "@tms/performance/common/utils.js";
 
@@ -21,10 +22,10 @@ export default async function () {
       let timestamp = getNewTimestamp();
       await page.screenshot({path: `screenshots/${timestamp}_clm.png`});
       // 신규 검토 요청 btn 클릭
-      await page.waitForSelector('//button[text()="신규 검토 요청" and not(@disabled)]');
+      await page.waitForSelector(SELECTORS.BUSINESS.CLM.NEW_REVIEW_REQUEST_BUTTON);
       timestamp = getNewTimestamp();
       await page.screenshot({path: `screenshots/${timestamp}_before_request.png`});
-      await page.locator('//button[text()="신규 검토 요청"]').click();
+      await page.locator(SELECTORS.BUSINESS.CLM.NEW_REVIEW_REQUEST_BUTTON).click();
       timestamp = getNewTimestamp();
       await page.screenshot({path: `screenshots/${timestamp}_after_request.png`});
       // 계약 검토 요청 모달 확인 btn 클릭
@@ -41,7 +42,7 @@ export default async function () {
       await page.locator('(//button[text()="선택"])[1]').click(); // 기존 계약 검색 모달 첫번째 계약 선택 
       await page.screenshot({path: `screenshots/screenshot_${timestamp}_after_confirm.png`});
       // 편집기 사용 여부
-      if ( __ENV.EDITER_USE === "use") { // 편집기 사용 여부 : 사용
+      if ( __ENV.EDITOR_USE === "use") { // 편집기 사용 여부 : 사용
         await page.locator('//label[.//div[text()="사용"]]').click();
         await page.screenshot({path: `screenshots/screenshot_${timestamp}_after_confirm.png`});
         } else { // 편집기 사용 여부 : 사용 안함
@@ -49,7 +50,7 @@ export default async function () {
           await page.screenshot({path: `screenshots/screenshot_${timestamp}_after_confirm.png`});
       }
       // 계약서 첨부 방식
-      if ( __ENV.CONTRAT_TYPE === "file") { // 계약서 첨부 방식 : 파일 업로드
+      if ( __ENV.CONTRACT_TYPE === "file") { // 계약서 첨부 방식 : 파일 업로드
         await page.locator('//label[.//div[text()="파일로 첨부하기"]]').click();
         await page.screenshot({path: `screenshots/${timestamp}_contract.png`});
         } else { // 계약서 첨부 방식 : My 계약서에서 불러오기
@@ -58,7 +59,7 @@ export default async function () {
           await page.screenshot({path: `screenshots/${timestamp}_my.png`});
         }
       // 계약서 선택
-      if ( __ENV.CONTRAT_SELECT === "file") { // 계약서 첨부 방식 : 파일 업로드
+      if ( __ENV.CONTRACT_SELECT === "file") { // 계약서 첨부 방식 : 파일 업로드
         await page.locator('img[alt="파일 업로드"]').click();
         await page.screenshot({path: `screenshots/${timestamp}_file.png`});
       } else { // 계약서 첨부 방식 : My 계약서에서 불러오기
@@ -140,7 +141,7 @@ export default async function () {
             // console.log('aria-disabled', await btn.getAttribute('aria-disabled'));
             await page.screenshot({path: `screenshots/${timestamp}_assignees.png`});
             await page.locator('//div[contains(@class,"footer-safe-area")]//button[text()="확인"]').click();
-            await page.waitForTimeout(10000)
+            await wait(10000)
             await page.screenshot({path: `screenshots/${timestamp}_new_contract.png`});
         }
       }
