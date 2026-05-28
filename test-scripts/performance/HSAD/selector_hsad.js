@@ -43,6 +43,8 @@ export const SELECTORS = {
         },
 
         ADVICE: {
+            NEW_REQUEST_BUTTON: '//button[text()="신규 자문 요청" and not(@disabled)]',
+            CATEGORY_ARROW: '//img[@alt="arrow"]',
             BUTTON_RESEND: '[data-tid="681b905c"]',
             BUTTON_SUSPEND_ADVICE: '[data-tid="53adc555"]',
             BUTTON_COMPLETE_ADVICE: '[data-tid="b915e3d6"]',
@@ -233,6 +235,37 @@ export const SELECTORS = {
             KEYWORD_PLACEHOLDER: '[data-tid="5d385bbe"]',
             REASON_LABEL: '[data-tid="9dc95143"]',
             DESCRIPTION: '[data-tid="de769f3f"]',
+            // footer-safe-area 확인 버튼
+            FOOTER_CONFIRM_BUTTON: '//div[contains(@class,"footer-safe-area")]//button[text()="확인"]',
+            // 계약 구분 라디오
+            DRAFT_TYPE_NEW_LABEL: '//label[.//div[text()="신규"]]',
+            DRAFT_TYPE_CHANGE_LABEL: '//label[.//div[text()="변경"]]',
+            DRAFT_TYPE_STOP_LABEL: '//label[.//div[text()="해지"]]',
+            // 편집기 사용 여부
+            EDITOR_USE_LABEL: '//label[.//div[text()="사용"]]',
+            EDITOR_NOT_USE_LABEL: '//label[.//div[text()="사용 안 함"]]',
+            // 계약서 첨부 방식
+            ATTACH_BY_FILE_LABEL: '//label[.//div[text()="파일로 첨부하기"]]',
+            ATTACH_FROM_MY_LABEL: '//label[.//div[text()="My계약서에서 불러오기"]]',
+            FILE_UPLOAD_ICON: 'img[alt="파일 업로드"]',
+            LOAD_ICON: 'img[alt="불러오기 아이콘"]',
+            // 보안 여부
+            SECURITY_ALL_LABEL: '//label[.//div[text()="전체 공개"]]',
+            SECURITY_REFER_LABEL: '//label[.//div[text()="참조인"]]',
+            SECURITY_PRIVATE_LABEL: '//label[.//div[text()="비공개"]]',
+            // 검토 진행 여부
+            REVIEW_NEEDED_LABEL: '//label[.//div[text()="검토 필요"]]',
+            REVIEW_NOT_NEEDED_LABEL: '//label[.//div[text()="검토 불필요"]]',
+            // 결재 / 요청
+            ADD_APPROVER_ICON: 'img[alt="결재자 추가하기"]',
+            CONTRACT_REVIEW_REQUEST_BTN: '//div[text()="계약서 검토 요청"]',
+            // 계약명 입력
+            CONTRACT_NAME_INPUT: 'input[placeholder="계약명을 입력해 주세요"]',
+            // 관련 계약
+            RELATED_CONTRACT_SEARCH_BTN: '//div[text()="관련 계약 찾아보기"]',
+            // 목록 행 / 선택 버튼
+            FIRST_ROW: '(//tr[contains(@class,"cursor-pointer")])[1]',
+            FIRST_SELECT_BUTTON: '(//button[text()="선택"])[1]',
         },
 
         COMMON: {
@@ -248,6 +281,9 @@ export const SELECTORS = {
             CANCEL_BUTTON: '[data-tid="8dbacbb5"]',
             CHECKBOX: '[data-tid="1aac1e31"]',
             DATEPICKER: '[data-tid="27f8537e"]',
+            SETTING: 'img[alt="setting"]',
+            CLOSE: 'img[alt="close"]',
+            GNB: 'img[alt="네비게이션 열기/접기 버튼"]',
         },
 
         DEV: {
@@ -344,6 +380,7 @@ export const SELECTORS = {
         },
 
         LITIGATION: {
+            NEW_DRAFT_BUTTON: '//button[text()="신규 송무 등록" and not(@disabled)]',
             VIEW_CASE_DETAIL_BUTTON: '[data-tid="48efe758"]',
             MONTH_BUTTON: '[data-tid="c4937c0e"]',
             WEEK_BUTTON: '[data-tid="b7b20565"]',
