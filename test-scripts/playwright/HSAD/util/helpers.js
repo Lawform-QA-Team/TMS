@@ -2,7 +2,7 @@
  * HSAD Playwright 공통 헬퍼 함수
  */
 import { SELECTORS } from './selector_hsad.js';
-import { wait } from '../../common/utils.js';
+import { wait } from './utils.js';
 
 const CLM = SELECTORS.BUSINESS.CLM;
 

@@ -5,7 +5,7 @@
  * 참고: TC 기대결과 미작성 (LC_001~LC_083 전체), 추후 보완 예정
  */
 import { URLS } from '../util/url_base_hsad.js';
-import { getFormattedTimestamp } from '../../common/utils.js';
+import { getFormattedTimestamp } from '../util/utils.js';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 
 /**

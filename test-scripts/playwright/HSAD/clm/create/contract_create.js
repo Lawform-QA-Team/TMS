@@ -3,7 +3,7 @@
  * 플로우: 자동작성 화면 진입 → 검색 → 카테고리 탭 전환
  */
 import { URLS } from '../../util/url_base_hsad.js';
-import { getFormattedTimestamp } from '../../../common/utils.js';
+import { getFormattedTimestamp } from '../../util/utils.js';
 import { getCredentials, loginWithPage } from '../../login/login_helper.js';
 
 /**

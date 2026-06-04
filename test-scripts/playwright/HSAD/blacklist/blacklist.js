@@ -7,7 +7,7 @@
  */
 import { URLS } from '../util/url_base_hsad.js';
 import { SELECTORS } from '../util/selector_hsad.js';
-import { getFormattedTimestamp } from '../../common/utils.js';
+import { getFormattedTimestamp } from '../util/utils.js';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { clickFooterConfirm } from '../util/helpers.js';
 

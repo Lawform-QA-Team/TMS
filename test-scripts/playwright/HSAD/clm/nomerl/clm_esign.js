@@ -8,7 +8,7 @@
  */
 import { URLS } from '../../util/url_base_hsad.js';
 import { SELECTORS } from '../../util/selector_hsad.js';
-import { getFormattedTimestamp, wait } from '../../../common/utils.js';
+import { getFormattedTimestamp, wait } from '../../util/utils.js';
 import { getCredentials, loginWithPage } from '../../login/login_helper.js';
 import { run as runSeal } from './clm_seal.js';
 import { clickFooterConfirm } from '../../util/helpers.js';

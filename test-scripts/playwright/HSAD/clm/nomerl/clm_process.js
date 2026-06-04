@@ -7,7 +7,7 @@
  */
 import { URLS } from '../../util/url_base_hsad.js';
 import { SELECTORS } from '../../util/selector_hsad.js';
-import { getFormattedTimestamp, wait } from '../../../common/utils.js';
+import { getFormattedTimestamp, wait } from '../../util/utils.js';
 import { run as runDraft } from './clm_draft.js';
 import { clickFooterConfirm } from '../../util/helpers.js';
 

@@ -3,7 +3,7 @@
  * 플로우: 구성원 관리 → 계정 설정 → Setup 페이지 순회
  */
 import { URLS } from '../util/url_base_hsad.js';
-import { getFormattedTimestamp } from '../../common/utils.js';
+import { getFormattedTimestamp } from '../util/utils.js';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 
 /**
