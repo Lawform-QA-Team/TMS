@@ -29,6 +29,11 @@
  *
  * 소규모 파일럿(스모크) 실행:
  *   k6 run -e BASE_URL=... -e MAX_VUS=50 -e PEAK_VUS=50 kt-cs-editor-load-test.js
+ *
+ * 결과 출력 (삼성전자 프로젝트 스크립트 스타일과 통일):
+ *   - handleSummary에서 Result/kt_cs_editor_flow_<timestamp>.html / .json 생성
+ *   - SLACK_BOT_TOKEN, SLACK_CHANNEL_ID 환경변수가 있으면 요약 메시지를 슬랙으로
+ *     발송하고, 에러가 있으면 같은 스레드에 상세 내역을 이어서 보낸다.
  */
 
 import http from 'k6/http';
@@ -37,6 +42,13 @@ import { Trend, Counter, Rate } from 'k6/metrics';
 import { SharedArray } from 'k6/data';
 import exec from 'k6/execution';
 import papaparse from 'https://jslib.k6.io/papaparse/5.1.1/index.js';
+import { htmlReport } from 'https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js';
+import { getFormattedTimestamp } from './common/utils.js';
+import {
+  postSlackMessage,
+  buildK6SummaryMessage,
+  buildK6ErrorThreadBlocks,
+} from './common/slack_helper.js';
 
 // ------------------------------------------------------------------
 // 설정 (환경변수로 오버라이드)
@@ -85,6 +97,12 @@ const editModeExitDuration = new Trend('kt_editmode_exit_duration', true); // S3
 const flowSuccessRate = new Rate('kt_flow_success_rate');
 const flowErrors = new Counter('kt_flow_errors');
 
+// handleSummary에서 슬랙 에러 스레드로 보낼 상세 로그.
+// ⚠️ k6는 VU마다 별도 JS 컨텍스트를 쓰므로 이 배열은 VU 간 공유되지 않는다.
+// (삼성전자 스크립트와 동일한 한계) 정확한 전체 실패 건수는 kt_flow_errors
+// Counter(모든 VU에서 자동 집계됨)로 확인할 것 — 이 배열은 "예시성 상세 로그" 용도.
+const scriptErrors = [];
+
 // ------------------------------------------------------------------
 // k6 옵션 — 단계적 램프업 (100 → 500 → 1,000 → 3,000 → 9,500), 회의록 실행계획 기준
 // ------------------------------------------------------------------
@@ -106,6 +124,7 @@ export const options = {
     },
   },
   thresholds: {
+    checks: ['rate>=0.95'],
     http_req_failed: ['rate<0.01'],
     kt_flow_success_rate: ['rate>0.99'],
     // SLA 확정 전 임시 기준값 — 실제 목표 응답시간 확정되면 조정 필요
@@ -148,7 +167,10 @@ export default function () {
   const account = accounts[idx];
   const cfsId = account.cfs_id || DEFAULT_CFS_ID;
 
-  const commonParams = { headers: { 'Content-Type': 'application/json' } };
+  const commonParams = {
+    headers: { 'Content-Type': 'application/json' },
+    tags: { account: account.email, type: 'internal' },
+  };
   let authHeaders = {};
   let ok = true;
 
@@ -166,15 +188,20 @@ export default function () {
       auth_result: true, // TODO: 필드 의미 확인 필요
     });
 
+    const loginStart = Date.now();
     const res = http.post(`${BASE_URL}/api/login/email`, payload, commonParams);
-    loginDuration.add(res.timings.duration);
+    const duration = Date.now() - loginStart;
+    loginDuration.add(duration);
+    console.log(`[VU${__VU}] login ${res.status} ${duration}ms`);
 
-    const success = check(res, {
-      '로그인 200 응답': (r) => r.status === 200,
-    });
+    const success = check(res, { '로그인 200 응답': (r) => r.status === 200 });
     if (!success) {
       ok = false;
       flowErrors.add(1, { step: 'login' });
+      scriptErrors.push({
+        message: `login failed [VU${__VU}] (${account.email}): ${res.status} ${res.body}`,
+        time: new Date().toISOString(),
+      });
     } else {
       authHeaders = extractAuthHeaders(res);
     }
@@ -189,18 +216,26 @@ export default function () {
 
   const authedParams = {
     headers: { 'Content-Type': 'application/json', ...authHeaders },
+    tags: { account: account.email, type: 'internal' },
   };
 
   // 2. 편집기 데이터 로드 ------------------------------------------
   group('02_cfs_get', function () {
     const payload = JSON.stringify({ cfsId });
+    const start = Date.now();
     const res = http.post(`${BASE_URL}/api/polaris/cfs/get`, payload, authedParams);
-    cfsGetDuration.add(res.timings.duration);
+    const duration = Date.now() - start;
+    cfsGetDuration.add(duration);
+    console.log(`[VU${__VU}] cfs_get ${res.status} ${duration}ms`);
 
     const success = check(res, { 'cfs/get 200 응답': (r) => r.status === 200 });
     if (!success) {
       ok = false;
       flowErrors.add(1, { step: 'cfs_get' });
+      scriptErrors.push({
+        message: `cfs_get failed [VU${__VU}] (${account.email}): ${res.status} ${res.body}`,
+        time: new Date().toISOString(),
+      });
     }
   });
 
@@ -214,17 +249,24 @@ export default function () {
   // 3. 편집 모드 진입 (mode: 'Y') -----------------------------------
   group('03_editmode_enter', function () {
     const payload = JSON.stringify({ cfsId, mode: 'Y' });
+    const start = Date.now();
     const res = http.put(
       `${BASE_URL}/api/polaris/cfs/update/editmode`,
       payload,
       authedParams
     );
-    editModeEnterDuration.add(res.timings.duration);
+    const duration = Date.now() - start;
+    editModeEnterDuration.add(duration);
+    console.log(`[VU${__VU}] editmode_enter ${res.status} ${duration}ms`);
 
     const success = check(res, { 'editmode(Y) 200 응답': (r) => r.status === 200 });
     if (!success) {
       ok = false;
       flowErrors.add(1, { step: 'editmode_enter' });
+      scriptErrors.push({
+        message: `editmode_enter failed [VU${__VU}] (${account.email}): ${res.status} ${res.body}`,
+        time: new Date().toISOString(),
+      });
     }
   });
 
@@ -242,15 +284,23 @@ export default function () {
       cfsId: cfsId,
       file: http.file(sampleFile, 'load-test-sample.pdf', 'application/pdf'),
     };
+    const start = Date.now();
     const res = http.put(`${BASE_URL}/api/polaris/cfs/save`, payload, {
       headers: { ...authHeaders }, // multipart Content-Type은 k6가 자동 설정
+      tags: { account: account.email, type: 'internal' },
     });
-    cfsSaveDuration.add(res.timings.duration);
+    const duration = Date.now() - start;
+    cfsSaveDuration.add(duration);
+    console.log(`[VU${__VU}] cfs_save ${res.status} ${duration}ms`);
 
     const success = check(res, { 'cfs/save 200 응답': (r) => r.status === 200 });
     if (!success) {
       ok = false;
       flowErrors.add(1, { step: 'cfs_save' });
+      scriptErrors.push({
+        message: `cfs_save failed [VU${__VU}] (${account.email}): ${res.status} ${res.body}`,
+        time: new Date().toISOString(),
+      });
     }
   });
 
@@ -264,19 +314,49 @@ export default function () {
   // 5. 편집 모드 종료 (mode: 'N') — S3 복사 병목 구간 ------------------
   group('05_editmode_exit', function () {
     const payload = JSON.stringify({ cfsId, mode: 'N' });
+    const start = Date.now();
     const res = http.put(
       `${BASE_URL}/api/polaris/cfs/update/editmode`,
       payload,
       authedParams
     );
-    editModeExitDuration.add(res.timings.duration);
+    const duration = Date.now() - start;
+    editModeExitDuration.add(duration);
+    console.log(`[VU${__VU}] editmode_exit ${res.status} ${duration}ms`);
 
     const success = check(res, { 'editmode(N) 200 응답': (r) => r.status === 200 });
     if (!success) {
       ok = false;
       flowErrors.add(1, { step: 'editmode_exit' });
+      scriptErrors.push({
+        message: `editmode_exit failed [VU${__VU}] (${account.email}): ${res.status} ${res.body}`,
+        time: new Date().toISOString(),
+      });
     }
   });
 
   flowSuccessRate.add(ok);
+}
+
+// ------------------------------------------------------------------
+// 결과 출력 — HTML/JSON 리포트 생성 + 슬랙 요약/에러 스레드 발송
+// (삼성전자 프로젝트 web_qna_api 스크립트와 동일한 handleSummary 패턴)
+// ------------------------------------------------------------------
+export function handleSummary(data) {
+  const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
+  const token = __ENV.SLACK_BOT_TOKEN;
+  const channel = __ENV.SLACK_CHANNEL_ID;
+
+  if (token && channel) {
+    const payload = buildK6SummaryMessage(data, 'KT-CS Editor Flow', scriptErrors.length > 0);
+    const ts = postSlackMessage(token, channel, payload);
+    if (ts && scriptErrors.length > 0) {
+      postSlackMessage(token, channel, buildK6ErrorThreadBlocks(scriptErrors), ts);
+    }
+  }
+
+  return {
+    [`Result/kt_cs_editor_flow_${timestamp}.html`]: htmlReport(data),
+    [`Result/kt_cs_editor_flow_${timestamp}.json`]: JSON.stringify(data, null, 2),
+  };
 }
