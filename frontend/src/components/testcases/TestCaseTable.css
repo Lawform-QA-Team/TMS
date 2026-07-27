@@ -67,6 +67,13 @@
   text-align: center;
 }
 
+.tc-number-column {
+  width: 80px;
+  text-align: center;
+  font-size: 0.85em;
+  color: #555;
+}
+
 .summary-column {
   width: 300px;
   min-width: 200px;

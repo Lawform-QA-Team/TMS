@@ -61,6 +61,9 @@ def admin_required(fn):
             logger.info(f"관리자 권한 확인 완료: {user.username} ({user.role})")
             return fn(*args, **kwargs)
         except Exception as e:
+            from werkzeug.exceptions import HTTPException
+            if isinstance(e, HTTPException):
+                raise
             logger.error(f"admin_required 데코레이터 오류: {str(e)}")
             logger.error(f"오류 타입: {type(e).__name__}")
             return jsonify({'error': '로그인이 필요합니다.'}), 401
@@ -92,6 +95,9 @@ def user_required(fn):
             logger.info(f"사용자 권한 확인 완료: {user.username} ({user.role})")
             return fn(*args, **kwargs)
         except Exception as e:
+            from werkzeug.exceptions import HTTPException
+            if isinstance(e, HTTPException):
+                raise
             logger.error(f"user_required 데코레이터 오류: {str(e)}")
             logger.error(f"오류 타입: {type(e).__name__}")
             return jsonify({'error': '로그인이 필요합니다.'}), 401
@@ -116,6 +122,9 @@ def guest_allowed(fn):
 
             return fn(*args, **kwargs)
         except Exception as e:
+            from werkzeug.exceptions import HTTPException
+            if isinstance(e, HTTPException):
+                raise
             logger.error(f"guest_allowed 데코레이터 오류: {str(e)}")
             return jsonify({'error': '로그인이 필요합니다.'}), 401
     return wrapper

@@ -82,6 +82,9 @@ def update_project(project_id):
         })
         return add_cors_headers(response), 200
     except Exception as e:
+        from werkzeug.exceptions import HTTPException
+        if isinstance(e, HTTPException):
+            raise
         db.session.rollback()
         logger.error(f"프로젝트 수정 오류: {str(e)}")
         response = jsonify({'error': str(e)})
@@ -713,6 +716,7 @@ def create_testcase():
     
     tc = TestCase(
         name=data.get('name'),
+        tc_number=data.get('tc_number') or None,
         project_id=project_id,
         main_category=data.get('main_category', ''),
         sub_category=data.get('sub_category', ''),
@@ -792,6 +796,8 @@ def create_testcase():
 
 def update_dashboard_summary_for_environment(environment):
     """특정 환경의 대시보드 요약 데이터 업데이트"""
+    if not environment:
+        return True  # environment 없으면 업데이트 스킵
     try:
         from sqlalchemy import text
         from datetime import datetime
@@ -948,6 +954,8 @@ def update_testcase(id):
                 print(f"🔄 폴더 변경으로 인한 환경 정보 업데이트: {tc.environment} → {new_folder.environment}")
         
         # 테스트 케이스 정보 업데이트
+        if 'tc_number' in data:
+            tc.tc_number = data.get('tc_number') or None
         tc.main_category = data.get('main_category', tc.main_category)
         tc.sub_category = data.get('sub_category', tc.sub_category)
         tc.detail_category = data.get('detail_category', tc.detail_category)
@@ -1029,6 +1037,9 @@ def update_testcase(id):
         return add_cors_headers(response), 200
         
     except Exception as e:
+        from werkzeug.exceptions import HTTPException
+        if isinstance(e, HTTPException):
+            raise
         print(f"❌ 테스트 케이스 업데이트 실패: {str(e)}")
         db.session.rollback()
         response = jsonify({'error': f'업데이트 중 오류가 발생했습니다: {str(e)}'})
@@ -1043,24 +1054,14 @@ def delete_testcase(id):
         testcase_name = tc.name
         
         print(f"🗑️ 테스트 케이스 삭제: {testcase_name} ({environment})")
-        
-        # 연관된 데이터 먼저 삭제
-        # 1. 테스트 결과 삭제
+
+        # 스크린샷은 CASCADE 미설정이므로 수동 삭제
         test_results = TestResult.query.filter_by(test_case_id=id).all()
         for result in test_results:
-            # 테스트 결과에 연결된 스크린샷 삭제
-            screenshots = Screenshot.query.filter_by(test_result_id=result.id).all()
-            for screenshot in screenshots:
+            for screenshot in Screenshot.query.filter_by(test_result_id=result.id).all():
                 db.session.delete(screenshot)
-            # 테스트 결과 삭제
-            db.session.delete(result)
-        
-        # 2. 테스트 계획에서의 연결 삭제
-        test_plan_testcases = TestPlanTestCase.query.filter_by(test_case_id=id).all()
-        for ptc in test_plan_testcases:
-            db.session.delete(ptc)
-        
-        # 3. 마지막으로 테스트 케이스 삭제
+
+        # 나머지 연관 테이블은 ON DELETE CASCADE로 자동 삭제됨
         db.session.delete(tc)
         db.session.commit()
         
@@ -1074,6 +1075,9 @@ def delete_testcase(id):
         return add_cors_headers(response), 200
         
     except Exception as e:
+        from werkzeug.exceptions import HTTPException
+        if isinstance(e, HTTPException):
+            raise
         print(f"❌ 테스트 케이스 삭제 실패: {str(e)}")
         db.session.rollback()
         response = jsonify({'error': f'삭제 중 오류가 발생했습니다: {str(e)}'})
@@ -1114,22 +1118,15 @@ def bulk_delete_testcases():
             failed_deletions = []
         
         if testcases_to_delete:
-            # 연관된 데이터를 bulk delete로 최적화
             testcase_ids_list = [tc.id for tc in testcases_to_delete]
-            
-            # 1. 스크린샷 삭제 (test_result_id를 통해)
+
+            # 스크린샷은 CASCADE 미설정이므로 수동 삭제
             test_result_ids = db.session.query(TestResult.id).filter(
                 TestResult.test_case_id.in_(testcase_ids_list)
             ).subquery()
             Screenshot.query.filter(Screenshot.test_result_id.in_(test_result_ids)).delete(synchronize_session=False)
-            
-            # 2. 테스트 결과 삭제
-            TestResult.query.filter(TestResult.test_case_id.in_(testcase_ids_list)).delete(synchronize_session=False)
-            
-            # 3. 테스트 계획에서의 연결 삭제
-            TestPlanTestCase.query.filter(TestPlanTestCase.test_case_id.in_(testcase_ids_list)).delete(synchronize_session=False)
-            
-            # 4. 테스트 케이스 삭제
+
+            # 나머지 연관 테이블은 ON DELETE CASCADE로 자동 삭제됨
             deleted_count = TestCase.query.filter(TestCase.id.in_(testcase_ids_list)).delete(synchronize_session=False)
         else:
             deleted_count = 0
@@ -1162,6 +1159,45 @@ def bulk_delete_testcases():
         db.session.rollback()
         response = jsonify({'error': f'다중 삭제 중 오류가 발생했습니다: {str(e)}'})
         return add_cors_headers(response), 500
+
+@testcases_bp.route('/testcases/bulk-move', methods=['POST'])
+@user_required
+def bulk_move_testcases():
+    """다중 테스트 케이스 폴더 이동"""
+    try:
+        data = request.get_json()
+        testcase_ids = data.get('testcase_ids', [])
+        target_folder_id = data.get('folder_id')
+
+        if not testcase_ids:
+            response = jsonify({'error': '이동할 테스트 케이스 ID 목록이 필요합니다'})
+            return add_cors_headers(response), 400
+        if not target_folder_id:
+            response = jsonify({'error': '대상 폴더 ID가 필요합니다'})
+            return add_cors_headers(response), 400
+
+        folder = db.session.get(Folder, target_folder_id)
+        if not folder:
+            response = jsonify({'error': '대상 폴더를 찾을 수 없습니다'})
+            return add_cors_headers(response), 404
+
+        moved = TestCase.query.filter(TestCase.id.in_(testcase_ids)).all()
+        for tc in moved:
+            tc.folder_id = target_folder_id
+            tc.environment = folder.environment
+            if folder.project_id:
+                tc.project_id = folder.project_id
+
+        db.session.commit()
+        response = jsonify({'moved': len(moved)})
+        return add_cors_headers(response), 200
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"폴더 이동 오류: {str(e)}")
+        response = jsonify({'error': str(e)})
+        return add_cors_headers(response), 500
+
 
 @testcases_bp.route('/testresults/<int:test_case_id>', methods=['GET'])
 @guest_allowed
@@ -1296,15 +1332,21 @@ def upload_testcases_excel():
         for index, row in df.iterrows():
             print(f"🔍 처리 중인 행 {index + 1}: {row.to_dict()}")
             
+            sub_cat = str(row.get('sub_category', '') or '')
+            tc_num = str(row.get('tc_number', '') or '')
+            tc_name = sub_cat or tc_num or f'TC-{index+1}'
             test_case = TestCase(
+                name=tc_name,
+                tc_number=tc_num or None,
                 project_id=row.get('project_id', 1),
                 main_category=row.get('main_category', ''),
-                sub_category=row.get('sub_category', ''),
+                sub_category=sub_cat,
                 detail_category=row.get('detail_category', ''),
                 pre_condition=row.get('pre_condition', ''),
                 expected_result=row.get('expected_result', ''),
-                result_status=row.get('result_status', 'N/T'),
+                result_status=row.get('result_status', 'N/T') or 'N/T',
                 remark=row.get('remark', ''),
+                test_steps=row.get('test_steps') or None,
                 environment=row.get('environment', 'dev'),
                 automation_code_path=row.get('automation_code_path', ''),
                 automation_code_type=row.get('automation_code_type', '')
@@ -1333,6 +1375,215 @@ def upload_testcases_excel():
         print(f"❌ 파일 업로드 오류: {str(e)}")
         response = jsonify({'error': str(e)})
         return add_cors_headers(response), 500
+
+# 구글 시트 가져오기 API
+@testcases_bp.route('/testcases/import-sheets', methods=['POST'])
+@user_required
+def import_from_google_sheets():
+    """구글 시트에서 TC 가져오기"""
+    import csv
+    import re
+    from io import StringIO
+
+    try:
+        data = request.get_json()
+        url = (data.get('url') or '').strip()
+        raw_text = data.get('raw_text')  # 클립보드 붙여넣기 텍스트
+        project_id = data.get('project_id')
+        folder_id = data.get('folder_id')
+        environment = data.get('environment', 'dev')
+        preview_only = data.get('preview_only', False)
+
+        if raw_text:
+            # 클립보드 텍스트 파싱 (탭 구분 TSV)
+            # csv.DictReader로 파싱 → 셀 내 줄바꿈·따옴표 처리
+            text = raw_text.strip()
+            if not text:
+                response = jsonify({'error': '붙여넣기 데이터가 비어 있습니다'})
+                return add_cors_headers(response), 400
+            reader = csv.DictReader(StringIO(text), delimiter='\t')
+            # 헤더 공백 정규화
+            reader.fieldnames = [h.strip() for h in (reader.fieldnames or [])]
+            rows = [{k.strip(): (v or '').strip() for k, v in row.items()} for row in reader]
+        elif url:
+            # URL → CSV export URL 변환
+            match = re.search(r'/spreadsheets/d/([^/]+)', url)
+            if not match:
+                response = jsonify({'error': '유효하지 않은 구글 시트 URL입니다'})
+                return add_cors_headers(response), 400
+
+            sheet_id = match.group(1)
+            gid_match = re.search(r'[?&#]gid=(\d+)', url)
+            gid = gid_match.group(1) if gid_match else '0'
+            csv_url = f'https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}'
+
+            resp = requests.get(csv_url, timeout=15)
+            if resp.status_code != 200:
+                response = jsonify({'error': f'구글 시트 접근 실패 (HTTP {resp.status_code}). 시트가 공개 공유되어 있는지 확인하세요.'})
+                return add_cors_headers(response), 400
+
+            # HTML 응답 = 로그인 페이지로 리디렉션 (비공개 시트)
+            content_type = resp.headers.get('Content-Type', '')
+            if 'text/html' in content_type:
+                response = jsonify({'error': '구글 시트에 접근할 수 없습니다. 시트를 "링크가 있는 사용자 누구나 볼 수 있음"으로 공유해야 합니다.'})
+                return add_cors_headers(response), 400
+
+            content = resp.content.decode('utf-8-sig')
+            reader = csv.DictReader(StringIO(content))
+            reader.fieldnames = [h.strip() for h in (reader.fieldnames or [])]
+            rows = [{k.strip(): (v or '').strip() for k, v in row.items()} for row in reader]
+        else:
+            response = jsonify({'error': 'URL 또는 붙여넣기 데이터가 필요합니다'})
+            return add_cors_headers(response), 400
+
+        if not rows:
+            response = jsonify({'error': '시트에 데이터가 없습니다'})
+            return add_cors_headers(response), 400
+
+        # 컬럼 매핑 정의
+        COL_MAP = {
+            'TC No.': 'tc_number',
+            '카테고리': 'main_category',
+            '테스트 항목': 'sub_category',
+            '테스트 과정': 'test_steps',
+            '사전조건': 'pre_condition',
+            '기대결과': 'expected_result',
+            'Level': 'priority',
+            'result': 'result_status',
+            '비고': 'remark',
+        }
+
+        def map_row(raw):
+            mapped = {}
+            for sheet_col, field in COL_MAP.items():
+                mapped[field] = raw.get(sheet_col, '') or ''
+            return mapped
+
+        def clean_result_status(val):
+            val = (val or '').strip()
+            VALID = {'Pass', 'Fail', 'N/T', 'N/A', 'Block'}
+            return val if val in VALID else 'N/T'
+
+        # 병합 셀(빈 값) forward-fill: main_category, sub_category
+        FILL_FIELDS = ['main_category', 'sub_category']
+        last_vals = {f: '' for f in FILL_FIELDS}
+
+        mapped_rows = []
+        for raw in rows:
+            m = map_row(raw)
+            for f in FILL_FIELDS:
+                if m[f]:
+                    last_vals[f] = m[f]
+                else:
+                    m[f] = last_vals[f]
+            mapped_rows.append(m)
+
+        # 미리보기 모드
+        if preview_only:
+            raw_headers = list(rows[0].keys()) if rows else []
+            matched = [h for h in raw_headers if h in COL_MAP]
+            unmatched = [h for h in raw_headers if h not in COL_MAP]
+            response = jsonify({
+                'preview': mapped_rows[:5],
+                'total': len(mapped_rows),
+                'raw_headers': raw_headers,
+                'matched_headers': matched,
+                'unmatched_headers': unmatched,
+                'raw_sample': rows[0] if rows else {},
+            })
+            return add_cors_headers(response), 200
+
+        # folder_id/project_id 결정
+        if not folder_id:
+            from utils.common_helpers import get_or_create_default_folder
+            default_folder = get_or_create_default_folder()
+            if default_folder:
+                folder_id = default_folder.id
+
+        if not project_id and folder_id:
+            folder = db.session.get(Folder, folder_id)
+            if folder and folder.project_id:
+                project_id = folder.project_id
+        if not project_id:
+            from utils.common_helpers import get_or_create_default_project
+            default_project = get_or_create_default_project()
+            project_id = default_project.id
+
+        # 폴더 환경 정보
+        if folder_id:
+            folder_obj = db.session.get(Folder, folder_id)
+            if folder_obj:
+                environment = folder_obj.environment
+
+        created_count = 0
+        created_tcs = []
+
+        for m in mapped_rows:
+            tc_number = m.get('tc_number', '').strip() or None
+            sub_cat = m.get('sub_category', '').strip()
+            tc_name = sub_cat or tc_number or '(제목 없음)'
+
+            tc = TestCase(
+                name=tc_name,
+                tc_number=tc_number,
+                project_id=project_id,
+                folder_id=folder_id,
+                environment=environment,
+                main_category=m.get('main_category', ''),
+                sub_category=sub_cat,
+                pre_condition=m.get('pre_condition', ''),
+                expected_result=m.get('expected_result', ''),
+                test_steps=m.get('test_steps') or None,
+                result_status=clean_result_status(m.get('result_status', '')),
+                remark=m.get('remark', ''),
+                priority=m.get('priority') or None,
+                creator_id=request.user.id,
+            )
+            db.session.add(tc)
+            created_tcs.append(tc)
+            created_count += 1
+
+        db.session.commit()
+
+        # Pass/Fail 상태가 있는 TC는 history 기록 (Pass Rate 추이 차트 반영용)
+        # changed_at: 폴더 계층에서 deployment_date 찾기 (없으면 현재 시각)
+        from models import TestCaseHistory
+
+        def find_deployment_date(fid):
+            """폴더 계층을 타고 올라가며 deployment_date 타입 폴더의 날짜 반환"""
+            while fid:
+                f = db.session.get(Folder, fid)
+                if not f:
+                    break
+                if f.folder_type == 'deployment_date' and f.deployment_date:
+                    return datetime(f.deployment_date.year, f.deployment_date.month, f.deployment_date.day)
+                fid = f.parent_folder_id
+            return None
+
+        history_dt = find_deployment_date(folder_id) or get_kst_now()
+
+        for tc in created_tcs:
+            if tc.result_status in ('Pass', 'Fail'):
+                db.session.add(TestCaseHistory(
+                    test_case_id=tc.id,
+                    field_name='result_status',
+                    old_value=None,
+                    new_value=tc.result_status,
+                    changed_by=request.user.id,
+                    change_type='create',
+                    changed_at=history_dt,
+                ))
+        db.session.commit()
+
+        response = jsonify({'created': created_count})
+        return add_cors_headers(response), 201
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"구글 시트 가져오기 오류: {str(e)}")
+        response = jsonify({'error': str(e)})
+        return add_cors_headers(response), 500
+
 
 # 엑셀 다운로드 API
 @testcases_bp.route('/testcases/download', methods=['GET'])

@@ -47,12 +47,19 @@ const TestCaseTable = ({
                 onChange={onSelectAll}
               />
             </th>
-            <th 
-              className="no-column sortable" 
+            <th
+              className="no-column sortable"
               onClick={() => handleSort('id')}
               style={{ cursor: 'pointer' }}
             >
               No {renderSortIcon('id')}
+            </th>
+            <th
+              className="tc-number-column sortable"
+              onClick={() => handleSort('tc_number')}
+              style={{ cursor: 'pointer' }}
+            >
+              TC No. {renderSortIcon('tc_number')}
             </th>
             <th 
               className="summary-column sortable" 
@@ -96,6 +103,7 @@ const TestCaseTable = ({
                 />
               </td>
               <td className="no-column">{index + 1}</td>
+              <td className="tc-number-column">{testCase.tc_number || ''}</td>
               <td className="summary-column">
                 <div className="testcase-summary">
                   <div className="testcase-title">

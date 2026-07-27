@@ -62,6 +62,16 @@ const TestCaseFormModal = ({
         </div>
 
         <div className="form-group">
+          <label>TC No.</label>
+          <input
+            type="text"
+            value={testCase.tc_number || ''}
+            onChange={(e) => handleChange('tc_number', e.target.value)}
+            placeholder="TC 번호 (예: TC-001)"
+          />
+        </div>
+
+        <div className="form-group">
           <label>대분류 *</label>
           <input 
             type="text" 

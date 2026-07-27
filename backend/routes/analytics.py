@@ -22,20 +22,35 @@ analytics_bp = Blueprint('analytics', __name__)
 def get_pass_rate_trend():
     """날짜별 Pass Rate 추이 (test_case_history 기반)"""
     try:
+        from datetime import date as date_type
         days = request.args.get('days', 30, type=int)
         environment = request.args.get('environment')
-
-        start_date = get_kst_now() - timedelta(days=days)
+        start_date_param = request.args.get('start_date')  # YYYY-MM-DD
+        end_date_param = request.args.get('end_date')      # YYYY-MM-DD
 
         query = db.session.query(
             func.date(TestCaseHistory.changed_at).label('date'),
-            func.sum(case([(TestCaseHistory.new_value == 'Pass', 1)], else_=0)).label('pass_count'),
-            func.sum(case([(TestCaseHistory.new_value == 'Fail', 1)], else_=0)).label('fail_count')
+            func.sum(case((TestCaseHistory.new_value == 'Pass', 1), else_=0)).label('pass_count'),
+            func.sum(case((TestCaseHistory.new_value == 'Fail', 1), else_=0)).label('fail_count')
         ).filter(
             TestCaseHistory.field_name == 'result_status',
             TestCaseHistory.new_value.in_(['Pass', 'Fail']),
-            TestCaseHistory.changed_at >= start_date
         )
+
+        # 날짜 범위 결정: start_date/end_date 우선, 그 다음 days (0이면 전체)
+        if start_date_param:
+            from datetime import datetime as dt
+            start_dt = dt.strptime(start_date_param, '%Y-%m-%d')
+            query = query.filter(TestCaseHistory.changed_at >= start_dt)
+        elif days > 0:
+            start_date = get_kst_now() - timedelta(days=days)
+            query = query.filter(TestCaseHistory.changed_at >= start_date)
+        # days == 0 → 전체 기간, 날짜 필터 없음
+
+        if end_date_param:
+            from datetime import datetime as dt
+            end_dt = dt.strptime(end_date_param, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
+            query = query.filter(TestCaseHistory.changed_at <= end_dt)
 
         if environment:
             query = query.join(TestCase, TestCaseHistory.test_case_id == TestCase.id).filter(
@@ -187,8 +202,8 @@ def get_flaky_tests():
             TestResult.test_case_id,
             TestCase.name.label('test_case_name'),
             func.count(TestResult.id).label('total_executions'),
-            func.sum(case([(TestResult.result == 'Pass', 1)], else_=0)).label('passed'),
-            func.sum(case([(TestResult.result == 'Fail', 1)], else_=0)).label('failed'),
+            func.sum(case((TestResult.result == 'Pass', 1), else_=0)).label('passed'),
+            func.sum(case((TestResult.result == 'Fail', 1), else_=0)).label('failed'),
             func.min(TestResult.executed_at).label('first_execution'),
             func.max(TestResult.executed_at).label('last_execution')
         ).join(
@@ -676,8 +691,8 @@ def get_test_health():
         total_stats = db.session.query(
             func.count(TestCase.id).label('total_tests'),
             func.count(TestResult.id).label('total_executions'),
-            func.sum(case([(TestResult.result == 'Pass', 1)], else_=0)).label('passed'),
-            func.sum(case([(TestResult.result == 'Fail', 1)], else_=0)).label('failed')
+            func.sum(case((TestResult.result == 'Pass', 1), else_=0)).label('passed'),
+            func.sum(case((TestResult.result == 'Fail', 1), else_=0)).label('failed')
         ).outerjoin(
             TestResult, and_(
                 TestCase.id == TestResult.test_case_id,
@@ -716,8 +731,8 @@ def get_test_health():
             test_cases_with_results = db.session.query(
                 TestResult.test_case_id,
                 func.count(TestResult.id).label('count'),
-                func.sum(case([(TestResult.result == 'Pass', 1)], else_=0)).label('passed'),
-                func.sum(case([(TestResult.result == 'Fail', 1)], else_=0)).label('failed')
+                func.sum(case((TestResult.result == 'Pass', 1), else_=0)).label('passed'),
+                func.sum(case((TestResult.result == 'Fail', 1), else_=0)).label('failed')
             ).filter(
                 TestResult.executed_at >= start_date
             ).group_by(

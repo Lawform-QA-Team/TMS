@@ -157,8 +157,9 @@ const TestCaseAPP = ({ setActiveTab }) => {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [, setShowMoveModal] = useState(false);
-  const [, setShowDeleteModal] = useState(false);
+  const [showMoveModal, setShowMoveModal] = useState(false);
+  const [moveTargetFolderId, setMoveTargetFolderId] = useState('');
+  const [, setShowDeleteModal] = useState(false); // eslint-disable-line no-unused-vars
   
   // 선택 및 편집 상태
   const [selectedTestCases, setSelectedTestCases] = useState([]);
@@ -183,7 +184,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
   // 폴더 및 정렬 상태
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [expandedFolders, setExpandedFolders] = useState(new Set());
-  const [sortBy, setSortBy] = useState('name');
+  const [sortBy, setSortBy] = useState('tc_number');
   const [sortOrder, setSortOrder] = useState('asc');
 
   useEffect(() => {
@@ -310,6 +311,16 @@ const TestCaseAPP = ({ setActiveTab }) => {
     filtered.sort((a, b) => {
       let comparison = 0;
       switch (sortBy) {
+        case 'tc_number': {
+          // TC No. 없는 항목은 맨 뒤로
+          const aNum = a.tc_number || '';
+          const bNum = b.tc_number || '';
+          if (!aNum && !bNum) comparison = 0;
+          else if (!aNum) comparison = 1;
+          else if (!bNum) comparison = -1;
+          else comparison = aNum.localeCompare(bNum, undefined, { numeric: true, sensitivity: 'base' });
+          break;
+        }
         case 'id':
           comparison = (a.id || 0) - (b.id || 0);
           break;
@@ -603,11 +614,52 @@ const TestCaseAPP = ({ setActiveTab }) => {
     }
 
     try {
-      await axios.delete(`${config.apiUrl}/testcases/${testCaseId}`);
+      await axios.delete(`/testcases/${testCaseId}`);
       alert('테스트 케이스가 성공적으로 삭제되었습니다.');
       refetch();
     } catch (err) {
       alert('테스트 케이스 삭제 중 오류가 발생했습니다: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`선택한 ${selectedTestCases.length}개의 테스트 케이스를 삭제하시겠습니까?`)) {
+      return;
+    }
+    let failed = 0;
+    for (const id of selectedTestCases) {
+      try {
+        await axios.delete(`/testcases/${id}`);
+      } catch {
+        failed++;
+      }
+    }
+    if (failed > 0) {
+      alert(`${selectedTestCases.length - failed}개 삭제 완료, ${failed}개 실패`);
+    } else {
+      alert(`${selectedTestCases.length}개 삭제 완료`);
+    }
+    setSelectedTestCases([]);
+    refetch();
+  };
+
+  const handleBulkMove = async () => {
+    if (!moveTargetFolderId) {
+      alert('이동할 폴더를 선택해 주세요.');
+      return;
+    }
+    try {
+      const res = await axios.post('/testcases/bulk-move', {
+        testcase_ids: selectedTestCases,
+        folder_id: Number(moveTargetFolderId),
+      });
+      alert(`${res.data.moved}개 이동 완료`);
+      setShowMoveModal(false);
+      setMoveTargetFolderId('');
+      setSelectedTestCases([]);
+      refetch();
+    } catch (err) {
+      alert('이동 실패: ' + (err.response?.data?.error || err.message));
     }
   };
 
@@ -1087,7 +1139,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
                 {user.role === 'admin' && (
                   <button 
                     className="testcase-btn testcase-btn-delete"
-                    onClick={() => setShowDeleteModal(true)}
+                    onClick={handleBulkDelete}
                   >
                     🗑️ 다중 삭제 ({selectedTestCases.length})
                   </button>
@@ -1625,6 +1677,40 @@ const TestCaseAPP = ({ setActiveTab }) => {
             ))}
           </select>
           <p className="help-text">선택 시 모든 행에 해당 폴더가 적용됩니다</p>
+        </div>
+      </TestCaseModal>
+
+      {/* 폴더 이동 모달 */}
+      <TestCaseModal
+        isOpen={showMoveModal}
+        onClose={() => { setShowMoveModal(false); setMoveTargetFolderId(''); }}
+        title={`폴더 이동 (${selectedTestCases.length}개 선택)`}
+        size="small"
+        actions={
+          <>
+            <button className="testcase-btn testcase-btn-primary" onClick={handleBulkMove}>
+              이동
+            </button>
+            <button className="testcase-btn testcase-btn-secondary" onClick={() => { setShowMoveModal(false); setMoveTargetFolderId(''); }}>
+              취소
+            </button>
+          </>
+        }
+      >
+        <div className="form-group">
+          <label>이동할 폴더 선택</label>
+          <select
+            value={moveTargetFolderId}
+            onChange={e => setMoveTargetFolderId(e.target.value)}
+            style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: 4 }}
+          >
+            <option value="">-- 폴더를 선택하세요 --</option>
+            {allFolders && allFolders.map(f => (
+              <option key={f.id} value={f.id}>
+                [{f.environment || f.folder_type}] {f.folder_name}
+              </option>
+            ))}
+          </select>
         </div>
       </TestCaseModal>
     </div>

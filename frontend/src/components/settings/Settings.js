@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ProjectFolderManager from '@tms/components/settings/ProjectFolderManager';
 import AccountManager from '@tms/components/settings/AccountManager';
 import PromptSettings from '@tms/components/settings/PromptSettings';
+import GoogleSheetsImport from '@tms/components/settings/GoogleSheetsImport';
 import { useAuth } from '@tms/contexts/AuthContext';
 import '@tms/components/settings/Settings.css';
 
@@ -21,6 +22,10 @@ const Settings = () => {
     return user && ['admin', 'user'].includes(user.role);
   };
 
+  const canAccessImport = () => {
+    return user && ['admin', 'user'].includes(user.role);
+  };
+
   const renderContent = () => {
     switch (activeMenu) {
       case 'project-folders':
@@ -29,6 +34,8 @@ const Settings = () => {
         return canAccessPromptSettings() ? <PromptSettings /> : <div>접근 권한이 없습니다.</div>;
       case 'accounts':
         return canAccessAccounts() ? <AccountManager /> : <div>접근 권한이 없습니다.</div>;
+      case 'import':
+        return canAccessImport() ? <GoogleSheetsImport /> : <div>접근 권한이 없습니다.</div>;
       default:
         return canAccessAccounts() ? <AccountManager /> : <div>접근 권한이 없습니다.</div>;
     }
@@ -80,11 +87,21 @@ const Settings = () => {
               )}
               {canAccessAccounts() && (
                 <li>
-                  <button 
+                  <button
                     className={`snb-item ${activeMenu === 'accounts' ? 'active' : ''}`}
                     onClick={() => setActiveMenu('accounts')}
                   >
                     👤 계정 관리
+                  </button>
+                </li>
+              )}
+              {canAccessImport() && (
+                <li>
+                  <button
+                    className={`snb-item ${activeMenu === 'import' ? 'active' : ''}`}
+                    onClick={() => setActiveMenu('import')}
+                  >
+                    데이터 가져오기
                   </button>
                 </li>
               )}

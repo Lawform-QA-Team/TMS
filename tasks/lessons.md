@@ -475,3 +475,88 @@ JS props(`width={600}`)로 고정 픽셀을 전달하면 반응형 통일이 어
 `box-shadow:` 속성을 제거해도 `transition: border-color 0.15s, box-shadow 0.15s;`처럼 transition에 섞인 참조가 남는다.
 - `/box-shadow:/d` 로 속성 줄 제거 후, `grep -rn "box-shadow"` 로 transition 잔여 참조 확인 및 제거
 
+---
+
+## 2026-07-27
+
+### 화이트박스 테스트 - auth_decorators HTTPException 삼킴 버그
+
+**현상**: `@admin_required`, `@user_required` 등 보호된 엔드포인트에서 `get_or_404()` 호출 시 404가 아닌 401 반환
+
+**원인**: 데코레이터의 `except Exception` 블록이 `werkzeug.exceptions.HTTPException`(404, 405 등)을 catch해 401로 변환함
+
+**수정**:
+```python
+except Exception as e:
+    from werkzeug.exceptions import HTTPException
+    if isinstance(e, HTTPException):
+        raise  # 반드시 re-raise
+    logger.error(...)
+    return jsonify({'error': '로그인이 필요합니다.'}), 401
+```
+
+**교훈**: Flask route 내에서 `except Exception`을 쓸 때는 반드시 `HTTPException` re-raise 선행. `abort(404)`, `get_or_404()` 모두 HTTPException을 raise함.
+
+---
+
+### 화이트박스 테스트 - update_dashboard_summary None environment 에러
+
+**현상**: `environment=None`인 TestCase를 삭제하면 500 에러
+
+**원인**: `update_dashboard_summary_for_environment(None)` 호출 시 `DashboardSummary(environment=None)` INSERT → NOT NULL 제약 위반
+
+**수정**:
+```python
+def update_dashboard_summary_for_environment(environment):
+    if not environment:
+        return True  # environment 없으면 업데이트 스킵
+    ...
+```
+
+**교훈**: DB 함수 호출 전 nullable 인자에 대한 early return 방어 코드를 항상 추가할 것
+
+---
+
+### 화이트박스 테스트 - SQLite FK CASCADE 미작동
+
+**현상**: `PRAGMA foreign_keys=ON` 설정에도 불구하고 부모 레코드 삭제 시 자식 레코드가 자동 삭제되지 않음
+
+**원인**: SQLAlchemy 모델에 `cascade="all, delete-orphan"` 또는 `ondelete="CASCADE"` 옵션이 없으면 FK는 존재하지만 CASCADE 동작은 없음
+
+**테스트 해결책**: 부모 삭제 전 자식 테이블 레코드를 명시적으로 먼저 삭제
+```python
+# TC 삭제 전 history 먼저 정리
+TestCaseHistory.query.filter_by(test_case_id=tc_id).delete()
+db.session.commit()
+# User 삭제 전 history, session 먼저 정리
+TestCaseHistory.query.filter_by(changed_by=user_id).delete()
+UserSession.query.filter_by(user_id=user_id).delete()
+db.session.commit()
+```
+
+**교훈**: 테스트 픽스처 teardown은 FK 의존성 역순으로 작성할 것. SQLite 인메모리 DB라도 FK 무결성을 신뢰하지 말 것.
+
+---
+
+### 화이트박스 테스트 - SQLAlchemy Column default는 flush 후 적용
+
+**현상**: `User()` 생성 직후 `user.role`이 `None` (기대값 `'user'`)
+
+**원인**: `Column(String, default='user')`의 default는 Python-side server default로, `db.session.flush()` 또는 `commit()` 이후 DB에서 값이 채워짐. 객체 생성 시점엔 None.
+
+**교훈**: default 값을 테스트할 때는 반드시 `db.session.flush()` 후 확인할 것
+
+---
+
+### 화이트박스 테스트 - UNIQUE 제약 충돌로 인한 픽스처 오염
+
+**현상**: 이전 테스트의 teardown 실패 시 다음 테스트에서 동일 username/email UNIQUE 에러
+
+**해결**: 픽스처에서 UUID suffix 사용
+```python
+suffix = uuid.uuid4().hex[:8]
+user = User(username=f'admin_{suffix}', email=f'admin_{suffix}@test.com', ...)
+```
+
+**교훈**: 테스트 픽스처의 고정 식별자는 UUID suffix로 대체해 충돌 방지할 것
+

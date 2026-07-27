@@ -19,6 +19,7 @@ def serialize_testcase(tc, include_relations=False):
     effective_project_id = get_testcase_effective_project_id(tc)
     data = {
         'id': tc.id,
+        'tc_number': getattr(tc, 'tc_number', None),
         'name': tc.name,
         'description': tc.description,
         'test_type': tc.test_type,

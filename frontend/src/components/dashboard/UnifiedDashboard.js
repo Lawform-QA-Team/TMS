@@ -69,7 +69,9 @@ const UnifiedDashboard = ({ setActiveTab }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [passRateTrend, setPassRateTrend] = useState(null);
-  const [trendDays, setTrendDays] = useState(30);
+  const [trendDays, setTrendDays] = useState(30); // 0 = 전체, -1 = 커스텀
+  const [trendCustomStart, setTrendCustomStart] = useState('');
+  const [trendCustomEnd, setTrendCustomEnd] = useState('');
   
   // 대시보드 카드 설정 상태
   const [showCardSettings, setShowCardSettings] = useState(false);
@@ -139,11 +141,22 @@ const UnifiedDashboard = ({ setActiveTab }) => {
     fetchDashboardData();
   }, []);
 
+  // Pass Rate 추이 요청 함수
+  const fetchPassRateTrend = (days, customStart, customEnd) => {
+    let url;
+    if (days === -1 && customStart && customEnd) {
+      url = `/analytics/pass-rate-trend?start_date=${customStart}&end_date=${customEnd}`;
+    } else {
+      url = `/analytics/pass-rate-trend?days=${days}`;
+    }
+    axios.get(url).then(r => setPassRateTrend(r.data)).catch(() => {});
+  };
+
   // trendDays 변경 시 Pass Rate 추이 재요청
   useEffect(() => {
-    axios.get(`/analytics/pass-rate-trend?days=${trendDays}`)
-      .then(r => setPassRateTrend(r.data))
-      .catch(() => {});
+    if (trendDays !== -1) {
+      fetchPassRateTrend(trendDays);
+    }
   }, [trendDays]);
 
   // 카드 설정이 변경될 때 localStorage에 저장
@@ -497,7 +510,7 @@ const UnifiedDashboard = ({ setActiveTab }) => {
       }
 
       // Pass Rate 추이 초기 로드
-      axios.get(`/analytics/pass-rate-trend?days=${trendDays}`)
+      axios.get(`/analytics/pass-rate-trend?days=30`)
         .then(r => setPassRateTrend(r.data))
         .catch(() => {});
 
@@ -1581,11 +1594,47 @@ const UnifiedDashboard = ({ setActiveTab }) => {
                         {d}일
                       </button>
                     ))}
+                    <button
+                      className={`btn-period ${trendDays === 0 ? 'active' : ''}`}
+                      onClick={() => setTrendDays(0)}
+                    >
+                      전체
+                    </button>
+                    <button
+                      className={`btn-period ${trendDays === -1 ? 'active' : ''}`}
+                      onClick={() => setTrendDays(-1)}
+                    >
+                      직접입력
+                    </button>
                   </div>
                 </div>
+                {trendDays === -1 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', background: '#f8f9fa', borderTop: '1px solid #eee' }}>
+                    <input
+                      type="date"
+                      value={trendCustomStart}
+                      onChange={e => setTrendCustomStart(e.target.value)}
+                      style={{ padding: '4px 8px', border: '1px solid #ccc', borderRadius: 4, fontSize: '0.85em' }}
+                    />
+                    <span style={{ color: '#888' }}>~</span>
+                    <input
+                      type="date"
+                      value={trendCustomEnd}
+                      onChange={e => setTrendCustomEnd(e.target.value)}
+                      style={{ padding: '4px 8px', border: '1px solid #ccc', borderRadius: 4, fontSize: '0.85em' }}
+                    />
+                    <button
+                      onClick={() => fetchPassRateTrend(-1, trendCustomStart, trendCustomEnd)}
+                      disabled={!trendCustomStart || !trendCustomEnd}
+                      style={{ padding: '4px 12px', background: '#007bff', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: '0.85em' }}
+                    >
+                      조회
+                    </button>
+                  </div>
+                )}
                 <div className="card-content">
                   {passRateTrend && passRateTrend.dates && passRateTrend.dates.length > 0 ? (
-                    <div className="chart-wrapper">
+                    <div className="chart-wrapper" style={{ height: '280px' }}>
                       <Line
                         data={{
                           labels: passRateTrend.dates,
