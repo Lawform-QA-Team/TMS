@@ -882,7 +882,13 @@ def update_testcase_status(id):
         # 상태 업데이트
         tc.result_status = new_status
         db.session.commit()
-        
+
+        # result_status 변경 이력 기록
+        try:
+            track_test_case_change(id, 'result_status', old_status, new_status, current_user_id)
+        except Exception as e:
+            logger.warning(f"result_status 히스토리 추적 실패: {str(e)}")
+
         # 알림 생성 (상태 변경 시 작성자와 담당자에게 발송)
         try:
             from services.notification_service import notification_service
@@ -947,6 +953,7 @@ def update_testcase(id):
         tc.detail_category = data.get('detail_category', tc.detail_category)
         tc.pre_condition = data.get('pre_condition', tc.pre_condition)
         tc.expected_result = data.get('expected_result', tc.expected_result)
+        old_result_status = tc.result_status
         tc.result_status = data.get('result_status', tc.result_status)
         tc.remark = data.get('remark', tc.remark)
         if 'test_steps' in data:
@@ -1004,13 +1011,20 @@ def update_testcase(id):
                     logger.error(f"❌ 담당자 변경 알림 전송 실패: {str(e)}", exc_info=True)
         
         db.session.commit()
-        
+
+        # result_status 변경 이력 기록
+        if old_result_status != tc.result_status:
+            try:
+                track_test_case_change(id, 'result_status', old_result_status, tc.result_status, request.user.id)
+            except Exception as e:
+                logger.warning(f"result_status 히스토리 추적 실패: {str(e)}")
+
         # 대시보드 요약 데이터 자동 업데이트
         if update_dashboard_summary_for_environment(tc.environment):
             print(f"✅ 대시보드 요약 데이터 업데이트 성공: {tc.environment}")
         else:
             print(f"⚠️ 대시보드 요약 데이터 업데이트 실패: {tc.environment}")
-        
+
         response = jsonify({'message': '테스트 케이스 업데이트 완료'})
         return add_cors_headers(response), 200
         

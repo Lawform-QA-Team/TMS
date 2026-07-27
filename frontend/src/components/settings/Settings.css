@@ -49,6 +49,10 @@
   background: var(--tms-primary);
 }
 
+.role-badge.executive {
+  background: #0f766e;
+}
+
 .role-badge.guest {
   background: #64748b;
 }
@@ -152,4 +156,4 @@
     justify-content: center;
     text-align: center;
   }
-} 
+}

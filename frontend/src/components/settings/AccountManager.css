@@ -338,6 +338,11 @@
   color: white;
 }
 
+.role-badge.executive {
+  background: #0f766e;
+  color: white;
+}
+
 .role-badge.guest {
   background: #6c757d;
   color: white;
@@ -690,4 +695,4 @@
     width: 100%;
     justify-content: center;
   }
-} 
+}

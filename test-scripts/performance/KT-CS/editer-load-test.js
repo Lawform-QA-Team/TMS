@@ -43,12 +43,12 @@ import { SharedArray } from 'k6/data';
 import exec from 'k6/execution';
 import papaparse from 'https://jslib.k6.io/papaparse/5.1.1/index.js';
 import { htmlReport } from 'https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js';
-import { getFormattedTimestamp } from './common/utils.js';
+import { getFormattedTimestamp } from './utils.js';
 import {
   postSlackMessage,
   buildK6SummaryMessage,
   buildK6ErrorThreadBlocks,
-} from './common/slack_helper.js';
+} from './kt-cs-slack-helper.js';
 
 // ------------------------------------------------------------------
 // 설정 (환경변수로 오버라이드)

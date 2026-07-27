@@ -3,7 +3,7 @@
 트렌드 분석, Flaky 테스트 감지, 회귀 테스트 감지 등
 """
 from flask import Blueprint, request, jsonify
-from models import db, TestCase, TestResult, TestExecution
+from models import db, TestCase, TestResult, TestExecution, TestCaseHistory
 from utils.cors import add_cors_headers
 from utils.auth_decorators import guest_allowed, user_required
 from utils.timezone_utils import get_kst_now
@@ -16,6 +16,68 @@ import json
 logger = get_logger(__name__)
 
 analytics_bp = Blueprint('analytics', __name__)
+
+@analytics_bp.route('/analytics/pass-rate-trend', methods=['GET', 'OPTIONS'])
+@guest_allowed
+def get_pass_rate_trend():
+    """날짜별 Pass Rate 추이 (test_case_history 기반)"""
+    try:
+        days = request.args.get('days', 30, type=int)
+        environment = request.args.get('environment')
+
+        start_date = get_kst_now() - timedelta(days=days)
+
+        query = db.session.query(
+            func.date(TestCaseHistory.changed_at).label('date'),
+            func.sum(case([(TestCaseHistory.new_value == 'Pass', 1)], else_=0)).label('pass_count'),
+            func.sum(case([(TestCaseHistory.new_value == 'Fail', 1)], else_=0)).label('fail_count')
+        ).filter(
+            TestCaseHistory.field_name == 'result_status',
+            TestCaseHistory.new_value.in_(['Pass', 'Fail']),
+            TestCaseHistory.changed_at >= start_date
+        )
+
+        if environment:
+            query = query.join(TestCase, TestCaseHistory.test_case_id == TestCase.id).filter(
+                TestCase.environment == environment
+            )
+
+        rows = query.group_by(
+            func.date(TestCaseHistory.changed_at)
+        ).order_by(
+            func.date(TestCaseHistory.changed_at).asc()
+        ).all()
+
+        dates = []
+        pass_rates = []
+        pass_counts = []
+        fail_counts = []
+
+        for row in rows:
+            date_str = row.date.isoformat() if hasattr(row.date, 'isoformat') else str(row.date)
+            p = int(row.pass_count or 0)
+            f = int(row.fail_count or 0)
+            total = p + f
+            rate = round(p / total * 100, 1) if total > 0 else 0.0
+            dates.append(date_str)
+            pass_rates.append(rate)
+            pass_counts.append(p)
+            fail_counts.append(f)
+
+        response = jsonify({
+            'dates': dates,
+            'pass_rates': pass_rates,
+            'pass_counts': pass_counts,
+            'fail_counts': fail_counts,
+            'period_days': days
+        })
+        return add_cors_headers(response), 200
+
+    except Exception as e:
+        logger.error(f"Pass Rate 추이 분석 오류: {str(e)}")
+        response = jsonify({'error': str(e)})
+        return add_cors_headers(response), 500
+
 
 @analytics_bp.route('/analytics/trends', methods=['GET', 'OPTIONS'])
 @guest_allowed

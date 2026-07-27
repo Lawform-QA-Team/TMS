@@ -56,6 +56,7 @@ axios.defaults.baseURL = config.apiUrl;
 
 const PerformanceTestManager = () => {
     const { user } = useAuth();
+    const canModify = user && ['admin', 'user'].includes(user.role);
     const [performanceTests, setPerformanceTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -477,7 +478,7 @@ const PerformanceTestManager = () => {
           </div>
         )}
         <div className="header-actions">
-          {user && (user.role === 'admin' || user.role === 'user') && (
+          {user && ['admin', 'user'].includes(user.role) && (
                     <button 
                         className="performance-btn performance-btn-add"
               onClick={() => setShowAddModal(true)}
@@ -684,22 +685,24 @@ const PerformanceTestManager = () => {
                       <span className="assignee-badge">
                         👤 {test.assignee_name || '없음'}
                       </span>
-                      <select
-                        className="assignee-select"
-                        value={test.assignee_id || ''}
-                        onChange={(e) => handleAssigneeChange(test.id, e.target.value)}
-                      >
-                        <option value="">담당자 변경</option>
-                        {users && users.length > 0 ? (
-                          users.map(user => (
-                            <option key={user.id} value={user.id}>
-                              {getUserDisplayName(user) || 'Unknown'}
-                            </option>
-                          ))
-                        ) : (
-                          <option value="" disabled>사용자 목록 로딩 중...</option>
-                        )}
-                      </select>
+                      {canModify && (
+                        <select
+                          className="assignee-select"
+                          value={test.assignee_id || ''}
+                          onChange={(e) => handleAssigneeChange(test.id, e.target.value)}
+                        >
+                          <option value="">담당자 변경</option>
+                          {users && users.length > 0 ? (
+                            users.map(user => (
+                              <option key={user.id} value={user.id}>
+                                {getUserDisplayName(user) || 'Unknown'}
+                              </option>
+                            ))
+                          ) : (
+                            <option value="" disabled>사용자 목록 로딩 중...</option>
+                          )}
+                        </select>
+                      )}
                     </div>
                   </td>
                   <td className="creator-column">
@@ -710,14 +713,16 @@ const PerformanceTestManager = () => {
                   <td className="actions-column">
                     <div className="action-buttons">
                       {/* 실행 버튼 */}
-                      <button 
-                        className="performance-btn performance-btn-automation"
-                        onClick={() => executePerformanceTest(test.id)}
-                        disabled={executing}
-                        title="테스트 실행"
-                      >
-                        {executing ? '실행 중' : '실행'}
-                      </button>
+                      {canModify && (
+                        <button
+                          className="performance-btn performance-btn-automation"
+                          onClick={() => executePerformanceTest(test.id)}
+                          disabled={executing}
+                          title="테스트 실행"
+                        >
+                          {executing ? '실행 중' : '실행'}
+                        </button>
+                      )}
                       {/* 상세보기 버튼 */}
                       <button 
                         className="performance-btn performance-btn-details"
@@ -730,7 +735,7 @@ const PerformanceTestManager = () => {
                         상세
                       </button>
                       {/* 수정 버튼 */}
-                      {user && (user.role === 'admin' || user.role === 'user') && (
+                      {canModify && (
                         <button 
                           className="performance-btn performance-btn-edit"
                           onClick={() => {

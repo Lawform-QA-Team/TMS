@@ -138,3 +138,6 @@ test-scripts/playwright/test-results/
 .env.test.local
 .env.production.local
 .vercel
+
+# 테스트 계정 정보 (민감 데이터)
+accounts.json

@@ -13,7 +13,7 @@ from utils.response_utils import (
     not_found_response, forbidden_response
 )
 from utils.common_helpers import handle_options_request, create_cors_response
-from utils.auth_constants import MESSAGES, MIN_PASSWORD_LENGTH, ROLE_GUEST
+from utils.auth_constants import MESSAGES, MIN_PASSWORD_LENGTH, ROLE_EXECUTIVE, ROLE_GUEST
 from utils.auth_helpers import (
     create_user_session, create_tokens, create_guest_tokens,
     get_guest_user_data, validate_user_credentials,
@@ -334,6 +334,9 @@ def update_profile():
         
         if not user:
             return not_found_response(MESSAGES['USER_NOT_FOUND'])
+
+        if user.role == ROLE_EXECUTIVE:
+            return forbidden_response('임원 권한은 프로필을 수정할 수 없습니다.')
         
         data = request.get_json()
         

@@ -10,15 +10,15 @@ const Settings = () => {
   const { user } = useAuth();
 
   const canAccessProjectFolder = () => {
-    return user && (user.role === 'admin' || user.role === 'user');
+    return user && ['admin', 'executive', 'user'].includes(user.role);
   };
 
   const canAccessAccounts = () => {
-    return user && (user.role === 'admin' || user.role === 'user');
+    return user && ['admin', 'executive', 'user'].includes(user.role);
   };
 
   const canAccessPromptSettings = () => {
-    return user && (user.role === 'admin' || user.role === 'user');
+    return user && ['admin', 'user'].includes(user.role);
   };
 
   const renderContent = () => {
@@ -42,6 +42,7 @@ const Settings = () => {
           <span>현재 사용자: {user?.username}</span>
           <span className={`role-badge ${user?.role}`}>
             {user?.role === 'admin' ? '관리자' : 
+             user?.role === 'executive' ? '임원' :
              user?.role === 'user' ? '사용자' : 
              user?.role === 'guest' ? '게스트' : '알 수 없음'}
           </span>
@@ -95,4 +96,4 @@ const Settings = () => {
   );
 };
 
-export default Settings; 
+export default Settings;

@@ -14,7 +14,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     first_name = db.Column(db.String(50))
     last_name = db.Column(db.String(50))
-    role = db.Column(db.String(20), default='user')  # admin, user, tester
+    role = db.Column(db.String(20), default='user')  # admin, executive, user, guest
     is_active = db.Column(db.Boolean, default=True)
     last_login = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=get_kst_now)
@@ -1025,7 +1025,7 @@ class WorkflowStep(db.Model):
     order = db.Column(db.Integer, nullable=False)
     
     # 다음 단계로 이동 가능한 역할
-    allowed_roles = db.Column(db.Text)  # JSON 형태로 저장 (예: ['admin', 'tester'])
+    allowed_roles = db.Column(db.Text)  # JSON 형태로 저장 (예: ['admin', 'executive'])
     
     # 다음 단계로 이동 가능한 사용자 (선택적)
     allowed_user_ids = db.Column(db.Text)  # JSON 형태로 저장

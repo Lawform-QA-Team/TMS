@@ -219,7 +219,7 @@ const AccountManager = () => {
   };
 
   const getRoleLabel = (role) => {
-    const labels = { admin: '관리자', user: '일반', guest: '게스트' };
+    const labels = { admin: '관리자', executive: '임원', user: '일반', guest: '게스트' };
     return labels[role] || role || '일반';
   };
 
@@ -330,7 +330,7 @@ const AccountManager = () => {
   const canEditUser = (user) => {
     // admin은 모든 사용자 수정 가능
     // user는 자신만 수정 가능
-    return currentUser?.role === 'admin' || user.id === currentUser?.id;
+    return currentUser?.role === 'admin' || (currentUser?.role === 'user' && user.id === currentUser?.id);
   };
 
   const canViewUsers = () => {
@@ -420,13 +420,15 @@ const AccountManager = () => {
                     <td className="col-actions">
                       {currentUser?.role !== 'guest' && (
                         <>
-                          <button
-                            type="button"
-                            className="btn-text btn-edit"
-                            onClick={() => setShowProfileModal(true)}
-                          >
-                            프로필 수정
-                          </button>
+                          {currentUser?.role !== 'executive' && (
+                            <button
+                              type="button"
+                              className="btn-text btn-edit"
+                              onClick={() => setShowProfileModal(true)}
+                            >
+                              프로필 수정
+                            </button>
+                          )}
                           <button
                             type="button"
                             className="btn-text btn-password"
@@ -580,6 +582,7 @@ const AccountManager = () => {
                     onChange={(e) => setNewUser({...newUser, role: e.target.value})}
                   >
                     <option value="user">User (일반 사용자)</option>
+                    <option value="executive">Executive (임원)</option>
                     <option value="admin">Admin (관리자)</option>
                     <option value="guest">Guest (게스트)</option>
                   </select>
@@ -664,6 +667,7 @@ const AccountManager = () => {
                     onChange={(e) => setEditUser({...editUser, role: e.target.value})}
                   >
                     <option value="user">User (일반 사용자)</option>
+                    <option value="executive">Executive (임원)</option>
                     <option value="admin">Admin (관리자)</option>
                     <option value="guest">Guest (게스트)</option>
                   </select>

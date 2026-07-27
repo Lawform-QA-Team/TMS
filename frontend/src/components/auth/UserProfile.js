@@ -401,7 +401,7 @@ const UserProfile = () => {
         </div>
         <div className="profile-field">
           <label>역할</label>
-          <span>{user?.role === 'admin' ? '관리자' : user?.role === 'user' ? '사용자' : user?.role || '알 수 없음'}</span>
+          <span>{user?.role === 'admin' ? '관리자' : user?.role === 'executive' ? '임원' : user?.role === 'user' ? '사용자' : user?.role || '알 수 없음'}</span>
         </div>
         {!isGuest && (
           <div className="profile-field">

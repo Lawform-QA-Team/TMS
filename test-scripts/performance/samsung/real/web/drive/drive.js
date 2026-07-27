@@ -84,10 +84,10 @@ export default async function() {
         // 문서 조회, 검색
         const webDriveSearchStart = Date.now();
         await page.waitForSelector(SELECTORS.WEB.DRIVE.INPUT);
-        await page.type(SELECTORS.WEB.DRIVE.INPUT, 'heekun');
+        await page.type(SELECTORS.WEB.DRIVE.INPUT, 'ggp');   
         await page.waitForSelector(SELECTORS.WEB.DRIVE.BUTTON_SEARCH);
         await page.click(SELECTORS.WEB.DRIVE.BUTTON_SEARCH);
-        const webDriveSearchDuration = Date.now() - webDriveSearchStart;
+        const webDriveSearchDuration = Date.now() - webDriveSearchStart;    
         webDriveSearch.add(webDriveSearchDuration);
         console.log(`web_drive_search: ${webDriveSearchDuration}ms`);
         timestamp = getNewTimeStamp();

@@ -20,6 +20,8 @@ const TestCaseTable = ({
   sortOrder,
   onSort
 }) => {
+  const canModify = user && ['admin', 'user'].includes(user.role);
+
   const handleSort = (column) => {
     if (onSort) {
       onSort(column);
@@ -115,17 +117,19 @@ const TestCaseTable = ({
                   <span className={`status-badge ${(testCase.result_status || 'N/A').toLowerCase().replace('/', '-')}`}>
                     {testCase.result_status || 'N/A'}
                   </span>
-                  <select
-                    className="status-select"
-                    value={testCase.result_status}
-                    onChange={(e) => onStatusChange(testCase.id, e.target.value)}
-                  >
-                    <option value="N/T">N/T</option>
-                    <option value="Pass">Pass</option>
-                    <option value="Fail">Fail</option>
-                    <option value="N/A">N/A</option>
-                    <option value="Block">Block</option>
-                  </select>
+                  {canModify && (
+                    <select
+                      className="status-select"
+                      value={testCase.result_status}
+                      onChange={(e) => onStatusChange(testCase.id, e.target.value)}
+                    >
+                      <option value="N/T">N/T</option>
+                      <option value="Pass">Pass</option>
+                      <option value="Fail">Fail</option>
+                      <option value="N/A">N/A</option>
+                      <option value="Block">Block</option>
+                    </select>
+                  )}
                 </div>
               </td>
               <td className="assignee-column">
@@ -133,22 +137,24 @@ const TestCaseTable = ({
                   <span className="assignee-badge">
                     👤 {testCase.assignee_name || '없음'}
                   </span>
-                  <select
-                    className="assignee-select"
-                    value={testCase.assignee_id || ''}
-                    onChange={(e) => onAssigneeChange(testCase.id, e.target.value)}
-                  >
-                    <option value="">담당자 변경</option>
-                    {users && users.length > 0 ? (
-                      users.map(user => (
-                        <option key={user.id} value={user.id}>
-                          {getUserDisplayName(user) || 'Unknown'}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="" disabled>사용자 목록 로딩 중...</option>
-                    )}
-                  </select>
+                  {canModify && (
+                    <select
+                      className="assignee-select"
+                      value={testCase.assignee_id || ''}
+                      onChange={(e) => onAssigneeChange(testCase.id, e.target.value)}
+                    >
+                      <option value="">담당자 변경</option>
+                      {users && users.length > 0 ? (
+                        users.map(user => (
+                          <option key={user.id} value={user.id}>
+                            {getUserDisplayName(user) || 'Unknown'}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="" disabled>사용자 목록 로딩 중...</option>
+                      )}
+                    </select>
+                  )}
                 </div>
               </td>
               <td className="creator-column">
@@ -159,7 +165,7 @@ const TestCaseTable = ({
               <td className="actions-column">
                 <div className="action-buttons">
                   {/* 자동화 실행 버튼 (코드 경로 또는 테스트 단계가 있으면 표시) */}
-                  {(testCase.automation_code_path || testCase.test_steps) && (
+                  {canModify && (testCase.automation_code_path || testCase.test_steps) && (
                     <button 
                       className="testcase-btn testcase-btn-automation"
                       onClick={() => onExecute(testCase.id)}
@@ -177,7 +183,7 @@ const TestCaseTable = ({
                     상세
                   </button>
                   {/* 수정 버튼 */}
-                  {user && (user.role === 'admin' || user.role === 'user') && (
+                  {canModify && (
                     <button 
                       className="testcase-btn testcase-btn-edit"
                       onClick={() => onEdit(testCase)}

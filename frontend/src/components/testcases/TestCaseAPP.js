@@ -1048,7 +1048,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
           </div>
         )}
         <div className="header-actions">
-            {user && (user.role === 'admin' || user.role === 'user') && (
+            {user && ['admin', 'user'].includes(user.role) && (
               <>
                 <button
                   className="testcase-btn testcase-btn-ai"
@@ -1076,7 +1076,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
             >
               📥 엑셀 다운로드
             </button>
-            {user && (user.role === 'admin' || user.role === 'user') && selectedTestCases.length > 0 && (
+            {user && ['admin', 'user'].includes(user.role) && selectedTestCases.length > 0 && (
               <>
                 <button 
                   className="testcase-btn testcase-btn-execute"
@@ -1355,6 +1355,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
                     <div className="comments-list">
                       {comments.map((comment) => {
                         const isOwnComment = user && (comment.author_id === user.id || comment.author?.id === user.id);
+                        const canModifyComment = user && ['admin', 'user'].includes(user.role);
                         const isEditing = editingCommentId === comment.id;
                         
                         return (
@@ -1369,7 +1370,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
                                   {comment.is_edited && <span className="comment-edited-badge"> (수정됨)</span>}
                                 </span>
                               </div>
-                              {isOwnComment && !isEditing && (
+                              {canModifyComment && isOwnComment && !isEditing && (
                                 <div className="comment-actions">
                                   <button
                                     className="comment-edit-btn"
@@ -1459,57 +1460,59 @@ const TestCaseAPP = ({ setActiveTab }) => {
                   )}
                   
                   {/* 댓글 작성 */}
-                  <div className="comment-add">
-                    <textarea
-                      className="comment-textarea"
-                      placeholder="댓글을 입력하세요... (@username 형식으로 멘션 가능)"
-                      value={newComment}
-                      onChange={(e) => handleCommentChange(e.target.value)}
-                      onKeyDown={handleCommentKeyDown}
-                      rows="3"
-                    />
-                    {showCommentMentions && commentMentionCandidates.length > 0 && (
-                      <div
-                        className="mention-list"
-                        style={{
-                          border: '1px solid #e9ecef',
-                          borderRadius: '8px',
-                          maxHeight: '200px',
-                          overflowY: 'auto',
-                          marginBottom: '12px'
-                        }}
+                  {user && ['admin', 'user'].includes(user.role) && (
+                    <div className="comment-add">
+                      <textarea
+                        className="comment-textarea"
+                        placeholder="댓글을 입력하세요... (@username 형식으로 멘션 가능)"
+                        value={newComment}
+                        onChange={(e) => handleCommentChange(e.target.value)}
+                        onKeyDown={handleCommentKeyDown}
+                        rows="3"
+                      />
+                      {showCommentMentions && commentMentionCandidates.length > 0 && (
+                        <div
+                          className="mention-list"
+                          style={{
+                            border: '1px solid #e9ecef',
+                            borderRadius: '8px',
+                            maxHeight: '200px',
+                            overflowY: 'auto',
+                            marginBottom: '12px'
+                          }}
+                        >
+                          {commentMentionCandidates.map((u, index) => (
+                            <button
+                              key={u.id}
+                              type="button"
+                              className="mention-item"
+                              onClick={() => handleNewMentionSelect(u)}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                width: '100%',
+                                padding: '8px 12px',
+                                border: 'none',
+                                background: index === commentMentionIndex ? '#f1f3f5' : 'white',
+                                cursor: 'pointer',
+                                textAlign: 'left'
+                              }}
+                            >
+                              <span style={{ marginRight: '8px' }}>👤</span>
+                              <span>{getUserDisplayName(u)}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      <button
+                        className="testcase-btn testcase-btn-primary"
+                        onClick={handleAddComment}
+                        disabled={!newComment.trim()}
                       >
-                        {commentMentionCandidates.map((u, index) => (
-                          <button
-                            key={u.id}
-                            type="button"
-                            className="mention-item"
-                            onClick={() => handleNewMentionSelect(u)}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              width: '100%',
-                              padding: '8px 12px',
-                              border: 'none',
-                              background: index === commentMentionIndex ? '#f1f3f5' : 'white',
-                              cursor: 'pointer',
-                              textAlign: 'left'
-                            }}
-                          >
-                            <span style={{ marginRight: '8px' }}>👤</span>
-                            <span>{getUserDisplayName(u)}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    <button
-                      className="testcase-btn testcase-btn-primary"
-                      onClick={handleAddComment}
-                      disabled={!newComment.trim()}
-                    >
-                      댓글 작성
-                    </button>
-                  </div>
+                        댓글 작성
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 

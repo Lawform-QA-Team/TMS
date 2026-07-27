@@ -4,7 +4,7 @@
 import { URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
-import { getWebCredentials, loginWebWithPage } from '../../admin/login/login_helper.js';
+import { getWebCredentials, loginWebWithPage } from '../../admin/login/login_hlper.js';
 
 async function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -38,7 +38,7 @@ export async function run(page) {
 
   // 문서 작성 - 기존 문서, 검색
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
-  await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('heekun');
+  await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('ggp');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await Promise.all([
     page.waitForURL('**/autodoc?method=existing**'),
