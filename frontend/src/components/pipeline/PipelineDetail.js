@@ -37,7 +37,7 @@ export default function PipelineDetail({ pipelineId, onClose }) {
   if (error) return <div className="pipeline-error">오류: {error}</div>;
   if (!data) return null;
 
-  const { ticket, stages, qaPlan, pageAnalyses, generatedCode, testRunResult } = data;
+  const { ticket, stages, qaPlan, pageAnalyses, generatedCode, testRunResult, report } = data;
   const plan = qaPlan?.plan_content ? (() => { try { return JSON.parse(qaPlan.plan_content); } catch { return null; } })() : null;
 
   return (
@@ -153,6 +153,46 @@ export default function PipelineDetail({ pipelineId, onClose }) {
                 )}
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {report && (
+        <div className="pipeline-tc-list">
+          <div className="pipeline-qaplan-header">
+            QA 리포트
+            <span className={`pipeline-approval-badge approval-${
+              report.risk_level === 'low' ? 'approved' :
+              report.risk_level === 'critical' ? 'rejected' : 'pending'
+            }`}>
+              위험도: {report.risk_level}
+            </span>
+            {report.ready_for_release && (
+              <span className="pipeline-approval-badge approval-approved">릴리즈 준비 완료</span>
+            )}
+          </div>
+          <div className="pipeline-qaplan-body">
+            <div className="pipeline-qaplan-row">
+              <b>요약</b><span>{report.summary}</span>
+            </div>
+            <div className="pipeline-qaplan-row">
+              <b>통과율</b>
+              <span>{report.pass_rate != null ? `${report.pass_rate}%` : '-'}</span>
+            </div>
+            <div className="pipeline-qaplan-row">
+              <b>품질 점수</b><span>{report.quality_score}/10</span>
+            </div>
+            {report.content?.findings?.length > 0 && (
+              <div className="pipeline-qaplan-row">
+                <b>주요 발견</b>
+                <ul>{report.content.findings.map((f, i) => <li key={i}>{f}</li>)}</ul>
+              </div>
+            )}
+            {report.content?.recommendation && (
+              <div className="pipeline-qaplan-row">
+                <b>권고사항</b><span>{report.content.recommendation}</span>
+              </div>
+            )}
           </div>
         </div>
       )}

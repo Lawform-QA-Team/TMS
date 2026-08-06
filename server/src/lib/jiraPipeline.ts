@@ -17,11 +17,12 @@ import { env } from '../env.js'
 import { logger } from './logger.js'
 import type { NormalizedTicket } from './ticketNormalizer.js'
 import { generateQAPlan, createQAPlanRecord } from './qaPlanGenerator.js'
-import { sendQAPlanApprovalRequest, sendTestCasesComplete, sendPageAnalysisComplete, sendCodegenComplete, sendTestRunComplete } from './slackNotifier.js'
+import { sendQAPlanApprovalRequest, sendTestCasesComplete, sendPageAnalysisComplete, sendCodegenComplete, sendTestRunComplete, sendReportComplete } from './slackNotifier.js'
 import { generateTestCases } from './testCaseGenerator.js'
 import { analyzePages } from './pageAnalyzer.js'
 import { generateCode } from './codeGenerator.js'
 import { runTests } from './testRunner.js'
+import { generateReport } from './reportGenerator.js'
 
 // ──────────────────────────────────────────────
 // Job 타입 정의
@@ -78,6 +79,10 @@ export type JiraPipelineJobData =
     }
   | {
       type: 'codegen-complete'
+      pipelineId: string
+    }
+  | {
+      type: 'testrun-complete'
       pipelineId: string
     }
 
@@ -326,12 +331,32 @@ async function processJob(job: Job<JiraPipelineJobData>): Promise<void> {
     try {
       const { status, totalTests, passed, failed } = await runTests(data.pipelineId)
       await sendTestRunComplete(data.pipelineId, status, totalTests, passed, failed)
-      logger.info({ pipelineId: data.pipelineId, status, totalTests, passed, failed }, '테스트 실행 완료')
+      // Phase 7: 테스트 실행 완료 → 리포트 자동 생성
+      await getJiraQueue().add('testrun-complete', {
+        type: 'testrun-complete',
+        pipelineId: data.pipelineId,
+      })
+      logger.info({ pipelineId: data.pipelineId, status, totalTests, passed, failed }, '테스트 실행 완료 → 리포트 큐 등록')
     } catch (e) {
       logger.error({ e, pipelineId: data.pipelineId }, '테스트 실행 오류')
       await db.collectedTicket.update({
         where: { pipelineId: data.pipelineId },
         data: { pipelineStatus: 'codegen', errorMessage: String(e), updatedAt: new Date() },
+      })
+    }
+  }
+
+  else if (data.type === 'testrun-complete') {
+    logger.info({ pipelineId: data.pipelineId }, '테스트 실행 완료 → 리포트 생성 시작')
+    try {
+      const { summary, riskLevel, qualityScore, readyForRelease } = await generateReport(data.pipelineId)
+      await sendReportComplete(data.pipelineId, summary, riskLevel, qualityScore, readyForRelease)
+      logger.info({ pipelineId: data.pipelineId, riskLevel, qualityScore, readyForRelease }, '리포트 생성 완료')
+    } catch (e) {
+      logger.error({ e, pipelineId: data.pipelineId }, '리포트 생성 오류')
+      await db.collectedTicket.update({
+        where: { pipelineId: data.pipelineId },
+        data: { pipelineStatus: 'testrun', errorMessage: String(e), updatedAt: new Date() },
       })
     }
   }

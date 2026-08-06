@@ -144,7 +144,7 @@ pipelineRouter.get('/', async (c) => {
 pipelineRouter.get('/:pipelineId', async (c) => {
   const pipelineId = c.req.param('pipelineId')
   try {
-    const [ticket, pageAnalyses, generatedCode, testRunResult] = await Promise.all([
+    const [ticket, pageAnalyses, generatedCode, testRunResult, pipelineReport] = await Promise.all([
       db.collectedTicket.findUnique({
         where: { pipelineId },
         include: {
@@ -156,6 +156,7 @@ pipelineRouter.get('/:pipelineId', async (c) => {
       db.pageAnalysis.findMany({ where: { pipelineId } }),
       db.generatedCode.findUnique({ where: { pipelineId } }),
       db.testRunResult.findUnique({ where: { pipelineId } }),
+      db.pipelineReport.findUnique({ where: { pipelineId } }),
     ])
     if (!ticket) return c.json({ success: false, error: '파이프라인을 찾을 수 없습니다.' }, 404)
 
@@ -219,6 +220,20 @@ pipelineRouter.get('/:pipelineId', async (c) => {
         }
       : null
 
+    const reportData = pipelineReport
+      ? {
+          id: pipelineReport.id,
+          pipeline_id: pipelineReport.pipelineId,
+          summary: pipelineReport.summary,
+          content: (() => { try { return pipelineReport.content ? JSON.parse(pipelineReport.content) : null } catch { return null } })(),
+          pass_rate: pipelineReport.passRate,
+          risk_level: pipelineReport.riskLevel,
+          quality_score: pipelineReport.qualityScore,
+          ready_for_release: pipelineReport.readyForRelease,
+          created_at: pipelineReport.createdAt.toISOString(),
+        }
+      : null
+
     return c.json({
       success: true,
       data: {
@@ -228,6 +243,7 @@ pipelineRouter.get('/:pipelineId', async (c) => {
         pageAnalyses: pages,
         generatedCode: generatedCodeData,
         testRunResult: testRunData,
+        report: reportData,
       },
     })
   } catch (e) {

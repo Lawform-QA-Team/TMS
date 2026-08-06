@@ -212,6 +212,46 @@ export async function sendTestRunComplete(
   })
 }
 
+export async function sendReportComplete(
+  pipelineId: string,
+  summary: string,
+  riskLevel: string,
+  qualityScore: number,
+  readyForRelease: boolean,
+): Promise<void> {
+  const channel = env.SLACK_CHANNEL_ID
+  if (!channel) return
+
+  const ticket = await (await import('./db.js')).db.collectedTicket.findUnique({
+    where: { pipelineId },
+  })
+  if (!ticket) return
+
+  const riskEmoji = riskLevel === 'low' ? ':large_green_circle:' : riskLevel === 'medium' ? ':large_yellow_circle:' : ':red_circle:'
+  const releaseEmoji = readyForRelease ? ':white_check_mark:' : ':x:'
+
+  await postSlack('chat.postMessage', {
+    channel,
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `:bar_chart: *${ticket.ticketKey}* QA 리포트 완료\n${summary}`,
+        },
+      },
+      {
+        type: 'section',
+        fields: [
+          { type: 'mrkdwn', text: `*위험도*\n${riskEmoji} ${riskLevel}` },
+          { type: 'mrkdwn', text: `*품질 점수*\n${qualityScore}/10` },
+          { type: 'mrkdwn', text: `*릴리즈 준비*\n${releaseEmoji} ${readyForRelease ? '준비 완료' : '미완료'}` },
+        ],
+      },
+    ],
+  })
+}
+
 export async function updateApprovalMessage(
   channel: string,
   ts: string,

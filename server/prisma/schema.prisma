@@ -946,3 +946,18 @@ model TestRunResult {
 
   @@map("TestRunResults")
 }
+
+model PipelineReport {
+  id             Int      @id @default(autoincrement())
+  pipelineId     String   @unique @map("pipeline_id") @db.VarChar(36)
+  summary        String?  @db.Text
+  content        String?  @db.LongText  // JSON: { passRate, riskLevel, qualityScore, findings[], recommendation, readyForRelease }
+  passRate       Float?   @map("pass_rate")
+  riskLevel      String?  @map("risk_level") @db.VarChar(20)  // low, medium, high, critical
+  qualityScore   Int?     @map("quality_score")               // 1-10
+  readyForRelease Boolean @default(false) @map("ready_for_release")
+  createdAt      DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@map("PipelineReports")
+}
