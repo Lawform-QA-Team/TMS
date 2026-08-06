@@ -1,0 +1,788 @@
+// ============================================================
+// TMS Prisma Schema
+// Python SQLAlchemy models.py → Prisma 전환
+// DB: PostgreSQL (기존 스키마 호환)
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// 사용자 & 인증
+// ============================================================
+
+model User {
+  id           Int       @id @default(autoincrement())
+  username     String    @unique @db.VarChar(80)
+  email        String    @unique @db.VarChar(120)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  firstName    String?   @map("first_name") @db.VarChar(50)
+  lastName     String?   @map("last_name") @db.VarChar(50)
+  role         String    @default("user") @db.VarChar(20)
+  isActive     Boolean   @default(true) @map("is_active")
+  lastLogin    DateTime? @map("last_login")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  sessions                 UserSession[]
+  createdTestCases         TestCase[]              @relation("CreatorTestCases")
+  assignedTestCases        TestCase[]              @relation("AssigneeTestCases")
+  createdAutomationTests   AutomationTest[]        @relation("CreatorAutomationTests")
+  createdPerformanceTests  PerformanceTest[]       @relation("CreatorPerformanceTests")
+  assignedPerformanceTests PerformanceTest[]       @relation("AssigneePerformanceTests")
+  notifications            Notification[]
+  notificationSettings     NotificationSettings?
+  cicdIntegrations         CICDIntegration[]
+  createdTestDataSets      TestDataSet[]
+  comments                 Comment[]
+  mentions                 Mention[]
+  createdWorkflows         Workflow[]
+  workflowStateChanges     WorkflowState[]
+  createdSchedules         TestSchedule[]
+  createdTemplates         TestCaseTemplate[]
+  createdTestPlans         TestPlan[]
+  testPlanAssignments      TestPlanTestCase[]
+  createdReports           CustomReport[]
+  executedReports          ReportExecution[]
+  testCaseChanges          TestCaseHistory[]
+
+  @@map("Users")
+}
+
+model UserSession {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  sessionToken String   @unique @map("session_token") @db.VarChar(255)
+  ipAddress    String?  @map("ip_address") @db.VarChar(45)
+  userAgent    String?  @map("user_agent")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  expiresAt    DateTime @map("expires_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("UserSessions")
+}
+
+// ============================================================
+// 프로젝트 & 폴더
+// ============================================================
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  folders          Folder[]
+  testCases        TestCase[]
+  automationTests  AutomationTest[]
+  performanceTests PerformanceTest[]
+  workflows        Workflow[]
+  customReports    CustomReport[]
+
+  @@map("projects")
+}
+
+model Folder {
+  id             Int       @id @default(autoincrement())
+  folderName     String    @map("folder_name") @db.VarChar(100)
+  folderType     String    @default("environment") @map("folder_type") @db.VarChar(50)
+  environment    String    @default("dev") @db.VarChar(50)
+  deploymentDate DateTime? @map("deployment_date") @db.Date
+  parentFolderId Int?      @map("parent_folder_id")
+  projectId      Int?      @map("project_id")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  parentFolder Folder?  @relation("FolderChildren", fields: [parentFolderId], references: [id])
+  childFolders Folder[] @relation("FolderChildren")
+  project      Project? @relation(fields: [projectId], references: [id])
+  testCases    TestCase[]
+
+  @@map("Folders")
+}
+
+// ============================================================
+// 테스트 케이스
+// ============================================================
+
+model TestCase {
+  id                 Int      @id @default(autoincrement())
+  name               String   @db.VarChar(100)
+  description        String?
+  testType           String?  @map("test_type") @db.VarChar(50)
+  priority           String?  @db.VarChar(20)
+  status             String   @default("draft") @db.VarChar(20)
+  environment        String?  @db.VarChar(50)
+  scriptPath         String?  @map("script_path") @db.VarChar(500)
+  folderId           Int?     @map("folder_id")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  creatorId          Int?     @map("creator_id")
+  assigneeId         Int?     @map("assignee_id")
+  projectId          Int?     @map("project_id")
+  mainCategory       String?  @map("main_category") @db.VarChar(100)
+  subCategory        String?  @map("sub_category") @db.VarChar(100)
+  detailCategory     String?  @map("detail_category") @db.VarChar(100)
+  preCondition       String?  @map("pre_condition")
+  expectedResult     String?  @map("expected_result")
+  remark             String?
+  testSteps          String?  @map("test_steps")
+  automationCodePath String?  @map("automation_code_path") @db.VarChar(500)
+  automationCodeType String?  @map("automation_code_type") @db.VarChar(50)
+  resultStatus       String   @default("pending") @map("result_status") @db.VarChar(20)
+
+  folder         Folder?          @relation(fields: [folderId], references: [id])
+  creator        User?            @relation("CreatorTestCases", fields: [creatorId], references: [id])
+  assignee       User?            @relation("AssigneeTestCases", fields: [assigneeId], references: [id])
+  project        Project?         @relation(fields: [projectId], references: [id])
+  history        TestCaseHistory[]
+  testResults    TestResult[]
+  executions     TestExecution[]
+  schedules      TestSchedule[]
+  jiraIssues     JiraIssue[]
+  jiraIntegrations JiraIntegration[]
+  dataMappings   TestCaseDataMapping[]
+  planLinks      TestPlanTestCase[]
+  dependencies   TestDependency[] @relation("DependentTestCases")
+  dependedUponBy TestDependency[] @relation("RequiredTestCases")
+  notifications  Notification[]   @relation("RelatedTestCaseNotifications")
+
+  @@map("TestCases")
+}
+
+model TestCaseHistory {
+  id         Int      @id @default(autoincrement())
+  testCaseId Int      @map("test_case_id")
+  fieldName  String   @map("field_name") @db.VarChar(100)
+  oldValue   String?  @map("old_value")
+  newValue   String?  @map("new_value")
+  changedBy  Int      @map("changed_by")
+  changedAt  DateTime @default(now()) @map("changed_at")
+  changeType String   @map("change_type") @db.VarChar(50)
+
+  testCase TestCase @relation(fields: [testCaseId], references: [id])
+  user     User     @relation(fields: [changedBy], references: [id])
+
+  @@map("test_case_history")
+}
+
+// ============================================================
+// 자동화 테스트 & 성능 테스트
+// ============================================================
+
+model AutomationTest {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  description String?
+  testType    String?  @map("test_type") @db.VarChar(50)
+  scriptPath  String?  @map("script_path") @db.VarChar(255)
+  environment String?  @db.VarChar(50)
+  parameters  String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  creatorId   Int?     @map("creator_id")
+  assigneeId  Int?     @map("assignee_id")
+  projectId   Int?     @map("project_id")
+
+  creator       User?          @relation("CreatorAutomationTests", fields: [creatorId], references: [id])
+  project       Project?       @relation(fields: [projectId], references: [id])
+  testResults   TestResult[]
+  executions    TestExecution[]
+  jiraIssues    JiraIssue[]
+  jiraIntegrations JiraIntegration[]
+  notifications Notification[] @relation("RelatedAutomationTestNotifications")
+
+  @@map("AutomationTests")
+}
+
+model PerformanceTest {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  description String?
+  testType    String?  @map("test_type") @db.VarChar(50)
+  scriptPath  String?  @map("script_path") @db.VarChar(255)
+  environment String?  @db.VarChar(50)
+  parameters  String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  creatorId   Int?     @map("creator_id")
+  assigneeId  Int?     @map("assignee_id")
+  projectId   Int?     @map("project_id")
+
+  creator       User?          @relation("CreatorPerformanceTests", fields: [creatorId], references: [id])
+  assignee      User?          @relation("AssigneePerformanceTests", fields: [assigneeId], references: [id])
+  project       Project?       @relation(fields: [projectId], references: [id])
+  testResults   TestResult[]
+  executions    TestExecution[]
+  jiraIssues    JiraIssue[]
+  jiraIntegrations JiraIntegration[]
+  notifications Notification[] @relation("RelatedPerformanceTestNotifications")
+
+  @@map("PerformanceTests")
+}
+
+// ============================================================
+// 테스트 결과 & 실행
+// ============================================================
+
+model TestResult {
+  id                Int       @id @default(autoincrement())
+  testCaseId        Int?      @map("test_case_id")
+  result            String?   @db.VarChar(20)
+  executionTime     Float?    @map("execution_time")
+  executionDuration Float?    @map("execution_duration")
+  environment       String?   @db.VarChar(50)
+  executedBy        String?   @map("executed_by") @db.VarChar(100)
+  executedAt        DateTime  @default(now()) @map("executed_at")
+  notes             String?
+  errorMessage      String?   @map("error_message")
+  automationTestId  Int?      @map("automation_test_id")
+  performanceTestId Int?      @map("performance_test_id")
+
+  testCase        TestCase?        @relation(fields: [testCaseId], references: [id])
+  automationTest  AutomationTest?  @relation(fields: [automationTestId], references: [id])
+  performanceTest PerformanceTest? @relation(fields: [performanceTestId], references: [id])
+  screenshots     Screenshot[]
+  schedules       TestSchedule[]   @relation("LastRunResult")
+  notifications   Notification[]   @relation("RelatedTestResultNotifications")
+
+  @@map("TestResults")
+}
+
+model TestExecution {
+  id                Int       @id @default(autoincrement())
+  testType          String?   @map("test_type") @db.VarChar(50)
+  testCaseId        Int?      @map("test_case_id")
+  automationTestId  Int?      @map("automation_test_id")
+  performanceTestId Int?      @map("performance_test_id")
+  environment       String?   @db.VarChar(50)
+  executedBy        String?   @map("executed_by") @db.VarChar(100)
+  status            String?   @db.VarChar(20)
+  resultSummary     String?   @map("result_summary")
+  startedAt         DateTime  @default(now()) @map("started_at")
+  completedAt       DateTime? @map("completed_at")
+
+  testCase        TestCase?        @relation(fields: [testCaseId], references: [id])
+  automationTest  AutomationTest?  @relation(fields: [automationTestId], references: [id])
+  performanceTest PerformanceTest? @relation(fields: [performanceTestId], references: [id])
+
+  @@map("TestExecutions")
+}
+
+model Screenshot {
+  id           Int      @id @default(autoincrement())
+  testResultId Int      @map("test_result_id")
+  filePath     String   @map("file_path") @db.VarChar(500)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  testResult TestResult @relation(fields: [testResultId], references: [id])
+
+  @@map("Screenshots")
+}
+
+model DashboardSummary {
+  id           Int      @id @default(autoincrement())
+  environment  String   @db.VarChar(50)
+  totalTests   Int      @default(0) @map("total_tests")
+  passedTests  Int      @default(0) @map("passed_tests")
+  failedTests  Int      @default(0) @map("failed_tests")
+  skippedTests Int      @default(0) @map("skipped_tests")
+  passRate     Float    @default(0.0) @map("pass_rate")
+  lastUpdated  DateTime @default(now()) @map("last_updated")
+
+  @@map("DashboardSummaries")
+}
+
+// ============================================================
+// 테스트 계획 & 템플릿
+// ============================================================
+
+model TestCaseTemplate {
+  id                 Int      @id @default(autoincrement())
+  name               String   @db.VarChar(200)
+  description        String?
+  mainCategory       String?  @map("main_category") @db.VarChar(100)
+  subCategory        String?  @map("sub_category") @db.VarChar(100)
+  detailCategory     String?  @map("detail_category") @db.VarChar(100)
+  preCondition       String?  @map("pre_condition")
+  expectedResult     String?  @map("expected_result")
+  testSteps          String?  @map("test_steps")
+  automationCodePath String?  @map("automation_code_path") @db.VarChar(500)
+  automationCodeType String   @default("playwright") @map("automation_code_type") @db.VarChar(50)
+  tags               String?
+  createdBy          Int      @map("created_by")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  isPublic           Boolean  @default(false) @map("is_public")
+  usageCount         Int      @default(0) @map("usage_count")
+
+  creator User @relation(fields: [createdBy], references: [id])
+
+  @@map("test_case_templates")
+}
+
+model TestPlan {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(200)
+  description String?
+  version     String?   @db.VarChar(50)
+  environment String?   @db.VarChar(50)
+  startDate   DateTime? @map("start_date") @db.Date
+  endDate     DateTime? @map("end_date") @db.Date
+  status      String    @default("draft") @db.VarChar(50)
+  priority    String    @default("medium") @db.VarChar(20)
+  createdBy   Int       @map("created_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  creator   User              @relation(fields: [createdBy], references: [id])
+  testCases TestPlanTestCase[]
+
+  @@map("test_plans")
+}
+
+model TestPlanTestCase {
+  id                Int      @id @default(autoincrement())
+  testPlanId        Int      @map("test_plan_id")
+  testCaseId        Int      @map("test_case_id")
+  executionOrder    Int      @default(0) @map("execution_order")
+  estimatedDuration Int?     @map("estimated_duration")
+  assignedTo        Int?     @map("assigned_to")
+  notes             String?
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  testPlan TestPlan @relation(fields: [testPlanId], references: [id])
+  testCase TestCase @relation(fields: [testCaseId], references: [id])
+  assignee User?    @relation(fields: [assignedTo], references: [id])
+
+  @@map("test_plan_test_cases")
+}
+
+// ============================================================
+// Jira 연동
+// ============================================================
+
+model JiraIssue {
+  id                Int      @id @default(autoincrement())
+  issueKey          String   @unique @map("issue_key") @db.VarChar(20)
+  projectKey        String   @default("TEST") @map("project_key") @db.VarChar(20)
+  issueType         String   @map("issue_type") @db.VarChar(50)
+  status            String   @default("To Do") @db.VarChar(50)
+  priority          String   @default("Medium") @db.VarChar(20)
+  summary           String
+  description       String?
+  assigneeEmail     String?  @map("assignee_email") @db.VarChar(100)
+  labels            String?
+  reporterEmail     String   @default("admin@example.com") @map("reporter_email") @db.VarChar(100)
+  environment       String   @default("dev") @db.VarChar(50)
+  testCaseId        Int?     @map("test_case_id")
+  automationTestId  Int?     @map("automation_test_id")
+  performanceTestId Int?     @map("performance_test_id")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  testCase        TestCase?        @relation(fields: [testCaseId], references: [id])
+  automationTest  AutomationTest?  @relation(fields: [automationTestId], references: [id])
+  performanceTest PerformanceTest? @relation(fields: [performanceTestId], references: [id])
+  comments        JiraComment[]
+
+  @@map("JiraIssues")
+}
+
+model JiraComment {
+  id          Int      @id @default(autoincrement())
+  jiraIssueId Int      @map("jira_issue_id")
+  body        String
+  authorEmail String   @map("author_email") @db.VarChar(100)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  jiraIssue JiraIssue @relation(fields: [jiraIssueId], references: [id])
+
+  @@map("JiraComments")
+}
+
+/// @deprecated JiraIssue 사용 권장
+model JiraIntegration {
+  id                 Int       @id @default(autoincrement())
+  testCaseId         Int?      @map("test_case_id")
+  automationTestId   Int?      @map("automation_test_id")
+  performanceTestId  Int?      @map("performance_test_id")
+  jiraIssueKey       String    @map("jira_issue_key") @db.VarChar(20)
+  jiraIssueId        String    @map("jira_issue_id") @db.VarChar(50)
+  jiraProjectKey     String    @map("jira_project_key") @db.VarChar(20)
+  issueType          String    @map("issue_type") @db.VarChar(50)
+  status             String    @db.VarChar(50)
+  priority           String    @default("Medium") @db.VarChar(20)
+  summary            String?
+  description        String?
+  assigneeAccountId  String?   @map("assignee_account_id") @db.VarChar(100)
+  labels             String?
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  lastSyncAt         DateTime? @map("last_sync_at")
+
+  testCase        TestCase?        @relation(fields: [testCaseId], references: [id])
+  automationTest  AutomationTest?  @relation(fields: [automationTestId], references: [id])
+  performanceTest PerformanceTest? @relation(fields: [performanceTestId], references: [id])
+
+  @@map("JiraIntegrations")
+}
+
+// ============================================================
+// 스케줄
+// ============================================================
+
+model TestSchedule {
+  id                  Int       @id @default(autoincrement())
+  testCaseId          Int       @map("test_case_id")
+  name                String    @db.VarChar(200)
+  description         String?
+  scheduleType        String    @default("daily") @map("schedule_type") @db.VarChar(50)
+  scheduleExpression  String?   @map("schedule_expression") @db.VarChar(200)
+  enabled             Boolean   @default(true)
+  active              Boolean   @default(true)
+  nextRunAt           DateTime? @map("next_run_at")
+  lastRunAt           DateTime? @map("last_run_at")
+  lastRunStatus       String?   @map("last_run_status") @db.VarChar(20)
+  lastRunResultId     Int?      @map("last_run_result_id")
+  environment         String    @default("dev") @db.VarChar(50)
+  executionParameters String?   @map("execution_parameters")
+  createdBy           Int       @map("created_by")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  testCase      TestCase    @relation(fields: [testCaseId], references: [id])
+  creator       User        @relation(fields: [createdBy], references: [id])
+  lastRunResult TestResult? @relation("LastRunResult", fields: [lastRunResultId], references: [id])
+
+  @@map("TestSchedules")
+}
+
+// ============================================================
+// 알림
+// ============================================================
+
+model Notification {
+  id                      Int       @id @default(autoincrement())
+  userId                  Int       @map("user_id")
+  notificationType        String    @map("notification_type") @db.VarChar(50)
+  title                   String    @db.VarChar(200)
+  message                 String
+  relatedTestCaseId       Int?      @map("related_test_case_id")
+  relatedAutomationTestId Int?      @map("related_automation_test_id")
+  relatedPerformanceTestId Int?     @map("related_performance_test_id")
+  relatedTestResultId     Int?      @map("related_test_result_id")
+  read                    Boolean   @default(false)
+  readAt                  DateTime? @map("read_at")
+  priority                String    @default("medium") @db.VarChar(20)
+  channels                String    @default("in_app") @db.VarChar(100)
+  createdAt               DateTime  @default(now()) @map("created_at")
+
+  user                User             @relation(fields: [userId], references: [id])
+  relatedTestCase     TestCase?        @relation("RelatedTestCaseNotifications", fields: [relatedTestCaseId], references: [id])
+  relatedAutomation   AutomationTest?  @relation("RelatedAutomationTestNotifications", fields: [relatedAutomationTestId], references: [id])
+  relatedPerformance  PerformanceTest? @relation("RelatedPerformanceTestNotifications", fields: [relatedPerformanceTestId], references: [id])
+  relatedTestResult   TestResult?      @relation("RelatedTestResultNotifications", fields: [relatedTestResultId], references: [id])
+
+  @@map("Notifications")
+}
+
+model NotificationSettings {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @unique @map("user_id")
+  settings      String   @default("{}")
+  emailEnabled  Boolean  @default(true) @map("email_enabled")
+  slackEnabled  Boolean  @default(false) @map("slack_enabled")
+  slackWebhookUrl String? @map("slack_webhook_url") @db.VarChar(500)
+  inAppEnabled  Boolean  @default(true) @map("in_app_enabled")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("NotificationSettings")
+}
+
+// ============================================================
+// CI/CD 통합
+// ============================================================
+
+model CICDIntegration {
+  id               Int      @id @default(autoincrement())
+  name             String   @db.VarChar(200)
+  integrationType  String   @map("integration_type") @db.VarChar(50)
+  webhookUrl       String?  @map("webhook_url") @db.VarChar(500)
+  webhookSecret    String?  @map("webhook_secret") @db.VarChar(255)
+  config           String?
+  enabled          Boolean  @default(true)
+  active           Boolean  @default(true)
+  triggerOnPush    Boolean  @default(true) @map("trigger_on_push")
+  triggerOnPr      Boolean  @default(true) @map("trigger_on_pr")
+  triggerOnTag     Boolean  @default(false) @map("trigger_on_tag")
+  testCaseFilter   String?  @map("test_case_filter")
+  createdBy        Int      @map("created_by")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  creator    User            @relation(fields: [createdBy], references: [id])
+  executions CICDExecution[]
+
+  @@map("CICDIntegrations")
+}
+
+model CICDExecution {
+  id                Int       @id @default(autoincrement())
+  integrationId     Int       @map("integration_id")
+  triggerType       String?   @map("trigger_type") @db.VarChar(50)
+  triggerSource     String?   @map("trigger_source") @db.VarChar(100)
+  triggerEvent      String?   @map("trigger_event")
+  status            String    @default("running") @db.VarChar(20)
+  startedAt         DateTime  @default(now()) @map("started_at")
+  completedAt       DateTime? @map("completed_at")
+  executedTestCases String?   @map("executed_test_cases")
+  testResults       String?   @map("test_results")
+  prNumber          Int?      @map("pr_number")
+  prUrl             String?   @map("pr_url") @db.VarChar(500)
+  prCommentId       String?   @map("pr_comment_id") @db.VarChar(100)
+  errorMessage      String?   @map("error_message")
+
+  integration CICDIntegration @relation(fields: [integrationId], references: [id])
+
+  @@map("CICDExecutions")
+}
+
+// ============================================================
+// 테스트 데이터
+// ============================================================
+
+model TestDataSet {
+  id              Int       @id @default(autoincrement())
+  name            String    @db.VarChar(200)
+  description     String?
+  data            String
+  dataType        String    @default("json") @map("data_type") @db.VarChar(50)
+  dataSchema      String?   @map("data_schema")
+  environment     String    @default("dev") @db.VarChar(50)
+  version         String    @default("1.0") @db.VarChar(50)
+  parentVersionId Int?      @map("parent_version_id")
+  maskingEnabled  Boolean   @default(false) @map("masking_enabled")
+  maskingRules    String?   @map("masking_rules")
+  tags            String?
+  usageCount      Int       @default(0) @map("usage_count")
+  lastUsedAt      DateTime? @map("last_used_at")
+  createdBy       Int       @map("created_by")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  creator        User                  @relation(fields: [createdBy], references: [id])
+  parentVersion  TestDataSet?          @relation("DataSetVersions", fields: [parentVersionId], references: [id])
+  childVersions  TestDataSet[]         @relation("DataSetVersions")
+  testCaseMappings TestCaseDataMapping[]
+
+  @@map("TestDataSets")
+}
+
+model TestCaseDataMapping {
+  id           Int      @id @default(autoincrement())
+  testCaseId   Int      @map("test_case_id")
+  dataSetId    Int      @map("data_set_id")
+  fieldMapping String?  @map("field_mapping")
+  priority     Int      @default(1)
+  enabled      Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  testCase TestCase    @relation(fields: [testCaseId], references: [id])
+  dataSet  TestDataSet @relation(fields: [dataSetId], references: [id])
+
+  @@map("TestCaseDataMappings")
+}
+
+// ============================================================
+// 협업 (댓글, 멘션)
+// ============================================================
+
+model Comment {
+  id              Int      @id @default(autoincrement())
+  entityType      String   @map("entity_type") @db.VarChar(50)
+  entityId        Int      @map("entity_id")
+  content         String
+  parentCommentId Int?     @map("parent_comment_id")
+  authorId        Int      @map("author_id")
+  isEdited        Boolean  @default(false) @map("is_edited")
+  isDeleted       Boolean  @default(false) @map("is_deleted")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  author        User      @relation(fields: [authorId], references: [id])
+  parentComment Comment?  @relation("CommentReplies", fields: [parentCommentId], references: [id])
+  replies       Comment[] @relation("CommentReplies")
+  mentions      Mention[]
+
+  @@map("Comments")
+}
+
+model Mention {
+  id              Int      @id @default(autoincrement())
+  entityType      String   @map("entity_type") @db.VarChar(50)
+  entityId        Int      @map("entity_id")
+  mentionedUserId Int      @map("mentioned_user_id")
+  commentId       Int?     @map("comment_id")
+  isRead          Boolean  @default(false) @map("is_read")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  mentionedUser User     @relation(fields: [mentionedUserId], references: [id])
+  comment       Comment? @relation(fields: [commentId], references: [id])
+
+  @@map("Mentions")
+}
+
+// ============================================================
+// 워크플로우
+// ============================================================
+
+model Workflow {
+  id             Int      @id @default(autoincrement())
+  name           String   @db.VarChar(200)
+  description    String?
+  workflowType   String   @default("test_case") @map("workflow_type") @db.VarChar(50)
+  initialStatus  String   @map("initial_status") @db.VarChar(50)
+  isActive       Boolean  @default(true) @map("is_active")
+  projectId      Int?     @map("project_id")
+  createdBy      Int      @map("created_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  project Project?        @relation(fields: [projectId], references: [id])
+  creator User            @relation(fields: [createdBy], references: [id])
+  steps   WorkflowStep[]
+  states  WorkflowState[]
+
+  @@map("Workflows")
+}
+
+model WorkflowStep {
+  id                      Int    @id @default(autoincrement())
+  workflowId              Int    @map("workflow_id")
+  name                    String @db.VarChar(100)
+  displayName             String @map("display_name") @db.VarChar(200)
+  description             String?
+  order                   Int
+  allowedRoles            String? @map("allowed_roles")
+  allowedUserIds          String? @map("allowed_user_ids")
+  nextSteps               String? @map("next_steps")
+  autoTransitionCondition String? @map("auto_transition_condition")
+
+  workflow     Workflow        @relation(fields: [workflowId], references: [id])
+  activeStates WorkflowState[]
+
+  @@map("WorkflowSteps")
+}
+
+model WorkflowState {
+  id             Int      @id @default(autoincrement())
+  entityType     String   @map("entity_type") @db.VarChar(50)
+  entityId       Int      @map("entity_id")
+  workflowId     Int      @map("workflow_id")
+  currentStepId  Int?     @map("current_step_id")
+  currentStatus  String   @map("current_status") @db.VarChar(50)
+  previousStatus String?  @map("previous_status") @db.VarChar(50)
+  changedBy      Int?     @map("changed_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  workflow     Workflow      @relation(fields: [workflowId], references: [id])
+  currentStep  WorkflowStep? @relation(fields: [currentStepId], references: [id])
+  changer      User?         @relation(fields: [changedBy], references: [id])
+
+  @@map("WorkflowStates")
+}
+
+// ============================================================
+// 의존성
+// ============================================================
+
+model TestDependency {
+  id                    Int      @id @default(autoincrement())
+  testCaseId            Int      @map("test_case_id")
+  dependsOnTestCaseId   Int      @map("depends_on_test_case_id")
+  dependencyType        String   @default("required") @map("dependency_type") @db.VarChar(50)
+  condition             String?
+  priority              Int      @default(1)
+  enabled               Boolean  @default(true)
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  testCase   TestCase @relation("DependentTestCases", fields: [testCaseId], references: [id])
+  dependsOn  TestCase @relation("RequiredTestCases", fields: [dependsOnTestCaseId], references: [id])
+
+  @@map("TestDependencies")
+}
+
+// ============================================================
+// 리포트
+// ============================================================
+
+model CustomReport {
+  id                 Int      @id @default(autoincrement())
+  name               String   @db.VarChar(200)
+  description        String?
+  reportType         String   @default("test_execution") @map("report_type") @db.VarChar(50)
+  config             String
+  template           String?
+  outputFormat       String   @default("html") @map("output_format") @db.VarChar(50)
+  scheduleEnabled    Boolean  @default(false) @map("schedule_enabled")
+  scheduleExpression String?  @map("schedule_expression") @db.VarChar(200)
+  filters            String?
+  isPublic           Boolean  @default(false) @map("is_public")
+  sharedWithUserIds  String?  @map("shared_with_user_ids")
+  projectId          Int?     @map("project_id")
+  createdBy          Int      @map("created_by")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  project    Project?          @relation(fields: [projectId], references: [id])
+  creator    User              @relation(fields: [createdBy], references: [id])
+  executions ReportExecution[]
+
+  @@map("CustomReports")
+}
+
+model ReportExecution {
+  id              Int       @id @default(autoincrement())
+  reportId        Int       @map("report_id")
+  status          String    @default("running") @db.VarChar(20)
+  startedAt       DateTime  @default(now()) @map("started_at")
+  completedAt     DateTime? @map("completed_at")
+  resultFilePath  String?   @map("result_file_path") @db.VarChar(500)
+  executionParams String?   @map("execution_params")
+  errorMessage    String?   @map("error_message")
+  executedBy      Int?      @map("executed_by")
+
+  report   CustomReport @relation(fields: [reportId], references: [id])
+  executor User?        @relation(fields: [executedBy], references: [id])
+
+  @@map("ReportExecutions")
+}
+
+// ============================================================
+// 시스템 설정
+// ============================================================
+
+model SystemConfig {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique @db.VarChar(100)
+  value     String?
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("SystemConfig")
+}
