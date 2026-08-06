@@ -1,3 +1,47 @@
+# Task: TestCaseTable buggle 스타일 리디자인
+
+## 목표
+buggle 이슈 테이블 스타일로 TestCaseTable 재설계
+
+## 변경 내용
+- 컬럼: NO | 상태 | 구분 | 화면/기능명 | 등록 (동작 버튼 통합)
+- 상태: 원형 점 + 텍스트 배지
+- 화면/기능명: [priority 배지] + name + 설명 + 태그들
+- 행 배경: Fail=연분홍+빨간선, Block=연주황+주황선
+
+## 체크리스트
+- [x] TestCaseTable.js 컬럼 재구성
+- [x] TestCaseTable.css 전면 교체
+- [x] 빌드 검증 (Compiled successfully)
+
+---
+
+# Task: Buggle 대시보드 디자인 차용
+
+## 목표
+buggle 대시보드 3가지 UI 요소를 TMS에 적용:
+1. 상태 카운터 바 (가로 탭 형태)
+2. Pass Rate 패널 (도넛 차트 + 가로 진행 바)
+3. 주간 활동 패널 (신규/Pass/Fail + 전주 대비)
+
+## 체크리스트
+
+### 백엔드
+- [x] `/dashboard/weekly-activity` API 추가 (`dashboard_extended.py`)
+- [x] route 충돌 검사
+
+### 프론트엔드
+- [x] 상태 카운터 바 (TestCaseAPP - filteredTestCases 기반)
+- [x] Pass Rate 패널 (도넛 SVG + 가로 바 + 수치)
+- [x] 주간 활동 패널 (weekly-activity API 연결)
+- [x] CSS 스타일 (TestCaseAPP.css 교체)
+
+### 검증
+- [x] 빌드 에러 없음 (Compiled successfully)
+- [x] route 충돌 0건 확인
+
+---
+
 # Task: 조회 페이지 슬라이드 패널 레이아웃 통일
 
 ## 목표
