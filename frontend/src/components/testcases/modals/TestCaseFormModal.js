@@ -139,6 +139,20 @@ const TestCaseFormModal = ({
         </div>
         
         <div className="form-group">
+          <label>중요도</label>
+          <select
+            value={testCase.priority || ''}
+            onChange={(e) => handleChange('priority', e.target.value)}
+          >
+            <option value="">선택 안함</option>
+            <option value="critical">긴급</option>
+            <option value="high">높음</option>
+            <option value="medium">중간</option>
+            <option value="low">낮음</option>
+          </select>
+        </div>
+
+        <div className="form-group">
           <label>비고</label>
           <textarea 
             value={testCase.remark || ''}

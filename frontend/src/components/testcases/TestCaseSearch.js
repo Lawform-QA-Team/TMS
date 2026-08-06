@@ -14,6 +14,8 @@ const TestCaseSearch = ({
   onCreatorFilterChange,
   assigneeFilter,
   onAssigneeFilterChange,
+  priorityFilter,
+  onPriorityFilterChange,
   onClearFilters,
   uniqueEnvironments = [],
   uniqueCategories = [],
@@ -78,6 +80,21 @@ const TestCaseSearch = ({
             </div>
 
             <div className="testcase-filter-group">
+              <label>중요도:</label>
+              <select
+                value={priorityFilter}
+                onChange={(e) => onPriorityFilterChange(e.target.value)}
+                className="testcase-filter-select"
+              >
+                <option value="all">모든 중요도</option>
+                <option value="critical">긴급</option>
+                <option value="high">높음</option>
+                <option value="medium">중간</option>
+                <option value="low">낮음</option>
+              </select>
+            </div>
+
+            <div className="testcase-filter-group">
               <label>카테고리:</label>
               <select
                 value={categoryFilter}
@@ -138,6 +155,7 @@ const TestCaseSearch = ({
           {categoryFilter !== 'all' && <span> • 카테고리: {categoryFilter}</span>}
           {creatorFilter !== 'all' && <span> • 작성자: {creatorFilter}</span>}
           {assigneeFilter !== 'all' && <span> • 담당자: {assigneeFilter}</span>}
+          {priorityFilter !== 'all' && <span> • 중요도: {{ critical: '긴급', high: '높음', medium: '중간', low: '낮음' }[priorityFilter]}</span>}
         </div>
       </div>
     </div>
