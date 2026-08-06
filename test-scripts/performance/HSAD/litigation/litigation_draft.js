@@ -1,61 +1,36 @@
-import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
-import login_to_dashboard from "@tms/performance/common/login/login_to_dashboard.js";
-import { URLS } from "../util/url_base_hsad.js";
-import { getFormattedTimestamp } from "@tms/performance/common/utils.js";
+import { browser } from 'k6/browser';
+import { check } from 'k6';
+import { Trend } from 'k6/metrics';
+import { URLS } from '../util/url_base_hsad.js';
+import { SELECTORS } from '../selector_hsad.js';
+import { hsadBrowserOptions, loginToDashboard, measure } from '../common/k6_browser_helpers.js';
 
-export const options = {
-    scenarios: {
-        ui: {
-            executor: 'shared-iterations',
-            options: {
-                browser: {
-                    type: 'chromium',
-                    defaultViewport: {
-                        width: 1920,
-                        height: 1080,
-                    },
-                },
-            },
-        },
-    },
-    thresholds: {
-        checks: ['rate==1.0'],
-    }
-}
+export const options = hsadBrowserOptions;
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+const litigationDashboardLoad = new Trend('hsad_litigation_dashboard_load');
 
 export default async function () {
-    const getNewTimestamp = () => getFormattedTimestamp().replace(/:/g, '_');
-    let page;
-
+    const page = await browser.newPage();
     try {
-        // LFBZ login 처리
-        const page = await login_to_dashboard();
-        // 송무 임시 저장 리스트 호출
-        await page.goto(URLS.LITIGATION.DRAFT);
-        let timestamp = getNewTimestamp();
-        await page.screenshot({path: `screenshots/screenshots_${timestamp}.png`});
-        // 신규 송무 등록 btn 선택
-        await page.waitForSelector('//button[text()="신규 송무 등록" and not(@disabled)]');
-        timestamp = getNewTimestamp();
-        await page.screenshot({path: `screenshots/screenshot_${timestamp}_before_request.png`});
-        await page.locator('//button[text()="신규 송무 등록"]').click();
-        timestamp = getNewTimestamp();
-        await page.screenshot({path: `screenshots/screenshot_${timestamp}_after_request.png`});
-               
-        //return page;
-    }
-    finally {
+        await loginToDashboard(page, URLS, SELECTORS);
+        await measure(litigationDashboardLoad, () => page.goto(URLS.LOGIN.DASHBOARD));
+
+        // LC_001: 송무 메뉴 노출
+        const hasLitigationMenu = await page.locator('nav >> text="송무"').isVisible();
+        check(page, {
+            'LC_001: 송무 메뉴 노출 확인': () => hasLitigationMenu,
+        });
+
+        // LC_002: 하위 트리 노출 확인
+        const litigationMenu = page.locator('nav >> text="송무"');
+        await litigationMenu.click();
+        const hasDraftMenu = await page.locator('text="송무 등록"').isVisible();
+        const hasReviewMenu = await page.locator('text="송무 조회"').isVisible();
+        check(page, {
+            'LC_002: 송무 등록 노출': () => hasDraftMenu,
+            'LC_002: 송무 조회 노출': () => hasReviewMenu,
+        });
+    } finally {
         await page.close();
     }
-}
-
-export function handleSummary(data) {
-    const timestamp = getFormattedTimestamp().replace(/:/g, '_');
-    return {
-        [`Result/litigation_draft_summary_${timestamp}.html`]: htmlReport(data),
-    };
 }

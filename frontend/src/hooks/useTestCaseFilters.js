@@ -7,6 +7,7 @@ export const useTestCaseFilters = (testCases = []) => {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [creatorFilter, setCreatorFilter] = useState('all');
   const [assigneeFilter, setAssigneeFilter] = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState('all');
 
   // 고유값들 계산
   const uniqueEnvironments = useMemo(() => {
@@ -56,6 +57,7 @@ export const useTestCaseFilters = (testCases = []) => {
     setCategoryFilter('all');
     setCreatorFilter('all');
     setAssigneeFilter('all');
+    setPriorityFilter('all');
   };
 
   return {
@@ -71,6 +73,8 @@ export const useTestCaseFilters = (testCases = []) => {
     setCreatorFilter,
     assigneeFilter,
     setAssigneeFilter,
+    priorityFilter,
+    setPriorityFilter,
     uniqueEnvironments,
     uniqueCategories,
     uniqueCreators,

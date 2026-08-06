@@ -1,4 +1,9 @@
 /** Playwright 공통 유틸리티 */
+
+export function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export function getFormattedTimestamp() {
   const now = new Date();
   const year = now.getFullYear();

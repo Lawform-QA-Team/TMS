@@ -1,29 +1,42 @@
 // k6: __ENV.BASE_URL / Node: process.env.BASE_URL
 // web 스크립트 실행 시 필수.
-let BASE_URL;
-if (typeof __ENV !== 'undefined' && __ENV.BASE_URL) {
-    BASE_URL = __ENV.BASE_URL.replace(/\/$/, '');
-} else if (typeof process !== 'undefined' && process.env && process.env.BASE_URL) {
-    BASE_URL = process.env.BASE_URL.replace(/\/$/, '');
+function getEnvValue(key) {
+    if (typeof __ENV !== 'undefined' && __ENV[key]) {
+        return __ENV[key];
+    }
+    if (typeof process !== 'undefined' && process.env && process.env[key]) {
+        return process.env[key];
+    }
+    return null;
 }
+
+function trimTrailingSlash(value) {
+    return value ? value.replace(/\/$/, '') : value;
+}
+
+const BASE_URL = trimTrailingSlash(getEnvValue('BASE_URL'));
+const SSO_ENTRY_URL = trimTrailingSlash(getEnvValue('SSO_ENTRY_URL'));
+const SSO_CALLBACK_WAIT_URL = getEnvValue('SSO_CALLBACK_WAIT_URL');
 
 // 로그인 관련 URL
 export const LOGIN_URLS = {
     HOME: `${BASE_URL}`,
     LOGIN: `${BASE_URL}/login`,
-    DASHBOARD: `${BASE_URL}/dashboard`
+    DASHBOARD: `${BASE_URL}/dashboard`,
+    SSO_ENTRY: SSO_ENTRY_URL,
+    CALLBACK_WAIT: SSO_CALLBACK_WAIT_URL || `${BASE_URL}/dashboard`
 };
 //계약서 생성 관련 URL
 export const DRIVE_URLS = {
-    DRIVE: `${BASE_URL}/drive`, //My 게약서
+    DRIVE: `${BASE_URL}/drive`, //My 계약서
     TEAM: `${BASE_URL}/team_standard_contract`, //기업 표준 계약서
     AUTO: `${BASE_URL}/#documents_finder`, //자동작성 
     CHECKLIST: `${BASE_URL}/ai/checklist`, //AI 필수조항검토
     GLD: `https://chatgld.io`
 };
 // 전체 통계
-export const STATISTICES_URLS = {
-    STATISTICES: `${BASE_URL}/statistics` //전체 통계
+export const STATISTICS_URLS = {
+    STATISTICS: `${BASE_URL}/statistics` //전체 통계
 };
 //대량생성 관련 URL
 export const BULK_URLS = {
@@ -41,7 +54,7 @@ export const CLM_URLS = {
 
 //SEAL 관련 URL
 export const SEAL_URLS = {
-    DRAFT: `${BASE_URL}/seal/draft`, //인감 사용 신청청
+    DRAFT: `${BASE_URL}/seal/draft`, //인감 사용 신청
     REVIEW: `${BASE_URL}/seal`, //인감 사용 신청 조회
     LEDGER: `${BASE_URL}/seal/ledger` //인감 관리 대장
 };
@@ -87,21 +100,6 @@ export const SETTING_URLS = {
     FA: `${BASE_URL}/profile?type=twoFA`, //2단계 인증
     MANAGEMENT: `${BASE_URL}/profile?type=deviceManagement`, //회원정보_로그인 관리 
     SETUP: `${BASE_URL}/setup` //설정
-};
-
-// 로그인 셀렉터
-export const SELECTORS = {
-    LOGIN: {
-        EMAIL_INPUT: 'input[id="email"]',
-        PASSWORD_INPUT: 'input[id="password"]',
-        SUBMIT_BUTTON: 'button[type="submit"]',
-        LOGOUT: 'img[alt="이동"]'
-    },
-    DASHBOARD: {
-        SETTING: 'img[alt="setting"]',
-        CLOSE: 'img[alt="close"]',
-        GNB: 'img[alt="네비게이션 열기/접기 버튼"]'
-    }
 };
 
 // 현재 환경의 로그인 정보를 가져오는 함수 (k6 __ENV 기반)

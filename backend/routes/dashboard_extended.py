@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
-from models import db, TestCase, Project, Folder
+from models import db, TestCase, Project, Folder, TestCaseHistory
 from utils.cors import add_cors_headers
 from utils.auth_decorators import guest_allowed
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import func, text
 from sqlalchemy.sql import case
 from utils.timezone_utils import get_kst_now
@@ -172,7 +172,52 @@ def get_testcases_summary_all():
         
         response = jsonify(summaries)
         return add_cors_headers(response), 200
-        
+
     except Exception as e:
         response = jsonify({'error': str(e)})
         return add_cors_headers(response), 500
+
+
+# 주간 활동 통계 (이번 주 vs 지난 주)
+@dashboard_extended_bp.route('/dashboard/weekly-activity', methods=['GET', 'OPTIONS'])
+@guest_allowed
+def get_weekly_activity():
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'preflight_ok'}), 200
+
+    try:
+        now = get_kst_now()
+        # 이번 주 월요일 00:00
+        week_start = (now - timedelta(days=now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+        last_week_start = week_start - timedelta(weeks=1)
+
+        def count_new_tc(start, end):
+            return db.session.query(func.count(TestCase.id)).filter(
+                TestCase.created_at >= start,
+                TestCase.created_at < end
+            ).scalar() or 0
+
+        def count_status_change(start, end, status):
+            return db.session.query(func.count(TestCaseHistory.id)).filter(
+                TestCaseHistory.changed_at >= start,
+                TestCaseHistory.changed_at < end,
+                TestCaseHistory.field_name == 'result_status',
+                TestCaseHistory.new_value == status
+            ).scalar() or 0
+
+        result = {
+            'this_week': {
+                'new_tc': count_new_tc(week_start, now),
+                'passed': count_status_change(week_start, now, 'Pass'),
+                'failed': count_status_change(week_start, now, 'Fail'),
+            },
+            'last_week': {
+                'new_tc': count_new_tc(last_week_start, week_start),
+                'passed': count_status_change(last_week_start, week_start, 'Pass'),
+                'failed': count_status_change(last_week_start, week_start, 'Fail'),
+            },
+        }
+        return add_cors_headers(jsonify(result)), 200
+
+    except Exception as e:
+        return add_cors_headers(jsonify({'error': str(e)})), 500

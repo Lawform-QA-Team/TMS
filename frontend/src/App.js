@@ -126,7 +126,7 @@ function AppContent() {
 
   // 권한별 메뉴 표시 조건
   const canAccessSettings = () => {
-    return user && (user.role === 'admin' || user.role === 'user');
+    return user && ['admin', 'executive', 'user'].includes(user.role);
   };
 
   const canAccessAutomation = () => {
@@ -189,6 +189,7 @@ function AppContent() {
                   <span className="user-info">
                     <span>👤 {user.username}</span>
                     {user.role === 'admin' && <span className="admin-badge">관리자</span>}
+                    {user.role === 'executive' && <span className="executive-badge">임원</span>}
                     {user.role === 'user' && <span className="user-badge">사용자</span>}
                     {user.role === 'guest' && <span className="guest-badge">게스트</span>}
                   </span>

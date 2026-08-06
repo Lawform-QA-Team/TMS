@@ -2,7 +2,7 @@ from functools import wraps
 from flask import jsonify, request
 from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
 from models import db, User
-from utils.auth_constants import ROLE_GUEST, ROLE_ADMIN, ROLE_USER
+from utils.auth_constants import ROLE_GUEST, ROLE_ADMIN, ROLE_EXECUTIVE, ROLE_AUTHENTICATED
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -61,13 +61,16 @@ def admin_required(fn):
             logger.info(f"관리자 권한 확인 완료: {user.username} ({user.role})")
             return fn(*args, **kwargs)
         except Exception as e:
+            from werkzeug.exceptions import HTTPException
+            if isinstance(e, HTTPException):
+                raise
             logger.error(f"admin_required 데코레이터 오류: {str(e)}")
             logger.error(f"오류 타입: {type(e).__name__}")
             return jsonify({'error': '로그인이 필요합니다.'}), 401
     return wrapper
 
 def user_required(fn):
-    """일반 사용자 권한 확인 데코레이터 (admin, user)"""
+    """일반 사용자 권한 확인 데코레이터 (admin, user; executive는 조회만 허용)"""
     @wraps(fn)
     def wrapper(*args, **kwargs):
         # OPTIONS 요청은 인증 없이 통과 (CORS preflight)
@@ -84,13 +87,17 @@ def user_required(fn):
                     return jsonify({'error': '사용자 권한이 필요합니다.'}), 403
                 return jsonify({'error': '로그인이 필요합니다.'}), 401
 
-            if role not in [ROLE_ADMIN, ROLE_USER]:
+            executive_read_allowed = role == ROLE_EXECUTIVE and request.method in ['GET', 'HEAD']
+            if role not in ROLE_AUTHENTICATED and not executive_read_allowed:
                 logger.warning(f"사용자 권한 부족: {user.role}")
                 return jsonify({'error': '사용자 권한이 필요합니다.'}), 403
 
             logger.info(f"사용자 권한 확인 완료: {user.username} ({user.role})")
             return fn(*args, **kwargs)
         except Exception as e:
+            from werkzeug.exceptions import HTTPException
+            if isinstance(e, HTTPException):
+                raise
             logger.error(f"user_required 데코레이터 오류: {str(e)}")
             logger.error(f"오류 타입: {type(e).__name__}")
             return jsonify({'error': '로그인이 필요합니다.'}), 401
@@ -115,6 +122,9 @@ def guest_allowed(fn):
 
             return fn(*args, **kwargs)
         except Exception as e:
+            from werkzeug.exceptions import HTTPException
+            if isinstance(e, HTTPException):
+                raise
             logger.error(f"guest_allowed 데코레이터 오류: {str(e)}")
             return jsonify({'error': '로그인이 필요합니다.'}), 401
     return wrapper

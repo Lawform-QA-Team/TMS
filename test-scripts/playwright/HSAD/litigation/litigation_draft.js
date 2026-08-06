@@ -2,7 +2,8 @@
  * 송무 등록 - Playwright용
  */
 import { URLS } from '../util/url_base_hsad.js';
-import { getFormattedTimestamp } from '../../../common/utils.js';
+import { SELECTORS } from '../util/selector_hsad.js';
+import { getFormattedTimestamp } from '../util/utils.js';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 
 /**
@@ -20,10 +21,10 @@ export async function run(page) {
     await page.screenshot({ path: `screenshots/${timestamp}_litigation_draft.png` });
 
     // 신규 송무 등록 btn 선택
-    await page.waitForSelector('//button[text()="신규 송무 등록" and not(@disabled)]');
+    await page.waitForSelector(SELECTORS.BUSINESS.LITIGATION.NEW_DRAFT_BUTTON);
     timestamp = getNewTimestamp();
     await page.screenshot({ path: `screenshots/${timestamp}_before_request.png` });
-    await page.locator('//button[text()="신규 송무 등록"]').click();
+    await page.locator(SELECTORS.BUSINESS.LITIGATION.NEW_DRAFT_BUTTON).click();
     timestamp = getNewTimestamp();
     await page.screenshot({ path: `screenshots/${timestamp}_after_request.png` });
 

@@ -320,6 +320,40 @@
   transform: translateY(-1px);
 }
 
+/* Pass Rate 추이 기간 선택 버튼 */
+.trend-period-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-period {
+  background: #f0f0f0;
+  color: #555;
+  border: 1px solid #ddd;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.btn-period:hover {
+  background: #e0e0e0;
+}
+
+.btn-period.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.no-trend-data {
+  text-align: center;
+  color: #888;
+  padding: 40px 20px;
+  font-size: 14px;
+}
+
 /* 페이징 관련 스타일 */
 .more-items {
   background: #f8f9fa;
@@ -1694,12 +1728,13 @@ body.dragging {
 }
 
 @keyframes slideIn {
-  from { 
+  from {
     opacity: 0;
     transform: translateY(-20px) scale(0.95);
   }
-  to { 
+  to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
-} 
+}
+

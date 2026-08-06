@@ -4,6 +4,7 @@ import pyotp
 from flask import Blueprint, request, jsonify
 from models import db, User, UserSession, UserSecuritySettings, LoginFailLog, UserAiConfig
 from utils.auth_decorators import admin_required, user_required, owner_required, login_required
+from utils.auth_constants import ROLE_EXECUTIVE, VALID_USER_ROLES
 from utils.cors import add_cors_headers
 from utils.timezone_utils import get_kst_now
 
@@ -99,12 +100,17 @@ def create_user():
             temp_password = secrets.token_urlsafe(12)
             user_password = temp_password
         
+        requested_role = data.get('role', 'user')
+        if requested_role not in VALID_USER_ROLES:
+            response = jsonify({'error': '유효하지 않은 역할입니다.'})
+            return add_cors_headers(response), 400
+
         user = User(
             username=data['username'],
             email=data['email'],
             first_name=data.get('first_name', ''),
             last_name=data.get('last_name', ''),
-            role=data.get('role', 'user'),
+            role=requested_role,
             is_active=True
         )
         
@@ -134,6 +140,10 @@ def update_user(user_id):
         user = User.query.get_or_404(user_id)
         data = request.get_json()
         actor = getattr(request, 'user', None)
+
+        if actor and actor.role == ROLE_EXECUTIVE:
+            response = jsonify({'error': '임원 권한은 사용자 정보를 수정할 수 없습니다.'})
+            return add_cors_headers(response), 403
         
         if 'username' in data:
             # 중복 사용자명 검증
@@ -173,6 +183,9 @@ def update_user(user_id):
         
         if actor and actor.role == 'admin':
             if 'role' in data:
+                if data['role'] not in VALID_USER_ROLES:
+                    response = jsonify({'error': '유효하지 않은 역할입니다.'})
+                    return add_cors_headers(response), 400
                 user.role = data['role']
             if 'is_active' in data:
                 user.is_active = data['is_active']

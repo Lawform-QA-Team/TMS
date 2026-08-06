@@ -62,7 +62,7 @@ export default async function() {
         // 문서 작성 - 기존 문서, 검색
         const searchStart = Date.now();
         await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
-        await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, 'heekun');
+        await page.type(SELECTORS.WEB.AUTODOC.INPUT_SEARCH, 'ggp');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         const searchDuration = Date.now() - searchStart;

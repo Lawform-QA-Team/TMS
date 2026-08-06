@@ -14,7 +14,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     first_name = db.Column(db.String(50))
     last_name = db.Column(db.String(50))
-    role = db.Column(db.String(20), default='user')  # admin, user, tester
+    role = db.Column(db.String(20), default='user')  # admin, executive, user, guest
     is_active = db.Column(db.Boolean, default=True)
     last_login = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=get_kst_now)
@@ -143,6 +143,7 @@ class TestCase(db.Model):
     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True)  # 프로젝트 ID
     
     # 추가 컬럼들
+    tc_number = db.Column(db.String(50), nullable=True)  # TC 번호
     main_category = db.Column(db.String(100))  # 메인 카테고리
     sub_category = db.Column(db.String(100))  # 서브 카테고리
     detail_category = db.Column(db.String(100))  # 상세 카테고리
@@ -174,7 +175,7 @@ class TestCaseHistory(db.Model):
     change_type = db.Column(db.String(50), nullable=False)  # 'create', 'update', 'delete'
     
     # 관계 설정
-    test_case = db.relationship('TestCase', backref='history')
+    test_case = db.relationship('TestCase', backref=db.backref('history', passive_deletes=True))
     user = db.relationship('User', backref='test_case_changes')
     
     def __repr__(self):
@@ -379,7 +380,7 @@ class JiraIssue(db.Model):
     updated_at = db.Column(db.DateTime, default=get_kst_now, onupdate=get_kst_now)
     
     # 관계 설정
-    test_case = db.relationship('TestCase', backref='jira_issues')
+    test_case = db.relationship('TestCase', backref=db.backref('jira_issues', passive_deletes=True))
     automation_test = db.relationship('AutomationTest', backref='jira_issues')
     performance_test = db.relationship('PerformanceTest', backref='jira_issues')
     
@@ -443,7 +444,7 @@ class TestSchedule(db.Model):
     updated_at = db.Column(db.DateTime, default=get_kst_now, onupdate=get_kst_now)
     
     # 관계 설정
-    test_case = db.relationship('TestCase', backref='schedules')
+    test_case = db.relationship('TestCase', backref=db.backref('schedules', passive_deletes=True))
     creator = db.relationship('User', backref='created_schedules')
     last_run_result = db.relationship('TestResult', foreign_keys=[last_run_result_id])
     
@@ -509,7 +510,7 @@ class Notification(db.Model):
     
     # 관계 설정
     user = db.relationship('User', backref='notifications')
-    related_test_case = db.relationship('TestCase', foreign_keys=[related_test_case_id])
+    related_test_case = db.relationship('TestCase', foreign_keys=[related_test_case_id], passive_deletes=True)
     related_automation_test = db.relationship('AutomationTest', foreign_keys=[related_automation_test_id])
     related_performance_test = db.relationship('PerformanceTest', foreign_keys=[related_performance_test_id])
     related_test_result = db.relationship('TestResult', foreign_keys=[related_test_result_id])
@@ -835,7 +836,7 @@ class TestCaseDataMapping(db.Model):
     updated_at = db.Column(db.DateTime, default=get_kst_now, onupdate=get_kst_now)
     
     # 관계 설정
-    test_case = db.relationship('TestCase', backref='data_mappings')
+    test_case = db.relationship('TestCase', backref=db.backref('data_mappings', passive_deletes=True))
     data_set = db.relationship('TestDataSet', backref='test_case_mappings')
     
     def to_dict(self):
@@ -1025,7 +1026,7 @@ class WorkflowStep(db.Model):
     order = db.Column(db.Integer, nullable=False)
     
     # 다음 단계로 이동 가능한 역할
-    allowed_roles = db.Column(db.Text)  # JSON 형태로 저장 (예: ['admin', 'tester'])
+    allowed_roles = db.Column(db.Text)  # JSON 형태로 저장 (예: ['admin', 'executive'])
     
     # 다음 단계로 이동 가능한 사용자 (선택적)
     allowed_user_ids = db.Column(db.Text)  # JSON 형태로 저장
@@ -1135,8 +1136,8 @@ class TestDependency(db.Model):
     updated_at = db.Column(db.DateTime, default=get_kst_now, onupdate=get_kst_now)
     
     # 관계 설정
-    test_case = db.relationship('TestCase', foreign_keys=[test_case_id], backref='dependencies')
-    depends_on = db.relationship('TestCase', foreign_keys=[depends_on_test_case_id], backref='dependent_tests')
+    test_case = db.relationship('TestCase', foreign_keys=[test_case_id], backref=db.backref('dependencies', passive_deletes=True))
+    depends_on = db.relationship('TestCase', foreign_keys=[depends_on_test_case_id], backref=db.backref('dependent_tests', passive_deletes=True))
     
     def to_dict(self):
         """의존성 정보를 딕셔너리로 변환"""
@@ -1300,7 +1301,7 @@ class JiraIntegration(db.Model):
     last_sync_at = db.Column(db.DateTime)  # 마지막 동기화 시간
     
     # 관계 설정
-    test_case = db.relationship('TestCase', backref='jira_integrations')
+    test_case = db.relationship('TestCase', backref=db.backref('jira_integrations', passive_deletes=True))
     automation_test = db.relationship('AutomationTest', backref='jira_integrations')
     performance_test = db.relationship('PerformanceTest', backref='jira_integrations')
     

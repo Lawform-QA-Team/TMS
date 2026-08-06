@@ -124,7 +124,7 @@ integrated-test-platform/
 
 ## 🔐 권한 시스템
 
-이 플랫폼은 **admin**, **user**, **guest** 세 가지 사용자 역할을 지원합니다.
+이 플랫폼은 **admin**, **executive**, **user**, **guest** 네 가지 사용자 역할을 지원합니다.
 
 - **📖 [권한별 기능 가이드](docs/PERMISSION_GUIDE.md)** - 각 역할별 접근 가능한 기능 상세 설명
 - **🛡️ JWT 기반 인증** - 보안된 API 접근

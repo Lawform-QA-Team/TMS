@@ -1,4 +1,5 @@
 import { getFormattedTimestamp } from "@tms/performance/common/utils.js";
+import { browser } from 'k6/browser';
 
 // BASE_URL: k6 실행 시 -e BASE_URL=... 또는 process.env.BASE_URL
 let BASE_URL;
@@ -17,6 +18,7 @@ const SELECTORS = {
 };
 
 export default async function login_to_dashboard(page) {
+    const loginPage = page || await browser.newPage();
     const email = (typeof __ENV !== 'undefined' && __ENV.LOGIN_EMAIL)
         ? __ENV.LOGIN_EMAIL
         : (typeof process !== 'undefined' ? process.env.LOGIN_EMAIL : null);
@@ -24,20 +26,28 @@ export default async function login_to_dashboard(page) {
         ? __ENV.LOGIN_PASSWORD
         : (typeof process !== 'undefined' ? process.env.LOGIN_PASSWORD : null);
 
-    await page.goto(`${BASE_URL}`);
-    await page.screenshot({ path: `screenshots/${getFormattedTimestamp().replace(/:/g, '_')}_home.png` });
+    if (!BASE_URL) {
+        throw new Error('BASE_URL 환경변수가 필요합니다.');
+    }
+    if (!email || !password) {
+        throw new Error('LOGIN_EMAIL / LOGIN_PASSWORD 환경변수가 필요합니다.');
+    }
 
-    await page.goto(`${BASE_URL}/login`);
-    await page.screenshot({ path: `screenshots/${getFormattedTimestamp().replace(/:/g, '_')}_login.png` });
+    await loginPage.goto(`${BASE_URL}`);
+    await loginPage.screenshot({ path: `screenshots/${getFormattedTimestamp().replace(/:/g, '_')}_home.png` });
 
-    await page.waitForSelector(SELECTORS.LOGIN.EMAIL_INPUT);
-    await page.type(SELECTORS.LOGIN.EMAIL_INPUT, email);
+    await loginPage.goto(`${BASE_URL}/login`);
+    await loginPage.screenshot({ path: `screenshots/${getFormattedTimestamp().replace(/:/g, '_')}_login.png` });
 
-    await page.waitForSelector(SELECTORS.LOGIN.PASSWORD_INPUT);
-    await page.type(SELECTORS.LOGIN.PASSWORD_INPUT, password);
+    await loginPage.waitForSelector(SELECTORS.LOGIN.EMAIL_INPUT);
+    await loginPage.type(SELECTORS.LOGIN.EMAIL_INPUT, email);
 
-    await page.click(SELECTORS.LOGIN.SUBMIT_BUTTON);
+    await loginPage.waitForSelector(SELECTORS.LOGIN.PASSWORD_INPUT);
+    await loginPage.type(SELECTORS.LOGIN.PASSWORD_INPUT, password);
 
-    await page.goto(`${BASE_URL}/dashboard`);
-    await page.screenshot({ path: `screenshots/${getFormattedTimestamp().replace(/:/g, '_')}_dashboard.png` });
+    await loginPage.click(SELECTORS.LOGIN.SUBMIT_BUTTON);
+    await loginPage.waitForURL(`${BASE_URL}/dashboard`);
+
+    await loginPage.screenshot({ path: `screenshots/${getFormattedTimestamp().replace(/:/g, '_')}_dashboard.png` });
+    return loginPage;
 }

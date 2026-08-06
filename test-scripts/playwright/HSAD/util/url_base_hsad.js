@@ -102,20 +102,6 @@ export const SETTING_URLS = {
     SETUP: `${BASE_URL}/setup`
 };
 
-// 로그인 셀렉터
-export const SELECTORS = {
-    LOGIN: {
-        EMAIL_INPUT: 'input[id="email"]',
-        PASSWORD_INPUT: 'input[id="password"]',
-        SUBMIT_BUTTON: 'button[type="submit"]'
-    },
-    DASHBOARD: {
-        SETTING: 'img[alt="setting"]',
-        CLOSE: 'img[alt="close"]',
-        GNB: 'img[alt="네비게이션 열기/접기 버튼"]'
-    }
-};
-
 // 모든 URL을 하나의 객체로 통합
 export const URLS = {
     BASE: BASE_URL,

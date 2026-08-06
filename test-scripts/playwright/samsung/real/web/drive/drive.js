@@ -58,7 +58,7 @@ export async function run(page) {
 
   // 문서 조회, 검색
   await page.waitForSelector(SELECTORS.WEB.DRIVE.INPUT);
-  await page.locator(SELECTORS.WEB.DRIVE.INPUT).fill('heekun');
+  await page.locator(SELECTORS.WEB.DRIVE.INPUT).fill('ggp');
   await page.waitForSelector(SELECTORS.WEB.DRIVE.BUTTON_SEARCH);
   await Promise.all([
     page.waitForURL('**/drive**'),

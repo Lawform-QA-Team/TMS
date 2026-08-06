@@ -1,43 +1,34 @@
-import { check } from "k6";
-import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
-import { browser } from "k6/browser";
-import advice_clm from "./advice_clm.js";
-import { URLS } from "../util/url_base_hsad.js";
-import { getFormattedTimestamp } from "@tms/performance/common/utils.js";
+import { browser } from 'k6/browser';
+import { check } from 'k6';
+import { Trend } from 'k6/metrics';
+import { URLS } from '../util/url_base_hsad.js';
+import { SELECTORS } from '../selector_hsad.js';
+import { hsadBrowserOptions, loginToDashboard, measure } from '../common/k6_browser_helpers.js';
 
-export const options = {
-    scenarios: {
-        ui: {
-            executor: 'shared-iterations',
-            options: {
-                browser: {
-                    type: 'chromium',
-                    defaultViewport: {
-                        width: 1920,
-                        height: 1080,
-                      },
-                },
-            },
-        },
-    },
-    thresholds: {
-        checks: ['rate==1.0'],
-    }
-};
+export const options = hsadBrowserOptions;
+
+const adviceDashboardLoad = new Trend('hsad_advice_dashboard_load');
+const adviceSettingsLoad = new Trend('hsad_advice_settings_load');
+
 export default async function () {
-    // const page = await browser.newPage();
-
+    const page = await browser.newPage();
     try {
-        const page = await advice_clm();
-        }
-    finally {
+        await loginToDashboard(page, URLS, SELECTORS);
+
+        // LC_002: 법률 자문 메뉴 노출 확인 (SNB)
+        await measure(adviceDashboardLoad, () => page.goto(URLS.LOGIN.DASHBOARD));
+        const hasAdviceMenu = await page.locator('nav >> text="법률 자문"').isVisible();
+        check(page, {
+            'LC_002: 법률 자문 메뉴 노출 확인': () => hasAdviceMenu,
+        });
+
+        // LC_005: 법률 자문 관리 설정 확인
+        await measure(adviceSettingsLoad, () => page.goto(URLS.SETTING.SETUP));
+        const hasAdviceSettings = await page.locator('text="법률 자문 관리"').isVisible();
+        check(page, {
+            'LC_005: 법률 자문 관리 메뉴 노출': () => hasAdviceSettings,
+        });
+    } finally {
         await page.close();
     }
-}
-
-export function handleSummary(data) {
-    const timestamp = getFormattedTimestamp().replace(/:/g, '_');
-    return {
-        [`Result/clm_process_summary_${timestamp}.html`]: htmlReport(data),
-    };
 }

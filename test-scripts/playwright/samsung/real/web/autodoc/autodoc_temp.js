@@ -38,7 +38,7 @@ export async function run(page) {
 
   // 문서 작성 - 임시 저장 문서, 검색
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
-  await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('heekun');
+  await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('ggp');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await Promise.all([
     page.waitForURL('**/autodoc?method=temp**'),

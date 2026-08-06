@@ -1,6 +1,6 @@
 import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
 import { getFormattedTimestamp } from "@tms/performance/common/utils.js";
-import clm_draftNewMUlti from "./clm_draft.new_multi.js";
+import clm_draftNewMulti from "./clm_draft.new_multi.js";
 import clm_draftChangeMulti from "./clm_draft.change_multi.js";
 import clm_draftStopMulti from "./clm_draft.stop_multi.js";
 
@@ -11,7 +11,7 @@ export const options = {
       executor: 'shared-iterations',
       options: {
         browser: {
-          type: 'firefox',
+          type: 'chromium',
           defaultViewport: {
             width: 1920,
             height: 1080,
@@ -36,7 +36,7 @@ export default async function () {
     
     // 계약 구분 선택
     if ( __ENV.DRAFT_TYPE === "new") { // 계약 구분 : 신규
-      page = await clm_draftNewMUlti();
+      page = await clm_draftNewMulti();
     }
     else if ( __ENV.DRAFT_TYPE === "change") { // 계약 구분 : 변경
       page = await clm_draftChangeMulti();
@@ -49,7 +49,7 @@ export default async function () {
     }
     return page;
   } finally {
-    //await page.close();
+    if (page) await page.close();
   }
 }
 

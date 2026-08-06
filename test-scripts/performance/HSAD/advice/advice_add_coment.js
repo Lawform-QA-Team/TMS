@@ -1,28 +1,10 @@
-import {htmlReport} from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
 import { browser } from 'k6/browser';
-import login_to_dashboard from "@tms/performance/common/login/login_to_dashboard.js";
-import { URLS } from "../util/url_base_hsad.js";
-import { getFormattedTimestamp } from "@tms/performance/common/utils";
+import { URLS } from '../util/url_base_hsad.js';
+import { SELECTORS } from '../selector_hsad.js';
+import { hsadBrowserOptions, loginToDashboard } from '../common/k6_browser_helpers.js';
+import { getFormattedTimestamp } from "@tms/performance/common/utils.js";
 
-export const options = {
-    scenarios: {
-        ui: {
-            executor: 'shared-iterations',
-            options: {
-                browser: {
-                    type : 'chromium',
-                    defaultViewport: {
-                        width: 2560,
-                        height: 1440,
-                    }
-                }
-            }
-        }
-    },
-    threshold:{ 
-        checks: ['rate==1.0'],
-    }
-}
+export const options = hsadBrowserOptions;
 
 async function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -33,19 +15,17 @@ export default async function () {
     let page;
 
     try {
-        const page = await login_to_dashboard();
+        const context = await browser.newContext();
+        page = await context.newPage();
+        await loginToDashboard(page, URLS, SELECTORS);
         await page.goto(URLS.ADVICE.REVIEW);
         console.log(`URL: ${URLS.ADVICE.REVIEW}`);
         let timestamp = getNewTimestamp();
         await page.screenshot({path: `screenshots/${timestamp}_advice_review.png`});
 
     }
-    finally {}
-}
-
-export function handlesummary(data) {
-    const timestamp = getFormattedTimestamp().replace(/:/g, '_');
-    return{
-        [`Result/advice/advice_add_coment_${timestamp}.html`]: htmlReport(data),
+    finally {
+        if (page) await page.close();
     }
 }
+

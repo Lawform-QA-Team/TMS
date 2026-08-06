@@ -70,7 +70,7 @@ export default async function() {
         const webSearchFilterStart = Date.now();
         await selectComboboxOption(page, SELECTORS.WEB.SEARCH.SELECT)
         await page.waitForSelector(SELECTORS.WEB.SEARCH.INPUT);
-        await page.fill(SELECTORS.WEB.SEARCH.INPUT, 'heekun');
+        await page.fill(SELECTORS.WEB.SEARCH.INPUT, 'ggp');
         await page.waitForSelector(SELECTORS.WEB.SEARCH.DATEPICKER);
         await page.waitForSelector(SELECTORS.WEB.SEARCH.DATEPICKER_START);
         await selectDateRangeInRdpCalendar(page, SELECTORS.WEB.SEARCH.DATEPICKER, SELECTORS.WEB.SEARCH.DATEPICKER_START, '2026-03-01', '2026-03-31')

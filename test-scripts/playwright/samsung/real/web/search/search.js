@@ -43,7 +43,7 @@ export async function run(page) {
   // 통합검색, 검색 필터 적용
   await selectComboboxOption(page, SELECTORS.WEB.SEARCH.SELECT)
   await page.waitForSelector(SELECTORS.WEB.SEARCH.INPUT);
-  await page.fill(SELECTORS.WEB.SEARCH.INPUT, 'heekun');
+  await page.fill(SELECTORS.WEB.SEARCH.INPUT, 'ggp');
   await page.waitForSelector(SELECTORS.WEB.SEARCH.DATEPICKER);
   await page.waitForSelector(SELECTORS.WEB.SEARCH.DATEPICKER_START);
   await selectDateRangeInRdpCalendar(page, SELECTORS.WEB.SEARCH.DATEPICKER, SELECTORS.WEB.SEARCH.DATEPICKER_START, '2026-01-01', '2026-03-19')

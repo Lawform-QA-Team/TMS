@@ -103,7 +103,7 @@ export async function run(page) {
             await page.waitForSelector('//div[contains(@class,"footer-safe-area")]//button[text()="확인" and not(@disabled)]');
             await page.locator('//div[contains(@class,"footer-safe-area")]//button[text()="확인"]').click();
             await page.waitForTimeout(10000);
-            await page.screenshot({ path: `screenshots/${timestamp}_new_contrat.png` });
+            await page.screenshot({ path: `screenshots/${timestamp}_new_contract.png` });
         }
     }
 }

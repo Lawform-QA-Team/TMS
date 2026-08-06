@@ -7,10 +7,11 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
-dotenv.config({ path: path.resolve(__dirname, '../test-scripts/playwright/.env') });
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 export default defineConfig({
-  testDir: '../tests',
+  testDir: '..',
+  testMatch: ['tests/**/*.spec.js', 'HSAD/**/*.spec.js'],
   timeout: Number(process.env.TEST_TIMEOUT) || 240000,
 
   fullyParallel: true,

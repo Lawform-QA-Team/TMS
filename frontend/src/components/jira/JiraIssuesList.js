@@ -441,7 +441,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
           >
             🔄 새로고침
           </button>
-          {user && (user.role === 'admin' || user.role === 'user') && (
+          {user && ['admin', 'user'].includes(user.role) && (
             <button
               className="btn btn-secondary"
               onClick={syncFromJira}
@@ -452,7 +452,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
               ⬇️ Jira에서 가져오기
             </button>
           )}
-          {user && (user.role === 'admin' || user.role === 'user') && (
+          {user && ['admin', 'user'].includes(user.role) && (
             <button
               className="btn btn-success"
               onClick={() => setShowCreateModal(true)}
@@ -680,7 +680,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                         >
                           상세
                         </button>
-                        {user && (user.role === 'admin' || user.role === 'user') && (
+                        {user && ['admin', 'user'].includes(user.role) && (
                           <>
                             <select
                               className="status-select"
@@ -1164,7 +1164,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                     >
                       닫기
                     </button>
-                    {user && (user.role === 'admin' || user.role === 'user') && (
+                    {user && ['admin', 'user'].includes(user.role) && (
                       <button 
                         className="btn btn-primary"
                         onClick={() => {

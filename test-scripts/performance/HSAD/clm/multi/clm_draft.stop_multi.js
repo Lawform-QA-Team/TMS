@@ -1,27 +1,10 @@
-import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
-import login_to_dashborad from "@tms/performance/common/login/login_to_dashboard.js";
-import { URLS } from "../../util/url_base_hsad.js";
+import { browser } from 'k6/browser';
+import { URLS } from '../../util/url_base_hsad.js';
+import { SELECTORS } from '../../selector_hsad.js';
+import { hsadBrowserOptions, loginToDashboard } from '../../common/k6_browser_helpers.js';
 import { getFormattedTimestamp } from "@tms/performance/common/utils.js";
 
-export const options = {
-  scenarios: {
-    ui: {
-      executor: 'shared-iterations',
-      options: {
-        browser: {
-          type: 'firefox',
-          defaultViewport: {
-            width: 1920,
-            height: 1080,
-          },
-        },
-      },
-    },
-  },
-  thresholds: {
-    checks: ['rate==1.0'],
-  },
-};
+export const options = hsadBrowserOptions;
 
 async function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -31,16 +14,18 @@ export default async function () {
   const getNewTimestamp = () => getFormattedTimestamp().replace(/:/g, '_');
   let page;
   try {
-    page = await login_to_dashborad();
+    const context = await browser.newContext();
+    page = await context.newPage();
+    await loginToDashboard(page, URLS, SELECTORS);
       // 임시 저장 리스트 호출
       await page.goto(URLS.CLM.DRAFT);
       let timestamp = getNewTimestamp();
       await page.screenshot({path: `screenshots/${timestamp}_clm.png`});
       // 신규 검토 요청 btn 클릭
-      await page.waitForSelector('//button[text()="신규 검토 요청" and not(@disabled)]');
+      await page.waitForSelector(SELECTORS.BUSINESS.CLM.NEW_REVIEW_REQUEST_BUTTON);
       timestamp = getNewTimestamp();
       await page.screenshot({path: `screenshots/${timestamp}_before_request.png`});
-      await page.locator('//button[text()="신규 검토 요청"]').click();
+      await page.locator(SELECTORS.BUSINESS.CLM.NEW_REVIEW_REQUEST_BUTTON).click();
       timestamp = getNewTimestamp();
       await page.screenshot({path: `screenshots/${timestamp}_after_request.png`});
       // 계약 검토 요청 모달 확인 btn 클릭
@@ -50,14 +35,14 @@ export default async function () {
       await wait(10000);
       await page.screenshot({path: `screenshots/${timestamp}_after_confirm.png`});
       // 계약 검토 요청 작성 시작
-      if ( __ENV.CONTRAT_UPLOAD === "use") { // 계약서 업로드 여부 : 사용
+      if ( __ENV.CONTRACT_UPLOAD === "use") { // 계약서 업로드 여부 : 사용
         await page.locator('//label[.//div[text()="해지"]]').click();
         await page.waitForSelector('//div[text()="관련 계약 찾아보기"]');
         await page.locator('//div[text()="관련 계약 찾아보기"]').click();
         await page.locator('(//button[text()="선택"])[1]').click(); // 기존 계약 검색 모달 첫번째 계약 선택 
         await page.screenshot({path: `screenshots/${timestamp}_stop.png`});
         // 편집기 사용 여부
-        if ( __ENV.EDITER_USE === "use") { // 편집기 사용 여부 : 사용
+        if ( __ENV.EDITOR_USE === "use") { // 편집기 사용 여부 : 사용
           await page.locator('//label[.//div[text()="사용"]]').click();
           await page.screenshot({path: `screenshots/screenshot_${timestamp}_after_confirm.png`});
           } else { // 편집기 사용 여부 : 사용 안함
@@ -65,16 +50,16 @@ export default async function () {
             await page.screenshot({path: `screenshots/screenshot_${timestamp}_after_confirm.png`});
         }
         // 계약서 첨부 방식
-        if ( __ENV.CONTRAT_TYPE === "file") { // 계약서 첨부 방식 : 파일 업로드
+        if ( __ENV.CONTRACT_TYPE === "file") { // 계약서 첨부 방식 : 파일 업로드
           await page.locator('//label[.//div[text()="파일로 첨부하기"]]').click();
-          await page.screenshot({path: `screenshots/${timestamp}_contrat.png`});
+          await page.screenshot({path: `screenshots/${timestamp}_contract.png`});
           } else { // 계약서 첨부 방식 : My 계약서에서 불러오기
             await page.waitForSelector('//label[.//div[text()="My계약서에서 불러오기"]]')
             await page.locator('//label[.//div[text()="My계약서에서 불러오기"]]').click();
             await page.screenshot({path: `screenshots/${timestamp}_my.png`});
           }
         // 계약서 선택
-        if ( __ENV.CONTRAT_SELECT === "file") { // 계약서 첨부 방식 : 파일 업로드
+        if ( __ENV.CONTRACT_SELECT === "file") { // 계약서 첨부 방식 : 파일 업로드
           await page.locator('img[alt="파일 업로드"]').click();
           await page.screenshot({path: `screenshots/${timestamp}_file.png`});
         } else { // 계약서 첨부 방식 : My 계약서에서 불러오기
@@ -154,10 +139,10 @@ export default async function () {
               // const btn = page.locator('//div[contains(@class, "footer-safe-area")]//button[text()="확인"]')
               // console.log('disabled', await btn.getAttribute('disabled'));
               // console.log('aria-disabled', await btn.getAttribute('aria-disabled'));
-              await page.screenshot({path: `screenshots/${timestamp}_asigness.png`});
+              await page.screenshot({path: `screenshots/${timestamp}_assignees.png`});
               await page.locator('//div[contains(@class,"footer-safe-area")]//button[text()="확인"]').click();
-              await page.waitForTimeout(10000)
-              await page.screenshot({path: `screenshots/${timestamp}_new_contrat.png`});
+              await wait(10000)
+              await page.screenshot({path: `screenshots/${timestamp}_new_contract.png`});
           }
         }
       }
@@ -200,10 +185,10 @@ export default async function () {
             // const btn = page.locator('//div[contains(@class, "footer-safe-area")]//button[text()="확인"]')
             // console.log('disabled', await btn.getAttribute('disabled'));
             // console.log('aria-disabled', await btn.getAttribute('aria-disabled'));
-            await page.screenshot({path: `screenshots/${timestamp}_asigness.png`});
+            await page.screenshot({path: `screenshots/${timestamp}_assignees.png`});
             await page.locator('//div[contains(@class,"footer-safe-area")]//button[text()="확인"]').click();
-            await page.waitForTimeout(10000)
-            await page.screenshot({path: `screenshots/${timestamp}_new_contrat.png`});
+            await wait(10000)
+            await page.screenshot({path: `screenshots/${timestamp}_new_contract.png`});
         }
       }
       return page;
@@ -213,9 +198,3 @@ export default async function () {
         }
     }
 
-    export function handleSummary(data) {
-        const timestamp = getFormattedTimestamp().replace(/:/g, '_');  
-        return {
-              [`Result/clm_draft.stop_summary_${timestamp}.html`]: htmlReport(data),
-          };
-      }

@@ -54,7 +54,7 @@ const AutomationTestManager = () => {
       setAutomationTests(automationRes.data.items || automationRes.data);
       
       // 사용자 목록은 admin이나 user만 가져오기 (게스트는 제외)
-      if (user && (user.role === 'admin' || user.role === 'user')) {
+      if (user && ['admin', 'user'].includes(user.role)) {
         try {
           const usersRes = await axios.get('/users/list');
           setUsers(usersRes.data);
@@ -302,7 +302,7 @@ const AutomationTestManager = () => {
           </div>
         )}
         <div className="header-actions">
-          {user && (user.role === 'admin' || user.role === 'user') && (
+          {user && ['admin', 'user'].includes(user.role) && (
             <button 
               className="automation-btn automation-btn-add"
               onClick={() => setShowAddModal(true)}
@@ -508,7 +508,7 @@ const AutomationTestManager = () => {
                     <td>{test.created_at ? new Date(test.created_at).toLocaleDateString('ko-KR') : '-'}</td>
                     <td className="automation-action-cell" onClick={(e) => e.stopPropagation()}>
                       <div className="automation-action-buttons">
-                        {user && (user.role === 'admin' || user.role === 'user') && (
+                        {user && ['admin', 'user'].includes(user.role) && (
                           <button 
                             className="automation-btn automation-btn-execute"
                             onClick={() => handleExecuteTest(test.id)}
@@ -524,7 +524,7 @@ const AutomationTestManager = () => {
                         >
                           상세
                         </button>
-                        {user && (user.role === 'admin' || user.role === 'user') && (
+                        {user && ['admin', 'user'].includes(user.role) && (
                           <button 
                             className="automation-btn automation-btn-edit"
                             onClick={() => handleEditClick(test)}
@@ -644,7 +644,7 @@ const AutomationTestManager = () => {
                   rows="5"
                 />
               </div>
-              {user && (user.role === 'admin' || user.role === 'user') && (
+              {user && ['admin', 'user'].includes(user.role) && (
                 <div className="form-group">
                   <label>담당자</label>
                   <select
@@ -755,7 +755,7 @@ const AutomationTestManager = () => {
                   rows="5"
                 />
               </div>
-              {user && (user.role === 'admin' || user.role === 'user') && (
+              {user && ['admin', 'user'].includes(user.role) && (
                 <div className="form-group">
                   <label>담당자</label>
                   <select

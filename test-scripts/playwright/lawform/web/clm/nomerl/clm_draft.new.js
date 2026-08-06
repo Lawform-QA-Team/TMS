@@ -47,7 +47,7 @@ export async function run(page) {
 
     if (process.env.CONTRACT_TYPE === 'file') {
         await page.locator('//label[.//div[text()="파일로 첨부하기"]]').click();
-        await page.screenshot({ path: `screenshots/${timestamp}_contrat.png` });
+        await page.screenshot({ path: `screenshots/${timestamp}_contract.png` });
     } else {
         await page.waitForSelector('//label[.//div[text()="My계약서에서 불러오기"]]');
         await page.locator('//label[.//div[text()="My계약서에서 불러오기"]]').click();
@@ -114,10 +114,10 @@ export async function run(page) {
             await page.locator('//div[text()="계약서 검토 요청"]').click();
             await page.screenshot({ path: `screenshots/${timestamp}_creat.png` });
             await page.waitForSelector('//div[contains(@class,"footer-safe-area")]//button[text()="확인" and not(@disabled)]');
-            await page.screenshot({ path: `screenshots/${timestamp}_asigness.png` });
+            await page.screenshot({ path: `screenshots/${timestamp}_assignees.png` });
             await page.locator('//div[contains(@class,"footer-safe-area")]//button[text()="확인"]').click();
             await page.waitForTimeout(10000);
-            await page.screenshot({ path: `screenshots/${timestamp}_new_contrat.png` });
+            await page.screenshot({ path: `screenshots/${timestamp}_new_contract.png` });
         }
     }
 }
