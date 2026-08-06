@@ -153,6 +153,33 @@ export async function sendPageAnalysisComplete(
   })
 }
 
+export async function sendCodegenComplete(
+  pipelineId: string,
+  fileName: string,
+  linesOfCode: number,
+): Promise<void> {
+  const channel = env.SLACK_CHANNEL_ID
+  if (!channel) return
+
+  const ticket = await (await import('./db.js')).db.collectedTicket.findUnique({
+    where: { pipelineId },
+  })
+  if (!ticket) return
+
+  await postSlack('chat.postMessage', {
+    channel,
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `:robot_face: *${ticket.ticketKey}* — ${ticket.summary}\nPlaywright 테스트 코드 자동 생성 완료 (파일: \`${fileName}\`, ${linesOfCode}줄)`,
+        },
+      },
+    ],
+  })
+}
+
 export async function updateApprovalMessage(
   channel: string,
   ts: string,

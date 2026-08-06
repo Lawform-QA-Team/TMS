@@ -37,7 +37,7 @@ export default function PipelineDetail({ pipelineId, onClose }) {
   if (error) return <div className="pipeline-error">오류: {error}</div>;
   if (!data) return null;
 
-  const { ticket, stages, qaPlan, pageAnalyses } = data;
+  const { ticket, stages, qaPlan, pageAnalyses, generatedCode } = data;
   const plan = qaPlan?.plan_content ? (() => { try { return JSON.parse(qaPlan.plan_content); } catch { return null; } })() : null;
 
   return (
@@ -154,6 +154,24 @@ export default function PipelineDetail({ pipelineId, onClose }) {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {generatedCode && (
+        <div className="pipeline-tc-list">
+          <div className="pipeline-qaplan-header">
+            생성된 테스트 코드
+            <span style={{ color: '#6b7280', fontWeight: 400, marginLeft: 8 }}>
+              {generatedCode.file_name}
+            </span>
+            <button
+              className="pipeline-copy-btn"
+              onClick={() => navigator.clipboard.writeText(generatedCode.code)}
+            >
+              복사
+            </button>
+          </div>
+          <pre className="pipeline-code-viewer">{generatedCode.code}</pre>
         </div>
       )}
 

@@ -914,3 +914,16 @@ model PageAnalysis {
   @@index([pipelineId])
   @@map("PageAnalyses")
 }
+
+model GeneratedCode {
+  id         Int      @id @default(autoincrement())
+  pipelineId String   @unique @map("pipeline_id") @db.VarChar(36)
+  language   String   @default("typescript") @db.VarChar(20)
+  framework  String   @default("playwright") @db.VarChar(20)
+  fileName   String?  @map("file_name") @db.VarChar(200)
+  code       String   @db.LongText
+  createdAt  DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@map("GeneratedCodes")
+}

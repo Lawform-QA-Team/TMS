@@ -17,9 +17,10 @@ import { env } from '../env.js'
 import { logger } from './logger.js'
 import type { NormalizedTicket } from './ticketNormalizer.js'
 import { generateQAPlan, createQAPlanRecord } from './qaPlanGenerator.js'
-import { sendQAPlanApprovalRequest, sendTestCasesComplete, sendPageAnalysisComplete } from './slackNotifier.js'
+import { sendQAPlanApprovalRequest, sendTestCasesComplete, sendPageAnalysisComplete, sendCodegenComplete } from './slackNotifier.js'
 import { generateTestCases } from './testCaseGenerator.js'
 import { analyzePages } from './pageAnalyzer.js'
+import { generateCode } from './codeGenerator.js'
 
 // ──────────────────────────────────────────────
 // Job 타입 정의
@@ -66,6 +67,11 @@ export type JiraPipelineJobData =
     }
   | {
       type: 'testcases-complete'
+      pipelineId: string
+      qaPlanId: number
+    }
+  | {
+      type: 'pageanalysis-complete'
       pipelineId: string
       qaPlanId: number
     }
@@ -274,12 +280,33 @@ async function processJob(job: Job<JiraPipelineJobData>): Promise<void> {
     try {
       const { analyzed } = await analyzePages(data.pipelineId, data.qaPlanId)
       await sendPageAnalysisComplete(data.pipelineId, analyzed)
-      logger.info({ pipelineId: data.pipelineId, analyzed }, '페이지 분석 완료')
+      // Phase 5: 페이지 분석 완료 → 코드 생성 자동 진행
+      await getJiraQueue().add('pageanalysis-complete', {
+        type: 'pageanalysis-complete',
+        pipelineId: data.pipelineId,
+        qaPlanId: data.qaPlanId,
+      })
+      logger.info({ pipelineId: data.pipelineId, analyzed }, '페이지 분석 완료 → 코드 생성 큐 등록')
     } catch (e) {
       logger.error({ e, pipelineId: data.pipelineId }, '페이지 분석 오류')
       await db.collectedTicket.update({
         where: { pipelineId: data.pipelineId },
         data: { pipelineStatus: 'testcases', errorMessage: String(e), updatedAt: new Date() },
+      })
+    }
+  }
+
+  else if (data.type === 'pageanalysis-complete') {
+    logger.info({ pipelineId: data.pipelineId, qaPlanId: data.qaPlanId }, '페이지 분석 완료 → 코드 생성 시작')
+    try {
+      const { fileName, linesOfCode } = await generateCode(data.pipelineId, data.qaPlanId)
+      await sendCodegenComplete(data.pipelineId, fileName, linesOfCode)
+      logger.info({ pipelineId: data.pipelineId, fileName, linesOfCode }, '코드 생성 완료')
+    } catch (e) {
+      logger.error({ e, pipelineId: data.pipelineId }, '코드 생성 오류')
+      await db.collectedTicket.update({
+        where: { pipelineId: data.pipelineId },
+        data: { pipelineStatus: 'pageanalysis', errorMessage: String(e), updatedAt: new Date() },
       })
     }
   }
