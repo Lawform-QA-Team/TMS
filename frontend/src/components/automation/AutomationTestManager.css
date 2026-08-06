@@ -377,18 +377,18 @@
   overflow-x: auto;
 }
 
-.automation-table-content {
+.tc-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
 }
 
-.automation-table-content thead {
+.tc-table thead {
   background: #f8f9fa;
   border-bottom: 2px solid #e9ecef;
 }
 
-.automation-table-content th {
+.tc-table th {
   padding: 12px 16px;
   text-align: center;
   font-weight: 600;
@@ -401,7 +401,7 @@
   white-space: nowrap;
 }
 
-.automation-table-content th.automation-sortable {
+.tc-table th.automation-sortable {
   cursor: pointer;
   user-select: none;
   transition: background-color 0.2s ease;
@@ -409,26 +409,26 @@
   text-align: center;
 }
 
-.automation-table-content th.automation-sortable:hover {
+.tc-table th.automation-sortable:hover {
   background-color: #e9ecef;
 }
 
-.automation-table-content tbody tr {
+.tc-table tbody tr {
   border-bottom: 1px solid #e9ecef;
   transition: background-color 0.2s ease;
   cursor: pointer;
 }
 
-.automation-table-content tbody tr:hover {
+.tc-table tbody tr:hover {
   background-color: #f8f9fa;
 }
 
-.automation-table-content tbody tr.selected {
+.tc-table tbody tr.selected {
   background-color: #e3f2fd;
   border-left: 4px solid #007bff;
 }
 
-.automation-table-content td {
+.tc-table td {
   padding: 12px 16px;
   vertical-align: top;
   border-bottom: 1px solid #e9ecef;
@@ -516,14 +516,14 @@
   text-align: center;
 }
 
-.automation-action-buttons {
+.action-btns {
   display: flex;
   gap: 5px;
   justify-content: center;
   align-items: center;
 }
 
-.automation-action-buttons .automation-btn {
+.action-btns .row-btn {
   padding: 6px 12px;
   border: none;
   border-radius: 4px;
