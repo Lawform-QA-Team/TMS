@@ -157,15 +157,15 @@ function AppContent() {
   };
 
   const navItems = [
-    { id: 'dashboard', label: '대시보드', icon: '' },
-    { id: 'monitoring', label: '모니터링', icon: '' },
-    { id: 'testcases', label: '테스트 케이스', icon: '' },
-    ...(canAccessJira() ? [{ id: 'jira', label: '이슈', icon: '' }] : []),
-    ...(canAccessJira() ? [{ id: 'pipeline', label: 'QA 파이프라인', icon: '' }] : []),
-    ...(canAccessAutomation() ? [{ id: 'automation', label: '자동화 테스트', icon: '' }] : []),
-    ...(canAccessPerformance() ? [{ id: 'performance', label: '성능 테스트', icon: '' }] : []),
-    ...(canAccessAutomation() ? [{ id: 'testscripts', label: '테스트 스크립트', icon: '' }] : []),
-    ...(canAccessFolders() ? [{ id: 'folders', label: '폴더 관리', icon: '' }] : []),
+    { id: 'dashboard', label: '대시보드', abbr: '대시' },
+    { id: 'monitoring', label: '모니터링', abbr: '모니' },
+    { id: 'testcases', label: '테스트 케이스', abbr: 'TC' },
+    ...(canAccessJira() ? [{ id: 'jira', label: '이슈', abbr: '이슈' }] : []),
+    ...(canAccessJira() ? [{ id: 'pipeline', label: 'QA 파이프라인', abbr: 'QA' }] : []),
+    ...(canAccessAutomation() ? [{ id: 'automation', label: '자동화 테스트', abbr: '자동' }] : []),
+    ...(canAccessPerformance() ? [{ id: 'performance', label: '성능 테스트', abbr: '성능' }] : []),
+    ...(canAccessAutomation() ? [{ id: 'testscripts', label: '테스트 스크립트', abbr: 'TS' }] : []),
+    ...(canAccessFolders() ? [{ id: 'folders', label: '폴더 관리', abbr: '폴더' }] : []),
   ];
 
   return (
@@ -240,7 +240,7 @@ function AppContent() {
                   onClick={() => setActiveTab(item.id)}
                   title={sidebarCollapsed ? item.label : undefined}
                 >
-
+                  <span className="sidebar-nav-icon">{item.abbr}</span>
                   <span className="sidebar-nav-label">{item.label}</span>
                   <span className="sidebar-nav-chevron">&gt;</span>
                 </button>
