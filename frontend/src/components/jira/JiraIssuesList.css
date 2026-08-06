@@ -1,4 +1,124 @@
-/* 이슈 목록 컴포넌트 스타일 */
+/* ===== Jira 연동 설정 패널 ===== */
+.jira-config-panel {
+  margin-bottom: 16px;
+  border: 1px solid #dfe1e6;
+  border-radius: 6px;
+  background: #f8f9fa;
+  overflow: hidden;
+}
+
+.jira-config-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+}
+
+.jira-config-badge {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.jira-config-badge.connected {
+  color: #0a6640;
+}
+
+.jira-config-badge.disconnected {
+  color: #8b572a;
+}
+
+.btn-jira-config-toggle {
+  font-size: 13px;
+  padding: 5px 12px;
+  border: 1px solid #0052cc;
+  border-radius: 4px;
+  background: white;
+  color: #0052cc;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-jira-config-toggle:hover {
+  background: #e8f0fe;
+}
+
+.jira-config-form {
+  border-top: 1px solid #dfe1e6;
+  padding: 16px;
+  background: white;
+}
+
+.jira-config-form h4 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: #172b4d;
+}
+
+.jira-config-desc {
+  font-size: 12px;
+  color: #6b778c;
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+
+.jira-config-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.jira-config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.jira-config-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #344563;
+}
+
+.jira-config-field input {
+  padding: 7px 10px;
+  border: 1px solid #dfe1e6;
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.jira-config-field input:focus {
+  border-color: #0052cc;
+}
+
+.jira-config-message {
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.jira-config-message.success {
+  background: #e3fcef;
+  color: #0a6640;
+  border: 1px solid #abf5d1;
+}
+
+.jira-config-message.error {
+  background: #ffebe6;
+  color: #bf2600;
+  border: 1px solid #ffbdad;
+}
+
+.jira-config-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* ===== 이슈 목록 컴포넌트 스타일 ===== */
 .jira-issues-list-container {
   padding: 20px;
   max-width: auto;
@@ -71,7 +191,6 @@
 .search-input:focus {
   outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
 .search-input::placeholder {
@@ -123,7 +242,6 @@
 .filter-select:focus {
   outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
 }
 
 /* 페이지네이션 상단 */
@@ -243,7 +361,6 @@
   border-radius: 10px;
   border: 1px solid #e1e5e9;
   background: #fff;
-  box-shadow: 0 1px 3px rgba(15, 76, 129, 0.08);
 }
 
 .jira-issues-table {
@@ -365,11 +482,9 @@
   border-radius: 8px;
   padding: 20px;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .jira-issue-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transform: translateY(-2px);
 }
 
@@ -545,7 +660,6 @@
 .status-select:focus {
   outline: none;
   border-color: #0052cc;
-  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.1);
 }
 
 /* 버튼 스타일 */
@@ -572,13 +686,11 @@
 .jira-issues-list-container .btn-primary {
   background: #0052cc;
   color: white;
-  box-shadow: 0 2px 4px rgba(0, 82, 204, 0.2);
 }
 
 .jira-issues-list-container .btn-primary:hover:not(:disabled) {
   background: #0041a3;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 82, 204, 0.3);
 }
 
 .jira-issues-list-container .btn-secondary {
@@ -750,7 +862,6 @@
 .jira-issues-list-container .modal-overlay .modal {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -794,13 +905,20 @@
   flex: 1;
 }
 
-.jira-issues-list-container .modal-overlay .modal-actions {
+.jira-issues-list-container .modal-actions {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: row;
+  justify-content: center;
   gap: 12px;
-  padding: 20px 24px;
+  padding: 20px 0 4px;
   border-top: 1px solid #e0e0e0;
-  background: #f8f9fa;
+  margin-top: 16px;
+}
+
+.jira-issues-list-container .modal-actions .btn {
+  width: 140px;
+  justify-content: center;
+  text-align: center;
 }
 
 .issue-detail-content {
@@ -1051,7 +1169,6 @@
 .form-control:focus {
   outline: none;
   border-color: #0052cc;
-  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
   background: white;
 }
 
@@ -1215,7 +1332,6 @@
 
 .test-case-link:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
 /* 상세 모달용 연결된 테스트 케이스 스타일 */
@@ -1265,12 +1381,10 @@
   color: white;
   text-decoration: none;
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
 }
 
 .test-case-link-detail:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }
 
 /* 반응형 스타일 */

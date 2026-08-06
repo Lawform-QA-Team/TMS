@@ -14,6 +14,7 @@ const ScreenshotGallery = ({ testId, testName }) => {
     if (testId) {
       fetchScreenshots();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [testId]);
 
   const fetchScreenshots = async () => {
@@ -122,6 +123,7 @@ const AutomationTestResults = ({ testId }) => {
     if (testId) {
       fetchResults();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [testId]);
 
   const toggleResultDetails = (resultId) => {

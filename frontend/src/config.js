@@ -1,7 +1,7 @@
 const config = {
   development: {
-    apiUrl: 'http://localhost:8000',
-    uploadUrl: 'http://localhost:8000/uploads'
+    apiUrl: 'http://localhost:8080',
+    uploadUrl: 'http://localhost:8080/uploads'
   },
   production: {
     apiUrl: process.env.REACT_APP_API_URL || 'https://backend-alpha-liard.vercel.app',

@@ -22,7 +22,6 @@
 .common-modal-overlay .modal {
   background: var(--tms-bg-card);
   border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(15, 76, 129, 0.2);
   border: 1px solid var(--tms-border);
   display: flex;
   flex-direction: column;

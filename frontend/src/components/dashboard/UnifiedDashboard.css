@@ -36,14 +36,12 @@
   border: 1px solid var(--tms-border);
   border-radius: 8px;
   padding: 15px;
-  box-shadow: 0 2px 4px rgba(15, 76, 129, 0.06);
   transition: transform 0.2s ease;
   height: fit-content;
 }
 
 .environment-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(15, 76, 129, 0.12);
 }
 
 .environment-card h3 {
@@ -203,14 +201,12 @@
   border: 1px solid #e0e0e0;
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   transition: all 0.3s ease;
   text-align: left;
 }
 
 .dashboard-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.12);
   border-color: #007bff;
 }
 
@@ -322,7 +318,40 @@
 .btn-move-to-tab:hover {
   background: #0056b3;
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Pass Rate 추이 기간 선택 버튼 */
+.trend-period-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-period {
+  background: #f0f0f0;
+  color: #555;
+  border: 1px solid #ddd;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.btn-period:hover {
+  background: #e0e0e0;
+}
+
+.btn-period.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.no-trend-data {
+  text-align: center;
+  color: #888;
+  padding: 40px 20px;
+  font-size: 14px;
 }
 
 /* 페이징 관련 스타일 */
@@ -343,7 +372,6 @@
   background: #e9ecef;
   color: #0056b3;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
 }
 
 .reset-paging {
@@ -362,7 +390,6 @@
 .reset-paging:hover {
   background: #5a6268;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
 }
 
 .pagination-info {
@@ -507,14 +534,12 @@
 .btn-retry:hover:not(:disabled) {
   background: #0056b3;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
 }
 
 .btn-retry:disabled {
   background: #6c757d;
   cursor: not-allowed;
   transform: none;
-  box-shadow: none;
 }
 
 
@@ -524,7 +549,6 @@
   padding: 20px;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .dashboard-screenshots h3 {
@@ -551,7 +575,6 @@
 
 .dashboard-screenshots .screenshot-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   border-color: #007bff;
 }
 
@@ -617,7 +640,6 @@
   max-height: 90%;
   overflow: hidden;
   position: relative;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .dashboard-screenshots .modal-close {
@@ -775,7 +797,6 @@
   border: 1px solid var(--tms-border);
   border-radius: 8px;
   padding: 12px;
-  box-shadow: 0 2px 4px rgba(15, 76, 129, 0.06);
 }
 
 .project-stat-name {
@@ -817,7 +838,6 @@
   background: white;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   font-size: 12px;
 }
 
@@ -921,7 +941,6 @@
   background: white;
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border: 1px solid #e9ecef;
 }
 
@@ -1018,7 +1037,6 @@
   background: white;
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border: 1px solid #e9ecef;
 }
 
@@ -1051,7 +1069,6 @@
 .recent-issue-item:hover {
   background: #e9ecef;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .issue-info {
@@ -1153,7 +1170,6 @@
 .btn-jira-more:hover {
   background: #0056b3;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
 }
 
 /* 환경별 이슈 통계 스타일 */
@@ -1180,7 +1196,6 @@
 .environment-issue-item:hover {
   background: #e9ecef;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .environment-name {
@@ -1311,7 +1326,6 @@
 .btn-card-settings:hover {
   background: #0056b3;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
 }
 
 /* 카드 설정 모달 스타일 */
@@ -1336,7 +1350,6 @@
   max-width: 600px;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   animation: slideIn 0.3s ease;
 }
 
@@ -1393,7 +1406,6 @@
 
 .card-setting-item:hover {
   border-color: #007bff;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
 }
 
 .card-setting-header {
@@ -1496,7 +1508,6 @@
 .card-size-controls select:focus {
   outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
 .card-settings-footer {
@@ -1574,7 +1585,6 @@
 
 .draggable-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .draggable-card.dragging {
@@ -1582,7 +1592,6 @@
   transform: rotate(5deg) scale(1.05);
   cursor: grabbing;
   z-index: 1000;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
   /* 드래그 중에도 그리드에서 유지 */
   position: relative;
 }
@@ -1719,12 +1728,13 @@ body.dragging {
 }
 
 @keyframes slideIn {
-  from { 
+  from {
     opacity: 0;
     transform: translateY(-20px) scale(0.95);
   }
-  to { 
+  to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
-} 
+}
+

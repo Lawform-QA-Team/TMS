@@ -38,6 +38,7 @@ const ProjectFolderManager = () => {
 
   useEffect(() => {
     fetchProjects();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -93,7 +94,7 @@ const ProjectFolderManager = () => {
     err?.response?.data?.error || err?.response?.data?.message || err?.message || fallback;
 
   const canManageProjects = () => currentUser?.role === 'admin';
-  const canManageFolders = () => currentUser && (currentUser.role === 'admin' || currentUser.role === 'user');
+  const canManageFolders = () => currentUser && ['admin', 'user'].includes(currentUser.role);
 
   const foldersForProject = selectedProjectId
     ? folders.filter((f) => f.project_id === selectedProjectId)

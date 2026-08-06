@@ -4,6 +4,7 @@ import config from '@tms/config';
 import { useAuth } from '@tms/contexts/AuthContext';
 import { getUserDisplayName } from '@tms/utils/userDisplay';
 import AutomationTestDetail from '@tms/components/automation/AutomationTestDetail';
+import SlidePanel from '@tms/components/common/SlidePanel';
 import '@tms/components/automation/AutomationTestManager.css';
 import '@tms/components/common/Modal.css';
 
@@ -17,9 +18,7 @@ const AutomationTestManager = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingTest, setEditingTest] = useState(null);
-  // 하단 전체 화면 구조로 변경
   const [selectedTest, setSelectedTest] = useState(null);
-  const [showDetail, setShowDetail] = useState(false);
   const [users, setUsers] = useState([]);
   const [newTest, setNewTest] = useState({
     name: '',
@@ -38,10 +37,12 @@ const AutomationTestManager = () => {
   const [assigneeFilter, setAssigneeFilter] = useState('all');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
+  // eslint-disable-next-line no-unused-vars
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   useEffect(() => {
     fetchAutomationTests();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchAutomationTests = async () => {
@@ -53,7 +54,7 @@ const AutomationTestManager = () => {
       setAutomationTests(automationRes.data.items || automationRes.data);
       
       // 사용자 목록은 admin이나 user만 가져오기 (게스트는 제외)
-      if (user && (user.role === 'admin' || user.role === 'user')) {
+      if (user && ['admin', 'user'].includes(user.role)) {
         try {
           const usersRes = await axios.get('/users/list');
           setUsers(usersRes.data);
@@ -150,23 +151,12 @@ const AutomationTestManager = () => {
     }
   };
 
-  // 상세보기 토글 함수를 하단 전체 화면용으로 변경
   const toggleTestDetails = (test) => {
     if (selectedTest && selectedTest.id === test.id) {
-      // 같은 테스트를 다시 클릭하면 닫기
       setSelectedTest(null);
-      setShowDetail(false);
     } else {
-      // 다른 테스트를 클릭하면 선택하고 표시
       setSelectedTest(test);
-      setShowDetail(true);
     }
-  };
-
-  // 상세보기 닫기
-  const closeDetail = () => {
-    setSelectedTest(null);
-    setShowDetail(false);
   };
 
   // 필터링된 자동화 테스트 목록 반환
@@ -312,7 +302,7 @@ const AutomationTestManager = () => {
           </div>
         )}
         <div className="header-actions">
-          {user && (user.role === 'admin' || user.role === 'user') && (
+          {user && ['admin', 'user'].includes(user.role) && (
             <button 
               className="automation-btn automation-btn-add"
               onClick={() => setShowAddModal(true)}
@@ -518,7 +508,7 @@ const AutomationTestManager = () => {
                     <td>{test.created_at ? new Date(test.created_at).toLocaleDateString('ko-KR') : '-'}</td>
                     <td className="automation-action-cell" onClick={(e) => e.stopPropagation()}>
                       <div className="automation-action-buttons">
-                        {user && (user.role === 'admin' || user.role === 'user') && (
+                        {user && ['admin', 'user'].includes(user.role) && (
                           <button 
                             className="automation-btn automation-btn-execute"
                             onClick={() => handleExecuteTest(test.id)}
@@ -534,7 +524,7 @@ const AutomationTestManager = () => {
                         >
                           상세
                         </button>
-                        {user && (user.role === 'admin' || user.role === 'user') && (
+                        {user && ['admin', 'user'].includes(user.role) && (
                           <button 
                             className="automation-btn automation-btn-edit"
                             onClick={() => handleEditClick(test)}
@@ -562,46 +552,19 @@ const AutomationTestManager = () => {
         )}
       </div>
 
-      {/* 상세보기 모달 */}
-      {selectedTest && (
-        <div className="modal-overlay fullscreen-modal">
-          <div className="modal fullscreen-modal-content">
-            <div className="modal-header">
-              <h3>📋 자동화 테스트 상세 정보</h3>
-              <button 
-                className="modal-close"
-                onClick={() => {
-                  setSelectedTest(null);
-                  setShowDetail(false);
-                }}
-              >
-                ×
-              </button>
-            </div>
-            <div className="modal-body" style={{ padding: '24px', overflowY: 'auto' }}>
-              <AutomationTestDetail 
-                test={selectedTest}
-                onClose={() => {
-                  setSelectedTest(null);
-                  setShowDetail(false);
-                }}
-                onRefresh={fetchAutomationTests}
-              />
-            </div>
-            <div className="modal-actions">
-              <button 
-                className="btn btn-secondary"
-                onClick={() => {
-                  setSelectedTest(null);
-                  setShowDetail(false);
-                }}
-              >
-                닫기
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SlidePanel
+        isOpen={!!selectedTest}
+        onClose={() => setSelectedTest(null)}
+        title="자동화 테스트 상세 정보"
+      >
+        {selectedTest && (
+          <AutomationTestDetail
+            test={selectedTest}
+            onClose={() => setSelectedTest(null)}
+            onRefresh={fetchAutomationTests}
+          />
+        )}
+      </SlidePanel>
       {/* 추가 모달 */}
       {showAddModal && (
         <div className="modal-overlay fullscreen-modal">
@@ -681,7 +644,7 @@ const AutomationTestManager = () => {
                   rows="5"
                 />
               </div>
-              {user && (user.role === 'admin' || user.role === 'user') && (
+              {user && ['admin', 'user'].includes(user.role) && (
                 <div className="form-group">
                   <label>담당자</label>
                   <select
@@ -792,7 +755,7 @@ const AutomationTestManager = () => {
                   rows="5"
                 />
               </div>
-              {user && (user.role === 'admin' || user.role === 'user') && (
+              {user && ['admin', 'user'].includes(user.role) && (
                 <div className="form-group">
                   <label>담당자</label>
                   <select

@@ -3,7 +3,7 @@ import { useAuth } from '@tms/contexts/AuthContext';
 import Auth from '@tms/components/auth/Auth';
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading, user } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
     return (

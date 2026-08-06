@@ -12,12 +12,14 @@ import UserProfile from '@tms/components/auth/UserProfile';
 import JiraIssuesList from '@tms/components/jira/JiraIssuesList';
 import NotificationBell from '@tms/components/notifications/NotificationBell';
 import { ErrorBoundary } from '@tms/components/utils';
+import GrafanaDashboard from '@tms/components/monitoring/GrafanaDashboard';
 import { AuthProvider, useAuth } from '@tms/contexts/AuthContext';
 import ProtectedRoute from '@tms/components/auth/ProtectedRoute';
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const userMenuRef = useRef(null);
   const { user, logout } = useAuth();
 
@@ -90,6 +92,12 @@ function AppContent() {
             <FolderManager />
           </ErrorBoundary>
         );
+      case 'monitoring':
+        return (
+          <ErrorBoundary>
+            <GrafanaDashboard />
+          </ErrorBoundary>
+        );
       case 'settings':
         return (
           <ErrorBoundary>
@@ -118,7 +126,7 @@ function AppContent() {
 
   // 권한별 메뉴 표시 조건
   const canAccessSettings = () => {
-    return user && (user.role === 'admin' || user.role === 'user');
+    return user && ['admin', 'executive', 'user'].includes(user.role);
   };
 
   const canAccessAutomation = () => {
@@ -143,6 +151,7 @@ function AppContent() {
 
   const navItems = [
     { id: 'dashboard', label: '대시보드', icon: '📊' },
+    { id: 'monitoring', label: '모니터링', icon: '📈' },
     { id: 'testcases', label: '테스트 케이스', icon: '🧪' },
     ...(canAccessJira() ? [{ id: 'jira', label: '이슈', icon: '🔗' }] : []),
     ...(canAccessAutomation() ? [{ id: 'automation', label: '자동화 테스트', icon: '🤖' }] : []),
@@ -155,7 +164,17 @@ function AppContent() {
     <ErrorBoundary>
       <div className="App app-layout">
         <header className="app-header">
-          <h1 className="app-logo">LTMS</h1>
+          <div className="app-header-left">
+            <button
+              type="button"
+              className="sidebar-toggle-btn"
+              onClick={() => setSidebarCollapsed((v) => !v)}
+              aria-label={sidebarCollapsed ? '메뉴 펼치기' : '메뉴 접기'}
+            >
+              {sidebarCollapsed ? '☰' : '✕'}
+            </button>
+            <h1 className="app-logo">LTMS</h1>
+          </div>
           {user && (
             <div className="app-header-right">
               <NotificationBell />
@@ -170,6 +189,7 @@ function AppContent() {
                   <span className="user-info">
                     <span>👤 {user.username}</span>
                     {user.role === 'admin' && <span className="admin-badge">관리자</span>}
+                    {user.role === 'executive' && <span className="executive-badge">임원</span>}
                     {user.role === 'user' && <span className="user-badge">사용자</span>}
                     {user.role === 'guest' && <span className="guest-badge">게스트</span>}
                   </span>
@@ -202,7 +222,7 @@ function AppContent() {
         </header>
 
         <div className="app-body">
-          <aside className="app-sidebar">
+          <aside className={`app-sidebar${sidebarCollapsed ? ' collapsed' : ''}`}>
             <nav className="sidebar-nav">
               {navItems.map((item) => (
                 <button
@@ -210,6 +230,7 @@ function AppContent() {
                   type="button"
                   className={`sidebar-nav-item ${activeTab === item.id ? 'active' : ''}`}
                   onClick={() => setActiveTab(item.id)}
+                  title={sidebarCollapsed ? item.label : undefined}
                 >
                   <span className="sidebar-nav-icon">{item.icon}</span>
                   <span className="sidebar-nav-label">{item.label}</span>

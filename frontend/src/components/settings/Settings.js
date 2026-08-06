@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ProjectFolderManager from '@tms/components/settings/ProjectFolderManager';
 import AccountManager from '@tms/components/settings/AccountManager';
 import PromptSettings from '@tms/components/settings/PromptSettings';
+import GoogleSheetsImport from '@tms/components/settings/GoogleSheetsImport';
 import { useAuth } from '@tms/contexts/AuthContext';
 import '@tms/components/settings/Settings.css';
 
@@ -10,15 +11,19 @@ const Settings = () => {
   const { user } = useAuth();
 
   const canAccessProjectFolder = () => {
-    return user && (user.role === 'admin' || user.role === 'user');
+    return user && ['admin', 'executive', 'user'].includes(user.role);
   };
 
   const canAccessAccounts = () => {
-    return user && (user.role === 'admin' || user.role === 'user');
+    return user && ['admin', 'executive', 'user'].includes(user.role);
   };
 
   const canAccessPromptSettings = () => {
-    return user && (user.role === 'admin' || user.role === 'user');
+    return user && ['admin', 'user'].includes(user.role);
+  };
+
+  const canAccessImport = () => {
+    return user && ['admin', 'user'].includes(user.role);
   };
 
   const renderContent = () => {
@@ -29,6 +34,8 @@ const Settings = () => {
         return canAccessPromptSettings() ? <PromptSettings /> : <div>접근 권한이 없습니다.</div>;
       case 'accounts':
         return canAccessAccounts() ? <AccountManager /> : <div>접근 권한이 없습니다.</div>;
+      case 'import':
+        return canAccessImport() ? <GoogleSheetsImport /> : <div>접근 권한이 없습니다.</div>;
       default:
         return canAccessAccounts() ? <AccountManager /> : <div>접근 권한이 없습니다.</div>;
     }
@@ -42,6 +49,7 @@ const Settings = () => {
           <span>현재 사용자: {user?.username}</span>
           <span className={`role-badge ${user?.role}`}>
             {user?.role === 'admin' ? '관리자' : 
+             user?.role === 'executive' ? '임원' :
              user?.role === 'user' ? '사용자' : 
              user?.role === 'guest' ? '게스트' : '알 수 없음'}
           </span>
@@ -79,11 +87,21 @@ const Settings = () => {
               )}
               {canAccessAccounts() && (
                 <li>
-                  <button 
+                  <button
                     className={`snb-item ${activeMenu === 'accounts' ? 'active' : ''}`}
                     onClick={() => setActiveMenu('accounts')}
                   >
                     👤 계정 관리
+                  </button>
+                </li>
+              )}
+              {canAccessImport() && (
+                <li>
+                  <button
+                    className={`snb-item ${activeMenu === 'import' ? 'active' : ''}`}
+                    onClick={() => setActiveMenu('import')}
+                  >
+                    데이터 가져오기
                   </button>
                 </li>
               )}
@@ -95,4 +113,4 @@ const Settings = () => {
   );
 };
 
-export default Settings; 
+export default Settings;

@@ -225,7 +225,7 @@ const JiraIntegration = ({ testId, testType, testName, testResult, errorMessage,
               
               <div className="issue-actions">
                 {/* 게스트는 상태 변경 불가 */}
-                {user && (user.role === 'admin' || user.role === 'user') && (
+                {user && ['admin', 'user'].includes(user.role) && (
                   <>
                     <select
                       className="status-select"

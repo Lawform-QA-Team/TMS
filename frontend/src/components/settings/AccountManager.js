@@ -72,6 +72,7 @@ const AccountManager = () => {
         last_name: currentUser.last_name || ''
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
 
@@ -119,14 +120,16 @@ const AccountManager = () => {
       const userData = {
         username: newUser.username,
         email: newUser.email,
+        first_name: newUser.first_name,
+        last_name: newUser.last_name,
         role: newUser.role
-        // 비밀번호가 없으면 기본 비밀번호(1q2w#E$R)가 자동으로 설정됩니다.
+        // 비밀번호가 없으면 임시 비밀번호가 자동으로 발급됩니다.
       };
       
       const response = await axios.post('/users', userData);
       
-      if (response.data.default_password) {
-        alert(`사용자가 성공적으로 추가되었습니다.\n기본 비밀번호: ${response.data.default_password}`);
+      if (response.data.temporary_password) {
+        alert(`사용자가 성공적으로 추가되었습니다.\n임시 비밀번호: ${response.data.temporary_password}`);
       } else {
         alert('사용자가 성공적으로 추가되었습니다.');
       }
@@ -135,12 +138,14 @@ const AccountManager = () => {
       setNewUser({
         username: '',
         email: '',
+        first_name: '',
+        last_name: '',
         password: '',
-        role: 'User'
+        role: 'user'
       });
       fetchUsers();
     } catch (err) {
-      alert('사용자 추가 중 오류가 발생했습니다: ' + err.response?.data?.error || err.message);
+      alert('사용자 추가 중 오류가 발생했습니다: ' + (err.response?.data?.error || err.message));
     }
   };
 
@@ -169,7 +174,7 @@ const AccountManager = () => {
       setSelectedUser(null);
       fetchUsers();
     } catch (err) {
-      alert('사용자 수정 중 오류가 발생했습니다: ' + err.response?.data?.error || err.message);
+      alert('사용자 수정 중 오류가 발생했습니다: ' + (err.response?.data?.error || err.message));
     }
   };
 
@@ -183,7 +188,7 @@ const AccountManager = () => {
       alert('사용자가 성공적으로 삭제되었습니다.');
       fetchUsers();
     } catch (err) {
-      alert('사용자 삭제 중 오류가 발생했습니다: ' + err.response?.data?.error || err.message);
+      alert('사용자 삭제 중 오류가 발생했습니다: ' + (err.response?.data?.error || err.message));
     }
   };
 
@@ -214,7 +219,7 @@ const AccountManager = () => {
   };
 
   const getRoleLabel = (role) => {
-    const labels = { admin: '관리자', user: '일반', guest: '게스트' };
+    const labels = { admin: '관리자', executive: '임원', user: '일반', guest: '게스트' };
     return labels[role] || role || '일반';
   };
 
@@ -281,6 +286,8 @@ const AccountManager = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          username: profileData.username,
+          email: profileData.email,
           first_name: profileData.first_name,
           last_name: profileData.last_name
         })
@@ -323,7 +330,7 @@ const AccountManager = () => {
   const canEditUser = (user) => {
     // admin은 모든 사용자 수정 가능
     // user는 자신만 수정 가능
-    return currentUser?.role === 'admin' || user.id === currentUser?.id;
+    return currentUser?.role === 'admin' || (currentUser?.role === 'user' && user.id === currentUser?.id);
   };
 
   const canViewUsers = () => {
@@ -413,13 +420,15 @@ const AccountManager = () => {
                     <td className="col-actions">
                       {currentUser?.role !== 'guest' && (
                         <>
-                          <button
-                            type="button"
-                            className="btn-text btn-edit"
-                            onClick={() => setShowProfileModal(true)}
-                          >
-                            프로필 수정
-                          </button>
+                          {currentUser?.role !== 'executive' && (
+                            <button
+                              type="button"
+                              className="btn-text btn-edit"
+                              onClick={() => setShowProfileModal(true)}
+                            >
+                              프로필 수정
+                            </button>
+                          )}
                           <button
                             type="button"
                             className="btn-text btn-password"
@@ -573,13 +582,14 @@ const AccountManager = () => {
                     onChange={(e) => setNewUser({...newUser, role: e.target.value})}
                   >
                     <option value="user">User (일반 사용자)</option>
+                    <option value="executive">Executive (임원)</option>
                     <option value="admin">Admin (관리자)</option>
                     <option value="guest">Guest (게스트)</option>
                   </select>
                 </div>
                 <div className="form-group">
                   <small className="form-help">
-                    * 비밀번호는 기본값(1q2w#E$R)으로 설정됩니다.
+                    * 임시 비밀번호가 생성됩니다. 사용자 추가 후 임시 비밀번호를 전달하세요.
                   </small>
                 </div>
               </div>
@@ -657,6 +667,7 @@ const AccountManager = () => {
                     onChange={(e) => setEditUser({...editUser, role: e.target.value})}
                   >
                     <option value="user">User (일반 사용자)</option>
+                    <option value="executive">Executive (임원)</option>
                     <option value="admin">Admin (관리자)</option>
                     <option value="guest">Guest (게스트)</option>
                   </select>

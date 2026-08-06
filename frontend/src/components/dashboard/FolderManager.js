@@ -163,7 +163,7 @@ const FolderManager = () => {
           </span>
           <span className="folder-name">{node.name}</span>
           <div className="folder-actions">
-            {user && (user.role === 'admin' || user.role === 'user') && node.type !== 'test_case' && node.type !== 'project' && (
+            {user && ['admin', 'user'].includes(user.role) && node.type !== 'test_case' && node.type !== 'project' && (
               <>
                 <button 
                   className="btn-edit"
@@ -234,7 +234,7 @@ const FolderManager = () => {
             ))}
           </select>
         </div>
-        {user && (user.role === 'admin' || user.role === 'user') && (
+        {user && ['admin', 'user'].includes(user.role) && (
           <button 
             className="btn-create"
             onClick={() => {
@@ -254,7 +254,7 @@ const FolderManager = () => {
         </div>
       )}
 
-      {user && (user.role === 'admin' || user.role === 'user') && showCreateForm && (
+      {user && ['admin', 'user'].includes(user.role) && showCreateForm && (
         <div className="modal-overlay fullscreen-modal">
           <div className="modal fullscreen-modal-content">
             <div className="modal-header">
@@ -531,7 +531,7 @@ const FolderManager = () => {
                   <td>{folder.environment}</td>
                   <td>{folder.deployment_date || '-'}</td>
                   <td>
-                    {user && (user.role === 'admin' || user.role === 'user') && (
+                    {user && ['admin', 'user'].includes(user.role) && (
                       <button 
                         className="btn-edit-small"
                         onClick={() => {
