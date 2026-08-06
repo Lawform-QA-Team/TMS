@@ -37,7 +37,8 @@ export default function PipelineDetail({ pipelineId, onClose }) {
   if (error) return <div className="pipeline-error">오류: {error}</div>;
   if (!data) return null;
 
-  const { ticket, stages } = data;
+  const { ticket, stages, qaPlan } = data;
+  const plan = qaPlan?.plan_content ? (() => { try { return JSON.parse(qaPlan.plan_content); } catch { return null; } })() : null;
 
   return (
     <div className="pipeline-detail">
@@ -68,6 +69,39 @@ export default function PipelineDetail({ pipelineId, onClose }) {
           </div>
         ))}
       </div>
+
+      {plan && (
+        <div className="pipeline-qaplan">
+          <div className="pipeline-qaplan-header">
+            QA 계획
+            {qaPlan.approval_status && (
+              <span className={`pipeline-approval-badge approval-${qaPlan.approval_status}`}>
+                {qaPlan.approval_status === 'pending' ? '승인 대기' : qaPlan.approval_status === 'approved' ? '승인됨' : '거절됨'}
+              </span>
+            )}
+          </div>
+          <div className="pipeline-qaplan-body">
+            <div className="pipeline-qaplan-row"><b>목표</b><span>{plan.objective}</span></div>
+            <div className="pipeline-qaplan-row"><b>접근 방식</b><span>{plan.approach}</span></div>
+            <div className="pipeline-qaplan-row">
+              <b>테스트 범위</b>
+              <ul>{plan.scope?.map((s, i) => <li key={i}>{s}</li>)}</ul>
+            </div>
+            <div className="pipeline-qaplan-row">
+              <b>테스트 유형</b><span>{plan.testTypes?.join(', ')}</span>
+            </div>
+            <div className="pipeline-qaplan-row">
+              <b>예상 TC 수</b><span>{plan.estimatedTcCount}개</span>
+            </div>
+            {plan.risks?.length > 0 && (
+              <div className="pipeline-qaplan-row">
+                <b>리스크</b>
+                <ul>{plan.risks.map((r, i) => <li key={i}>{r}</li>)}</ul>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {ticket.pipeline_status === 'collected' && (
         <div className="pipeline-detail-actions">

@@ -363,6 +363,70 @@
   font-size: 0.875rem;
 }
 
+/* QA Plan panel */
+.pipeline-qaplan {
+  margin-top: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pipeline-qaplan-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #f9fafb;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #1f2937;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.pipeline-approval-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.approval-pending  { background: #fef3c7; color: #92400e; }
+.approval-approved { background: #d1fae5; color: #065f46; }
+.approval-rejected { background: #fee2e2; color: #991b1b; }
+
+.pipeline-qaplan-body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pipeline-qaplan-row {
+  display: flex;
+  gap: 12px;
+  font-size: 0.875rem;
+}
+
+.pipeline-qaplan-row b {
+  flex-shrink: 0;
+  width: 90px;
+  color: #6b7280;
+}
+
+.pipeline-qaplan-row span {
+  color: #1f2937;
+}
+
+.pipeline-qaplan-row ul {
+  margin: 0;
+  padding-left: 16px;
+  color: #1f2937;
+}
+
+.pipeline-qaplan-row ul li {
+  margin-bottom: 2px;
+}
+
 /* Manager layout */
 .pipeline-manager {
   display: flex;

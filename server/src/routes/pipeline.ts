@@ -155,11 +155,22 @@ pipelineRouter.get('/:pipelineId', async (c) => {
     if (!ticket) return c.json({ success: false, error: '파이프라인을 찾을 수 없습니다.' }, 404)
 
     const stages = buildStages(ticket.pipelineStatus)
+    const qaPlan = ticket.qaPlan
+      ? {
+          id: ticket.qaPlan.id,
+          pipeline_id: ticket.qaPlan.pipelineId,
+          plan_content: ticket.qaPlan.planContent,
+          approval_status: ticket.qaPlan.approvalStatus,
+          created_at: ticket.qaPlan.createdAt.toISOString(),
+          test_case_count: ticket.qaPlan.autoQaTestCases.length,
+        }
+      : null
     return c.json({
       success: true,
       data: {
         ticket: serializeTicket(ticket),
         stages,
+        qaPlan,
       },
     })
   } catch (e) {

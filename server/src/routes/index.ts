@@ -29,6 +29,7 @@ import { jiraRouter } from './jira.js'
 import { customReportsRouter } from './customReports.js'
 import { queueRouter } from './queue.js'
 import { pipelineRouter } from './pipeline.js'
+import { slackRouter } from './slack.js'
 
 export function registerRoutes(app: Hono): void {
   // Phase 2: 인증 & 사용자
@@ -75,4 +76,7 @@ export function registerRoutes(app: Hono): void {
 
   // Phase 7: QA 파이프라인
   app.route('/pipeline', pipelineRouter)
+
+  // Phase 8: Slack 인터랙션
+  app.route('/slack', slackRouter)
 }

@@ -16,6 +16,8 @@ import { jiraClient } from './jiraClient.js'
 import { env } from '../env.js'
 import { logger } from './logger.js'
 import type { NormalizedTicket } from './ticketNormalizer.js'
+import { generateQAPlan, createQAPlanRecord } from './qaPlanGenerator.js'
+import { sendQAPlanApprovalRequest } from './slackNotifier.js'
 
 // ──────────────────────────────────────────────
 // Job 타입 정의
@@ -54,6 +56,11 @@ export type JiraPipelineJobData =
       ticketKey: string
       pipelineId: string
       payload: NormalizedTicket
+    }
+  | {
+      type: 'qaplan-approved'
+      pipelineId: string
+      qaPlanId: number
     }
 
 // ──────────────────────────────────────────────
@@ -219,8 +226,24 @@ async function processJob(job: Job<JiraPipelineJobData>): Promise<void> {
   }
 
   else if (data.type === 'collect-complete') {
-    logger.info({ pipelineId: data.pipelineId }, 'collect-complete 처리 (2단계 연결 예정)')
-    // 현재는 로그만 기록. 2단계에서 qaplan 진행 연결 예정
+    logger.info({ pipelineId: data.pipelineId }, 'collect-complete → QA Plan 생성 시작')
+    try {
+      const { planContent } = await generateQAPlan(data.payload)
+      const { qaPlanId } = await createQAPlanRecord(data.payload, planContent)
+      await sendQAPlanApprovalRequest(data.payload, planContent, qaPlanId)
+      logger.info({ pipelineId: data.pipelineId, qaPlanId }, 'QA Plan Slack 승인 요청 발송')
+    } catch (e) {
+      logger.error({ e, pipelineId: data.pipelineId }, 'QA Plan 생성 오류')
+      await db.collectedTicket.update({
+        where: { pipelineId: data.pipelineId },
+        data: { pipelineStatus: 'collected', errorMessage: String(e), updatedAt: new Date() },
+      })
+    }
+  }
+
+  else if (data.type === 'qaplan-approved') {
+    logger.info({ pipelineId: data.pipelineId, qaPlanId: data.qaPlanId }, 'QA Plan 승인 — TC 생성 단계 진입 (3단계 예정)')
+    // 3단계(testcases 생성)에서 연결 예정
   }
 
   else if (data.type === 'sync-jira-status') {
