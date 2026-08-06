@@ -173,6 +173,7 @@ def get_testcase(id):
         'pre_condition': tc.pre_condition,
         'expected_result': tc.expected_result,
         'result_status': tc.result_status,
+        'priority': tc.priority,
         'remark': tc.remark,
         'test_steps': tc.test_steps,
         'automation_code_path': tc.automation_code_path,
@@ -724,6 +725,7 @@ def create_testcase():
         pre_condition=data.get('pre_condition', ''),
         expected_result=data.get('expected_result', ''),
         result_status=data.get('result_status', 'N/T'),
+        priority=data.get('priority') or None,
         remark=data.get('remark', ''),
         test_steps=data.get('test_steps') or None,
         environment=folder_environment,  # 폴더의 환경 정보 사용
@@ -963,6 +965,8 @@ def update_testcase(id):
         tc.expected_result = data.get('expected_result', tc.expected_result)
         old_result_status = tc.result_status
         tc.result_status = data.get('result_status', tc.result_status)
+        if 'priority' in data:
+            tc.priority = data.get('priority') or None
         tc.remark = data.get('remark', tc.remark)
         if 'test_steps' in data:
             tc.test_steps = data.get('test_steps') or None

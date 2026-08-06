@@ -37,6 +37,7 @@ def serialize_testcase(tc, include_relations=False):
         'automation_code_path': tc.automation_code_path,
         'environment': tc.environment,
         'result_status': getattr(tc, 'result_status', None),
+        'priority': getattr(tc, 'priority', None),
         'created_at': tc.created_at.isoformat() if tc.created_at else None,
         'updated_at': tc.updated_at.isoformat() if tc.updated_at else None
     }
