@@ -17,10 +17,11 @@ import { env } from '../env.js'
 import { logger } from './logger.js'
 import type { NormalizedTicket } from './ticketNormalizer.js'
 import { generateQAPlan, createQAPlanRecord } from './qaPlanGenerator.js'
-import { sendQAPlanApprovalRequest, sendTestCasesComplete, sendPageAnalysisComplete, sendCodegenComplete } from './slackNotifier.js'
+import { sendQAPlanApprovalRequest, sendTestCasesComplete, sendPageAnalysisComplete, sendCodegenComplete, sendTestRunComplete } from './slackNotifier.js'
 import { generateTestCases } from './testCaseGenerator.js'
 import { analyzePages } from './pageAnalyzer.js'
 import { generateCode } from './codeGenerator.js'
+import { runTests } from './testRunner.js'
 
 // ──────────────────────────────────────────────
 // Job 타입 정의
@@ -74,6 +75,10 @@ export type JiraPipelineJobData =
       type: 'pageanalysis-complete'
       pipelineId: string
       qaPlanId: number
+    }
+  | {
+      type: 'codegen-complete'
+      pipelineId: string
     }
 
 // ──────────────────────────────────────────────
@@ -301,12 +306,32 @@ async function processJob(job: Job<JiraPipelineJobData>): Promise<void> {
     try {
       const { fileName, linesOfCode } = await generateCode(data.pipelineId, data.qaPlanId)
       await sendCodegenComplete(data.pipelineId, fileName, linesOfCode)
-      logger.info({ pipelineId: data.pipelineId, fileName, linesOfCode }, '코드 생성 완료')
+      // Phase 6: 코드 생성 완료 → 테스트 실행 자동 진행
+      await getJiraQueue().add('codegen-complete', {
+        type: 'codegen-complete',
+        pipelineId: data.pipelineId,
+      })
+      logger.info({ pipelineId: data.pipelineId, fileName, linesOfCode }, '코드 생성 완료 → 테스트 실행 큐 등록')
     } catch (e) {
       logger.error({ e, pipelineId: data.pipelineId }, '코드 생성 오류')
       await db.collectedTicket.update({
         where: { pipelineId: data.pipelineId },
         data: { pipelineStatus: 'pageanalysis', errorMessage: String(e), updatedAt: new Date() },
+      })
+    }
+  }
+
+  else if (data.type === 'codegen-complete') {
+    logger.info({ pipelineId: data.pipelineId }, '코드 생성 완료 → 테스트 실행 시작')
+    try {
+      const { status, totalTests, passed, failed } = await runTests(data.pipelineId)
+      await sendTestRunComplete(data.pipelineId, status, totalTests, passed, failed)
+      logger.info({ pipelineId: data.pipelineId, status, totalTests, passed, failed }, '테스트 실행 완료')
+    } catch (e) {
+      logger.error({ e, pipelineId: data.pipelineId }, '테스트 실행 오류')
+      await db.collectedTicket.update({
+        where: { pipelineId: data.pipelineId },
+        data: { pipelineStatus: 'codegen', errorMessage: String(e), updatedAt: new Date() },
       })
     }
   }

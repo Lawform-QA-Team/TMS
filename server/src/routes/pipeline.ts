@@ -144,7 +144,7 @@ pipelineRouter.get('/', async (c) => {
 pipelineRouter.get('/:pipelineId', async (c) => {
   const pipelineId = c.req.param('pipelineId')
   try {
-    const [ticket, pageAnalyses, generatedCode] = await Promise.all([
+    const [ticket, pageAnalyses, generatedCode, testRunResult] = await Promise.all([
       db.collectedTicket.findUnique({
         where: { pipelineId },
         include: {
@@ -155,6 +155,7 @@ pipelineRouter.get('/:pipelineId', async (c) => {
       }),
       db.pageAnalysis.findMany({ where: { pipelineId } }),
       db.generatedCode.findUnique({ where: { pipelineId } }),
+      db.testRunResult.findUnique({ where: { pipelineId } }),
     ])
     if (!ticket) return c.json({ success: false, error: '파이프라인을 찾을 수 없습니다.' }, 404)
 
@@ -201,6 +202,23 @@ pipelineRouter.get('/:pipelineId', async (c) => {
         }
       : null
 
+    const testRunData = testRunResult
+      ? {
+          id: testRunResult.id,
+          pipeline_id: testRunResult.pipelineId,
+          status: testRunResult.status,
+          total_tests: testRunResult.totalTests,
+          passed: testRunResult.passed,
+          failed: testRunResult.failed,
+          skipped: testRunResult.skipped,
+          duration_ms: testRunResult.durationMs,
+          results: (() => { try { return testRunResult.results ? JSON.parse(testRunResult.results) : [] } catch { return [] } })(),
+          error_message: testRunResult.errorMessage,
+          started_at: testRunResult.startedAt?.toISOString() ?? null,
+          completed_at: testRunResult.completedAt?.toISOString() ?? null,
+        }
+      : null
+
     return c.json({
       success: true,
       data: {
@@ -209,6 +227,7 @@ pipelineRouter.get('/:pipelineId', async (c) => {
         qaPlan,
         pageAnalyses: pages,
         generatedCode: generatedCodeData,
+        testRunResult: testRunData,
       },
     })
   } catch (e) {

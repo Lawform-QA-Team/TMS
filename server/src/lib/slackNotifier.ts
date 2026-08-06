@@ -180,6 +180,38 @@ export async function sendCodegenComplete(
   })
 }
 
+export async function sendTestRunComplete(
+  pipelineId: string,
+  status: string,
+  totalTests: number,
+  passed: number,
+  failed: number,
+): Promise<void> {
+  const channel = env.SLACK_CHANNEL_ID
+  if (!channel) return
+
+  const ticket = await (await import('./db.js')).db.collectedTicket.findUnique({
+    where: { pipelineId },
+  })
+  if (!ticket) return
+
+  const emoji = status === 'passed' ? ':white_check_mark:' : status === 'simulation' ? ':test_tube:' : ':x:'
+  const statusLabel = status === 'simulation' ? '시뮬레이션' : status === 'passed' ? '성공' : '실패'
+
+  await postSlack('chat.postMessage', {
+    channel,
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `${emoji} *${ticket.ticketKey}* — ${ticket.summary}\n테스트 실행 ${statusLabel} (전체 ${totalTests}개, 통과 ${passed}개, 실패 ${failed}개)`,
+        },
+      },
+    ],
+  })
+}
+
 export async function updateApprovalMessage(
   channel: string,
   ts: string,

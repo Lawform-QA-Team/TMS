@@ -37,7 +37,7 @@ export default function PipelineDetail({ pipelineId, onClose }) {
   if (error) return <div className="pipeline-error">오류: {error}</div>;
   if (!data) return null;
 
-  const { ticket, stages, qaPlan, pageAnalyses, generatedCode } = data;
+  const { ticket, stages, qaPlan, pageAnalyses, generatedCode, testRunResult } = data;
   const plan = qaPlan?.plan_content ? (() => { try { return JSON.parse(qaPlan.plan_content); } catch { return null; } })() : null;
 
   return (
@@ -154,6 +154,61 @@ export default function PipelineDetail({ pipelineId, onClose }) {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {testRunResult && (
+        <div className="pipeline-tc-list">
+          <div className="pipeline-qaplan-header">
+            테스트 실행 결과
+            <span className={`pipeline-approval-badge approval-${
+              testRunResult.status === 'passed' ? 'approved' :
+              testRunResult.status === 'failed' ? 'rejected' : 'pending'
+            }`}>
+              {testRunResult.status === 'simulation' ? '시뮬레이션' :
+               testRunResult.status === 'passed' ? '통과' :
+               testRunResult.status === 'failed' ? '실패' :
+               testRunResult.status === 'running' ? '실행 중' : testRunResult.status}
+            </span>
+          </div>
+          <div className="pipeline-qaplan-body">
+            <div className="pipeline-qaplan-row">
+              <b>전체</b><span>{testRunResult.total_tests}개</span>
+            </div>
+            <div className="pipeline-qaplan-row">
+              <b>통과</b><span style={{ color: '#16a34a' }}>{testRunResult.passed}개</span>
+            </div>
+            <div className="pipeline-qaplan-row">
+              <b>실패</b><span style={{ color: '#dc2626' }}>{testRunResult.failed}개</span>
+            </div>
+            {testRunResult.skipped > 0 && (
+              <div className="pipeline-qaplan-row">
+                <b>건너뜀</b><span style={{ color: '#6b7280' }}>{testRunResult.skipped}개</span>
+              </div>
+            )}
+            {testRunResult.duration_ms > 0 && (
+              <div className="pipeline-qaplan-row">
+                <b>소요 시간</b><span>{(testRunResult.duration_ms / 1000).toFixed(1)}초</span>
+              </div>
+            )}
+          </div>
+          {testRunResult.results?.length > 0 && (
+            <div className="pipeline-tc-items">
+              {testRunResult.results.map((r, i) => (
+                <div key={i} className="pipeline-tc-item">
+                  <div className="pipeline-tc-title">
+                    <span className={`pipeline-badge badge-${
+                      r.status === 'passed' ? 'green' : r.status === 'failed' ? 'red' : 'yellow'
+                    }`}>{r.status}</span>
+                    {r.title}
+                  </div>
+                  {r.error && (
+                    <div className="pipeline-tc-expected" style={{ color: '#dc2626' }}>{r.error}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

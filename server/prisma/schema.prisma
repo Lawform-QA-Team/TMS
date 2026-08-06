@@ -927,3 +927,22 @@ model GeneratedCode {
 
   @@map("GeneratedCodes")
 }
+
+model TestRunResult {
+  id           Int       @id @default(autoincrement())
+  pipelineId   String    @unique @map("pipeline_id") @db.VarChar(36)
+  status       String    @default("pending") @db.VarChar(20)  // pending, running, passed, failed, error, simulation
+  totalTests   Int       @default(0) @map("total_tests")
+  passed       Int       @default(0)
+  failed       Int       @default(0)
+  skipped      Int       @default(0)
+  durationMs   Int?      @map("duration_ms")
+  results      String?   @db.LongText  // JSON: [{title, status, durationMs, error}]
+  errorMessage String?   @map("error_message") @db.Text
+  startedAt    DateTime? @map("started_at") @db.DateTime(0)
+  completedAt  DateTime? @map("completed_at") @db.DateTime(0)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@map("TestRunResults")
+}
