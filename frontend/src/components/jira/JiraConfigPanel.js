@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import config from '@tms/config';
 import { useAuth } from '@tms/contexts/AuthContext';
 import '@tms/components/jira/JiraIssuesList.css';
 
@@ -27,7 +26,7 @@ const JiraConfigPanel = ({ onConfigured }) => {
 
   const fetchConfig = async () => {
     try {
-      const res = await axios.get(`${config.apiUrl}/api/jira/config`, { headers: authHeader });
+      const res = await axios.get('/jira/config', { headers: authHeader });
       if (res.data.success) {
         const data = res.data.data;
         setConfigState(data);
@@ -47,7 +46,7 @@ const JiraConfigPanel = ({ onConfigured }) => {
     setTesting(true);
     try {
       const res = await axios.post(
-        `${config.apiUrl}/api/jira/config/test`,
+        '/jira/config/test',
         { url: form.url, email: form.email, token: form.token },
         { headers: authHeader }
       );
@@ -76,7 +75,7 @@ const JiraConfigPanel = ({ onConfigured }) => {
     setSaving(true);
     try {
       const res = await axios.post(
-        `${config.apiUrl}/api/jira/config`,
+        '/jira/config',
         { url: form.url, email: form.email, token: form.token },
         { headers: authHeader }
       );

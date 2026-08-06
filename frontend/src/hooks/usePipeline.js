@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@tms/contexts/AuthContext';
+import config from '@tms/config';
 
-const API_BASE = '/api';
+const API_BASE = config.apiUrl;
 
 function buildAuthHeader(token) {
   return token ? { Authorization: `Bearer ${token}` } : {};

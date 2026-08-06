@@ -317,7 +317,7 @@ const UnifiedDashboard = ({ setActiveTab }) => {
   // 최근 이슈 가져오기
   const fetchJiraRecentIssues = async (page = 1) => {
     try {
-      const response = await axios.get(`/api/jira/issues?page=${page}&per_page=${itemsPerPage}`);
+      const response = await axios.get(`/jira/issues?page=${page}&per_page=${itemsPerPage}`);
       if (response.data.success) {
         setJiraRecentIssuesPagination(response.data.data.pagination);
         return response.data.data.issues || [];
@@ -431,9 +431,9 @@ const UnifiedDashboard = ({ setActiveTab }) => {
         axios.get('/dashboard-summaries'),
         axios.get('/testcases/summary/all'),
         axios.get('/dashboard/project-stats'),
-        axios.get('/api/jira/stats'),
-        axios.get('/api/jira/stats/environment'),
-        axios.get(`/api/jira/issues?page=1&per_page=${itemsPerPage}`)
+        axios.get('/jira/stats'),
+        axios.get('/jira/stats/environment'),
+        axios.get(`/jira/issues?page=1&per_page=${itemsPerPage}`)
       ]);
 
       setTestCases(testCasesRes.data.items || testCasesRes.data);
