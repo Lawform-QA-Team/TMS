@@ -1,7 +1,22 @@
 import React from 'react';
 import { getUserDisplayName } from '@tms/utils/userDisplay';
-// import { formatUTCToKST } from '@tms/utils/dateUtils';
+import { formatUTCToKST } from '@tms/utils/dateUtils';
 import '@tms/components/testcases/TestCaseTable.css';
+
+const STATUS_CONFIG = {
+  'Pass':  { dot: '#28a745', bg: '#eaf6ec', color: '#1a7a35', rowCls: '' },
+  'Fail':  { dot: '#dc3545', bg: '#fde8ea', color: '#a71d2a', rowCls: 'row-fail' },
+  'N/T':   { dot: '#adb5bd', bg: '#f1f3f5', color: '#495057', rowCls: '' },
+  'N/A':   { dot: '#74c0fc', bg: '#e7f5ff', color: '#1971c2', rowCls: '' },
+  'Block': { dot: '#fd7e14', bg: '#fff4e6', color: '#d9480f', rowCls: 'row-block' },
+};
+
+const PRIORITY_CONFIG = {
+  critical: { label: '긴급', bg: '#dc3545', color: '#fff' },
+  high:     { label: '높음', bg: '#fd7e14', color: '#fff' },
+  medium:   { label: '중간', bg: '#ffc107', color: '#333' },
+  low:      { label: '낮음', bg: '#adb5bd', color: '#fff' },
+};
 
 const TestCaseTable = ({
   testCases = [],
@@ -22,198 +37,165 @@ const TestCaseTable = ({
 }) => {
   const canModify = user && ['admin', 'user'].includes(user.role);
 
-  const handleSort = (column) => {
-    if (onSort) {
-      onSort(column);
-    }
-  };
-
-  const renderSortIcon = (column) => {
-    if (sortBy === column) {
-      return sortOrder === 'asc' ? '↑' : '↓';
-    }
-    return '';
+  const renderSortIcon = (col) => {
+    if (sortBy !== col) return null;
+    return <span className="sort-icon">{sortOrder === 'asc' ? '↑' : '↓'}</span>;
   };
 
   return (
-    <div className="testcase-table-container">
-      <table className="testcase-table">
+    <div className="tc-table-wrap">
+      <table className="tc-table">
         <thead>
           <tr>
-            <th className="checkbox-column">
-              <input 
+            <th className="col-check">
+              <input
                 type="checkbox"
                 checked={selectedTestCases.length === testCases.length && testCases.length > 0}
                 onChange={onSelectAll}
               />
             </th>
-            <th
-              className="no-column sortable"
-              onClick={() => handleSort('id')}
-              style={{ cursor: 'pointer' }}
-            >
-              No {renderSortIcon('id')}
+            <th className="col-no" onClick={() => onSort?.('tc_number')} style={{ cursor: 'pointer' }}>
+              NO {renderSortIcon('tc_number')}
             </th>
-            <th
-              className="tc-number-column sortable"
-              onClick={() => handleSort('tc_number')}
-              style={{ cursor: 'pointer' }}
-            >
-              TC No. {renderSortIcon('tc_number')}
-            </th>
-            <th 
-              className="summary-column sortable" 
-              onClick={() => handleSort('name')}
-              style={{ cursor: 'pointer' }}
-            >
-              요약 {renderSortIcon('name')}
-            </th>
-            <th 
-              className="status-column sortable" 
-              onClick={() => handleSort('status')}
-              style={{ cursor: 'pointer' }}
-            >
+            <th className="col-status" onClick={() => onSort?.('status')} style={{ cursor: 'pointer' }}>
               상태 {renderSortIcon('status')}
             </th>
-            <th 
-              className="assignee-column sortable" 
-              onClick={() => handleSort('assignee')}
-              style={{ cursor: 'pointer' }}
-            >
-              담당자 {renderSortIcon('assignee')}
+            <th className="col-category">구분</th>
+            <th className="col-name" onClick={() => onSort?.('name')} style={{ cursor: 'pointer' }}>
+              화면/기능명 {renderSortIcon('name')}
             </th>
-            <th 
-              className="creator-column sortable" 
-              onClick={() => handleSort('creator')}
-              style={{ cursor: 'pointer' }}
-            >
-              작성자 {renderSortIcon('creator')}
+            <th className="col-reg" onClick={() => onSort?.('creator')} style={{ cursor: 'pointer' }}>
+              등록 {renderSortIcon('creator')}
             </th>
-            <th className="actions-column">동작</th>
+            <th className="col-priority">중요도</th>
+            <th className="col-actions">관리</th>
           </tr>
         </thead>
         <tbody>
-          {testCases.map((testCase, index) => (
-            <tr key={testCase.id} className="testcase-table-row">
-              <td className="checkbox-column">
-                <input 
-                  type="checkbox"
-                  checked={selectedTestCases.includes(testCase.id)}
-                  onChange={() => onSelectTestCase(testCase.id)}
-                />
-              </td>
-              <td className="no-column">{index + 1}</td>
-              <td className="tc-number-column">{testCase.tc_number || ''}</td>
-              <td className="summary-column">
-                <div className="testcase-summary">
-                  <div className="testcase-title">
-                    {testCase.main_category && testCase.sub_category && testCase.detail_category 
-                      ? `${testCase.main_category} > ${testCase.sub_category} > ${testCase.detail_category}`
-                      : testCase.expected_result || '제목 없음'
-                    }
+          {testCases.map((tc) => {
+            const status = tc.result_status || 'N/T';
+            const cfg = STATUS_CONFIG[status] || STATUS_CONFIG['N/T'];
+            const priority = (tc.priority || '').toLowerCase();
+            const priCfg = PRIORITY_CONFIG[priority];
+            const tags = [
+              tc.sub_category,
+              tc.detail_category,
+              tc.environment,
+              tc.assignee_name ? `담당: ${tc.assignee_name}` : null,
+            ].filter(Boolean);
+
+            return (
+              <tr
+                key={tc.id}
+                className={`tc-row ${cfg.rowCls} ${selectedTestCases.includes(tc.id) ? 'row-selected' : ''}`}
+                onClick={() => onViewDetails(tc)}
+                style={{ cursor: 'pointer' }}
+              >
+                <td className="col-check" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={selectedTestCases.includes(tc.id)}
+                    onChange={() => onSelectTestCase(tc.id)}
+                  />
+                </td>
+
+                {/* NO */}
+                <td className="col-no">{tc.tc_number || tc.id}</td>
+
+                {/* 상태 */}
+                <td className="col-status" onClick={(e) => e.stopPropagation()}>
+                  <div className="status-pill" style={{ background: cfg.bg, color: cfg.color }}>
+                    <span className="status-dot" style={{ background: cfg.dot }} />
+                    {status}
                   </div>
-                  <div className="testcase-meta">
-                    <span className="environment-badge">{testCase.environment || 'dev'}</span>
-                    {testCase.automation_code_path && (
-                      <span className="automation-badge">자동화</span>
-                    )}
-                  </div>
-                </div>
-              </td>
-              <td className="status-column">
-                <div className="status-section">
-                  <span className={`status-badge ${(testCase.result_status || 'N/A').toLowerCase().replace('/', '-')}`}>
-                    {testCase.result_status || 'N/A'}
-                  </span>
                   {canModify && (
                     <select
                       className="status-select"
-                      value={testCase.result_status}
-                      onChange={(e) => onStatusChange(testCase.id, e.target.value)}
+                      value={tc.result_status || 'N/T'}
+                      onChange={(e) => onStatusChange(tc.id, e.target.value)}
                     >
-                      <option value="N/T">N/T</option>
-                      <option value="Pass">Pass</option>
-                      <option value="Fail">Fail</option>
-                      <option value="N/A">N/A</option>
-                      <option value="Block">Block</option>
+                      {Object.keys(STATUS_CONFIG).map(s => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
                     </select>
                   )}
-                </div>
-              </td>
-              <td className="assignee-column">
-                <div className="assignee-section">
-                  <span className="assignee-badge">
-                    👤 {testCase.assignee_name || '없음'}
-                  </span>
+                </td>
+
+                {/* 구분 */}
+                <td className="col-category">{tc.main_category || '-'}</td>
+
+                {/* 화면/기능명 */}
+                <td className="col-name">
+                  <div className="name-title-row">
+                    {priCfg && (
+                      <span className="priority-badge" style={{ background: priCfg.bg, color: priCfg.color }}>
+                        {priCfg.label}
+                      </span>
+                    )}
+                    <span className="name-title">{tc.name || '제목 없음'}</span>
+                  </div>
+                  {(tc.expected_result || tc.description) && (
+                    <div className="name-desc">
+                      {tc.expected_result || tc.description}
+                    </div>
+                  )}
+                  {tags.length > 0 && (
+                    <div className="name-tags">
+                      {tags.map((tag, i) => (
+                        <span key={i} className="tag-chip">{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                </td>
+
+                {/* 등록 */}
+                <td className="col-reg">
+                  <div className="reg-name">{tc.creator_name || '-'}</div>
+                  {tc.created_at && (
+                    <div className="reg-date">{formatUTCToKST(tc.created_at)}</div>
+                  )}
                   {canModify && (
                     <select
                       className="assignee-select"
-                      value={testCase.assignee_id || ''}
-                      onChange={(e) => onAssigneeChange(testCase.id, e.target.value)}
+                      value={tc.assignee_id || ''}
+                      onChange={(e) => onAssigneeChange(tc.id, e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                      title="담당자 변경"
                     >
                       <option value="">담당자 변경</option>
-                      {users && users.length > 0 ? (
-                        users.map(user => (
-                          <option key={user.id} value={user.id}>
-                            {getUserDisplayName(user) || 'Unknown'}
-                          </option>
-                        ))
-                      ) : (
-                        <option value="" disabled>사용자 목록 로딩 중...</option>
-                      )}
+                      {users.map(u => (
+                        <option key={u.id} value={u.id}>{getUserDisplayName(u)}</option>
+                      ))}
                     </select>
                   )}
-                </div>
-              </td>
-              <td className="creator-column">
-                <span className="creator-badge">
-                  👤 {testCase.creator_name || '없음'}
-                </span>
-              </td>
-              <td className="actions-column">
-                <div className="action-buttons">
-                  {/* 자동화 실행 버튼 (코드 경로 또는 테스트 단계가 있으면 표시) */}
-                  {canModify && (testCase.automation_code_path || testCase.test_steps) && (
-                    <button 
-                      className="testcase-btn testcase-btn-automation"
-                      onClick={() => onExecute(testCase.id)}
-                      title={testCase.automation_code_path ? '자동화 실행' : '테스트 단계 실행'}
-                    >
-                      실행
-                    </button>
+                </td>
+
+                {/* 중요도 */}
+                <td className="col-priority">
+                  {priCfg && (
+                    <span className="priority-badge" style={{ background: priCfg.bg, color: priCfg.color }}>
+                      {priCfg.label}
+                    </span>
                   )}
-                  {/* 상세보기 버튼 */}
-                  <button 
-                    className="testcase-btn testcase-btn-details"
-                    onClick={() => onViewDetails(testCase)}
-                    title="상세보기"
-                  >
-                    상세
-                  </button>
-                  {/* 수정 버튼 */}
-                  {canModify && (
-                    <button 
-                      className="testcase-btn testcase-btn-edit"
-                      onClick={() => onEdit(testCase)}
-                      title="수정"
-                    >
-                      수정
-                    </button>
-                  )}
-                  {/* 삭제 버튼 */}
-                  {user && user.role === 'admin' && (
-                    <button 
-                      className="testcase-btn testcase-btn-delete"
-                      onClick={() => onDelete(testCase.id)}
-                      title="삭제"
-                    >
-                      삭제
-                    </button>
-                  )}
-                </div>
-              </td>
-            </tr>
-          ))}
+                </td>
+
+                {/* 관리 */}
+                <td className="col-actions" onClick={(e) => e.stopPropagation()}>
+                  <div className="action-btns">
+                    {canModify && (tc.automation_code_path || tc.test_steps) && (
+                      <button className="row-btn btn-run" onClick={() => onExecute(tc.id)}>실행</button>
+                    )}
+                    {canModify && (
+                      <button className="row-btn btn-edit" onClick={() => onEdit(tc)}>수정</button>
+                    )}
+                    {user && user.role === 'admin' && (
+                      <button className="row-btn btn-del" onClick={() => onDelete(tc.id)}>삭제</button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
