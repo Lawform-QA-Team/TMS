@@ -156,11 +156,6 @@ const FolderManager = () => {
     return nodes.map((node) => (
       <div key={`${node.type}-${node.id}`} >
         <div className="folder-node">
-          <span className="folder-icon">
-            {node.type === 'project' ? '🗂️' :
-             node.type === 'environment' ? '🌍' : 
-             node.type === 'deployment_date' ? '📅' : '📄'}
-          </span>
           <span className="folder-name">{node.name}</span>
           <div className="folder-actions">
             {user && ['admin', 'user'].includes(user.role) && node.type !== 'test_case' && node.type !== 'project' && (

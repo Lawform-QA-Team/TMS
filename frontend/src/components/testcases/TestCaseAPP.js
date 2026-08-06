@@ -1056,14 +1056,6 @@ const TestCaseAPP = ({ setActiveTab }) => {
                 {isExpanded ? '▼' : '▶'}
               </span>
             )}
-            <span className="folder-icon">
-              {
-                nodeType === 'project' ? '🗂️' :
-                nodeType === 'environment' ? '🌍' : 
-                nodeType === 'deployment_date' ? '📅' : 
-                nodeType === 'feature' ? '🔧' : '📄'
-              }
-            </span>
             <span className="folder-name">{node.name}</span>
             {isFolder && (
               <span className="folder-type-badge">
@@ -1126,13 +1118,13 @@ const TestCaseAPP = ({ setActiveTab }) => {
                   className="testcase-btn testcase-btn-add"
                   onClick={() => setShowAddModal(true)}
                 >
-                  ➕ 테스트 케이스 추가
+                  테스트 케이스 추가
                 </button>
                 <button 
                   className="testcase-btn testcase-btn-upload"
                   onClick={() => setShowUploadModal(true)}
                 >
-                  📤 엑셀 업로드
+                  엑셀 업로드
                 </button>
               </>
             )}
@@ -1140,7 +1132,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
               className="testcase-btn testcase-btn-download"
               onClick={handleDownload}
             >
-              📥 엑셀 다운로드
+              엑셀 다운로드
             </button>
             {user && ['admin', 'user'].includes(user.role) && selectedTestCases.length > 0 && (
               <>

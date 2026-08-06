@@ -98,11 +98,12 @@
 .testcase-btn-clear-filters {
   background: white;
   color: black;
-  border: none;
+  border: 1px solid #dee2e6;
   padding: 6px 12px;
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
+  width: auto;
   transition: background-color 0.2s;
 }
 
