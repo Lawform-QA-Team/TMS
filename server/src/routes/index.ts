@@ -26,6 +26,9 @@ import { dependenciesRouter } from './dependencies.js'
 import { dashboardRouter, dashboardSummariesRouter, testcasesSummaryRouter } from './dashboard.js'
 import { testcasesExtendedRouter } from './testcasesExtended.js'
 import { jiraRouter } from './jira.js'
+import { customReportsRouter } from './customReports.js'
+import { queueRouter } from './queue.js'
+import { pipelineRouter } from './pipeline.js'
 
 export function registerRoutes(app: Hono): void {
   // Phase 2: 인증 & 사용자
@@ -65,4 +68,11 @@ export function registerRoutes(app: Hono): void {
 
   // Phase 5: Jira 연동
   app.route('/jira', jiraRouter)
+
+  // Phase 6: Custom Reports & Queue
+  app.route('/custom-reports', customReportsRouter)
+  app.route('/queue', queueRouter)
+
+  // Phase 7: QA 파이프라인
+  app.route('/pipeline', pipelineRouter)
 }

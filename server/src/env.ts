@@ -22,6 +22,9 @@ const envSchema = z.object({
   JIRA_PROJECT_KEY: z.string().default('TEST'),
   JIRA_WEBHOOK_SECRET: z.string().optional(),
   JIRA_WATCHED_PROJECTS: z.string().default('').transform((v) => v.split(',').filter(Boolean)),
+  QUEUE_NAME: z.string().default('jira-pipeline'),
+  JIRA_CRON_ENABLED: z.string().default('false').transform((v) => v === 'true'),
+  JIRA_CRON_JQL: z.string().optional(),
 
   // LLM
   ANTHROPIC_API_KEY: z.string().optional(),

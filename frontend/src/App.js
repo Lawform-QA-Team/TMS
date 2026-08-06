@@ -10,6 +10,7 @@ import FolderManager from '@tms/components/dashboard/FolderManager';
 import Settings from '@tms/components/settings/Settings';
 import UserProfile from '@tms/components/auth/UserProfile';
 import JiraIssuesList from '@tms/components/jira/JiraIssuesList';
+import PipelineManager from '@tms/components/pipeline/PipelineManager';
 import NotificationBell from '@tms/components/notifications/NotificationBell';
 import { ErrorBoundary } from '@tms/components/utils';
 import GrafanaDashboard from '@tms/components/monitoring/GrafanaDashboard';
@@ -66,6 +67,12 @@ function AppContent() {
           <ErrorBoundary>
             {console.log('[App] Render Jira tab with modalMode=true')}
             <JiraIssuesList modalMode={true} />
+          </ErrorBoundary>
+        );
+      case 'pipeline':
+        return (
+          <ErrorBoundary>
+            <PipelineManager />
           </ErrorBoundary>
         );
       case 'automation':
@@ -150,14 +157,15 @@ function AppContent() {
   };
 
   const navItems = [
-    { id: 'dashboard', label: '대시보드', icon: '📊' },
-    { id: 'monitoring', label: '모니터링', icon: '📈' },
-    { id: 'testcases', label: '테스트 케이스', icon: '🧪' },
-    ...(canAccessJira() ? [{ id: 'jira', label: '이슈', icon: '🔗' }] : []),
-    ...(canAccessAutomation() ? [{ id: 'automation', label: '자동화 테스트', icon: '🤖' }] : []),
-    ...(canAccessPerformance() ? [{ id: 'performance', label: '성능 테스트', icon: '⚡' }] : []),
-    ...(canAccessAutomation() ? [{ id: 'testscripts', label: '테스트 스크립트', icon: '📁' }] : []),
-    ...(canAccessFolders() ? [{ id: 'folders', label: '폴더 관리', icon: '📁' }] : []),
+    { id: 'dashboard', label: '대시보드', icon: '' },
+    { id: 'monitoring', label: '모니터링', icon: '' },
+    { id: 'testcases', label: '테스트 케이스', icon: '' },
+    ...(canAccessJira() ? [{ id: 'jira', label: '이슈', icon: '' }] : []),
+    ...(canAccessJira() ? [{ id: 'pipeline', label: 'QA 파이프라인', icon: '' }] : []),
+    ...(canAccessAutomation() ? [{ id: 'automation', label: '자동화 테스트', icon: '' }] : []),
+    ...(canAccessPerformance() ? [{ id: 'performance', label: '성능 테스트', icon: '' }] : []),
+    ...(canAccessAutomation() ? [{ id: 'testscripts', label: '테스트 스크립트', icon: '' }] : []),
+    ...(canAccessFolders() ? [{ id: 'folders', label: '폴더 관리', icon: '' }] : []),
   ];
 
   return (
@@ -232,7 +240,7 @@ function AppContent() {
                   onClick={() => setActiveTab(item.id)}
                   title={sidebarCollapsed ? item.label : undefined}
                 >
-                  <span className="sidebar-nav-icon">{item.icon}</span>
+
                   <span className="sidebar-nav-label">{item.label}</span>
                   <span className="sidebar-nav-chevron">&gt;</span>
                 </button>

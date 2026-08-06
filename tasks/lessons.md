@@ -436,6 +436,32 @@ def _get_current_user_id():
 
 ---
 
+## 2026-08-06
+
+### Prisma MySQL + prisma migrate dev 불가 (migration_lock.toml provider 불일치)
+
+**현상**: `prisma migrate dev` 실행 시 `P3019: datasource provider mysql does not match postgresql in migration_lock.toml`
+
+**원인**: 기존 migrations 폴더가 PostgreSQL로 초기화되어 있음
+
+**해결**: `prisma db push` 사용 (schema를 직접 DB에 동기화, migration 히스토리 불필요)
+
+**교훈**: MySQL TMS 프로젝트에서 스키마 변경 시 `prisma migrate dev` 대신 **`prisma db push`** 를 사용할 것
+
+---
+
+### tsx watch — Prisma Client 재생성 후 서버 재시작 필요
+
+**현상**: `prisma db push`로 새 모델 추가 후 `db.collectedTicket`이 undefined
+
+**원인**: tsx watch는 소스 파일 변경만 감지, node_modules(Prisma Client 재생성)는 감지 안 함
+
+**해결**: 소스 파일 한 개를 `touch`해 tsx watch 재시작 유발
+
+**교훈**: Prisma 스키마 변경(db push/generate) 후에는 반드시 서버 재시작 확인
+
+---
+
 ## 2026-05-14
 
 ### fullscreen-modal → SlidePanel 교체 패턴

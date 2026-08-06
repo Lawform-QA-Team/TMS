@@ -8,6 +8,7 @@ import { env } from './env.js'
 import { startJiraPipelineWorker } from './lib/jiraPipeline.js'
 import { startExecutionWorker } from './lib/executionEngine.js'
 import { initSocketServer } from './lib/socketServer.js'
+import { startJiraCronPoller, stopJiraCronPoller } from './lib/jiraCronPoller.js'
 
 async function main(): Promise<void> {
   await connectDb()
@@ -15,6 +16,7 @@ async function main(): Promise<void> {
   // BullMQ 워커 시작
   startJiraPipelineWorker()
   startExecutionWorker()
+  startJiraCronPoller()
 
   const app = createApp()
 
@@ -46,6 +48,7 @@ async function main(): Promise<void> {
       const { getExecutionWorkerInstance } = await import('./lib/executionEngine.js')
       const { getIO } = await import('./lib/socketServer.js')
 
+      stopJiraCronPoller()
       await Promise.allSettled([
         getJiraWorker()?.close(),
         getExecutionWorkerInstance()?.close(),

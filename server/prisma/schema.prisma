@@ -839,3 +839,63 @@ model UserSecuritySettings {
 model alembic_version {
   version_num String @id @db.VarChar(32)
 }
+
+model CollectedTicket {
+  id              Int      @id @default(autoincrement())
+  pipelineId      String   @unique @map("pipeline_id") @db.VarChar(36)
+  ticketKey       String   @unique @map("ticket_key") @db.VarChar(50)
+  projectKey      String   @map("project_key") @db.VarChar(20)
+  issueType       String   @map("issue_type") @db.VarChar(50)
+  priority        String   @db.VarChar(20)
+  summary         String   @db.VarChar(500)
+  descriptionRaw  String?  @map("description_raw") @db.LongText
+  descriptionText String?  @map("description_text") @db.Text
+  labels          String?  @db.Text
+  sourceType      String   @default("webhook") @map("source_type") @db.VarChar(20)
+  pipelineStatus  String   @default("collected") @map("pipeline_status") @db.VarChar(30)
+  errorMessage    String?  @map("error_message") @db.Text
+  collectedAt     DateTime @default(now()) @map("collected_at") @db.DateTime(0)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  qaPlan          QAPlan?
+
+  @@index([pipelineStatus])
+  @@index([projectKey])
+  @@index([collectedAt])
+  @@map("CollectedTickets")
+}
+
+model QAPlan {
+  id                Int              @id @default(autoincrement())
+  pipelineId        String           @unique @map("pipeline_id") @db.VarChar(36)
+  collectedTicketId Int              @unique @map("collected_ticket_id")
+  planContent       String?          @map("plan_content") @db.LongText
+  approvalStatus    String           @default("pending") @map("approval_status") @db.VarChar(20)
+  createdAt         DateTime         @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt         DateTime         @updatedAt @map("updated_at") @db.DateTime(0)
+  collectedTicket   CollectedTicket  @relation(fields: [collectedTicketId], references: [id], onDelete: Cascade)
+  autoQaTestCases   AutoQaTestCase[]
+
+  @@map("QAPlans")
+}
+
+model AutoQaTestCase {
+  id             Int      @id @default(autoincrement())
+  qaPlanId       Int      @map("qa_plan_id")
+  pipelineId     String   @map("pipeline_id") @db.VarChar(36)
+  title          String   @db.VarChar(200)
+  caseType       String   @default("happyPath") @map("case_type") @db.VarChar(20)
+  priority       String   @default("P2") @db.VarChar(10)
+  preconditions  String?  @db.Text
+  steps          String?  @db.Text
+  expectedResult String?  @map("expected_result") @db.Text
+  tags           String?  @db.Text
+  gherkin        String?  @db.LongText
+  status         String   @default("draft") @db.VarChar(20)
+  createdAt      DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  qaPlan         QAPlan   @relation(fields: [qaPlanId], references: [id], onDelete: Cascade)
+
+  @@index([qaPlanId])
+  @@index([pipelineId])
+  @@map("AutoQaTestCases")
+}

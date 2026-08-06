@@ -168,6 +168,20 @@ export class JiraClient {
     })
   }
 
+  /** JQL 페이지네이션 제너레이터 */
+  async *searchIssuesPaginated(
+    jql: string,
+    pageSize = 50,
+  ): AsyncGenerator<JiraIssueResponse> {
+    let startAt = 0
+    while (true) {
+      const result = await this.searchIssues(jql, startAt, pageSize)
+      for (const issue of result.issues) yield issue
+      startAt += result.issues.length
+      if (startAt >= result.total || result.issues.length === 0) break
+    }
+  }
+
   /** 상태 전환 */
   async transitionIssue(issueKey: string, transitionId: string): Promise<void> {
     await this.request('POST', `/rest/api/3/issue/${issueKey}/transitions`, {

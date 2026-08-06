@@ -15,6 +15,7 @@ import { db } from './db.js'
 import { jiraClient } from './jiraClient.js'
 import { env } from '../env.js'
 import { logger } from './logger.js'
+import type { NormalizedTicket } from './ticketNormalizer.js'
 
 // ──────────────────────────────────────────────
 // Job 타입 정의
@@ -48,19 +49,23 @@ export type JiraPipelineJobData =
       errorMessage?: string | undefined
       environment: string
     }
+  | {
+      type: 'collect-complete'
+      ticketKey: string
+      pipelineId: string
+      payload: NormalizedTicket
+    }
 
 // ──────────────────────────────────────────────
 // Queue & Worker 초기화 (lazy)
 // ──────────────────────────────────────────────
-
-const QUEUE_NAME = 'jira-pipeline'
 
 let _queue: Queue<JiraPipelineJobData> | null = null
 let _worker: Worker<JiraPipelineJobData> | null = null
 
 export function getJiraQueue(): Queue<JiraPipelineJobData> {
   if (!_queue) {
-    _queue = new Queue<JiraPipelineJobData>(QUEUE_NAME, { connection: getRedis() })
+    _queue = new Queue<JiraPipelineJobData>(env.QUEUE_NAME, { connection: getRedis() })
   }
   return _queue
 }
@@ -213,6 +218,11 @@ async function processJob(job: Job<JiraPipelineJobData>): Promise<void> {
     logger.info({ issueKey: data.issueKey, count: created.length }, 'Jira → TC 생성 완료')
   }
 
+  else if (data.type === 'collect-complete') {
+    logger.info({ pipelineId: data.pipelineId }, 'collect-complete 처리 (2단계 연결 예정)')
+    // 현재는 로그만 기록. 2단계에서 qaplan 진행 연결 예정
+  }
+
   else if (data.type === 'sync-jira-status') {
     logger.info({ issueKey: data.issueKey, newStatus: data.newStatus }, 'Jira 상태 동기화')
     await db.jiraIssue.updateMany({
@@ -283,7 +293,7 @@ export function getJiraWorker(): Worker<JiraPipelineJobData> | null {
 export function startJiraPipelineWorker(): Worker<JiraPipelineJobData> {
   if (_worker) return _worker
 
-  _worker = new Worker<JiraPipelineJobData>(QUEUE_NAME, processJob, {
+  _worker = new Worker<JiraPipelineJobData>(env.QUEUE_NAME, processJob, {
     connection: getRedis(),
     concurrency: 3,
   })
