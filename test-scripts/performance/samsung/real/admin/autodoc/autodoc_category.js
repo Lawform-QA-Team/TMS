@@ -4,7 +4,16 @@ import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
-import { sendSlackWebhook, buildK6SummaryMessage } from '../../../../common/slack_helper.js';
+import { postSlackMessage, buildK6SummaryMessage, buildK6ErrorThreadBlocks } from '../../../../common/slack_helper.js';
+import { Trend } from 'k6/metrics';
+
+export const adminAutodocCatPageLoad = new Trend('admin_autodoc_cat_page_load', true);
+export const adminAutodocCatSearch = new Trend('admin_autodoc_cat_search', true);
+export const adminAutodocCatRegisterSave = new Trend('admin_autodoc_cat_register_save', true);
+export const adminAutodocCatTableClick = new Trend('admin_autodoc_cat_table_click', true);
+export const adminAutodocCatEditSave = new Trend('admin_autodoc_cat_edit_save', true);
+
+const scriptErrors = [];
 
 export const options = {
     scenarios: {
@@ -24,10 +33,6 @@ export const options = {
     },
 };
 
-async function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export default async function() {
     const context = await browser.newContext({
         viewport: { width: 1960, height: 1080 },
@@ -35,31 +40,37 @@ export default async function() {
     const page = await context.newPage();
     const credentials = getCredentials();
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
+    const randomStr = () => Math.random().toString(36).slice(2, 7);
 
     try {
         await loginWithPage(page, credentials);
 
         // 표준 양식 관리 진입
+        const adminAutodocCatPageLoadStart = Date.now();
         await page.goto(URLS.AUTODOC.CATEGORY);
+        const adminAutodocCatPageLoadDuration = Date.now() - adminAutodocCatPageLoadStart;
+        adminAutodocCatPageLoad.add(adminAutodocCatPageLoadDuration);
+        console.log(`adminAutodocCatPageLoad duration: ${adminAutodocCatPageLoadDuration}ms`);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category.png` });
-        await wait(2000);
 
-        // 카테고리 관리 페이지네이션 -> 미구현
+        // 카테고리 관리 페이지네이션
         // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
-        // await wait(2000);
         // timestamp = getNewTimeStamp();
         // await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_pagination_last.png` });
         // await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
         // 카테고리 검색
+        const adminAutodocCatSearchStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH);
         await page.type(SELECTORS.ADMIN.AUTODOC.INPUT_SEARCH, '카테고리');
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
-        await wait(2000);
+        const adminAutodocCatSearchDuration = Date.now() - adminAutodocCatSearchStart;
+        adminAutodocCatSearch.add(adminAutodocCatSearchDuration);
+        console.log(`adminAutodocCatSearch duration: ${adminAutodocCatSearchDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_search.png` });
         await page.goto(URLS.AUTODOC.CATEGORY);
@@ -67,53 +78,62 @@ export default async function() {
         // 카테고리 등록 진입
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER_CATEGORY);
         await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER_CATEGORY);
-        await wait(2000);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_register.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_CLOSE);
         await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_CLOSE);
 
         // 카테고리 등록 작성
+        const adminAutodocCatRegisterSaveStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER_CATEGORY);
         await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_REGISTER_CATEGORY);
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT);
-        await page.type(SELECTORS.ADMIN.AUTODOC.INPUT, '카테고리 등록 테스트');
-        await wait(2000);
+        await page.fill(SELECTORS.ADMIN.AUTODOC.INPUT, `cat_${randomStr()}`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_register_write.png` });
 
         // 카테고리 등록 저장
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
-        await wait(2000);
+        const adminAutodocCatRegisterSaveDuration = Date.now() - adminAutodocCatRegisterSaveStart;
+        adminAutodocCatRegisterSave.add(adminAutodocCatRegisterSaveDuration);
+        console.log(`adminAutodocCatRegisterSave duration: ${adminAutodocCatRegisterSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_register_save.png` });
 
         // 카테고리 테이블 클릭
+        const adminAutodocCatTableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
-        await wait(2000);
+        const adminAutodocCatTableClickDuration = Date.now() - adminAutodocCatTableClickStart;
+        adminAutodocCatTableClick.add(adminAutodocCatTableClickDuration);
+        console.log(`adminAutodocCatTableClick duration: ${adminAutodocCatTableClickDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC_category_table.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_CLOSE);
         await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_CLOSE);
 
         // 카테고리 수정
+        const adminAutodocCatEditSaveStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.TABLE_LIST);
         await page.click(SELECTORS.COMMON.TABLE);
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.INPUT);
-        await page.type(SELECTORS.ADMIN.AUTODOC.INPUT, '카테고리 수정');
-        await wait(2000);
+        await page.fill(SELECTORS.ADMIN.AUTODOC.INPUT, `edit_${randomStr()}`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_edit_category.png` });
 
         // 카테고리 수정 저장
         await page.waitForSelector(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.AUTODOC.BUTTON_SAVE);
-        await wait(2000);
+        const adminAutodocCatEditSaveDuration = Date.now() - adminAutodocCatEditSaveStart;
+        adminAutodocCatEditSave.add(adminAutodocCatEditSaveDuration);
+        console.log(`adminAutodocCatEditSave duration: ${adminAutodocCatEditSaveDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_edit_category_save.png` });
 
+    } catch (e) {
+        scriptErrors.push({ message: e.message || String(e), stack: e.stack, time: new Date().toISOString() });
+        throw e;
     } finally {
         if (page) await page.close();
         if (context) await context.close();
@@ -123,17 +143,18 @@ export default async function() {
 export function handleSummary(data) {
     const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
 
-    // 결과 추출 및 Slack 발송
-    const slackWebhookUrl = __ENV.SLACK_WEBHOOK_URL;
-    if (slackWebhookUrl) {
-        const payload = buildK6SummaryMessage(data, 'Autodoc');
-        const result = sendSlackWebhook(slackWebhookUrl, payload);
-        if (!result.ok) {
-            console.warn(`[Slack] 메시지 발송 실패 (status: ${result.status})`);
+    // Slack Bot API 발송
+    const token = __ENV.SLACK_BOT_TOKEN;
+    const channel = __ENV.SLACK_CHANNEL_ID;
+    if (token && channel) {
+        const payload = buildK6SummaryMessage(data, 'Autodoc Category', scriptErrors.length > 0);
+        const ts = postSlackMessage(token, channel, payload);
+        if (ts && scriptErrors.length > 0) {
+            postSlackMessage(token, channel, buildK6ErrorThreadBlocks(scriptErrors), ts);
         }
     }
 
     return {
-        [`Result/autodoc_${timestamp}.html`]: htmlReport(data),
+        [`Result/autodoc_category_${timestamp}.html`]: htmlReport(data),
     };
 }

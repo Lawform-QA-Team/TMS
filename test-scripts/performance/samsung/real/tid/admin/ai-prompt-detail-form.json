@@ -2,5 +2,8 @@
   "buttonActivate": "44bb769b",
   "buttonCancel": "d0520ab5",
   "buttonSubmit": "0bff0056",
+  "modalAlert": "4360b3ad",
+  "modalAlert1": "27efa76a",
+  "modalInvalidRoute": "bce9cb18",
   "textareaContent": "d771406e"
 }

@@ -22,6 +22,7 @@ from routes.users import users_bp
 from routes.auth import auth_bp
 from routes.test_scripts import test_scripts_bp
 from routes.jira_issues import jira_issues_bp
+from routes.jira_integration import jira_bp
 from routes.schedules import schedules_bp
 from routes.queue import queue_bp
 from routes.notifications import notifications_bp
@@ -40,6 +41,7 @@ from utils.common_helpers import handle_options_request, create_cors_response
 from utils.jwt_callbacks import setup_jwt_callbacks
 from utils.response_utils import api_error
 from utils.db_init import initialize_database
+from utils.auth_decorators import admin_required
 from config.app_config import configure_app, is_vercel_environment
 
 # 로거 초기화
@@ -100,7 +102,7 @@ if is_vercel:
     setup_cors(app)
 else:
     # 로컬 환경에서는 모든 origin 허용
-    CORS(app, origins=["*"], supports_credentials=True)
+    CORS(app, origins=["*"], supports_credentials=False)
 
 # 데이터베이스 초기화
 db.init_app(app)
@@ -120,33 +122,6 @@ socketio = SocketIO(
     engineio_logger=True
 )
 
-@jwt.expired_token_loader
-def expired_token_callback(jwt_header, jwt_payload):
-    logger.warning(f"토큰 만료: header={jwt_header}, payload={jwt_payload}")
-    return jsonify({
-        'message': '토큰이 만료되었습니다.',
-        'error': 'token_expired'
-    }), 401
-
-@jwt.invalid_token_loader
-def invalid_token_callback(error):
-    logger.warning(f"유효하지 않은 토큰: {error}")
-    return jsonify({
-        'message': '유효하지 않은 토큰입니다.',
-        'error': 'invalid_token'
-    }), 401
-
-@jwt.unauthorized_loader
-def missing_token_callback(error):
-    logger.warning(f"토큰 누락: {error}")
-    logger.debug(f"요청 헤더: {dict(request.headers)}")
-    logger.debug(f"요청 URL: {request.url}")
-    logger.debug(f"요청 메서드: {request.method}")
-    return jsonify({
-        'message': '토큰이 필요합니다.',
-        'error': 'authorization_required'
-    }), 401
-
 # OPTIONS 요청 전역 처리 (모든 라우트/Blueprint에 적용)
 @app.before_request
 def handle_options_globally():
@@ -164,6 +139,7 @@ app.register_blueprint(users_bp)
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(test_scripts_bp, url_prefix='/api/test-scripts')
 app.register_blueprint(jira_issues_bp)
+app.register_blueprint(jira_bp)
 app.register_blueprint(schedules_bp)
 app.register_blueprint(queue_bp)
 app.register_blueprint(notifications_bp)
@@ -194,7 +170,7 @@ def health_check():
         response = jsonify({
             'status': 'healthy', 
             'message': 'Test Platform Backend is running',
-            'version': '2.0.1',
+            'version': '2.7.0',
             'timestamp': get_kst_isoformat(get_kst_now()),
             'environment': 'production' if is_vercel else 'development',
             'database': {
@@ -216,9 +192,9 @@ def health_check():
             db_info = {}
         
         response = jsonify({
-            'status': 'degraded', 
+            'status': 'degraded',
             'message': 'Test Platform Backend is running (with database issues)',
-            'version': '2.0.1',
+            'version': '2.7.0',
             'timestamp': get_kst_isoformat(get_kst_now()),
             'environment': 'production' if is_vercel else 'development',
             'database': {
@@ -229,7 +205,7 @@ def health_check():
             },
             'note': 'Application is running but database connection failed'
         })
-        return response, 200
+        return response, 503
 
 @app.route('/cors-test', methods=['GET', 'OPTIONS'])
 def cors_test():
@@ -272,6 +248,7 @@ def ping():
     }), 200
 
 @app.route('/init-db', methods=['GET', 'POST', 'OPTIONS'])
+@admin_required
 def init_database():
     """데이터베이스 초기화 엔드포인트"""
     result, status_code = initialize_database(app)
@@ -279,6 +256,7 @@ def init_database():
     return response, status_code
 
 @app.route('/db-status', methods=['GET', 'OPTIONS'])
+@admin_required
 def check_database_status():
     """데이터베이스 연결 상태 확인"""
     try:

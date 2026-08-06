@@ -92,7 +92,6 @@ jobs:
           find "$BASE_DIR" -type f -name "*.js" \
             ! -name "login_helper.js" \
             ! -name "selector_sam.js" \
-            ! -name "url_base_sam.js" \
             | sort | while read -r script; do
             echo "----------------------------------------------"
             echo "Running k6 script: $script"

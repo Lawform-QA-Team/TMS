@@ -116,7 +116,7 @@ class CollaborationService:
     def update_comment(self, comment_id, content, user_id):
         """댓글 수정"""
         try:
-            comment = Comment.query.get(comment_id)
+            comment = db.session.get(Comment, comment_id)
             if not comment:
                 raise ValueError(f"댓글을 찾을 수 없습니다: {comment_id}")
             
@@ -139,7 +139,7 @@ class CollaborationService:
     def delete_comment(self, comment_id, user_id):
         """댓글 삭제 (소프트 삭제)"""
         try:
-            comment = Comment.query.get(comment_id)
+            comment = db.session.get(Comment, comment_id)
             if not comment:
                 raise ValueError(f"댓글을 찾을 수 없습니다: {comment_id}")
             
@@ -211,7 +211,7 @@ class CollaborationService:
     def mark_mention_as_read(self, mention_id, user_id):
         """멘션 읽음 처리"""
         try:
-            mention = Mention.query.get(mention_id)
+            mention = db.session.get(Mention, mention_id)
             if not mention:
                 raise ValueError(f"멘션을 찾을 수 없습니다: {mention_id}")
             
@@ -288,7 +288,7 @@ class WorkflowService:
     def apply_workflow_to_entity(self, entity_type, entity_id, workflow_id):
         """엔티티에 워크플로우 적용"""
         try:
-            workflow = Workflow.query.get(workflow_id)
+            workflow = db.session.get(Workflow, workflow_id)
             if not workflow:
                 raise ValueError(f"워크플로우를 찾을 수 없습니다: {workflow_id}")
             

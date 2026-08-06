@@ -29,7 +29,7 @@ def execute_scheduled_test(schedule_id, test_case_id, environment, execution_par
         
         with current_app.app_context():
             # 스케줄 정보 업데이트
-            schedule = TestSchedule.query.get(schedule_id)
+            schedule = db.session.get(TestSchedule, schedule_id)
             if not schedule:
                 logger.error(f"스케줄을 찾을 수 없습니다: {schedule_id}")
                 return
@@ -39,69 +39,37 @@ def execute_scheduled_test(schedule_id, test_case_id, environment, execution_par
             
             # 테스트 실행
             try:
-                # execute_automation_code 함수를 직접 호출하는 대신
-                # 테스트 케이스 실행 로직을 재사용
-                test_case = TestCase.query.get(test_case_id)
+                test_case = db.session.get(TestCase, test_case_id)
                 if not test_case:
                     logger.error(f"테스트 케이스를 찾을 수 없습니다: {test_case_id}")
                     schedule.last_run_status = 'failed'
                     db.session.commit()
                     return
-                
-                # 실제 테스트 실행 로직
-                # routes/testcases.py의 execute_automation_code 로직을 재사용
-                from routes.testcases import execute_automation_code
-                import time
-                
-                if test_case.automation_code_path:
-                    start_time = time.time()
-                    
-                    try:
-                        # execute_automation_code 함수를 직접 호출
-                        # 이 함수는 실제로 테스트를 실행하고 결과를 반환
-                        # 여기서는 간단하게 테스트 실행을 시뮬레이션
-                        # 실제 구현에서는 execute_automation_code의 로직을 재사용해야 함
-                        
-                        # 테스트 실행 시뮬레이션 (실제로는 subprocess로 실행)
-                        result_status = 'Pass'  # 기본값, 실제로는 실행 결과에 따라 결정
-                        execution_duration = time.time() - start_time
-                        
-                        # 결과 저장
-                        test_result = TestResult(
-                            test_case_id=test_case_id,
-                            result=result_status,
-                            environment=environment,
-                            execution_duration=execution_duration,
-                            executed_at=get_kst_now(),
-                            executed_by='system',
-                            notes=f'스케줄 자동 실행: {schedule.name}'
-                        )
-                        db.session.add(test_result)
-                        
-                        schedule.last_run_status = 'success' if result_status == 'Pass' else 'failed'
-                        schedule.last_run_result_id = test_result.id
-                    except Exception as exec_error:
-                        logger.error(f"테스트 실행 중 오류: {str(exec_error)}")
-                        schedule.last_run_status = 'failed'
-                else:
-                    schedule.last_run_status = 'failed'
-                    logger.warning(f"테스트 케이스 {test_case_id}에 자동화 코드 경로가 없습니다")
-                
-                # 다음 실행 시간 계산
-                next_run = scheduler_service.get_next_run_time(
-                    schedule.schedule_type,
-                    schedule.schedule_expression
+
+                # Celery 태스크를 동기 방식으로 실행 (broker 없이도 동작)
+                from tasks import execute_test_case
+                task_result = execute_test_case.apply(
+                    args=[test_case_id, environment, execution_parameters]
                 )
-                if next_run:
-                    schedule.next_run_at = next_run
-                
-                db.session.commit()
-                logger.info(f"스케줄된 테스트 실행 완료: 스케줄 ID {schedule_id}, 테스트 케이스 ID {test_case_id}")
-                
-            except Exception as e:
-                logger.error(f"테스트 실행 중 오류: {str(e)}")
+                result = task_result.get()
+
+                schedule.last_run_status = 'success' if result.get('result') == 'Pass' else 'failed'
+                schedule.last_run_result_id = result.get('result_id')
+
+            except Exception as exec_error:
+                logger.error(f"테스트 실행 중 오류: {str(exec_error)}")
                 schedule.last_run_status = 'failed'
-                db.session.commit()
+
+            # 다음 실행 시간 계산
+            next_run = scheduler_service.get_next_run_time(
+                schedule.schedule_type,
+                schedule.schedule_expression
+            )
+            if next_run:
+                schedule.next_run_at = next_run
+
+            db.session.commit()
+            logger.info(f"스케줄된 테스트 실행 완료: 스케줄 ID {schedule_id}, 테스트 케이스 ID {test_case_id}")
                 
     except Exception as e:
         logger.error(f"스케줄 실행 콜백 오류: {str(e)}")
@@ -170,7 +138,7 @@ def create_schedule():
             return add_cors_headers(response), 400
         
         test_case_id = data.get('test_case_id')
-        test_case = TestCase.query.get(test_case_id)
+        test_case = db.session.get(TestCase, test_case_id)
         if not test_case:
             response = jsonify({'error': '테스트 케이스를 찾을 수 없습니다'})
             return add_cors_headers(response), 404

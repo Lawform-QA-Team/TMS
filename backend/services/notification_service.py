@@ -103,7 +103,7 @@ class NotificationService:
     def notify_test_failed(self, test_case_id, test_result_id, user_id=None):
         """테스트 실패 알림"""
         try:
-            test_case = TestCase.query.get(test_case_id)
+            test_case = db.session.get(TestCase, test_case_id)
             if not test_case:
                 return
             
@@ -133,7 +133,7 @@ class NotificationService:
     def notify_test_completed(self, test_case_id, test_result_id, result_status, user_id=None):
         """테스트 완료 알림"""
         try:
-            test_case = TestCase.query.get(test_case_id)
+            test_case = db.session.get(TestCase, test_case_id)
             if not test_case:
                 return
             
@@ -165,7 +165,7 @@ class NotificationService:
     def notify_test_started(self, test_case_id, user_id=None):
         """테스트 시작 알림"""
         try:
-            test_case = TestCase.query.get(test_case_id)
+            test_case = db.session.get(TestCase, test_case_id)
             if not test_case:
                 return
             
@@ -193,7 +193,7 @@ class NotificationService:
     def notify_schedule_run(self, schedule_id, test_case_id, result_status, user_id=None):
         """스케줄 실행 알림"""
         try:
-            test_case = TestCase.query.get(test_case_id)
+            test_case = db.session.get(TestCase, test_case_id)
             if not test_case:
                 return
             
@@ -222,7 +222,7 @@ class NotificationService:
     def notify_test_status_changed(self, test_case_id, old_status, new_status, changed_by_user_id=None):
         """테스트 케이스 상태 변경 알림 (작성자와 담당자에게 발송)"""
         try:
-            test_case = TestCase.query.get(test_case_id)
+            test_case = db.session.get(TestCase, test_case_id)
             if not test_case:
                 return
             
@@ -244,7 +244,7 @@ class NotificationService:
             # 변경한 사용자 정보 가져오기
             changed_by_user = None
             if changed_by_user_id:
-                changed_by_user = User.query.get(changed_by_user_id)
+                changed_by_user = db.session.get(User, changed_by_user_id)
             changed_by_name = changed_by_user.username if changed_by_user else '시스템'
             
             title = f"테스트 케이스 상태 변경: {test_case.name}"
@@ -352,7 +352,7 @@ class NotificationService:
             logger.info(f"🔔 슬랙 알림 전송 시도: User {user_id}, URL={slack_webhook_url[:30]}...")
             
             # 사용자 정보 가져오기
-            user = User.query.get(user_id)
+            user = db.session.get(User, user_id)
             username = user.username if user else 'Unknown User'
             
             # 슬랙 폼은 slack_webhook_form 모듈에서 통일 관리
@@ -365,14 +365,14 @@ class NotificationService:
                     old_assignee_display = metadata.get('old_assignee_display')
                     new_assignee_display = metadata.get('new_assignee_display')
                 if not test_case_name and notification.related_test_case_id:
-                    tc = TestCase.query.get(notification.related_test_case_id)
+                    tc = db.session.get(TestCase, notification.related_test_case_id)
                     if tc:
                         test_case_name = tc.name or (f"테스트 케이스 #{tc.id}")
                 if new_assignee_display is None and notification.user_id:
-                    u = User.query.get(notification.user_id)
+                    u = db.session.get(User, notification.user_id)
                     new_assignee_display = u.get_display_name() if u else str(notification.user_id)
                 if old_assignee_display is None and metadata and metadata.get('old_assignee_id'):
-                    u = User.query.get(metadata['old_assignee_id'])
+                    u = db.session.get(User, metadata['old_assignee_id'])
                     old_assignee_display = u.get_display_name() if u else str(metadata['old_assignee_id'])
                 slack_message = build_slack_payload(
                     notification.notification_type,
@@ -385,7 +385,7 @@ class NotificationService:
             else:
                 related_test_case_name = None
                 if notification.related_test_case_id:
-                    tc = TestCase.query.get(notification.related_test_case_id)
+                    tc = db.session.get(TestCase, notification.related_test_case_id)
                     if tc:
                         related_test_case_name = tc.name
                 slack_message = build_slack_payload(

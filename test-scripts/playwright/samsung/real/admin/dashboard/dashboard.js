@@ -33,18 +33,6 @@ async function selectDateRangeInRdp(page, startDate, endDate) {
   }
 }
 
-async function selectMonthInPicker(page, year, month) {
-  await page.locator(SELECTORS.ADMIN.DASHBOARD.DATEPICKER).click();
-  await wait(300);
-  const yearInput = page.locator('input[type="number"], input[placeholder*="년"]').first();
-  if (await yearInput.isVisible().catch(() => false)) {
-    await yearInput.fill(String(year));
-    await wait(200);
-  }
-  const monthLabel = `${month}월`;
-  await page.getByText(monthLabel, { exact: true }).click();
-  await wait(200);
-}
 
 /**
  * @param {import('@playwright/test').Page} page
@@ -59,20 +47,19 @@ export async function run(page) {
   let timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_dashboard_home.png` });
 
-  await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.EXCEL);
-  await page.click(SELECTORS.ADMIN.DASHBOARD.EXCEL);
-  await wait(2000);
-  await page.screenshot({ path: `screenshots/${timestamp}_excel_download.png` });
-
+  // 통계 필터 적용
   await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_CATEGORY);
   await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_CATEGORY);
   timestamp = getNewTimeStamp();
   await page.screenshot({ path: `screenshots/${timestamp}_select_gategory.png` });
 
-  await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT);
-  await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT);
-  timestamp = getNewTimeStamp();
-  await page.screenshot({ path: `screenshots/${timestamp}_select_gategory2.png` });
+  const dataSelectEl = await page.$(SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT);
+  if (dataSelectEl) {
+    await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT);
+    await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_DATA_SELECT);
+    timestamp = getNewTimeStamp();
+    await page.screenshot({ path: `screenshots/${timestamp}_select_gategory2.png` });
+  }
 
   await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT);
   const randomValue3 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT);
@@ -81,7 +68,9 @@ export async function run(page) {
   await page.screenshot({ path: `screenshots/${timestamp}_select_gategory3.png` });
   await wait(2000);
 
+  // 조회 단위에 따른 기간 선택
   const queryUnit = (randomValue3 || '').trim();
+  console.log('queryUnit', queryUnit);
   if (queryUnit.includes('일')) {
     await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.DATEPICKER);
     const startDate = getRandomDate(365);
@@ -89,26 +78,42 @@ export async function run(page) {
     end.setDate(end.getDate() + 7);
     const endDate = end.toISOString().slice(0, 10);
     await selectDateRangeInRdp(page, startDate, endDate);
+    timestamp = getNewTimeStamp();
+    await page.screenshot({ path: `screenshots/${timestamp}_datepicker.png` });
   } else if (queryUnit.includes('월')) {
-    await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.DATEPICKER);
-    const d = new Date();
-    d.setMonth(d.getMonth() - Math.floor(Math.random() * 12));
-    const y = d.getFullYear();
-    const m = d.getMonth() + 1;
-    await selectMonthInPicker(page, y, m);
+    await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.MONTH_PICKER_START);
+    await selectRandomDateFromRdpCalendar(page, SELECTORS.ADMIN.DASHBOARD.MONTH_PICKER_START);
+    await wait(300);
+    await selectRandomDateFromRdpCalendar(page, SELECTORS.ADMIN.DASHBOARD.MONTH_PICKER_END);
+    timestamp = getNewTimeStamp();
+    await page.screenshot({ path: `screenshots/${timestamp}_datepicker_month.png` });
   } else if (queryUnit.includes('분기')) {
     await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
-    await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
+    const randomValue_year = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
+    timestamp = getNewTimeStamp();
+    await page.screenshot({ path: `screenshots/${timestamp}_select_year_${randomValue_year || 'unknown'}.png` });
+
     await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
-    await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
+    const randomValue_quarter = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
+    timestamp = getNewTimeStamp();
+    await page.screenshot({ path: `screenshots/${timestamp}_select_quarter_${randomValue_quarter || 'unknown'}.png` });
   } else if (queryUnit.includes('반기')) {
-    await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
-    await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT);
-    await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
-    await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
+    await page.waitForLoadState('load');
+    const yearCombobox = `${SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1}:nth-of-type(1)`;
+    const halfCombobox = `${SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1}:nth-of-type(2)`;
+
+    const randomValue_year2 = await selectComboboxOption(page, yearCombobox);
+    timestamp = getNewTimeStamp();
+    await page.screenshot({ path: `screenshots/${timestamp}_select_year2_${randomValue_year2 || 'unknown'}.png` });
+
+    const randomValue_half = await selectComboboxOption(page, halfCombobox);
+    timestamp = getNewTimeStamp();
+    await page.screenshot({ path: `screenshots/${timestamp}_select_half_${randomValue_half || 'unknown'}.png` });
   } else if (queryUnit.includes('년도') || queryUnit.includes('연')) {
     await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
-    await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
+    const randomValue_year3 = await selectComboboxOption(page, SELECTORS.ADMIN.DASHBOARD.SELECT_QUERY_UNIT_1);
+    timestamp = getNewTimeStamp();
+    await page.screenshot({ path: `screenshots/${timestamp}_select_year_${randomValue_year3 || 'unknown'}.png` });
   }
 
   await page.waitForSelector(SELECTORS.ADMIN.DASHBOARD.BUTTON_SEARCH);
