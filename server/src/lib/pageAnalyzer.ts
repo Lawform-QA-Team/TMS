@@ -33,45 +33,24 @@ function buildPrompt(
   testCases: Array<{ title: string; steps: string[]; preconditions: string[]; gherkin: string }>,
   baseUrl: string,
 ): string {
-  const tcText = testCases.slice(0, 8).map((tc, i) =>
-    `TC${i + 1}: ${tc.title}\n  Steps: ${tc.steps.slice(0, 5).join(' → ')}\n  Gherkin: ${tc.gherkin?.slice(0, 300) ?? ''}`
+  const tcText = testCases.slice(0, 5).map((tc, i) =>
+    `TC${i + 1}: ${tc.title}\n  Steps: ${tc.steps.slice(0, 3).join(' → ')}`
   ).join('\n\n')
 
-  return `다음 티켓의 테스트 케이스들을 분석하여 필요한 페이지와 UI 요소를 파악해주세요.
+  return `다음 티켓의 TC들에 필요한 페이지와 UI 요소를 파악하세요.
 
 티켓: ${ticketKey} — ${summary}
-앱 기본 URL: ${baseUrl}
+기본 URL: ${baseUrl}
 
-테스트 케이스:
+TC 요약:
 ${tcText}
 
-아래 JSON 배열 스키마로 반환하세요 (배열 외 텍스트 금지):
-[
-  {
-    "pageName": "페이지 이름 (예: 로그인 페이지)",
-    "urlPattern": "URL 패턴 (예: /login 또는 ${baseUrl}/login)",
-    "elements": [
-      {
-        "selector": "data-testid='...' 또는 role='button' name='...' 형식의 Playwright locator",
-        "fallbackSelector": "button:has-text('텍스트') 형식의 폴백",
-        "type": "button | input | link | select | checkbox | radio | form | other",
-        "label": "요소 설명"
-      }
-    ],
-    "flows": [
-      {
-        "name": "플로우 이름",
-        "steps": ["단계1", "단계2", ...]
-      }
-    ]
-  }
-]
+⚠️ 반드시 아래 JSON 배열 형식만 반환하세요. 설명/마크다운 절대 금지.
+최대 3개 페이지, 페이지당 elements 최대 5개, flows 최대 3개.
 
-selector 작성 규칙:
-- data-testid 속성이 있을 법한 요소는 [data-testid='...'] 형식
-- 버튼은 role='button' name='버튼텍스트' 또는 button:has-text('텍스트')
-- 입력 필드는 label 연결 또는 placeholder 기반
-- 최대 5개 페이지, 페이지당 최대 10개 요소`
+[{"pageName":"","urlPattern":"","elements":[{"selector":"","fallbackSelector":"","type":"button","label":""}],"flows":[{"name":"","steps":[""]}]}]
+
+실제 응답 (위 스키마 준수, 배열만):`
 }
 
 function parseAnalyzedPages(text: string): AnalyzedPage[] {
@@ -79,17 +58,20 @@ function parseAnalyzedPages(text: string): AnalyzedPage[] {
   const jsonMatch = stripped.match(/\[[\s\S]*/)
   if (!jsonMatch) throw new Error('PageAnalysis JSON 배열을 찾을 수 없음')
 
-  let raw = jsonMatch[0]
-  try {
-    return JSON.parse(raw) as AnalyzedPage[]
-  } catch {
-    const lastBrace = raw.lastIndexOf('},')
-    if (lastBrace !== -1) {
-      raw = raw.slice(0, lastBrace + 1) + ']'
-      try { return JSON.parse(raw) as AnalyzedPage[] } catch { /* continue */ }
-    }
-    throw new Error('PageAnalysis JSON 파싱 실패')
+  const raw = jsonMatch[0]
+  // 시도 1: 원본 그대로
+  try { return JSON.parse(raw) as AnalyzedPage[] } catch { /* continue */ }
+  // 시도 2: }, 기준 잘라서 복구
+  const lastComma = raw.lastIndexOf('},')
+  if (lastComma !== -1) {
+    try { return JSON.parse(raw.slice(0, lastComma + 1) + ']') as AnalyzedPage[] } catch { /* continue */ }
   }
+  // 시도 3: } 기준 잘라서 복구
+  const lastBrace = raw.lastIndexOf('}')
+  if (lastBrace !== -1) {
+    try { return JSON.parse(raw.slice(0, lastBrace + 1) + ']') as AnalyzedPage[] } catch { /* continue */ }
+  }
+  throw new Error('PageAnalysis JSON 파싱 실패')
 }
 
 export async function analyzePages(
@@ -139,7 +121,7 @@ export async function analyzePages(
     const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY })
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 4096,
+      max_tokens: 8192,
       system: SYSTEM_PROMPT,
       messages: [{
         role: 'user',

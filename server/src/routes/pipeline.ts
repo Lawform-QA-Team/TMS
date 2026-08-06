@@ -59,9 +59,10 @@ function serializeTicket(t: {
 
 function buildStages(pipelineStatus: string) {
   const currentIdx = PIPELINE_STAGES.indexOf(pipelineStatus)
+  const isLastStage = currentIdx === PIPELINE_STAGES.length - 1
   return PIPELINE_STAGES.map((stage, idx) => ({
     stage,
-    status: idx < currentIdx
+    status: idx < currentIdx || (isLastStage && idx === currentIdx)
       ? 'completed'
       : idx === currentIdx
         ? 'active'
@@ -144,7 +145,7 @@ pipelineRouter.get('/', async (c) => {
 pipelineRouter.get('/:pipelineId', async (c) => {
   const pipelineId = c.req.param('pipelineId')
   try {
-    const [ticket, pageAnalyses, generatedCode, testRunResult, pipelineReport] = await Promise.all([
+    const [ticket, pageAnalyses, generatedCode, testRunResult, pipelineReport, bugs] = await Promise.all([
       db.collectedTicket.findUnique({
         where: { pipelineId },
         include: {
@@ -157,6 +158,7 @@ pipelineRouter.get('/:pipelineId', async (c) => {
       db.generatedCode.findUnique({ where: { pipelineId } }),
       db.testRunResult.findUnique({ where: { pipelineId } }),
       db.pipelineReport.findUnique({ where: { pipelineId } }),
+      db.pipelineBug.findMany({ where: { pipelineId }, orderBy: { createdAt: 'asc' } }),
     ])
     if (!ticket) return c.json({ success: false, error: '파이프라인을 찾을 수 없습니다.' }, 404)
 
@@ -234,6 +236,18 @@ pipelineRouter.get('/:pipelineId', async (c) => {
         }
       : null
 
+    const bugsData = bugs.map((b) => ({
+      id: b.id,
+      pipeline_id: b.pipelineId,
+      title: b.title,
+      description: b.description,
+      severity: b.severity,
+      status: b.status,
+      tc_title: b.tcTitle,
+      jira_issue_key: b.jiraIssueKey,
+      created_at: b.createdAt.toISOString(),
+    }))
+
     return c.json({
       success: true,
       data: {
@@ -244,6 +258,7 @@ pipelineRouter.get('/:pipelineId', async (c) => {
         generatedCode: generatedCodeData,
         testRunResult: testRunData,
         report: reportData,
+        bugs: bugsData,
       },
     })
   } catch (e) {

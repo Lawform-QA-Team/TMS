@@ -961,3 +961,19 @@ model PipelineReport {
 
   @@map("PipelineReports")
 }
+
+model PipelineBug {
+  id           Int      @id @default(autoincrement())
+  pipelineId   String   @map("pipeline_id") @db.VarChar(36)
+  title        String   @db.VarChar(500)
+  description  String?  @db.LongText
+  severity     String   @default("medium") @db.VarChar(20)   // critical, high, medium, low
+  status       String   @default("open") @db.VarChar(20)     // open, in_progress, resolved
+  tcTitle      String?  @map("tc_title") @db.VarChar(500)    // 연관 TC 제목
+  jiraIssueKey String?  @map("jira_issue_key") @db.VarChar(50)
+  createdAt    DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@index([pipelineId])
+  @@map("PipelineBugs")
+}

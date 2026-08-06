@@ -252,6 +252,38 @@ export async function sendReportComplete(
   })
 }
 
+export async function sendBugsComplete(
+  pipelineId: string,
+  registered: number,
+  skipped: number,
+): Promise<void> {
+  const channel = env.SLACK_CHANNEL_ID
+  if (!channel) return
+
+  const ticket = await (await import('./db.js')).db.collectedTicket.findUnique({
+    where: { pipelineId },
+  })
+  if (!ticket) return
+
+  const emoji = registered === 0 ? ':tada:' : ':beetle:'
+  const msg = registered === 0
+    ? `실패 테스트 없음 — 버그 등록 없이 파이프라인 완료`
+    : `버그 ${registered}개 등록 완료 (건너뜀 ${skipped}개)`
+
+  await postSlack('chat.postMessage', {
+    channel,
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `${emoji} *${ticket.ticketKey}* — ${ticket.summary}\n${msg}\n*QA 파이프라인 전체 완료* (\`bugs\` 단계)`,
+        },
+      },
+    ],
+  })
+}
+
 export async function updateApprovalMessage(
   channel: string,
   ts: string,

@@ -17,12 +17,13 @@ import { env } from '../env.js'
 import { logger } from './logger.js'
 import type { NormalizedTicket } from './ticketNormalizer.js'
 import { generateQAPlan, createQAPlanRecord } from './qaPlanGenerator.js'
-import { sendQAPlanApprovalRequest, sendTestCasesComplete, sendPageAnalysisComplete, sendCodegenComplete, sendTestRunComplete, sendReportComplete } from './slackNotifier.js'
+import { sendQAPlanApprovalRequest, sendTestCasesComplete, sendPageAnalysisComplete, sendCodegenComplete, sendTestRunComplete, sendReportComplete, sendBugsComplete } from './slackNotifier.js'
 import { generateTestCases } from './testCaseGenerator.js'
 import { analyzePages } from './pageAnalyzer.js'
 import { generateCode } from './codeGenerator.js'
 import { runTests } from './testRunner.js'
 import { generateReport } from './reportGenerator.js'
+import { registerBugs } from './bugRegistrar.js'
 
 // ──────────────────────────────────────────────
 // Job 타입 정의
@@ -83,6 +84,10 @@ export type JiraPipelineJobData =
     }
   | {
       type: 'testrun-complete'
+      pipelineId: string
+    }
+  | {
+      type: 'report-complete'
       pipelineId: string
     }
 
@@ -351,12 +356,32 @@ async function processJob(job: Job<JiraPipelineJobData>): Promise<void> {
     try {
       const { summary, riskLevel, qualityScore, readyForRelease } = await generateReport(data.pipelineId)
       await sendReportComplete(data.pipelineId, summary, riskLevel, qualityScore, readyForRelease)
-      logger.info({ pipelineId: data.pipelineId, riskLevel, qualityScore, readyForRelease }, '리포트 생성 완료')
+      // Phase 8: 리포트 완료 → 버그 등록 자동 진행
+      await getJiraQueue().add('report-complete', {
+        type: 'report-complete',
+        pipelineId: data.pipelineId,
+      })
+      logger.info({ pipelineId: data.pipelineId, riskLevel, qualityScore, readyForRelease }, '리포트 생성 완료 → 버그 등록 큐 등록')
     } catch (e) {
       logger.error({ e, pipelineId: data.pipelineId }, '리포트 생성 오류')
       await db.collectedTicket.update({
         where: { pipelineId: data.pipelineId },
         data: { pipelineStatus: 'testrun', errorMessage: String(e), updatedAt: new Date() },
+      })
+    }
+  }
+
+  else if (data.type === 'report-complete') {
+    logger.info({ pipelineId: data.pipelineId }, '리포트 완료 → 버그 등록 시작')
+    try {
+      const { registered, skipped } = await registerBugs(data.pipelineId)
+      await sendBugsComplete(data.pipelineId, registered, skipped)
+      logger.info({ pipelineId: data.pipelineId, registered, skipped }, '버그 등록 완료 — 파이프라인 완료')
+    } catch (e) {
+      logger.error({ e, pipelineId: data.pipelineId }, '버그 등록 오류')
+      await db.collectedTicket.update({
+        where: { pipelineId: data.pipelineId },
+        data: { pipelineStatus: 'report', errorMessage: String(e), updatedAt: new Date() },
       })
     }
   }

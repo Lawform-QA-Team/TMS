@@ -37,7 +37,7 @@ export default function PipelineDetail({ pipelineId, onClose }) {
   if (error) return <div className="pipeline-error">오류: {error}</div>;
   if (!data) return null;
 
-  const { ticket, stages, qaPlan, pageAnalyses, generatedCode, testRunResult, report } = data;
+  const { ticket, stages, qaPlan, pageAnalyses, generatedCode, testRunResult, report, bugs } = data;
   const plan = qaPlan?.plan_content ? (() => { try { return JSON.parse(qaPlan.plan_content); } catch { return null; } })() : null;
 
   return (
@@ -150,6 +150,37 @@ export default function PipelineDetail({ pipelineId, onClose }) {
                   <div className="pipeline-tc-expected">
                     플로우: {page.flows.map((f) => f.name).join(', ')}
                   </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {bugs?.length > 0 && (
+        <div className="pipeline-tc-list">
+          <div className="pipeline-qaplan-header">
+            등록된 버그
+            <span style={{ color: '#6b7280', fontWeight: 400 }}>({bugs.length}개)</span>
+          </div>
+          <div className="pipeline-tc-items">
+            {bugs.map((bug) => (
+              <div key={bug.id} className="pipeline-tc-item">
+                <div className="pipeline-tc-title">
+                  <span className={`pipeline-priority-badge priority-${
+                    bug.severity === 'critical' || bug.severity === 'high' ? 'high' :
+                    bug.severity === 'medium' ? 'medium' : 'low'
+                  }`}>{bug.severity}</span>
+                  <span className={`pipeline-badge badge-${bug.status === 'open' ? 'red' : 'green'}`}>
+                    {bug.status}
+                  </span>
+                  {bug.jira_issue_key && (
+                    <span className="pipeline-badge badge-indigo">{bug.jira_issue_key}</span>
+                  )}
+                  {bug.title}
+                </div>
+                {bug.tc_title && (
+                  <div className="pipeline-tc-expected">연관 TC: {bug.tc_title}</div>
                 )}
               </div>
             ))}
