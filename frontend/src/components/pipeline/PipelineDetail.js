@@ -103,6 +103,30 @@ export default function PipelineDetail({ pipelineId, onClose }) {
         </div>
       )}
 
+      {qaPlan?.test_cases?.length > 0 && (
+        <div className="pipeline-tc-list">
+          <div className="pipeline-qaplan-header">
+            테스트 케이스 <span style={{ color: '#6b7280', fontWeight: 400 }}>({qaPlan.test_case_count}개)</span>
+          </div>
+          <div className="pipeline-tc-items">
+            {qaPlan.test_cases.map((tc) => (
+              <div key={tc.id} className="pipeline-tc-item">
+                <div className="pipeline-tc-title">
+                  <span className={`pipeline-priority-badge priority-${tc.priority?.toLowerCase()}`}>{tc.priority}</span>
+                  <span className={`pipeline-badge badge-${tc.case_type === 'happyPath' ? 'green' : tc.case_type === 'negative' ? 'red' : 'yellow'}`}>
+                    {tc.case_type}
+                  </span>
+                  {tc.title}
+                </div>
+                {tc.expected_result && (
+                  <div className="pipeline-tc-expected">{tc.expected_result}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {ticket.pipeline_status === 'collected' && (
         <div className="pipeline-detail-actions">
           <button className="pipeline-cancel-btn" onClick={handleCancel}>

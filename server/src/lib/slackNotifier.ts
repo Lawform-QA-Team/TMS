@@ -99,6 +99,33 @@ export async function sendQAPlanApprovalRequest(
   return result.ts ?? null
 }
 
+export async function sendTestCasesComplete(
+  pipelineId: string,
+  tcCount: number,
+): Promise<void> {
+  const channel = env.SLACK_CHANNEL_ID
+  if (!channel) return
+
+  const ticket = await (await import('./db.js')).db.collectedTicket.findUnique({
+    where: { pipelineId },
+  })
+  if (!ticket) return
+
+  await postSlack('chat.postMessage', {
+    channel,
+    text: `:white_check_mark: *${ticket.ticketKey}* 테스트 케이스 ${tcCount}개 자동 생성 완료`,
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `:clipboard: *${ticket.ticketKey}* — ${ticket.summary}\n테스트 케이스 *${tcCount}개* 자동 생성 완료 (상태: \`testcases\`)`,
+        },
+      },
+    ],
+  })
+}
+
 export async function updateApprovalMessage(
   channel: string,
   ts: string,

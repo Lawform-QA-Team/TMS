@@ -163,6 +163,17 @@ pipelineRouter.get('/:pipelineId', async (c) => {
           approval_status: ticket.qaPlan.approvalStatus,
           created_at: ticket.qaPlan.createdAt.toISOString(),
           test_case_count: ticket.qaPlan.autoQaTestCases.length,
+          test_cases: ticket.qaPlan.autoQaTestCases.map((tc) => ({
+            id: tc.id,
+            title: tc.title,
+            case_type: tc.caseType,
+            priority: tc.priority,
+            status: tc.status,
+            steps: (() => { try { return tc.steps ? JSON.parse(tc.steps) : [] } catch { return [] } })(),
+            expected_result: tc.expectedResult,
+            gherkin: tc.gherkin,
+            tags: (() => { try { return tc.tags ? JSON.parse(tc.tags) : [] } catch { return [] } })(),
+          })),
         }
       : null
     return c.json({

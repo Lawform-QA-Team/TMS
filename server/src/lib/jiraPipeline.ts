@@ -17,7 +17,8 @@ import { env } from '../env.js'
 import { logger } from './logger.js'
 import type { NormalizedTicket } from './ticketNormalizer.js'
 import { generateQAPlan, createQAPlanRecord } from './qaPlanGenerator.js'
-import { sendQAPlanApprovalRequest } from './slackNotifier.js'
+import { sendQAPlanApprovalRequest, sendTestCasesComplete } from './slackNotifier.js'
+import { generateTestCases } from './testCaseGenerator.js'
 
 // ──────────────────────────────────────────────
 // Job 타입 정의
@@ -242,8 +243,18 @@ async function processJob(job: Job<JiraPipelineJobData>): Promise<void> {
   }
 
   else if (data.type === 'qaplan-approved') {
-    logger.info({ pipelineId: data.pipelineId, qaPlanId: data.qaPlanId }, 'QA Plan 승인 — TC 생성 단계 진입 (3단계 예정)')
-    // 3단계(testcases 생성)에서 연결 예정
+    logger.info({ pipelineId: data.pipelineId, qaPlanId: data.qaPlanId }, 'QA Plan 승인 → TC 생성 시작')
+    try {
+      const { saved } = await generateTestCases(data.qaPlanId, data.pipelineId)
+      await sendTestCasesComplete(data.pipelineId, saved)
+      logger.info({ pipelineId: data.pipelineId, saved }, 'AutoQaTestCase 생성 완료')
+    } catch (e) {
+      logger.error({ e, pipelineId: data.pipelineId }, 'TC 생성 오류')
+      await db.collectedTicket.update({
+        where: { pipelineId: data.pipelineId },
+        data: { pipelineStatus: 'qaplan', errorMessage: String(e), updatedAt: new Date() },
+      })
+    }
   }
 
   else if (data.type === 'sync-jira-status') {

@@ -41,7 +41,9 @@ function buildPrompt(ticket: NormalizedTicket): string {
 }
 
 function parsePlanContent(text: string): QAPlanContent {
-  const jsonMatch = text.match(/\{[\s\S]*\}/)
+  // 마크다운 코드블록 제거
+  const stripped = text.replace(/```(?:json)?\s*/g, '').replace(/```/g, '')
+  const jsonMatch = stripped.match(/\{[\s\S]*\}/)
   if (!jsonMatch) throw new Error('QA Plan JSON을 찾을 수 없음')
   return JSON.parse(jsonMatch[0]) as QAPlanContent
 }
@@ -68,7 +70,7 @@ export async function generateQAPlan(ticket: NormalizedTicket): Promise<{
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY })
   const response = await client.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 1024,
+    max_tokens: 2048,
     system: SYSTEM_PROMPT,
     messages: [{ role: 'user', content: buildPrompt(ticket) }],
   })

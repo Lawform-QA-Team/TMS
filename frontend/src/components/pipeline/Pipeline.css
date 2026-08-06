@@ -427,6 +427,44 @@
   margin-bottom: 2px;
 }
 
+/* Test Case list */
+.pipeline-tc-list {
+  margin-top: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pipeline-tc-items {
+  display: flex;
+  flex-direction: column;
+}
+
+.pipeline-tc-item {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.pipeline-tc-item:last-child {
+  border-bottom: none;
+}
+
+.pipeline-tc-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: #1f2937;
+  flex-wrap: wrap;
+}
+
+.pipeline-tc-expected {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-top: 4px;
+  padding-left: 4px;
+}
+
 /* Manager layout */
 .pipeline-manager {
   display: flex;
