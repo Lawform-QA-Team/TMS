@@ -17,8 +17,9 @@ import { env } from '../env.js'
 import { logger } from './logger.js'
 import type { NormalizedTicket } from './ticketNormalizer.js'
 import { generateQAPlan, createQAPlanRecord } from './qaPlanGenerator.js'
-import { sendQAPlanApprovalRequest, sendTestCasesComplete } from './slackNotifier.js'
+import { sendQAPlanApprovalRequest, sendTestCasesComplete, sendPageAnalysisComplete } from './slackNotifier.js'
 import { generateTestCases } from './testCaseGenerator.js'
+import { analyzePages } from './pageAnalyzer.js'
 
 // ──────────────────────────────────────────────
 // Job 타입 정의
@@ -60,6 +61,11 @@ export type JiraPipelineJobData =
     }
   | {
       type: 'qaplan-approved'
+      pipelineId: string
+      qaPlanId: number
+    }
+  | {
+      type: 'testcases-complete'
       pipelineId: string
       qaPlanId: number
     }
@@ -247,12 +253,33 @@ async function processJob(job: Job<JiraPipelineJobData>): Promise<void> {
     try {
       const { saved } = await generateTestCases(data.qaPlanId, data.pipelineId)
       await sendTestCasesComplete(data.pipelineId, saved)
-      logger.info({ pipelineId: data.pipelineId, saved }, 'AutoQaTestCase 생성 완료')
+      // Phase 4: 페이지 분석으로 자동 진행
+      await getJiraQueue().add('testcases-complete', {
+        type: 'testcases-complete',
+        pipelineId: data.pipelineId,
+        qaPlanId: data.qaPlanId,
+      })
+      logger.info({ pipelineId: data.pipelineId, saved }, 'AutoQaTestCase 생성 완료 → 페이지 분석 큐 등록')
     } catch (e) {
       logger.error({ e, pipelineId: data.pipelineId }, 'TC 생성 오류')
       await db.collectedTicket.update({
         where: { pipelineId: data.pipelineId },
         data: { pipelineStatus: 'qaplan', errorMessage: String(e), updatedAt: new Date() },
+      })
+    }
+  }
+
+  else if (data.type === 'testcases-complete') {
+    logger.info({ pipelineId: data.pipelineId, qaPlanId: data.qaPlanId }, 'TC 완료 → 페이지 분석 시작')
+    try {
+      const { analyzed } = await analyzePages(data.pipelineId, data.qaPlanId)
+      await sendPageAnalysisComplete(data.pipelineId, analyzed)
+      logger.info({ pipelineId: data.pipelineId, analyzed }, '페이지 분석 완료')
+    } catch (e) {
+      logger.error({ e, pipelineId: data.pipelineId }, '페이지 분석 오류')
+      await db.collectedTicket.update({
+        where: { pipelineId: data.pipelineId },
+        data: { pipelineStatus: 'testcases', errorMessage: String(e), updatedAt: new Date() },
       })
     }
   }

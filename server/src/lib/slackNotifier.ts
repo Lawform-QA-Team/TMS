@@ -126,6 +126,33 @@ export async function sendTestCasesComplete(
   })
 }
 
+export async function sendPageAnalysisComplete(
+  pipelineId: string,
+  pageCount: number,
+): Promise<void> {
+  const channel = env.SLACK_CHANNEL_ID
+  if (!channel) return
+
+  const ticket = await (await import('./db.js')).db.collectedTicket.findUnique({
+    where: { pipelineId },
+  })
+  if (!ticket) return
+
+  await postSlack('chat.postMessage', {
+    channel,
+    text: `:mag: *${ticket.ticketKey}* 페이지 분석 ${pageCount}개 완료`,
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `:mag: *${ticket.ticketKey}* — ${ticket.summary}\n페이지 분석 *${pageCount}개* 완료 (상태: \`pageanalysis\`)`,
+        },
+      },
+    ],
+  })
+}
+
 export async function updateApprovalMessage(
   channel: string,
   ts: string,

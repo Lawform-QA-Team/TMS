@@ -37,7 +37,7 @@ export default function PipelineDetail({ pipelineId, onClose }) {
   if (error) return <div className="pipeline-error">오류: {error}</div>;
   if (!data) return null;
 
-  const { ticket, stages, qaPlan } = data;
+  const { ticket, stages, qaPlan, pageAnalyses } = data;
   const plan = qaPlan?.plan_content ? (() => { try { return JSON.parse(qaPlan.plan_content); } catch { return null; } })() : null;
 
   return (
@@ -120,6 +120,36 @@ export default function PipelineDetail({ pipelineId, onClose }) {
                 </div>
                 {tc.expected_result && (
                   <div className="pipeline-tc-expected">{tc.expected_result}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {pageAnalyses?.length > 0 && (
+        <div className="pipeline-tc-list">
+          <div className="pipeline-qaplan-header">
+            페이지 분석 <span style={{ color: '#6b7280', fontWeight: 400 }}>({pageAnalyses.length}개 페이지)</span>
+          </div>
+          <div className="pipeline-tc-items">
+            {pageAnalyses.map((page) => (
+              <div key={page.id} className="pipeline-tc-item">
+                <div className="pipeline-tc-title">
+                  <span className="pipeline-badge badge-indigo">{page.page_name}</span>
+                  {page.url_pattern && (
+                    <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{page.url_pattern}</span>
+                  )}
+                </div>
+                {page.elements?.length > 0 && (
+                  <div className="pipeline-tc-expected">
+                    UI 요소: {page.elements.map((el) => el.label).join(', ')}
+                  </div>
+                )}
+                {page.flows?.length > 0 && (
+                  <div className="pipeline-tc-expected">
+                    플로우: {page.flows.map((f) => f.name).join(', ')}
+                  </div>
                 )}
               </div>
             ))}

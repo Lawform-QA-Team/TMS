@@ -144,14 +144,17 @@ pipelineRouter.get('/', async (c) => {
 pipelineRouter.get('/:pipelineId', async (c) => {
   const pipelineId = c.req.param('pipelineId')
   try {
-    const ticket = await db.collectedTicket.findUnique({
-      where: { pipelineId },
-      include: {
-        qaPlan: {
-          include: { autoQaTestCases: { take: 5 } },
+    const [ticket, pageAnalyses] = await Promise.all([
+      db.collectedTicket.findUnique({
+        where: { pipelineId },
+        include: {
+          qaPlan: {
+            include: { autoQaTestCases: { take: 5 } },
+          },
         },
-      },
-    })
+      }),
+      db.pageAnalysis.findMany({ where: { pipelineId } }),
+    ])
     if (!ticket) return c.json({ success: false, error: '파이프라인을 찾을 수 없습니다.' }, 404)
 
     const stages = buildStages(ticket.pipelineStatus)
@@ -176,12 +179,22 @@ pipelineRouter.get('/:pipelineId', async (c) => {
           })),
         }
       : null
+
+    const pages = pageAnalyses.map((p) => ({
+      id: p.id,
+      page_name: p.pageName,
+      url_pattern: p.urlPattern,
+      elements: (() => { try { return p.elements ? JSON.parse(p.elements) : [] } catch { return [] } })(),
+      flows: (() => { try { return p.flows ? JSON.parse(p.flows) : [] } catch { return [] } })(),
+    }))
+
     return c.json({
       success: true,
       data: {
         ticket: serializeTicket(ticket),
         stages,
         qaPlan,
+        pageAnalyses: pages,
       },
     })
   } catch (e) {

@@ -899,3 +899,18 @@ model AutoQaTestCase {
   @@index([pipelineId])
   @@map("AutoQaTestCases")
 }
+
+model PageAnalysis {
+  id          Int      @id @default(autoincrement())
+  pipelineId  String   @map("pipeline_id") @db.VarChar(36)
+  pageName    String   @map("page_name") @db.VarChar(200)
+  urlPattern  String?  @map("url_pattern") @db.VarChar(500)
+  elements    String?  @db.LongText   // JSON: [{selector, fallbackSelector, type, label}]
+  flows       String?  @db.LongText   // JSON: [{name, steps[]}]
+  rawAnalysis String?  @map("raw_analysis") @db.LongText
+  createdAt   DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@index([pipelineId])
+  @@map("PageAnalyses")
+}
