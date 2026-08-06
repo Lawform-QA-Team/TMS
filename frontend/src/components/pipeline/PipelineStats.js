@@ -38,6 +38,12 @@ export default function PipelineStats() {
   const byStatus = stats.by_status ?? {};
   const total = stats.total ?? 0;
 
+  // 모든 상태를 디폴트로 표시 (데이터 없는 상태는 0)
+  const allStatuses = Object.keys(STATUS_LABELS);
+  const normalizedByStatus = Object.fromEntries(
+    allStatuses.map((s) => [s, byStatus[s] ?? 0])
+  );
+
   return (
     <div className="pipeline-stats">
       <div className="pipeline-stats-cards">
@@ -51,7 +57,7 @@ export default function PipelineStats() {
         </div>
         <div className="pipeline-stat-card pipeline-stat-card--wide">
           <div className="pipeline-stat-label" style={{ marginBottom: 8 }}>상태별 분포</div>
-          {Object.entries(byStatus).map(([status, count]) => {
+          {Object.entries(normalizedByStatus).map(([status, count]) => {
             const pct = total > 0 ? Math.round((count / total) * 100) : 0;
             return (
               <div key={status} className="pipeline-status-bar-row">
@@ -59,7 +65,7 @@ export default function PipelineStats() {
                 <div className="pipeline-status-bar-track">
                   <div
                     className="pipeline-status-bar-fill"
-                    style={{ width: `${pct}%`, background: STATUS_COLORS[status] ?? '#6b7280' }}
+                    style={{ width: `${Math.max(pct, count > 0 ? 3 : 0)}%`, background: STATUS_COLORS[status] ?? '#6b7280' }}
                   />
                 </div>
                 <span className="pipeline-status-bar-count">{count}</span>

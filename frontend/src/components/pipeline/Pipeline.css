@@ -15,12 +15,19 @@
   padding: 16px 24px;
   min-width: 140px;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .pipeline-stat-card--wide {
   flex: 1;
   min-width: 260px;
   text-align: left;
+  display: block;
+  align-items: unset;
+  justify-content: unset;
 }
 
 .pipeline-stat-value {
