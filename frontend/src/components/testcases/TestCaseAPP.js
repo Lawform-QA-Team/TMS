@@ -146,6 +146,8 @@ const TestCaseAPP = ({ setActiveTab }) => {
     setCreatorFilter,
     assigneeFilter,
     setAssigneeFilter,
+    priorityFilter,
+    setPriorityFilter,
     uniqueEnvironments,
     uniqueCategories,
     uniqueCreators,
@@ -181,6 +183,8 @@ const TestCaseAPP = ({ setActiveTab }) => {
   const [editMentionQuery, setEditMentionQuery] = useState('');
   const [editMentionIndex, setEditMentionIndex] = useState(0);
   
+  const [weeklyActivity, setWeeklyActivity] = useState(null);
+
   // 폴더 및 정렬 상태
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [expandedFolders, setExpandedFolders] = useState(new Set());
@@ -199,9 +203,14 @@ const TestCaseAPP = ({ setActiveTab }) => {
     environmentFilter,
     categoryFilter,
     creatorFilter,
-    assigneeFilter
+    assigneeFilter,
+    priorityFilter
   ]);
   
+  useEffect(() => {
+    axios.get('/dashboard/weekly-activity').then(r => setWeeklyActivity(r.data)).catch(() => {});
+  }, []);
+
   // 새 테스트 케이스 기본값
   const defaultTestCase = {
         name: '',
@@ -307,6 +316,11 @@ const TestCaseAPP = ({ setActiveTab }) => {
       filtered = filtered.filter(tc => tc.assignee_name === assigneeFilter);
     }
 
+    // 중요도 필터 적용
+    if (priorityFilter !== 'all') {
+      filtered = filtered.filter(tc => (tc.priority || '') === priorityFilter);
+    }
+
     // 정렬 적용
     filtered.sort((a, b) => {
       let comparison = 0;
@@ -355,7 +369,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
     return filtered;
   }, [
     testCases, selectedFolder, folderTree, searchTerm, statusFilter,
-    environmentFilter, categoryFilter, creatorFilter, assigneeFilter,
+    environmentFilter, categoryFilter, creatorFilter, assigneeFilter, priorityFilter,
     sortBy, sortOrder
   ]);
 
@@ -1162,6 +1176,8 @@ const TestCaseAPP = ({ setActiveTab }) => {
         onCreatorFilterChange={setCreatorFilter}
         assigneeFilter={assigneeFilter}
         onAssigneeFilterChange={setAssigneeFilter}
+        priorityFilter={priorityFilter}
+        onPriorityFilterChange={setPriorityFilter}
         onClearFilters={clearAllFilters}
         uniqueEnvironments={uniqueEnvironments}
         uniqueCategories={uniqueCategories}
@@ -1194,77 +1210,115 @@ const TestCaseAPP = ({ setActiveTab }) => {
 
         {/* 테스트 케이스 목록 */}
         <div className="testcase-list">
+          {/* 상태 카운터 바 */}
+          <div className="tc-status-counter-bar">
+            {[
+              { label: '전체', value: statusSummary.total, cls: 'tc-counter-total' },
+              { label: 'Pass', value: statusSummary.pass, cls: 'tc-counter-pass' },
+              { label: 'Fail', value: statusSummary.fail, cls: 'tc-counter-fail' },
+              { label: 'N/T', value: statusSummary.ntCombined, cls: 'tc-counter-nt' },
+              { label: 'N/A', value: statusSummary.na, cls: 'tc-counter-na' },
+              { label: 'Block', value: statusSummary.block, cls: 'tc-counter-block' },
+            ].map(item => (
+              <div key={item.label} className={`tc-counter-item ${item.cls}`}>
+                <div className="tc-counter-label">{item.label}</div>
+                <div className="tc-counter-value">{item.value}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Pass Rate 패널 + 주간 활동 */}
           <div className="testcase-stats">
-            <div className="stats-card stats-overview">
-              <div className="stats-title">진행 현황</div>
-              <div className="stats-donut-wrap">
-                <div className="stats-pie">
-                  <svg className="stats-pie-svg" viewBox="0 0 100 100" role="img">
+            {/* Pass Rate 현황 */}
+            <div className="stats-card tc-passrate-panel">
+              <div className="stats-title">Pass Rate 현황</div>
+              <div className="tc-passrate-body">
+                <div className="tc-passrate-donut-wrap">
+                  <svg className="tc-passrate-donut-svg" viewBox="0 0 100 100" role="img">
                     {statusSummary.total === 0 ? (
-                      <circle cx="50" cy="50" r="50" fill="#e2e3e5">
-                        <title>데이터 없음</title>
-                      </circle>
+                      <circle cx="50" cy="50" r="38" fill="none" stroke="#e2e3e5" strokeWidth="16" />
                     ) : pieSegments.length === 1 ? (
-                      <circle cx="50" cy="50" r="50" fill={pieSegments[0].color}>
-                        <title>{`${pieSegments[0].label}: ${pieSegments[0].value} (${pieSegments[0].percent}%)`}</title>
-                      </circle>
+                      <circle cx="50" cy="50" r="38" fill="none" stroke={pieSegments[0].color} strokeWidth="16" />
                     ) : (
-                      pieSegments.map((segment) => (
-                        <path
-                          key={segment.key}
-                          d={describeArc(50, 50, 50, segment.startAngle, segment.endAngle)}
-                          fill={segment.color}
-                        >
-                          <title>{`${segment.label}: ${segment.value} (${segment.percent}%)`}</title>
-                        </path>
-                      ))
+                      pieSegments.map((segment) => {
+                        const s = polarToCartesian(50, 50, 38, segment.startAngle);
+                        const e = polarToCartesian(50, 50, 38, segment.endAngle);
+                        const large = segment.endAngle - segment.startAngle > 180 ? 1 : 0;
+                        return (
+                          <path
+                            key={segment.key}
+                            d={`M ${s.x} ${s.y} A 38 38 0 ${large} 1 ${e.x} ${e.y}`}
+                            fill="none"
+                            stroke={segment.color}
+                            strokeWidth="16"
+                            strokeLinecap="butt"
+                          >
+                            <title>{`${segment.label}: ${segment.value} (${segment.percent}%)`}</title>
+                          </path>
+                        );
+                      })
                     )}
+                    <text x="50" y="47" textAnchor="middle" fontSize="14" fontWeight="700" fill="#1a2a40">{statusSummary.passRate}%</text>
+                    <text x="50" y="59" textAnchor="middle" fontSize="7" fill="#888">Pass Rate</text>
                   </svg>
                 </div>
-                <div className="stats-table">
-                  <div className="stats-table-title">상세 테이블</div>
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>상태</th>
-                        <th>건수</th>
-                        <th>비율</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td><span className="stats-status stats-status-pass">Pass</span></td>
-                        <td>{statusSummary.pass}</td>
-                        <td>{statusSummary.percentPass}%</td>
-                      </tr>
-                      <tr>
-                        <td><span className="stats-status stats-status-block">Block</span></td>
-                        <td>{statusSummary.block}</td>
-                        <td>{statusSummary.percentBlock}%</td>
-                      </tr>
-                      <tr>
-                        <td><span className="stats-status stats-status-fail">Fail</span></td>
-                        <td>{statusSummary.fail}</td>
-                        <td>{statusSummary.percentFail}%</td>
-                      </tr>
-                      <tr>
-                        <td><span className="stats-status stats-status-nt">N/T</span></td>
-                        <td>{statusSummary.ntCombined}</td>
-                        <td>{statusSummary.percentNt}%</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                <div className="tc-passrate-details">
+                  <div className="tc-passrate-bar-row">
+                    {[
+                      { v: statusSummary.pass, c: '#28a745' },
+                      { v: statusSummary.fail, c: '#dc3545' },
+                      { v: statusSummary.ntCombined, c: '#e2e3e5' },
+                      { v: statusSummary.block, c: '#ffc107' },
+                    ].map((s, i) => (
+                      <div key={i} className="tc-bar-seg" style={{ flex: s.v || 0.01, backgroundColor: s.c }} />
+                    ))}
+                  </div>
+                  <div className="tc-passrate-stat-list">
+                    {[
+                      { label: 'Pass', v: statusSummary.pass, pct: statusSummary.percentPass, c: '#28a745' },
+                      { label: 'Fail', v: statusSummary.fail, pct: statusSummary.percentFail, c: '#dc3545' },
+                      { label: 'N/T', v: statusSummary.ntCombined, pct: statusSummary.percentNt, c: '#e2e3e5' },
+                      { label: 'Block', v: statusSummary.block, pct: statusSummary.percentBlock, c: '#ffc107' },
+                    ].map(s => (
+                      <div key={s.label} className="tc-stat-item">
+                        <span className="tc-stat-dot" style={{ backgroundColor: s.c }} />
+                        <span className="tc-stat-label">{s.label}</span>
+                        <span className="tc-stat-value">{s.v}</span>
+                        <span className="tc-stat-pct">{s.pct}%</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="tc-passrate-footer">
+                    완료 {statusSummary.pass} / 잔여 {statusSummary.total - statusSummary.pass} · 총 {statusSummary.total}건
+                  </div>
                 </div>
               </div>
-              <div className="stats-footer">
-                총 {statusSummary.total}건 / 테스트됨 {statusSummary.tested}건
-              </div>
             </div>
-            <div className="stats-card stats-passrate">
-              <div className="stats-title">통과율</div>
-              <div className="stats-passrate-value">{statusSummary.passRate}%</div>
-              <div className="stats-passrate-subtext">
-                테스트됨 기준 (N/T 제외)
+
+            {/* 주간 활동 */}
+            <div className="stats-card tc-weekly-panel">
+              <div className="stats-title">주간 활동</div>
+              <div className="tc-weekly-body">
+                {weeklyActivity ? [
+                  { key: 'new_tc', label: '신규 TC 등록' },
+                  { key: 'passed', label: 'Pass 완료' },
+                  { key: 'failed', label: 'Fail 등록' },
+                ].map(({ key, label }) => {
+                  const thisWeek = weeklyActivity.this_week[key] || 0;
+                  const lastWeek = weeklyActivity.last_week[key] || 0;
+                  const diff = thisWeek - lastWeek;
+                  return (
+                    <div key={key} className="tc-activity-row">
+                      <span className="tc-activity-label">{label}</span>
+                      <span className="tc-activity-value">{thisWeek}</span>
+                      <span className={`tc-activity-diff ${diff > 0 ? 'diff-up' : diff < 0 ? 'diff-down' : 'diff-neutral'}`}>
+                        {diff > 0 ? '▲' : diff < 0 ? '▼' : '-'} {Math.abs(diff)} 지난 주
+                      </span>
+                    </div>
+                  );
+                }) : (
+                  <div className="tc-activity-loading">로딩 중...</div>
+                )}
               </div>
             </div>
           </div>
@@ -1348,6 +1402,18 @@ const TestCaseAPP = ({ setActiveTab }) => {
                           {selectedTestCase.environment || 'dev'}
                         </span>
                       </td>
+                    </tr>
+                    <tr>
+                      <th>중요도</th>
+                      <td>
+                        {selectedTestCase.priority ? (
+                          <span className={`priority-badge priority-${selectedTestCase.priority}`}>
+                            {{ critical: '긴급', high: '높음', medium: '중간', low: '낮음' }[selectedTestCase.priority] || selectedTestCase.priority}
+                          </span>
+                        ) : '없음'}
+                      </td>
+                      <th>TC No.</th>
+                      <td>{selectedTestCase.tc_number || '-'}</td>
                     </tr>
                     <tr>
                       <th>작성자</th>
