@@ -27,10 +27,6 @@
 - **bcryptjs** — 비밀번호 해싱
 - **Jose** — JWT 인증
 
-### Backend (Python — Legacy)
-- **Python 3.13+** / **Flask 3.1+** / **SQLAlchemy 2.0+**
-- 일부 레거시 기능은 `backend/` 디렉토리에서 관리
-
 ### Frontend
 - **React 18+**
 - **Axios**
@@ -49,7 +45,6 @@
 
 - Node.js 20.12+
 - MySQL 8.0+
-- Python 3.13+ (레거시 백엔드 실행 시)
 
 ---
 
@@ -123,23 +118,7 @@ npm run start
 
 ---
 
-### 3. Python 레거시 백엔드 실행 (선택)
-
-일부 기능(Slack 알림, 화이트박스 테스트 등)은 아직 Python 백엔드에서 처리됩니다.
-
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python app.py
-```
-
-기본 포트: **8000**
-
----
-
-### 4. 프론트엔드 실행
+### 3. 프론트엔드 실행
 
 ```bash
 cd frontend
@@ -159,7 +138,7 @@ development: {
 
 ---
 
-### 5. 데이터베이스 설정
+### 4. 데이터베이스 설정
 
 로컬 MySQL을 직접 사용하거나 Docker를 사용할 수 있습니다.
 
@@ -194,11 +173,6 @@ TMS/
 │   │   └── schema.prisma    # DB 스키마 정의
 │   ├── .env.example         # 환경 변수 예시
 │   └── package.json
-├── backend/                 # Python 레거시 백엔드
-│   ├── app.py
-│   ├── models.py
-│   ├── routes/
-│   └── utils/
 ├── frontend/                # React 프론트엔드
 │   ├── src/
 │   │   ├── components/
@@ -220,7 +194,7 @@ TMS/
 | 변수 | 필수 | 설명 | 예시 |
 |------|------|------|------|
 | `NODE_ENV` | 선택 | 실행 환경 | `development` |
-| `PORT` | 선택 | 서버 포트 (기본 8000) | `8080` |
+| `PORT` | 선택 | 서버 포트 (기본 8080) | `8080` |
 | `DATABASE_URL` | **필수** | MySQL 연결 URL | `mysql://user:pass@host:3306/db` |
 | `JWT_SECRET_KEY` | **필수** | JWT 서명 키 | 임의의 긴 문자열 |
 | `JWT_ACCESS_EXPIRES_IN` | 선택 | Access 토큰 만료 | `24h` |
@@ -312,4 +286,3 @@ cd server && npm run db:generate
 
 **마지막 업데이트**: 2026년 8월
 **버전**: 3.0.0
-**주요 변경**: Python Flask → TypeScript (Hono + Prisma) 백엔드 전환
