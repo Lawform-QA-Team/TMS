@@ -33,6 +33,8 @@ RUN npx prisma generate
 
 COPY --from=builder /app/dist ./dist
 
+ENV NODE_ENV=production
+
 EXPOSE 8080
 
 CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/index.js"]
