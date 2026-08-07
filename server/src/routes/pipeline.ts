@@ -2,6 +2,9 @@ import { Hono } from 'hono'
 import { db } from '../lib/db.js'
 import { requireAuth } from '../middleware/auth.js'
 import { logger } from '../lib/logger.js'
+import { getJiraQueue } from '../lib/jiraPipeline.js'
+import { getRedis } from '../lib/redis.js'
+import { normalizeTicket } from '../lib/ticketNormalizer.js'
 
 export const pipelineRouter = new Hono()
 
@@ -283,6 +286,60 @@ pipelineRouter.post('/:pipelineId/cancel', requireAuth, async (c) => {
     return c.json({ success: true, message: '파이프라인이 취소되었습니다.' })
   } catch (e) {
     logger.error({ e }, 'Pipeline 취소 오류')
+    return c.json({ success: false, error: String(e) }, 500)
+  }
+})
+
+// POST /pipeline/:pipelineId/retry — QA Plan 생성부터 재시도 (Slack 메시지 재발송)
+pipelineRouter.post('/:pipelineId/retry', requireAuth, async (c) => {
+  const pipelineId = c.req.param('pipelineId')
+  try {
+    const ticket = await db.collectedTicket.findUnique({ where: { pipelineId } })
+    if (!ticket) return c.json({ success: false, error: '파이프라인을 찾을 수 없습니다.' }, 404)
+
+    // 기존 QAPlan 삭제 (재생성)
+    await db.qAPlan.deleteMany({ where: { pipelineId } })
+
+    // Redis dedup 초기화
+    const redis = getRedis()
+    await redis.del(`collected:ticket:${ticket.ticketKey}`)
+
+    // pipelineStatus 리셋
+    await db.collectedTicket.update({
+      where: { pipelineId },
+      data: { pipelineStatus: 'collected', errorMessage: null, updatedAt: new Date() },
+    })
+
+    // collect-complete 잡 재큐잉
+    const normalized = normalizeTicket(
+      {
+        key: ticket.ticketKey,
+        fields: {
+          summary: ticket.summary,
+          description: ticket.descriptionRaw ? JSON.parse(ticket.descriptionRaw) : ticket.descriptionText,
+          issuetype: { name: ticket.issueType },
+          priority: { name: ticket.priority },
+          project: { key: ticket.projectKey },
+          status: { name: 'collected' },
+          labels: ticket.labels ? JSON.parse(ticket.labels) : [],
+        },
+      } as never,
+      ticket.sourceType as 'webhook' | 'cron',
+    )
+    // pipelineId는 기존 것 유지
+    normalized.pipelineId = pipelineId
+
+    await getJiraQueue().add('collect-complete', {
+      type: 'collect-complete',
+      ticketKey: ticket.ticketKey,
+      pipelineId,
+      payload: normalized,
+    })
+
+    logger.info({ pipelineId }, 'Pipeline retry 요청')
+    return c.json({ success: true, message: 'QA Plan 재생성 및 Slack 메시지 재발송 시작' })
+  } catch (e) {
+    logger.error({ e }, 'Pipeline retry 오류')
     return c.json({ success: false, error: String(e) }, 500)
   }
 })
