@@ -286,7 +286,8 @@ const TestCaseAPP = ({ setActiveTab }) => {
 
     // 상태 필터 적용
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(tc => tc.result_status === statusFilter);
+      const normalize = (s) => (!s || s === 'pending') ? 'N/T' : s;
+      filtered = filtered.filter(tc => normalize(tc.result_status) === statusFilter);
     }
 
     // 환경 필터 적용
@@ -383,7 +384,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
     };
 
     filteredTestCases.forEach((tc) => {
-      const rawStatus = (tc.result_status || 'N/T').toString().toLowerCase();
+      const rawStatus = (!tc.result_status || tc.result_status === 'pending' ? 'N/T' : tc.result_status).toString().toLowerCase();
       if (rawStatus === 'pass') {
         counts.pass += 1;
       } else if (rawStatus === 'fail') {
