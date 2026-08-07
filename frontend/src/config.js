@@ -4,8 +4,8 @@ const config = {
     uploadUrl: 'http://localhost:8080/uploads'
   },
   production: {
-    apiUrl: process.env.REACT_APP_API_URL || 'https://backend-alpha-liard.vercel.app',
-    uploadUrl: process.env.REACT_APP_UPLOAD_URL || 'https://backend-alpha-liard.vercel.app/uploads'
+    apiUrl: process.env.REACT_APP_API_URL || 'https://tms-production-4a38.up.railway.app',
+    uploadUrl: process.env.REACT_APP_UPLOAD_URL || 'https://tms-production-4a38.up.railway.app/uploads'
   }
 };
 
