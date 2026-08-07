@@ -23,7 +23,7 @@ export const useTestCaseData = () => {
 
       setTestCases(testCasesRes.data);
       setFolderTree(treeRes.data);
-      setAllFolders(foldersRes.data);
+      setAllFolders(foldersRes.data.data || foldersRes.data);
       setUsers(usersRes.data);
       setError(null);
     } catch (err) {

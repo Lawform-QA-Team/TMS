@@ -14,6 +14,8 @@ const TestCaseSearch = ({
   onCreatorFilterChange,
   assigneeFilter,
   onAssigneeFilterChange,
+  priorityFilter,
+  onPriorityFilterChange,
   onClearFilters,
   uniqueEnvironments = [],
   uniqueCategories = [],
@@ -28,7 +30,7 @@ const TestCaseSearch = ({
         <div className="testcase-search-input-wrapper">
           <input
             type="text"
-            placeholder="🔍 테스트 케이스 검색... (대분류, 중분류, 소분류, 기대결과, 비고, 작성자, 담당자)"
+            placeholder="테스트 케이스 검색... (대분류, 중분류, 소분류, 기대결과, 비고, 작성자, 담당자)"
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             className="testcase-search-input"
@@ -74,6 +76,21 @@ const TestCaseSearch = ({
                 {uniqueEnvironments.map(env => (
                   <option key={env} value={env}>{env}</option>
                 ))}
+              </select>
+            </div>
+
+            <div className="testcase-filter-group">
+              <label>중요도:</label>
+              <select
+                value={priorityFilter}
+                onChange={(e) => onPriorityFilterChange(e.target.value)}
+                className="testcase-filter-select"
+              >
+                <option value="all">모든 중요도</option>
+                <option value="critical">긴급</option>
+                <option value="high">높음</option>
+                <option value="medium">중간</option>
+                <option value="low">낮음</option>
               </select>
             </div>
 
@@ -124,7 +141,7 @@ const TestCaseSearch = ({
               className="testcase-btn testcase-btn-clear-filters"
               title="모든 필터 초기화"
             >
-              🗑️
+              초기화
             </button>
           </div>
         </div>
@@ -138,6 +155,7 @@ const TestCaseSearch = ({
           {categoryFilter !== 'all' && <span> • 카테고리: {categoryFilter}</span>}
           {creatorFilter !== 'all' && <span> • 작성자: {creatorFilter}</span>}
           {assigneeFilter !== 'all' && <span> • 담당자: {assigneeFilter}</span>}
+          {priorityFilter !== 'all' && <span> • 중요도: {{ critical: '긴급', high: '높음', medium: '중간', low: '낮음' }[priorityFilter]}</span>}
         </div>
       </div>
     </div>

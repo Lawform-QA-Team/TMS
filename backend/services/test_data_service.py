@@ -83,7 +83,7 @@ class TestDataService:
             TestDataSet: 새 버전
         """
         try:
-            parent = TestDataSet.query.get(parent_id)
+            parent = db.session.get(TestDataSet, parent_id)
             if not parent:
                 raise ValueError(f"부모 데이터 세트를 찾을 수 없습니다: {parent_id}")
             

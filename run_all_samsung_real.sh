@@ -16,17 +16,20 @@ echo "Timestamp: $(date '+%Y-%m-%d %H:%M:%S')"
 echo "=============================================="
 
 # samsung/real 하위의 모든 .js 파일을 정렬된 순서로 순차 실행
-find "$BASE_DIR" -type f -name "*.js" | sort | while read -r script; do
-  echo "----------------------------------------------"
-  echo "Running k6 script: $script"
-  echo "Start: $(date '+%Y-%m-%d %H:%M:%S')"
-  echo "----------------------------------------------"
-
-  ./run.sh "$script"
-
-  echo "Finished: $(date '+%Y-%m-%d %H:%M:%S')"
-  echo
-done
+find "$BASE_DIR" -type f -name "*.js" \
+            ! -name "login_helper.js" \
+            ! -name "selector_sam.js" \
+            ! -name "url_base_sam.js" \
+            | sort | while read -r script; do
+            echo "----------------------------------------------"
+            echo "Running k6 script: $script"
+            echo "Start: $(date -u '+%Y-%m-%d %H:%M:%S')"
+            echo "----------------------------------------------"
+            ./run.sh "$script"
+            echo "Finished: $(date -u '+%Y-%m-%d %H:%M:%S')"
+            echo "----------------------------------------------"
+            echo
+          done
 
 echo "=============================================="
 echo "[k6] All samsung/real scripts finished"

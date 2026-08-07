@@ -77,7 +77,7 @@ class TestCaseService:
         # 폴더의 환경 정보 가져오기
         folder_environment = 'dev'
         if folder_id:
-            folder = Folder.query.get(folder_id)
+            folder = db.session.get(Folder, folder_id)
             if folder:
                 folder_environment = folder.environment
         

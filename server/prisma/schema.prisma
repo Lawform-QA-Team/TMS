@@ -1,0 +1,979 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                       Int                   @id @default(autoincrement())
+  username                 String                @unique(map: "username") @db.VarChar(80)
+  email                    String                @unique(map: "email") @db.VarChar(120)
+  passwordHash             String                @map("password_hash") @db.VarChar(255)
+  firstName                String?               @map("first_name") @db.VarChar(50)
+  lastName                 String?               @map("last_name") @db.VarChar(50)
+  role                     String                @default("viewer") @db.VarChar(20)
+  isActive                 Boolean               @default(true) @map("is_active")
+  lastLogin                DateTime?             @map("last_login") @db.DateTime(0)
+  createdAt                DateTime              @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt                DateTime              @updatedAt @map("updated_at") @db.DateTime(0)
+  AiConversations          AiConversations[]
+  assignedAutomationTests  AutomationTest[]      @relation("AssigneeAutomationTests")
+  createdAutomationTests   AutomationTest[]      @relation("CreatorAutomationTests")
+  createdTestCases         TestCase[]            @relation("CreatorTestCases")
+  cicdIntegrations         CICDIntegration[]
+  comments                 Comment[]
+  createdReports           CustomReport[]
+  mentions                 Mention[]
+  notificationSettings     NotificationSettings?
+  notifications            Notification[]
+  assignedPerformanceTests PerformanceTest[]     @relation("AssigneePerformanceTests")
+  createdPerformanceTests  PerformanceTest[]     @relation("CreatorPerformanceTests")
+  executedReports          ReportExecution[]
+  assignedTestCases        TestCase[]            @relation("AssigneeTestCases")
+  createdTestDataSets      TestDataSet[]
+  createdSchedules         TestSchedule[]
+  UserAiConfigs            UserAiConfigs?
+  UserSecuritySettings     UserSecuritySettings?
+  workflowStateChanges     WorkflowState[]
+  createdWorkflows         Workflow[]
+  testCaseChanges          TestCaseHistory[]
+  createdTemplates         TestCaseTemplate[]
+  testPlanAssignments      TestPlanTestCase[]
+  createdTestPlans         TestPlan[]
+
+  @@map("Users")
+}
+
+model UserSession {
+  id           Int       @id @default(autoincrement())
+  userId       Int       @map("user_id")
+  sessionToken String    @map("session_token") @db.Text
+  ipAddress    String?   @map("ip_address") @db.VarChar(45)
+  userAgent    String?   @map("user_agent") @db.Text
+  isActive     Boolean?  @map("is_active")
+  createdAt    DateTime? @map("created_at") @db.DateTime(0)
+  expiresAt    DateTime  @map("expires_at") @db.DateTime(0)
+  login_type   String?   @default("password") @db.VarChar(20)
+
+  @@index([userId], map: "user_id")
+  @@map("UserSessions")
+}
+
+model Project {
+  id            Int            @id @default(autoincrement())
+  name          String         @db.VarChar(100)
+  description   String?        @db.Text
+  createdAt     DateTime       @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt     DateTime       @updatedAt @map("updated_at") @db.DateTime(0)
+  customReports CustomReport[]
+  workflows     Workflow[]
+
+  @@map("projects")
+}
+
+model Folder {
+  id              Int               @id @default(autoincrement())
+  folderName      String            @map("folder_name") @db.VarChar(100)
+  folderType      String?           @map("folder_type") @db.VarChar(50)
+  environment     String?           @db.VarChar(50)
+  deploymentDate  DateTime?         @map("deployment_date") @db.Date
+  parentFolderId  Int?              @map("parent_folder_id")
+  projectId       Int?              @map("project_id")
+  createdAt       DateTime          @default(now()) @map("created_at") @db.DateTime(0)
+  AiConversations AiConversations[]
+  parentFolder    Folder?           @relation("FolderChildren", fields: [parentFolderId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "folders_ibfk_1")
+  childFolders    Folder[]          @relation("FolderChildren")
+
+  @@index([parentFolderId], map: "parent_folder_id")
+  @@index([projectId], map: "project_id")
+  @@map("Folders")
+}
+
+model TestCase {
+  id                 Int                   @id @default(autoincrement())
+  name               String                @db.VarChar(200)
+  description        String?               @db.Text
+  testType           String?               @map("test_type") @db.VarChar(50)
+  scriptPath         String?               @map("script_path") @db.VarChar(500)
+  folderId           Int?                  @map("folder_id")
+  createdAt          DateTime              @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt          DateTime              @updatedAt @map("updated_at") @db.DateTime(0)
+  mainCategory       String?               @map("main_category") @db.VarChar(100)
+  subCategory        String?               @map("sub_category") @db.VarChar(100)
+  detailCategory     String?               @map("detail_category") @db.VarChar(100)
+  preCondition       String?               @map("pre_condition") @db.Text
+  expectedResult     String?               @map("expected_result") @db.Text
+  remark             String?               @db.Text
+  automationCodePath String?               @map("automation_code_path") @db.VarChar(500)
+  environment        String?               @db.VarChar(50)
+  creatorId          Int?                  @map("creator_id")
+  priority           String?               @default("medium") @db.VarChar(20)
+  status             String?               @default("draft") @db.VarChar(20)
+  projectId          Int?                  @map("project_id")
+  resultStatus       String                @default("pending") @map("result_status") @db.VarChar(20)
+  automationCodeType String?               @map("automation_code_type") @db.VarChar(50)
+  assigneeId         Int?                  @map("assignee_id")
+  testSteps          String?               @map("test_steps") @db.Text
+  tc_number          String?               @db.VarChar(50)
+  jiraIntegrations   JiraIntegration[]
+  jiraIssues         JiraIssue[]
+  notifications      Notification[]        @relation("RelatedTestCaseNotifications")
+  dataMappings       TestCaseDataMapping[]
+  creator            User?                 @relation("CreatorTestCases", fields: [creatorId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_testcases_creator")
+  assignee           User?                 @relation("AssigneeTestCases", fields: [assigneeId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_testcases_assignee")
+  dependencies       TestDependency[]      @relation("DependentTestCases")
+  dependedUponBy     TestDependency[]      @relation("RequiredTestCases")
+  executions         TestExecution[]
+  testResults        TestResult[]
+  schedules          TestSchedule[]
+  history            TestCaseHistory[]
+  planLinks          TestPlanTestCase[]
+
+  @@index([creatorId], map: "fk_test_cases_creator")
+  @@index([projectId], map: "fk_testcases_project")
+  @@index([folderId], map: "folder_id")
+  @@index([assigneeId], map: "idx_testcases_assignee_id")
+  @@index([creatorId], map: "idx_testcases_creator_id")
+  @@index([environment], map: "idx_testcases_environment")
+  @@index([folderId], map: "idx_testcases_folder_id")
+  @@index([resultStatus], map: "idx_testcases_result_status")
+  @@map("TestCases")
+}
+
+model TestCaseHistory {
+  id         Int      @id @default(autoincrement())
+  testCaseId Int      @map("test_case_id")
+  fieldName  String   @map("field_name") @db.VarChar(100)
+  oldValue   String?  @map("old_value") @db.Text
+  newValue   String?  @map("new_value") @db.Text
+  changedBy  Int      @map("changed_by")
+  changedAt  DateTime @map("changed_at") @db.DateTime(0)
+  changeType String   @map("change_type") @db.VarChar(50)
+  testCase   TestCase @relation(fields: [testCaseId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "test_case_history_ibfk_1")
+  user       User     @relation(fields: [changedBy], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "test_case_history_ibfk_2")
+
+  @@index([changedBy], map: "changed_by")
+  @@index([testCaseId], map: "test_case_history_ibfk_1")
+  @@map("test_case_history")
+}
+
+model AutomationTest {
+  id                    Int                     @id @default(autoincrement())
+  name                  String                  @db.VarChar(200)
+  description           String?                 @db.Text
+  testType              String?                 @map("test_type") @db.VarChar(50)
+  scriptPath            String?                 @map("script_path") @db.VarChar(500)
+  environment           String?                 @db.VarChar(100)
+  parameters            String?                 @db.Text
+  createdAt             DateTime                @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt             DateTime                @updatedAt @map("updated_at") @db.DateTime(0)
+  creatorId             Int?                    @map("creator_id")
+  projectId             Int?                    @map("project_id")
+  assigneeId            Int?                    @map("assignee_id")
+  AutomationTestResults AutomationTestResults[]
+  assignee              User?                   @relation("AssigneeAutomationTests", fields: [assigneeId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_automationtests_assignee")
+  creator               User?                   @relation("CreatorAutomationTests", fields: [creatorId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_automationtests_creator")
+  jiraIntegrations      JiraIntegration[]
+  jiraIssues            JiraIssue[]
+  notifications         Notification[]          @relation("RelatedAutomationTestNotifications")
+  executions            TestExecution[]
+  testResults           TestResult[]
+
+  @@index([creatorId], map: "fk_automation_tests_creator")
+  @@index([projectId], map: "fk_automationtests_project")
+  @@index([assigneeId], map: "idx_automationtests_assignee_id")
+  @@map("AutomationTests")
+}
+
+model PerformanceTest {
+  id                     Int                      @id @default(autoincrement())
+  name                   String                   @db.VarChar(200)
+  description            String?                  @db.Text
+  scriptPath             String?                  @map("script_path") @db.VarChar(500)
+  environment            String?                  @db.VarChar(100)
+  parameters             String?                  @db.Text
+  createdAt              DateTime                 @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt              DateTime                 @updatedAt @map("updated_at") @db.DateTime(0)
+  creatorId              Int?                     @map("creator_id")
+  testType               String?                  @default("load") @map("test_type") @db.VarChar(50)
+  projectId              Int?                     @map("project_id")
+  assigneeId             Int?                     @map("assignee_id")
+  jiraIntegrations       JiraIntegration[]
+  jiraIssues             JiraIssue[]
+  notifications          Notification[]           @relation("RelatedPerformanceTestNotifications")
+  PerformanceTestResults PerformanceTestResults[]
+  assignee               User?                    @relation("AssigneePerformanceTests", fields: [assigneeId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_performancetests_assignee")
+  creator                User?                    @relation("CreatorPerformanceTests", fields: [creatorId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_performancetests_creator")
+  executions             TestExecution[]
+  testResults            TestResult[]
+
+  @@index([creatorId], map: "fk_performance_tests_creator")
+  @@index([projectId], map: "fk_performancetests_project")
+  @@index([assigneeId], map: "idx_performancetests_assignee_id")
+  @@map("PerformanceTests")
+}
+
+model TestResult {
+  id                Int              @id @default(autoincrement())
+  testCaseId        Int?             @map("test_case_id")
+  result            String?          @db.VarChar(20)
+  executionTime     Float?           @map("execution_time") @db.Float
+  environment       String?          @db.VarChar(50)
+  executedBy        String?          @map("executed_by") @db.VarChar(100)
+  executedAt        DateTime         @default(now()) @map("executed_at") @db.DateTime(0)
+  notes             String?          @db.Text
+  automationTestId  Int?             @map("automation_test_id")
+  performanceTestId Int?             @map("performance_test_id")
+  executionDuration Float?           @map("execution_duration") @db.Float
+  errorMessage      String?          @map("error_message") @db.Text
+  notifications     Notification[]   @relation("RelatedTestResultNotifications")
+  automationTest    AutomationTest?  @relation(fields: [automationTestId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_automation_test")
+  performanceTest   PerformanceTest? @relation(fields: [performanceTestId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_performance_test")
+  testCase          TestCase?        @relation(fields: [testCaseId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "testresults_ibfk_1")
+  schedules         TestSchedule[]   @relation("LastRunResult")
+
+  @@index([automationTestId], map: "fk_automation_test")
+  @@index([performanceTestId], map: "fk_performance_test")
+  @@index([environment], map: "idx_testresults_environment")
+  @@index([executedAt], map: "idx_testresults_executed_at")
+  @@index([result], map: "idx_testresults_result")
+  @@index([testCaseId], map: "test_case_id")
+  @@map("TestResults")
+}
+
+model TestExecution {
+  id                Int              @id @default(autoincrement())
+  testCaseId        Int?             @map("test_case_id")
+  status            String?          @db.VarChar(20)
+  execution_time    Float?           @db.Float
+  result_data       String?          @db.Text
+  created_at        DateTime?        @default(now()) @db.DateTime(0)
+  testType          String?          @map("test_type") @db.VarChar(50)
+  automationTestId  Int?             @map("automation_test_id")
+  performanceTestId Int?             @map("performance_test_id")
+  environment       String?          @db.VarChar(50)
+  executedBy        String?          @map("executed_by") @db.VarChar(100)
+  startedAt         DateTime?        @default(now()) @map("started_at") @db.DateTime(0)
+  completedAt       DateTime?        @map("completed_at") @db.DateTime(0)
+  resultSummary     String?          @map("result_summary") @db.Text
+  automationTest    AutomationTest?  @relation(fields: [automationTestId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_execution_automation_test")
+  performanceTest   PerformanceTest? @relation(fields: [performanceTestId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_execution_performance_test")
+  testCase          TestCase?        @relation(fields: [testCaseId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "testexecutions_ibfk_1")
+
+  @@index([automationTestId], map: "fk_execution_automation_test")
+  @@index([performanceTestId], map: "fk_execution_performance_test")
+  @@index([testCaseId], map: "test_case_id")
+  @@map("TestExecutions")
+}
+
+model Screenshot {
+  id           Int       @id @default(autoincrement())
+  testResultId Int?      @map("test_result_id")
+  filePath     String?   @map("file_path") @db.VarChar(500)
+  createdAt    DateTime? @map("created_at") @db.DateTime(0)
+
+  @@index([testResultId], map: "test_result_id")
+  @@map("Screenshots")
+}
+
+model DashboardSummary {
+  id           Int       @id @default(autoincrement())
+  environment  String?   @db.VarChar(100)
+  totalTests   Int?      @map("total_tests")
+  passedTests  Int?      @map("passed_tests")
+  failedTests  Int?      @map("failed_tests")
+  skippedTests Int?      @map("skipped_tests")
+  passRate     Float?    @map("pass_rate") @db.Float
+  lastUpdated  DateTime? @map("last_updated") @db.DateTime(0)
+
+  @@map("DashboardSummaries")
+}
+
+model TestCaseTemplate {
+  id                 Int       @id @default(autoincrement())
+  name               String    @db.VarChar(200)
+  description        String?   @db.Text
+  mainCategory       String?   @map("main_category") @db.VarChar(100)
+  subCategory        String?   @map("sub_category") @db.VarChar(100)
+  detailCategory     String?   @map("detail_category") @db.VarChar(100)
+  preCondition       String?   @map("pre_condition") @db.Text
+  expectedResult     String?   @map("expected_result") @db.Text
+  testSteps          String?   @map("test_steps") @db.Text
+  automationCodePath String?   @map("automation_code_path") @db.VarChar(500)
+  automationCodeType String?   @map("automation_code_type") @db.VarChar(50)
+  tags               String?   @db.Text
+  createdBy          Int       @map("created_by")
+  createdAt          DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt          DateTime? @updatedAt @map("updated_at") @db.DateTime(0)
+  isPublic           Boolean   @default(false) @map("is_public")
+  usageCount         Int?      @map("usage_count")
+  creator            User      @relation(fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "test_case_templates_ibfk_1")
+
+  @@index([createdBy], map: "created_by")
+  @@map("test_case_templates")
+}
+
+model TestPlan {
+  id          Int                @id @default(autoincrement())
+  name        String             @db.VarChar(200)
+  description String?            @db.Text
+  version     String?            @db.VarChar(50)
+  environment String?            @db.VarChar(50)
+  startDate   DateTime?          @map("start_date") @db.Date
+  endDate     DateTime?          @map("end_date") @db.Date
+  status      String?            @db.VarChar(50)
+  priority    String?            @db.VarChar(20)
+  createdBy   Int                @map("created_by")
+  createdAt   DateTime           @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime?          @updatedAt @map("updated_at") @db.DateTime(0)
+  testCases   TestPlanTestCase[]
+  creator     User               @relation(fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "test_plans_ibfk_1")
+
+  @@index([createdBy], map: "created_by")
+  @@map("test_plans")
+}
+
+model TestPlanTestCase {
+  id                Int      @id @default(autoincrement())
+  testPlanId        Int      @map("test_plan_id")
+  testCaseId        Int      @map("test_case_id")
+  executionOrder    Int?     @map("execution_order")
+  estimatedDuration Int?     @map("estimated_duration")
+  assignedTo        Int?     @map("assigned_to")
+  notes             String?  @db.Text
+  createdAt         DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  testPlan          TestPlan @relation(fields: [testPlanId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "test_plan_test_cases_ibfk_1")
+  testCase          TestCase @relation(fields: [testCaseId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "test_plan_test_cases_ibfk_2")
+  assignee          User?    @relation(fields: [assignedTo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "test_plan_test_cases_ibfk_3")
+
+  @@index([assignedTo], map: "assigned_to")
+  @@index([testPlanId], map: "test_plan_id")
+  @@index([testCaseId], map: "test_plan_test_cases_ibfk_2")
+  @@map("test_plan_test_cases")
+}
+
+model JiraIssue {
+  id                Int              @id @default(autoincrement())
+  issueKey          String           @unique(map: "issue_key") @map("issue_key") @db.VarChar(20)
+  projectKey        String           @map("project_key") @db.VarChar(20)
+  issueType         String           @map("issue_type") @db.VarChar(50)
+  status            String           @db.VarChar(50)
+  priority          String           @default("Medium") @db.VarChar(20)
+  summary           String           @db.Text
+  description       String?          @db.Text
+  assigneeEmail     String?          @map("assignee_email") @db.VarChar(100)
+  labels            String?          @db.Text
+  reporterEmail     String?          @map("reporter_email") @db.VarChar(100)
+  environment       String?          @default("dev") @db.VarChar(50)
+  testCaseId        Int?             @map("test_case_id")
+  automationTestId  Int?             @map("automation_test_id")
+  performanceTestId Int?             @map("performance_test_id")
+  createdAt         DateTime         @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt         DateTime         @updatedAt @map("updated_at") @db.DateTime(0)
+  comments          JiraComment[]
+  testCase          TestCase?        @relation(fields: [testCaseId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "jiraissues_ibfk_1")
+  automationTest    AutomationTest?  @relation(fields: [automationTestId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "jiraissues_ibfk_2")
+  performanceTest   PerformanceTest? @relation(fields: [performanceTestId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "jiraissues_ibfk_3")
+
+  @@index([automationTestId], map: "automation_test_id")
+  @@index([testCaseId], map: "jiraissues_ibfk_1")
+  @@index([performanceTestId], map: "performance_test_id")
+  @@map("JiraIssues")
+}
+
+model JiraComment {
+  id          Int       @id @default(autoincrement())
+  jiraIssueId Int       @map("jira_issue_id")
+  body        String    @db.Text
+  authorEmail String    @map("author_email") @db.VarChar(100)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.DateTime(0)
+  jiraIssue   JiraIssue @relation(fields: [jiraIssueId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "jiracomments_ibfk_1")
+
+  @@index([jiraIssueId], map: "jira_issue_id")
+  @@map("JiraComments")
+}
+
+/// @deprecated JiraIssue 사용 권장
+model JiraIntegration {
+  id                Int              @id @default(autoincrement())
+  testCaseId        Int?             @map("test_case_id")
+  automationTestId  Int?             @map("automation_test_id")
+  performanceTestId Int?             @map("performance_test_id")
+  jiraIssueKey      String           @map("jira_issue_key") @db.VarChar(20)
+  jiraIssueId       String           @map("jira_issue_id") @db.VarChar(50)
+  jiraProjectKey    String           @map("jira_project_key") @db.VarChar(20)
+  issueType         String           @map("issue_type") @db.VarChar(50)
+  status            String           @db.VarChar(50)
+  priority          String?          @db.VarChar(20)
+  summary           String?          @db.Text
+  description       String?          @db.Text
+  assigneeAccountId String?          @map("assignee_account_id") @db.VarChar(100)
+  labels            String?          @db.Text
+  createdAt         DateTime?        @map("created_at") @db.DateTime(0)
+  updatedAt         DateTime?        @updatedAt @map("updated_at") @db.DateTime(0)
+  lastSyncAt        DateTime?        @map("last_sync_at") @db.DateTime(0)
+  testCase          TestCase?        @relation(fields: [testCaseId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "jiraintegrations_ibfk_1")
+  automationTest    AutomationTest?  @relation(fields: [automationTestId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "jiraintegrations_ibfk_2")
+  performanceTest   PerformanceTest? @relation(fields: [performanceTestId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "jiraintegrations_ibfk_3")
+
+  @@index([automationTestId], map: "automation_test_id")
+  @@index([testCaseId], map: "jiraintegrations_ibfk_1")
+  @@index([performanceTestId], map: "performance_test_id")
+  @@map("JiraIntegrations")
+}
+
+model TestSchedule {
+  id                  Int         @id @default(autoincrement())
+  testCaseId          Int         @map("test_case_id")
+  name                String      @db.VarChar(200)
+  description         String?     @db.Text
+  scheduleType        String      @map("schedule_type") @db.VarChar(50)
+  scheduleExpression  String?     @map("schedule_expression") @db.VarChar(200)
+  enabled             Boolean    @default(true)
+  active              Boolean    @default(true)
+  nextRunAt           DateTime?   @map("next_run_at") @db.DateTime(0)
+  lastRunAt           DateTime?   @map("last_run_at") @db.DateTime(0)
+  lastRunStatus       String?     @map("last_run_status") @db.VarChar(20)
+  lastRunResultId     Int?        @map("last_run_result_id")
+  environment         String?     @db.VarChar(50)
+  executionParameters String?     @map("execution_parameters") @db.Text
+  createdBy           Int         @map("created_by")
+  createdAt           DateTime    @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt           DateTime    @updatedAt @map("updated_at") @db.DateTime(0)
+  testCase            TestCase    @relation(fields: [testCaseId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "testschedules_ibfk_1")
+  lastRunResult       TestResult? @relation("LastRunResult", fields: [lastRunResultId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "testschedules_ibfk_2")
+  creator             User        @relation(fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "testschedules_ibfk_3")
+
+  @@index([createdBy], map: "created_by")
+  @@index([lastRunResultId], map: "last_run_result_id")
+  @@index([testCaseId], map: "testschedules_ibfk_1")
+  @@map("TestSchedules")
+}
+
+model Notification {
+  id                       Int              @id @default(autoincrement())
+  userId                   Int              @map("user_id")
+  notificationType         String           @map("notification_type") @db.VarChar(50)
+  title                    String           @db.VarChar(200)
+  message                  String           @db.Text
+  relatedTestCaseId        Int?             @map("related_test_case_id")
+  relatedAutomationTestId  Int?             @map("related_automation_test_id")
+  relatedPerformanceTestId Int?             @map("related_performance_test_id")
+  relatedTestResultId      Int?             @map("related_test_result_id")
+  read                     Boolean          @default(false)
+  readAt                   DateTime?        @map("read_at") @db.DateTime(0)
+  priority                 String           @default("medium") @db.VarChar(20)
+  channels                 String           @default("in_app") @db.VarChar(100)
+  createdAt                DateTime         @default(now()) @map("created_at") @db.DateTime(0)
+  user                     User             @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "notifications_ibfk_1")
+  relatedTestCase          TestCase?        @relation("RelatedTestCaseNotifications", fields: [relatedTestCaseId], references: [id], onUpdate: NoAction, map: "notifications_ibfk_2")
+  relatedAutomation        AutomationTest?  @relation("RelatedAutomationTestNotifications", fields: [relatedAutomationTestId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "notifications_ibfk_3")
+  relatedPerformance       PerformanceTest? @relation("RelatedPerformanceTestNotifications", fields: [relatedPerformanceTestId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "notifications_ibfk_4")
+  relatedTestResult        TestResult?      @relation("RelatedTestResultNotifications", fields: [relatedTestResultId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "notifications_ibfk_5")
+
+  @@index([relatedTestCaseId], map: "notifications_ibfk_2")
+  @@index([relatedAutomationTestId], map: "related_automation_test_id")
+  @@index([relatedPerformanceTestId], map: "related_performance_test_id")
+  @@index([relatedTestResultId], map: "related_test_result_id")
+  @@index([userId], map: "user_id")
+  @@map("Notifications")
+}
+
+model NotificationSettings {
+  id              Int       @id @default(autoincrement())
+  userId          Int       @unique(map: "user_id") @map("user_id")
+  settings        String?   @db.Text
+  emailEnabled    Boolean?  @map("email_enabled")
+  slackEnabled    Boolean?  @map("slack_enabled")
+  inAppEnabled    Boolean?  @map("in_app_enabled")
+  updatedAt       DateTime? @updatedAt @map("updated_at") @db.DateTime(0)
+  slackWebhookUrl String?   @map("slack_webhook_url") @db.VarChar(500)
+  user            User      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "notificationsettings_ibfk_1")
+
+  @@map("NotificationSettings")
+}
+
+model CICDIntegration {
+  id              Int             @id @default(autoincrement())
+  name            String          @db.VarChar(200)
+  integrationType String          @map("integration_type") @db.VarChar(50)
+  webhookUrl      String?         @map("webhook_url") @db.VarChar(500)
+  webhookSecret   String?         @map("webhook_secret") @db.VarChar(255)
+  config          String?         @db.Text
+  enabled         Boolean               @default(true)
+  active          Boolean               @default(true)
+  triggerOnPush   Boolean               @default(false) @map("trigger_on_push")
+  triggerOnPr     Boolean               @default(false) @map("trigger_on_pr")
+  triggerOnTag    Boolean               @default(false) @map("trigger_on_tag")
+  testCaseFilter  String?         @map("test_case_filter") @db.Text
+  createdBy       Int             @map("created_by")
+  createdAt       DateTime        @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.DateTime(0)
+  executions      CICDExecution[]
+  creator         User            @relation(fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "cicdintegrations_ibfk_1")
+
+  @@index([createdBy], map: "created_by")
+  @@map("CICDIntegrations")
+}
+
+model CICDExecution {
+  id                Int             @id @default(autoincrement())
+  integrationId     Int             @map("integration_id")
+  triggerType       String?         @map("trigger_type") @db.VarChar(50)
+  triggerSource     String?         @map("trigger_source") @db.VarChar(100)
+  triggerEvent      String?         @map("trigger_event") @db.Text
+  status            String          @default("pending") @db.VarChar(20)
+  startedAt         DateTime        @default(now()) @map("started_at") @db.DateTime(0)
+  completedAt       DateTime?       @map("completed_at") @db.DateTime(0)
+  executedTestCases String?         @map("executed_test_cases") @db.Text
+  testResults       String?         @map("test_results") @db.Text
+  prNumber          Int?            @map("pr_number")
+  prUrl             String?         @map("pr_url") @db.VarChar(500)
+  prCommentId       String?         @map("pr_comment_id") @db.VarChar(100)
+  errorMessage      String?         @map("error_message") @db.Text
+  integration       CICDIntegration @relation(fields: [integrationId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "cicdexecutions_ibfk_1")
+
+  @@index([integrationId], map: "integration_id")
+  @@map("CICDExecutions")
+}
+
+model TestDataSet {
+  id               Int                   @id @default(autoincrement())
+  name             String                @db.VarChar(200)
+  description      String?               @db.Text
+  data             String                @db.Text
+  dataType         String                @default("json") @map("data_type") @db.VarChar(50)
+  dataSchema       String?               @map("data_schema") @db.Text
+  environment      String                @default("dev") @db.VarChar(50)
+  version          String                @default("1.0") @db.VarChar(50)
+  parentVersionId  Int?                  @map("parent_version_id")
+  maskingEnabled   Boolean               @default(false) @map("masking_enabled")
+  maskingRules     String?               @map("masking_rules") @db.Text
+  tags             String?               @db.Text
+  usageCount       Int?                  @map("usage_count")
+  lastUsedAt       DateTime?             @map("last_used_at") @db.DateTime(0)
+  createdBy        Int                   @map("created_by")
+  createdAt        DateTime              @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt        DateTime              @updatedAt @map("updated_at") @db.DateTime(0)
+  testCaseMappings TestCaseDataMapping[]
+  parentVersion    TestDataSet?          @relation("DataSetVersions", fields: [parentVersionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "testdatasets_ibfk_1")
+  childVersions    TestDataSet[]         @relation("DataSetVersions")
+  creator          User                  @relation(fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "testdatasets_ibfk_2")
+
+  @@index([createdBy], map: "created_by")
+  @@index([parentVersionId], map: "parent_version_id")
+  @@map("TestDataSets")
+}
+
+model TestCaseDataMapping {
+  id           Int         @id @default(autoincrement())
+  testCaseId   Int         @map("test_case_id")
+  dataSetId    Int         @map("data_set_id")
+  fieldMapping String?     @map("field_mapping") @db.Text
+  priority     Int               @default(1)
+  enabled      Boolean           @default(true)
+  createdAt    DateTime          @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt    DateTime          @updatedAt @map("updated_at") @db.DateTime(0)
+  testCase     TestCase    @relation(fields: [testCaseId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "testcasedatamappings_ibfk_1")
+  dataSet      TestDataSet @relation(fields: [dataSetId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "testcasedatamappings_ibfk_2")
+
+  @@index([dataSetId], map: "data_set_id")
+  @@index([testCaseId], map: "testcasedatamappings_ibfk_1")
+  @@map("TestCaseDataMappings")
+}
+
+model Comment {
+  id              Int       @id @default(autoincrement())
+  entityType      String    @map("entity_type") @db.VarChar(50)
+  entityId        Int       @map("entity_id")
+  content         String    @db.Text
+  parentCommentId Int?      @map("parent_comment_id")
+  authorId        Int       @map("author_id")
+  isEdited        Boolean   @default(false) @map("is_edited")
+  isDeleted       Boolean   @default(false) @map("is_deleted")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.DateTime(0)
+  parentComment   Comment?  @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "comments_ibfk_1")
+  replies         Comment[] @relation("CommentReplies")
+  author          User      @relation(fields: [authorId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "comments_ibfk_2")
+  mentions        Mention[]
+
+  @@index([authorId], map: "author_id")
+  @@index([parentCommentId], map: "parent_comment_id")
+  @@map("Comments")
+}
+
+model Mention {
+  id              Int       @id @default(autoincrement())
+  entityType      String    @map("entity_type") @db.VarChar(50)
+  entityId        Int       @map("entity_id")
+  mentionedUserId Int       @map("mentioned_user_id")
+  commentId       Int?      @map("comment_id")
+  isRead          Boolean?  @map("is_read")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+  mentionedUser   User      @relation(fields: [mentionedUserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "mentions_ibfk_1")
+  comment         Comment?  @relation(fields: [commentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "mentions_ibfk_2")
+
+  @@index([commentId], map: "comment_id")
+  @@index([mentionedUserId], map: "mentioned_user_id")
+  @@map("Mentions")
+}
+
+model Workflow {
+  id            Int             @id @default(autoincrement())
+  name          String          @db.VarChar(200)
+  description   String?         @db.Text
+  workflowType  String          @default("test") @map("workflow_type") @db.VarChar(50)
+  initialStatus String          @map("initial_status") @db.VarChar(50)
+  isActive      Boolean         @default(true) @map("is_active")
+  projectId     Int?            @map("project_id")
+  createdBy     Int             @map("created_by")
+  createdAt     DateTime        @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt     DateTime        @updatedAt @map("updated_at") @db.DateTime(0)
+  states        WorkflowState[]
+  steps         WorkflowStep[]
+  project       Project?        @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "workflows_ibfk_1")
+  creator       User            @relation(fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "workflows_ibfk_2")
+
+  @@index([createdBy], map: "created_by")
+  @@index([projectId], map: "project_id")
+  @@map("Workflows")
+}
+
+model WorkflowStep {
+  id                      Int             @id @default(autoincrement())
+  workflowId              Int             @map("workflow_id")
+  name                    String          @db.VarChar(100)
+  displayName             String          @map("display_name") @db.VarChar(200)
+  description             String?         @db.Text
+  order                   Int
+  allowedRoles            String?         @map("allowed_roles") @db.Text
+  allowedUserIds          String?         @map("allowed_user_ids") @db.Text
+  nextSteps               String?         @map("next_steps") @db.Text
+  autoTransitionCondition String?         @map("auto_transition_condition") @db.Text
+  activeStates            WorkflowState[]
+  workflow                Workflow        @relation(fields: [workflowId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "workflowsteps_ibfk_1")
+
+  @@index([workflowId], map: "workflow_id")
+  @@map("WorkflowSteps")
+}
+
+model WorkflowState {
+  id             Int           @id @default(autoincrement())
+  entityType     String        @map("entity_type") @db.VarChar(50)
+  entityId       Int           @map("entity_id")
+  workflowId     Int           @map("workflow_id")
+  currentStepId  Int?          @map("current_step_id")
+  currentStatus  String        @map("current_status") @db.VarChar(50)
+  previousStatus String?       @map("previous_status") @db.VarChar(50)
+  changedBy      Int?          @map("changed_by")
+  createdAt      DateTime      @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt      DateTime      @updatedAt @map("updated_at") @db.DateTime(0)
+  workflow       Workflow      @relation(fields: [workflowId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "workflowstates_ibfk_1")
+  currentStep    WorkflowStep? @relation(fields: [currentStepId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "workflowstates_ibfk_2")
+  changer        User?         @relation(fields: [changedBy], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "workflowstates_ibfk_3")
+
+  @@index([changedBy], map: "changed_by")
+  @@index([currentStepId], map: "current_step_id")
+  @@index([workflowId], map: "workflow_id")
+  @@map("WorkflowStates")
+}
+
+model TestDependency {
+  id                  Int       @id @default(autoincrement())
+  testCaseId          Int       @map("test_case_id")
+  dependsOnTestCaseId Int       @map("depends_on_test_case_id")
+  dependencyType      String    @default("requires") @map("dependency_type") @db.VarChar(50)
+  condition           String?   @db.Text
+  priority            Int       @default(1)
+  enabled             Boolean   @default(true)
+  createdAt           DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt           DateTime  @updatedAt @map("updated_at") @db.DateTime(0)
+  testCase            TestCase  @relation("DependentTestCases", fields: [testCaseId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "testdependencies_ibfk_1")
+  dependsOn           TestCase  @relation("RequiredTestCases", fields: [dependsOnTestCaseId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "testdependencies_ibfk_2")
+
+  @@index([testCaseId], map: "testdependencies_ibfk_1")
+  @@index([dependsOnTestCaseId], map: "testdependencies_ibfk_2")
+  @@map("TestDependencies")
+}
+
+model CustomReport {
+  id                 Int               @id @default(autoincrement())
+  name               String            @db.VarChar(200)
+  description        String?           @db.Text
+  reportType         String?           @map("report_type") @db.VarChar(50)
+  config             String            @db.Text
+  template           String?           @db.Text
+  outputFormat       String?           @map("output_format") @db.VarChar(50)
+  scheduleEnabled    Boolean?          @map("schedule_enabled")
+  scheduleExpression String?           @map("schedule_expression") @db.VarChar(200)
+  filters            String?           @db.Text
+  isPublic           Boolean?          @map("is_public")
+  sharedWithUserIds  String?           @map("shared_with_user_ids") @db.Text
+  projectId          Int?              @map("project_id")
+  createdBy          Int               @map("created_by")
+  createdAt          DateTime?         @map("created_at") @db.DateTime(0)
+  updatedAt          DateTime?         @updatedAt @map("updated_at") @db.DateTime(0)
+  project            Project?          @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customreports_ibfk_1")
+  creator            User              @relation(fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "customreports_ibfk_2")
+  executions         ReportExecution[]
+
+  @@index([createdBy], map: "created_by")
+  @@index([projectId], map: "project_id")
+  @@map("CustomReports")
+}
+
+model ReportExecution {
+  id              Int          @id @default(autoincrement())
+  reportId        Int          @map("report_id")
+  status          String?      @db.VarChar(20)
+  startedAt       DateTime?    @map("started_at") @db.DateTime(0)
+  completedAt     DateTime?    @map("completed_at") @db.DateTime(0)
+  resultFilePath  String?      @map("result_file_path") @db.VarChar(500)
+  executionParams String?      @map("execution_params") @db.Text
+  errorMessage    String?      @map("error_message") @db.Text
+  executedBy      Int?         @map("executed_by")
+  report          CustomReport @relation(fields: [reportId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reportexecutions_ibfk_1")
+  executor        User?        @relation(fields: [executedBy], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reportexecutions_ibfk_2")
+
+  @@index([executedBy], map: "executed_by")
+  @@index([reportId], map: "report_id")
+  @@map("ReportExecutions")
+}
+
+model SystemConfig {
+  id        Int       @id @default(autoincrement())
+  key       String    @unique(map: "key") @db.VarChar(100)
+  value     String?   @db.Text
+  updatedAt DateTime? @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@map("SystemConfig")
+}
+
+model AiConversationMessages {
+  id              Int             @id @default(autoincrement())
+  conversation_id Int
+  role            String          @db.VarChar(20)
+  content         String          @db.Text
+  created_at      DateTime?       @db.DateTime(0)
+  AiConversations AiConversations @relation(fields: [conversation_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "aiconversationmessages_ibfk_1")
+
+  @@index([conversation_id], map: "conversation_id")
+}
+
+model AiConversations {
+  id                     Int                      @id @default(autoincrement())
+  user_id                Int
+  folder_id              Int?
+  title                  String                   @db.VarChar(200)
+  created_at             DateTime?                @db.DateTime(0)
+  updated_at             DateTime?                @db.DateTime(0)
+  AiConversationMessages AiConversationMessages[]
+  Users                  User                     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "aiconversations_ibfk_1")
+  Folders                Folder?                  @relation(fields: [folder_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "aiconversations_ibfk_2")
+
+  @@index([folder_id], map: "folder_id")
+  @@index([user_id], map: "user_id")
+}
+
+model AutomationTestResults {
+  id              Int             @id @default(autoincrement())
+  test_id         Int?
+  status          String?         @db.VarChar(20)
+  execution_time  Float?          @db.Float
+  result_data     String?         @db.Text
+  created_at      DateTime?       @db.DateTime(0)
+  AutomationTests AutomationTest? @relation(fields: [test_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "automationtestresults_ibfk_1")
+
+  @@index([test_id], map: "test_id")
+}
+
+model LoginFailLogs {
+  id         Int       @id @default(autoincrement())
+  username   String    @db.VarChar(80)
+  login_type String?   @db.VarChar(20)
+  ip_address String?   @db.VarChar(45)
+  user_agent String?   @db.Text
+  created_at DateTime? @db.DateTime(0)
+}
+
+model PerformanceTestResults {
+  id               Int              @id @default(autoincrement())
+  test_id          Int?
+  status           String?          @db.VarChar(20)
+  execution_time   Float?           @db.Float
+  result_data      String?          @db.Text
+  created_at       DateTime?        @db.DateTime(0)
+  PerformanceTests PerformanceTest? @relation(fields: [test_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "performancetestresults_ibfk_1")
+
+  @@index([test_id], map: "test_id")
+}
+
+model UserAiConfigs {
+  id         Int       @id @default(autoincrement())
+  user_id    Int       @unique(map: "user_id")
+  provider   String    @db.VarChar(20)
+  api_key    String?   @db.VarChar(500)
+  model_name String?   @db.VarChar(100)
+  created_at DateTime? @db.DateTime(0)
+  updated_at DateTime? @db.DateTime(0)
+  Users      User      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "useraiconfigs_ibfk_1")
+}
+
+model UserSecuritySettings {
+  id                      Int       @id @default(autoincrement())
+  user_id                 Int       @unique(map: "user_id")
+  session_timeout_minutes Int?
+  allowed_ips             String?   @db.Text
+  two_factor_enabled      Boolean?
+  two_factor_secret       String?   @db.VarChar(64)
+  created_at              DateTime? @db.DateTime(0)
+  updated_at              DateTime? @db.DateTime(0)
+  Users                   User      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "usersecuritysettings_ibfk_1")
+}
+
+model alembic_version {
+  version_num String @id @db.VarChar(32)
+}
+
+model CollectedTicket {
+  id              Int      @id @default(autoincrement())
+  pipelineId      String   @unique @map("pipeline_id") @db.VarChar(36)
+  ticketKey       String   @unique @map("ticket_key") @db.VarChar(50)
+  projectKey      String   @map("project_key") @db.VarChar(20)
+  issueType       String   @map("issue_type") @db.VarChar(50)
+  priority        String   @db.VarChar(20)
+  summary         String   @db.VarChar(500)
+  descriptionRaw  String?  @map("description_raw") @db.LongText
+  descriptionText String?  @map("description_text") @db.Text
+  labels          String?  @db.Text
+  sourceType      String   @default("webhook") @map("source_type") @db.VarChar(20)
+  pipelineStatus  String   @default("collected") @map("pipeline_status") @db.VarChar(30)
+  errorMessage    String?  @map("error_message") @db.Text
+  collectedAt     DateTime @default(now()) @map("collected_at") @db.DateTime(0)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  qaPlan          QAPlan?
+
+  @@index([pipelineStatus])
+  @@index([projectKey])
+  @@index([collectedAt])
+  @@map("CollectedTickets")
+}
+
+model QAPlan {
+  id                Int              @id @default(autoincrement())
+  pipelineId        String           @unique @map("pipeline_id") @db.VarChar(36)
+  collectedTicketId Int              @unique @map("collected_ticket_id")
+  planContent       String?          @map("plan_content") @db.LongText
+  approvalStatus    String           @default("pending") @map("approval_status") @db.VarChar(20)
+  createdAt         DateTime         @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt         DateTime         @updatedAt @map("updated_at") @db.DateTime(0)
+  collectedTicket   CollectedTicket  @relation(fields: [collectedTicketId], references: [id], onDelete: Cascade)
+  autoQaTestCases   AutoQaTestCase[]
+
+  @@map("QAPlans")
+}
+
+model AutoQaTestCase {
+  id             Int      @id @default(autoincrement())
+  qaPlanId       Int      @map("qa_plan_id")
+  pipelineId     String   @map("pipeline_id") @db.VarChar(36)
+  title          String   @db.VarChar(200)
+  caseType       String   @default("happyPath") @map("case_type") @db.VarChar(20)
+  priority       String   @default("P2") @db.VarChar(10)
+  preconditions  String?  @db.Text
+  steps          String?  @db.Text
+  expectedResult String?  @map("expected_result") @db.Text
+  tags           String?  @db.Text
+  gherkin        String?  @db.LongText
+  status         String   @default("draft") @db.VarChar(20)
+  createdAt      DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  qaPlan         QAPlan   @relation(fields: [qaPlanId], references: [id], onDelete: Cascade)
+
+  @@index([qaPlanId])
+  @@index([pipelineId])
+  @@map("AutoQaTestCases")
+}
+
+model PageAnalysis {
+  id          Int      @id @default(autoincrement())
+  pipelineId  String   @map("pipeline_id") @db.VarChar(36)
+  pageName    String   @map("page_name") @db.VarChar(200)
+  urlPattern  String?  @map("url_pattern") @db.VarChar(500)
+  elements    String?  @db.LongText   // JSON: [{selector, fallbackSelector, type, label}]
+  flows       String?  @db.LongText   // JSON: [{name, steps[]}]
+  rawAnalysis String?  @map("raw_analysis") @db.LongText
+  createdAt   DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@index([pipelineId])
+  @@map("PageAnalyses")
+}
+
+model GeneratedCode {
+  id         Int      @id @default(autoincrement())
+  pipelineId String   @unique @map("pipeline_id") @db.VarChar(36)
+  language   String   @default("typescript") @db.VarChar(20)
+  framework  String   @default("playwright") @db.VarChar(20)
+  fileName   String?  @map("file_name") @db.VarChar(200)
+  code       String   @db.LongText
+  createdAt  DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@map("GeneratedCodes")
+}
+
+model TestRunResult {
+  id           Int       @id @default(autoincrement())
+  pipelineId   String    @unique @map("pipeline_id") @db.VarChar(36)
+  status       String    @default("pending") @db.VarChar(20)  // pending, running, passed, failed, error, simulation
+  totalTests   Int       @default(0) @map("total_tests")
+  passed       Int       @default(0)
+  failed       Int       @default(0)
+  skipped      Int       @default(0)
+  durationMs   Int?      @map("duration_ms")
+  results      String?   @db.LongText  // JSON: [{title, status, durationMs, error}]
+  errorMessage String?   @map("error_message") @db.Text
+  startedAt    DateTime? @map("started_at") @db.DateTime(0)
+  completedAt  DateTime? @map("completed_at") @db.DateTime(0)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@map("TestRunResults")
+}
+
+model PipelineReport {
+  id             Int      @id @default(autoincrement())
+  pipelineId     String   @unique @map("pipeline_id") @db.VarChar(36)
+  summary        String?  @db.Text
+  content        String?  @db.LongText  // JSON: { passRate, riskLevel, qualityScore, findings[], recommendation, readyForRelease }
+  passRate       Float?   @map("pass_rate")
+  riskLevel      String?  @map("risk_level") @db.VarChar(20)  // low, medium, high, critical
+  qualityScore   Int?     @map("quality_score")               // 1-10
+  readyForRelease Boolean @default(false) @map("ready_for_release")
+  createdAt      DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@map("PipelineReports")
+}
+
+model PipelineBug {
+  id           Int      @id @default(autoincrement())
+  pipelineId   String   @map("pipeline_id") @db.VarChar(36)
+  title        String   @db.VarChar(500)
+  description  String?  @db.LongText
+  severity     String   @default("medium") @db.VarChar(20)   // critical, high, medium, low
+  status       String   @default("open") @db.VarChar(20)     // open, in_progress, resolved
+  tcTitle      String?  @map("tc_title") @db.VarChar(500)    // 연관 TC 제목
+  jiraIssueKey String?  @map("jira_issue_key") @db.VarChar(50)
+  createdAt    DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@index([pipelineId])
+  @@map("PipelineBugs")
+}

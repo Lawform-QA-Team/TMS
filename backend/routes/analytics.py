@@ -3,7 +3,7 @@
 트렌드 분석, Flaky 테스트 감지, 회귀 테스트 감지 등
 """
 from flask import Blueprint, request, jsonify
-from models import db, TestCase, TestResult, TestExecution
+from models import db, TestCase, TestResult, TestExecution, TestCaseHistory
 from utils.cors import add_cors_headers
 from utils.auth_decorators import guest_allowed, user_required
 from utils.timezone_utils import get_kst_now
@@ -16,6 +16,83 @@ import json
 logger = get_logger(__name__)
 
 analytics_bp = Blueprint('analytics', __name__)
+
+@analytics_bp.route('/analytics/pass-rate-trend', methods=['GET', 'OPTIONS'])
+@guest_allowed
+def get_pass_rate_trend():
+    """날짜별 Pass Rate 추이 (test_case_history 기반)"""
+    try:
+        from datetime import date as date_type
+        days = request.args.get('days', 30, type=int)
+        environment = request.args.get('environment')
+        start_date_param = request.args.get('start_date')  # YYYY-MM-DD
+        end_date_param = request.args.get('end_date')      # YYYY-MM-DD
+
+        query = db.session.query(
+            func.date(TestCaseHistory.changed_at).label('date'),
+            func.sum(case((TestCaseHistory.new_value == 'Pass', 1), else_=0)).label('pass_count'),
+            func.sum(case((TestCaseHistory.new_value == 'Fail', 1), else_=0)).label('fail_count')
+        ).filter(
+            TestCaseHistory.field_name == 'result_status',
+            TestCaseHistory.new_value.in_(['Pass', 'Fail']),
+        )
+
+        # 날짜 범위 결정: start_date/end_date 우선, 그 다음 days (0이면 전체)
+        if start_date_param:
+            from datetime import datetime as dt
+            start_dt = dt.strptime(start_date_param, '%Y-%m-%d')
+            query = query.filter(TestCaseHistory.changed_at >= start_dt)
+        elif days > 0:
+            start_date = get_kst_now() - timedelta(days=days)
+            query = query.filter(TestCaseHistory.changed_at >= start_date)
+        # days == 0 → 전체 기간, 날짜 필터 없음
+
+        if end_date_param:
+            from datetime import datetime as dt
+            end_dt = dt.strptime(end_date_param, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
+            query = query.filter(TestCaseHistory.changed_at <= end_dt)
+
+        if environment:
+            query = query.join(TestCase, TestCaseHistory.test_case_id == TestCase.id).filter(
+                TestCase.environment == environment
+            )
+
+        rows = query.group_by(
+            func.date(TestCaseHistory.changed_at)
+        ).order_by(
+            func.date(TestCaseHistory.changed_at).asc()
+        ).all()
+
+        dates = []
+        pass_rates = []
+        pass_counts = []
+        fail_counts = []
+
+        for row in rows:
+            date_str = row.date.isoformat() if hasattr(row.date, 'isoformat') else str(row.date)
+            p = int(row.pass_count or 0)
+            f = int(row.fail_count or 0)
+            total = p + f
+            rate = round(p / total * 100, 1) if total > 0 else 0.0
+            dates.append(date_str)
+            pass_rates.append(rate)
+            pass_counts.append(p)
+            fail_counts.append(f)
+
+        response = jsonify({
+            'dates': dates,
+            'pass_rates': pass_rates,
+            'pass_counts': pass_counts,
+            'fail_counts': fail_counts,
+            'period_days': days
+        })
+        return add_cors_headers(response), 200
+
+    except Exception as e:
+        logger.error(f"Pass Rate 추이 분석 오류: {str(e)}")
+        response = jsonify({'error': str(e)})
+        return add_cors_headers(response), 500
+
 
 @analytics_bp.route('/analytics/trends', methods=['GET', 'OPTIONS'])
 @guest_allowed
@@ -125,8 +202,8 @@ def get_flaky_tests():
             TestResult.test_case_id,
             TestCase.name.label('test_case_name'),
             func.count(TestResult.id).label('total_executions'),
-            func.sum(case([(TestResult.result == 'Pass', 1)], else_=0)).label('passed'),
-            func.sum(case([(TestResult.result == 'Fail', 1)], else_=0)).label('failed'),
+            func.sum(case((TestResult.result == 'Pass', 1), else_=0)).label('passed'),
+            func.sum(case((TestResult.result == 'Fail', 1), else_=0)).label('failed'),
             func.min(TestResult.executed_at).label('first_execution'),
             func.max(TestResult.executed_at).label('last_execution')
         ).join(
@@ -614,8 +691,8 @@ def get_test_health():
         total_stats = db.session.query(
             func.count(TestCase.id).label('total_tests'),
             func.count(TestResult.id).label('total_executions'),
-            func.sum(case([(TestResult.result == 'Pass', 1)], else_=0)).label('passed'),
-            func.sum(case([(TestResult.result == 'Fail', 1)], else_=0)).label('failed')
+            func.sum(case((TestResult.result == 'Pass', 1), else_=0)).label('passed'),
+            func.sum(case((TestResult.result == 'Fail', 1), else_=0)).label('failed')
         ).outerjoin(
             TestResult, and_(
                 TestCase.id == TestResult.test_case_id,
@@ -654,8 +731,8 @@ def get_test_health():
             test_cases_with_results = db.session.query(
                 TestResult.test_case_id,
                 func.count(TestResult.id).label('count'),
-                func.sum(case([(TestResult.result == 'Pass', 1)], else_=0)).label('passed'),
-                func.sum(case([(TestResult.result == 'Fail', 1)], else_=0)).label('failed')
+                func.sum(case((TestResult.result == 'Pass', 1), else_=0)).label('passed'),
+                func.sum(case((TestResult.result == 'Fail', 1), else_=0)).label('failed')
             ).filter(
                 TestResult.executed_at >= start_date
             ).group_by(

@@ -14,7 +14,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     first_name = db.Column(db.String(50))
     last_name = db.Column(db.String(50))
-    role = db.Column(db.String(20), default='user')  # admin, user, tester
+    role = db.Column(db.String(20), default='user')  # admin, executive, user, guest
     is_active = db.Column(db.Boolean, default=True)
     last_login = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=get_kst_now)
@@ -70,14 +70,38 @@ class UserSession(db.Model):
     __tablename__ = 'UserSessions'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('Users.id'), nullable=False)
-    session_token = db.Column(db.String(255), unique=True, nullable=False)
+    session_token = db.Column(db.Text, nullable=False)
     ip_address = db.Column(db.String(45))
     user_agent = db.Column(db.Text)
+    login_type = db.Column(db.String(20), default='password')  # password, 2fa, guest
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=get_kst_now)
     expires_at = db.Column(db.DateTime, nullable=False)
-    
+
     user = db.relationship('User', backref='sessions')
+
+
+class LoginFailLog(db.Model):
+    __tablename__ = 'LoginFailLogs'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), nullable=False)
+    login_type = db.Column(db.String(20), default='password')  # password, 2fa
+    ip_address = db.Column(db.String(45))
+    user_agent = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=get_kst_now)
+
+class UserSecuritySettings(db.Model):
+    __tablename__ = 'UserSecuritySettings'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('Users.id'), unique=True, nullable=False)
+    session_timeout_minutes = db.Column(db.Integer, default=1440)  # 기본 24시간
+    allowed_ips = db.Column(db.Text, nullable=True)  # JSON 배열 ['1.2.3.4', '10.0.0.0/24']
+    two_factor_enabled = db.Column(db.Boolean, default=False)
+    two_factor_secret = db.Column(db.String(64), nullable=True)  # TOTP Base32 시크릿
+    created_at = db.Column(db.DateTime, default=get_kst_now)
+    updated_at = db.Column(db.DateTime, default=get_kst_now, onupdate=get_kst_now)
+
+    user = db.relationship('User', backref=db.backref('security_settings', uselist=False))
 
 # 프로젝트 모델
 class Project(db.Model):
@@ -119,6 +143,7 @@ class TestCase(db.Model):
     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True)  # 프로젝트 ID
     
     # 추가 컬럼들
+    tc_number = db.Column(db.String(50), nullable=True)  # TC 번호
     main_category = db.Column(db.String(100))  # 메인 카테고리
     sub_category = db.Column(db.String(100))  # 서브 카테고리
     detail_category = db.Column(db.String(100))  # 상세 카테고리
@@ -150,7 +175,7 @@ class TestCaseHistory(db.Model):
     change_type = db.Column(db.String(50), nullable=False)  # 'create', 'update', 'delete'
     
     # 관계 설정
-    test_case = db.relationship('TestCase', backref='history')
+    test_case = db.relationship('TestCase', backref=db.backref('history', passive_deletes=True))
     user = db.relationship('User', backref='test_case_changes')
     
     def __repr__(self):
@@ -355,7 +380,7 @@ class JiraIssue(db.Model):
     updated_at = db.Column(db.DateTime, default=get_kst_now, onupdate=get_kst_now)
     
     # 관계 설정
-    test_case = db.relationship('TestCase', backref='jira_issues')
+    test_case = db.relationship('TestCase', backref=db.backref('jira_issues', passive_deletes=True))
     automation_test = db.relationship('AutomationTest', backref='jira_issues')
     performance_test = db.relationship('PerformanceTest', backref='jira_issues')
     
@@ -419,7 +444,7 @@ class TestSchedule(db.Model):
     updated_at = db.Column(db.DateTime, default=get_kst_now, onupdate=get_kst_now)
     
     # 관계 설정
-    test_case = db.relationship('TestCase', backref='schedules')
+    test_case = db.relationship('TestCase', backref=db.backref('schedules', passive_deletes=True))
     creator = db.relationship('User', backref='created_schedules')
     last_run_result = db.relationship('TestResult', foreign_keys=[last_run_result_id])
     
@@ -485,7 +510,7 @@ class Notification(db.Model):
     
     # 관계 설정
     user = db.relationship('User', backref='notifications')
-    related_test_case = db.relationship('TestCase', foreign_keys=[related_test_case_id])
+    related_test_case = db.relationship('TestCase', foreign_keys=[related_test_case_id], passive_deletes=True)
     related_automation_test = db.relationship('AutomationTest', foreign_keys=[related_automation_test_id])
     related_performance_test = db.relationship('PerformanceTest', foreign_keys=[related_performance_test_id])
     related_test_result = db.relationship('TestResult', foreign_keys=[related_test_result_id])
@@ -811,7 +836,7 @@ class TestCaseDataMapping(db.Model):
     updated_at = db.Column(db.DateTime, default=get_kst_now, onupdate=get_kst_now)
     
     # 관계 설정
-    test_case = db.relationship('TestCase', backref='data_mappings')
+    test_case = db.relationship('TestCase', backref=db.backref('data_mappings', passive_deletes=True))
     data_set = db.relationship('TestDataSet', backref='test_case_mappings')
     
     def to_dict(self):
@@ -1001,7 +1026,7 @@ class WorkflowStep(db.Model):
     order = db.Column(db.Integer, nullable=False)
     
     # 다음 단계로 이동 가능한 역할
-    allowed_roles = db.Column(db.Text)  # JSON 형태로 저장 (예: ['admin', 'tester'])
+    allowed_roles = db.Column(db.Text)  # JSON 형태로 저장 (예: ['admin', 'executive'])
     
     # 다음 단계로 이동 가능한 사용자 (선택적)
     allowed_user_ids = db.Column(db.Text)  # JSON 형태로 저장
@@ -1111,8 +1136,8 @@ class TestDependency(db.Model):
     updated_at = db.Column(db.DateTime, default=get_kst_now, onupdate=get_kst_now)
     
     # 관계 설정
-    test_case = db.relationship('TestCase', foreign_keys=[test_case_id], backref='dependencies')
-    depends_on = db.relationship('TestCase', foreign_keys=[depends_on_test_case_id], backref='dependent_tests')
+    test_case = db.relationship('TestCase', foreign_keys=[test_case_id], backref=db.backref('dependencies', passive_deletes=True))
+    depends_on = db.relationship('TestCase', foreign_keys=[depends_on_test_case_id], backref=db.backref('dependent_tests', passive_deletes=True))
     
     def to_dict(self):
         """의존성 정보를 딕셔너리로 변환"""
@@ -1276,7 +1301,7 @@ class JiraIntegration(db.Model):
     last_sync_at = db.Column(db.DateTime)  # 마지막 동기화 시간
     
     # 관계 설정
-    test_case = db.relationship('TestCase', backref='jira_integrations')
+    test_case = db.relationship('TestCase', backref=db.backref('jira_integrations', passive_deletes=True))
     automation_test = db.relationship('AutomationTest', backref='jira_integrations')
     performance_test = db.relationship('PerformanceTest', backref='jira_integrations')
     
@@ -1353,3 +1378,40 @@ class SystemConfig(db.Model):
 
     def __repr__(self):
         return f'<SystemConfig {self.key}>'
+
+
+class UserAiConfig(db.Model):
+    """사용자별 AI API 설정"""
+    __tablename__ = 'UserAiConfigs'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('Users.id'), unique=True, nullable=False)
+    provider = db.Column(db.String(20), nullable=False, default='openai')  # openai, anthropic, google
+    api_key = db.Column(db.String(500), nullable=True)
+    model_name = db.Column(db.String(100), nullable=True)
+    created_at = db.Column(db.DateTime, default=get_kst_now)
+    updated_at = db.Column(db.DateTime, default=get_kst_now, onupdate=get_kst_now)
+
+    user = db.relationship('User', backref=db.backref('ai_config', uselist=False))
+
+
+class AiConversation(db.Model):
+    __tablename__ = 'AiConversations'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('Users.id'), nullable=False)
+    folder_id = db.Column(db.Integer, db.ForeignKey('Folders.id'), nullable=True)
+    title = db.Column(db.String(200), nullable=False)
+    created_at = db.Column(db.DateTime, default=get_kst_now)
+    updated_at = db.Column(db.DateTime, default=get_kst_now, onupdate=get_kst_now)
+    user = db.relationship('User', backref='ai_conversations')
+    messages = db.relationship('AiConversationMessage', backref='conversation',
+                               lazy='dynamic', cascade='all, delete-orphan',
+                               order_by='AiConversationMessage.created_at')
+
+
+class AiConversationMessage(db.Model):
+    __tablename__ = 'AiConversationMessages'
+    id = db.Column(db.Integer, primary_key=True)
+    conversation_id = db.Column(db.Integer, db.ForeignKey('AiConversations.id'), nullable=False)
+    role = db.Column(db.String(20), nullable=False)  # 'user' or 'assistant'
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=get_kst_now)

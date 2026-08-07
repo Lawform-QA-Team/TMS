@@ -2,7 +2,7 @@
 데이터 직렬화 유틸리티 함수들
 """
 from datetime import datetime
-from models import TestCase, Folder, Project, User, TestResult
+from models import db, TestCase, Folder, Project, User, TestResult
 
 
 def get_testcase_effective_project_id(tc):
@@ -19,6 +19,7 @@ def serialize_testcase(tc, include_relations=False):
     effective_project_id = get_testcase_effective_project_id(tc)
     data = {
         'id': tc.id,
+        'tc_number': getattr(tc, 'tc_number', None),
         'name': tc.name,
         'description': tc.description,
         'test_type': tc.test_type,
@@ -36,13 +37,14 @@ def serialize_testcase(tc, include_relations=False):
         'automation_code_path': tc.automation_code_path,
         'environment': tc.environment,
         'result_status': getattr(tc, 'result_status', None),
+        'priority': getattr(tc, 'priority', None),
         'created_at': tc.created_at.isoformat() if tc.created_at else None,
         'updated_at': tc.updated_at.isoformat() if tc.updated_at else None
     }
     if tc.folder:
         data['folder_name'] = tc.folder.folder_name
     if effective_project_id:
-        proj = Project.query.get(effective_project_id)
+        proj = db.session.get(Project, effective_project_id)
         data['project_name'] = proj.name if proj else None
     if include_relations:
         data.update({

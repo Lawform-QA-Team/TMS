@@ -14,6 +14,7 @@ const ScreenshotGallery = ({ testId, testName }) => {
     if (testId) {
       fetchScreenshots();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [testId]);
 
   const fetchScreenshots = async () => {
@@ -122,6 +123,7 @@ const AutomationTestResults = ({ testId }) => {
     if (testId) {
       fetchResults();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [testId]);
 
   const toggleResultDetails = (resultId) => {
@@ -294,11 +296,11 @@ const AutomationTestDetail = ({ test, onClose, onRefresh }) => {
                   {test.description || '설명 없음'}
                 </td>
               </tr>
-              {test.parameters && (
+              {test.parameters && Object.keys(test.parameters).length > 0 && (
                 <tr>
                   <th>매개변수</th>
                   <td colSpan="3" className="parameters">
-                    <pre className="parameters-json">{test.parameters}</pre>
+                    <pre className="parameters-json">{JSON.stringify(test.parameters, null, 2)}</pre>
                   </td>
                 </tr>
               )}

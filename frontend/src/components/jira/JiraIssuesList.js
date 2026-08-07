@@ -4,13 +4,19 @@ import config from '@tms/config';
 import { useAuth } from '@tms/contexts/AuthContext';
 import PromptModal from '@tms/components/common/PromptModal';
 import { getUserDisplayName } from '@tms/utils/userDisplay';
+import SlidePanel from '@tms/components/common/SlidePanel';
+import '@tms/components/testcases/TestCaseTable.css';
 import '@tms/components/jira/JiraIssuesList.css';
 import '@tms/components/common/Modal.css';
 
 const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
-  const { user } = useAuth();
-  // 안전 가드: 명시적으로 false가 아닌 한 모달 사용
-  const useModal = modalMode !== false;
+  const { user, token } = useAuth();
+  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
+
+  const parseLabels = (raw) => {
+    if (!raw) return [];
+    try { return JSON.parse(raw); } catch { return []; }
+  };
   const [jiraIssues, setJiraIssues] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -26,7 +32,6 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [showAssigneeModal, setShowAssigneeModal] = useState(false);
   const [showLabelModal, setShowLabelModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [assigneeEmail, setAssigneeEmail] = useState('');
   const [newLabel, setNewLabel] = useState('');
   const [editFormData, setEditFormData] = useState({
@@ -61,19 +66,16 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // testCaseId가 있으면 해당 테스트 케이스와 연결된 이슈만 조회
-      const url = testCaseId 
+      const url = testCaseId
         ? `${config.apiUrl}/api/jira/issues/testcase/${testCaseId}`
         : `${config.apiUrl}/api/jira/issues`;
-      
-      console.log('[JiraIssuesList] Fetching issues from:', url);
-      
-      const response = await axios.get(url);
-      
+
+      const response = await axios.get(url, { headers: authHeader });
+
       if (response.data.success) {
         setJiraIssues(response.data.data.issues);
-        // setTotalItems(response.data.data.pagination.total);
       }
     } catch (err) {
       console.error('이슈 조회 오류:', err);
@@ -83,12 +85,26 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
     }
   };
 
+  // Jira Cloud에서 이슈 가져와서 DB 동기화 후 목록 갱신
+  const syncFromJira = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      await axios.post(`${config.apiUrl}/api/jira/issues/import`, {}, { headers: authHeader });
+      await fetchJiraIssues();
+    } catch (err) {
+      console.error('Jira 동기화 오류:', err);
+      setError('Jira에서 이슈를 가져오는 중 오류가 발생했습니다.');
+      setLoading(false);
+    }
+  };
+
   // 이슈 상태 업데이트
   const updateIssueStatus = async (issueKey, newStatus) => {
     try {
       const response = await axios.put(`${config.apiUrl}/api/jira/issues/${issueKey}`, {
         status: newStatus
-      });
+      }, { headers: authHeader });
       
       if (response.data.success) {
         fetchJiraIssues();
@@ -103,11 +119,11 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
   // 이슈에 댓글 추가
   const addComment = async (issueKey, comment) => {
     try {
-      const authorEmail = user?.email || user?.username + '@example.com' || 'admin@example.com';
+      const authorEmail = user?.email || user?.username || '';
       const response = await axios.post(`${config.apiUrl}/api/jira/issues/${issueKey}/comments`, {
         body: comment,
         author_email: authorEmail
-      });
+      }, { headers: authHeader });
       
       if (response.data.success) {
         alert('댓글이 추가되었습니다.');
@@ -131,7 +147,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
     try {
       const response = await axios.put(`${config.apiUrl}/api/jira/issues/${issueKey}`, {
         assignee_email: assigneeEmail
-      });
+      }, { headers: authHeader });
       
       if (response.data.success) {
         fetchJiraIssues();
@@ -150,7 +166,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
     try {
       // 현재 이슈의 기존 레이블 가져오기
       const currentIssue = jiraIssues.find(issue => issue.issue_key === issueKey);
-      const existingLabels = currentIssue?.labels ? JSON.parse(currentIssue.labels) : [];
+      const existingLabels = parseLabels(currentIssue?.labels);
       
       // 입력된 레이블을 쉼표로 분리하고 공백 제거
       const newLabels = labelInput.split(',').map(label => label.trim()).filter(label => label.length > 0);
@@ -160,8 +176,8 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
       
       const response = await axios.put(`${config.apiUrl}/api/jira/issues/${issueKey}`, {
         labels: updatedLabels
-      });
-      
+      }, { headers: authHeader });
+
       if (response.data.success) {
         fetchJiraIssues();
         alert(`${newLabels.length}개의 레이블이 추가되었습니다.`);
@@ -179,15 +195,15 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
     try {
       // 현재 이슈의 기존 레이블 가져오기
       const currentIssue = jiraIssues.find(issue => issue.issue_key === issueKey);
-      const existingLabels = currentIssue?.labels ? JSON.parse(currentIssue.labels) : [];
+      const existingLabels = parseLabels(currentIssue?.labels);
       
       // 레이블 제거
       const updatedLabels = existingLabels.filter(label => label !== labelToRemove);
       
       const response = await axios.put(`${config.apiUrl}/api/jira/issues/${issueKey}`, {
         labels: updatedLabels
-      });
-      
+      }, { headers: authHeader });
+
       if (response.data.success) {
         fetchJiraIssues();
         alert('레이블이 삭제되었습니다.');
@@ -202,7 +218,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
   const fetchComments = async (issueKey) => {
     setLoadingComments(true);
     try {
-      const response = await axios.get(`${config.apiUrl}/api/jira/issues/${issueKey}/comments`);
+      const response = await axios.get(`${config.apiUrl}/api/jira/issues/${issueKey}/comments`, { headers: authHeader });
       if (response.data.success) {
         setComments(response.data.data || []);
       }
@@ -217,7 +233,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
   const fetchMentionUsers = async () => {
     try {
       setLoadingMentionUsers(true);
-      const response = await axios.get(`${config.apiUrl}/users/list`);
+      const response = await axios.get(`${config.apiUrl}/users/list`, { headers: authHeader });
       setMentionUsers(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
       console.error('멘션 사용자 조회 오류:', err);
@@ -229,7 +245,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
 
   const fetchAllUsers = async () => {
     try {
-      const response = await axios.get(`${config.apiUrl}/users/list`);
+      const response = await axios.get(`${config.apiUrl}/users/list`, { headers: authHeader });
       setAllUsers(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
       console.error('전체 사용자 조회 오류:', err);
@@ -264,9 +280,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
         ? { ...issueData, test_case_id: testCaseId }
         : issueData;
       
-      console.log('[JiraIssuesList] Creating issue with data:', dataToSend);
-      
-      const response = await axios.post(`${config.apiUrl}/api/jira/issues`, dataToSend);
+      const response = await axios.post(`${config.apiUrl}/api/jira/issues`, dataToSend, { headers: authHeader });
       
       if (response.data.success) {
         fetchJiraIssues();
@@ -289,25 +303,10 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
 
   // 이슈 상세보기
   const showIssueDetail = (issue) => {
-    console.log('[JiraIssuesList] showIssueDetail clicked. useModal =', useModal, 'issue =', issue?.issue_key);
     setSelectedIssue(issue);
     setShowDetailModal(true);
     setIsEditMode(false);
     fetchComments(issue.issue_key);
-  };
-
-  // 이슈 수정 모달 열기
-  const openEditModal = (issue) => {
-    setSelectedIssue(issue);
-    setEditFormData({
-      summary: issue.summary || '',
-      description: issue.description || '',
-      status: issue.status || 'To Do',
-      priority: issue.priority || 'Medium',
-      issue_type: issue.issue_type || 'Task',
-      environment: issue.environment || 'dev'
-    });
-    setShowEditModal(true);
   };
 
   // 이슈 수정
@@ -322,8 +321,8 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
         priority: editFormData.priority,
         issue_type: editFormData.issue_type,
         environment: editFormData.environment
-      });
-      
+      }, { headers: authHeader });
+
       if (response.data.success) {
         await fetchJiraIssues();
         alert('이슈가 성공적으로 수정되었습니다.');
@@ -331,10 +330,10 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
         if (isEditMode) {
           setIsEditMode(false);
           // 업데이트된 이슈 정보 다시 조회
-          const url = testCaseId 
+          const url = testCaseId
             ? `${config.apiUrl}/api/jira/issues/testcase/${testCaseId}`
             : `${config.apiUrl}/api/jira/issues`;
-          const updatedIssuesResponse = await axios.get(url);
+          const updatedIssuesResponse = await axios.get(url, { headers: authHeader });
           if (updatedIssuesResponse.data.success) {
             const foundIssue = updatedIssuesResponse.data.data.issues.find(
               issue => issue.issue_key === selectedIssue.issue_key
@@ -344,7 +343,6 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
             }
           }
         } else {
-          setShowEditModal(false);
           setShowDetailModal(false);
         }
       }
@@ -357,10 +355,10 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
   // 필터링된 이슈 목록
   const getFilteredIssues = () => {
     return jiraIssues.filter(issue => {
-      const matchesSearch = !searchTerm || 
-        issue.summary.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        issue.issue_key.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        issue.description.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = !searchTerm ||
+        issue.summary?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        issue.issue_key?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        issue.description?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStatus = statusFilter === 'all' || issue.status === statusFilter;
       const matchesPriority = priorityFilter === 'all' || issue.priority === priorityFilter;
@@ -392,6 +390,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
   useEffect(() => {
     fetchJiraIssues();
     fetchAllUsers();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [testCaseId]);
 
   if (loading) {
@@ -436,15 +435,26 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
           </div>
         )}
         <div className="header-actions">
-          <button 
+          <button
             className="btn btn-primary"
             onClick={fetchJiraIssues}
             disabled={loading}
           >
             🔄 새로고침
           </button>
-          {user && (user.role === 'admin' || user.role === 'user') && (
-            <button 
+          {user && ['admin', 'user'].includes(user.role) && (
+            <button
+              className="btn btn-secondary"
+              onClick={syncFromJira}
+              disabled={loading}
+              style={{ marginLeft: '10px' }}
+              title="Jira Cloud에서 최신 이슈를 가져옵니다"
+            >
+              ⬇️ Jira에서 가져오기
+            </button>
+          )}
+          {user && ['admin', 'user'].includes(user.role) && (
+            <button
               className="btn btn-success"
               onClick={() => setShowCreateModal(true)}
               style={{ marginLeft: '10px' }}
@@ -549,8 +559,8 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
             {!testCaseId && <p>필터 조건을 조정해보세요.</p>}
           </div>
         ) : (
-          <div className="jira-issues-table-wrapper">
-            <table className="jira-issues-table">
+          <div className="tc-table-wrap">
+            <table className="tc-table">
               <thead>
                 <tr>
                   <th>Key No.</th>
@@ -568,7 +578,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
               </thead>
               <tbody>
                 {paginatedIssues.map(issue => (
-                  <tr key={issue.id} className="jira-issue-row">
+                  <tr key={issue.id} className="tc-row">
                     <td className="col-key">
                       <span className="issue-key">{issue.issue_key}</span>
                     </td>
@@ -578,17 +588,17 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                       </span>
                     </td>
                     <td className="col-status">
-                      <span className={`issue-status status-${issue.status.toLowerCase().replace(' ', '-')}`}>
+                      <span className={`status-pill status-${(issue.status || '').toLowerCase().replace(' ', '-')}`}>
                         {issue.status}
                       </span>
                     </td>
                     <td className="col-priority">
-                      <span className={`issue-priority priority-${issue.priority.toLowerCase()}`}>
+                      <span className={`priority-badge priority-${(issue.priority || '').toLowerCase()}`}>
                         {issue.priority}
                       </span>
                     </td>
                     <td className="col-type">
-                      <span className={`issue-type type-${issue.issue_type.toLowerCase()}`}>
+                      <span className={`tag-chip type-${(issue.issue_type || '').toLowerCase()}`}>
                         {issue.issue_type}
                       </span>
                     </td>
@@ -662,16 +672,16 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                       {issue.updated_at ? new Date(issue.updated_at).toLocaleDateString() : '-'}
                     </td>
                     <td className="col-actions">
-                      <div className="issue-actions-inline">
+                      <div className="action-btns">
                         <button
                           type="button"
-                          className="btn btn-primary btn-sm"
+                          className="row-btn btn-run"
                           onClick={() => showIssueDetail(issue)}
                           title="상세보기"
                         >
                           상세
                         </button>
-                        {user && (user.role === 'admin' || user.role === 'user') && (
+                        {user && ['admin', 'user'].includes(user.role) && (
                           <>
                             <select
                               className="status-select"
@@ -684,7 +694,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                             </select>
                             <button
                               type="button"
-                              className="btn btn-secondary btn-sm"
+                              className="row-btn btn-edit"
                               onClick={() => {
                                 setSelectedIssue(issue);
                                 setShowAssigneeModal(true);
@@ -695,7 +705,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                             </button>
                             <button
                               type="button"
-                              className="btn btn-warning btn-sm"
+                              className="row-btn btn-edit"
                               onClick={() => {
                                 setSelectedIssue(issue);
                                 setShowLabelModal(true);
@@ -706,7 +716,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                             </button>
                             <button
                               type="button"
-                              className="btn btn-secondary btn-sm"
+                              className="row-btn btn-edit"
                               onClick={() => {
                                 setCommentIssueKey(issue.issue_key);
                                 setShowCommentPrompt(true);
@@ -780,25 +790,14 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
       )}
 
       {/* 이슈 상세보기 */}
-      {showDetailModal && selectedIssue && (
-          <div className="modal-overlay fullscreen-modal">
-            <div className="modal fullscreen-modal-content">
-              <div className="modal-header">
-                <h3>{isEditMode ? '✏️ 이슈 수정' : '📋 이슈 상세 정보'}</h3>
-                <button 
-                  className="modal-close"
-                  onClick={() => {
-                    setShowDetailModal(false);
-                    setSelectedIssue(null);
-                    setIsEditMode(false);
-                  }}
-                >
-                  ×
-                </button>
-              </div>
-              
-              <div className="modal-body" style={{ padding: '24px', overflowY: 'auto' }}>
-                <div className="issue-detail-content">
+      <SlidePanel
+        isOpen={showDetailModal && !!selectedIssue}
+        onClose={() => { setShowDetailModal(false); setSelectedIssue(null); setIsEditMode(false); }}
+        title={isEditMode ? '이슈 수정' : '이슈 상세 정보'}
+      >
+        {selectedIssue && (
+          <>
+            <div className="issue-detail-content">
                 <div className="detail-section">
                   <h4>기본 정보</h4>
                   <div className="detail-grid">
@@ -866,19 +865,19 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                       <>
                         <div className="detail-item">
                           <label>상태:</label>
-                          <span className={`issue-status status-${selectedIssue.status.toLowerCase().replace(' ', '-')}`}>
+                          <span className={`issue-status status-${(selectedIssue.status || '').toLowerCase().replace(' ', '-')}`}>
                             {selectedIssue.status}
                           </span>
                         </div>
                         <div className="detail-item">
                           <label>타입:</label>
-                          <span className={`issue-type type-${selectedIssue.issue_type.toLowerCase()}`}>
+                          <span className={`issue-type type-${(selectedIssue.issue_type || '').toLowerCase()}`}>
                             {selectedIssue.issue_type}
                           </span>
                         </div>
                         <div className="detail-item">
                           <label>우선순위:</label>
-                          <span className={`issue-priority priority-${selectedIssue.priority.toLowerCase()}`}>
+                          <span className={`issue-priority priority-${(selectedIssue.priority || '').toLowerCase()}`}>
                             {selectedIssue.priority}
                           </span>
                         </div>
@@ -932,7 +931,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                   <div className="detail-section">
                     <h4>레이블</h4>
                     <div className="issue-labels">
-                      {JSON.parse(selectedIssue.labels).map((label, index) => (
+                      {parseLabels(selectedIssue.labels).map((label, index) => (
                         <span key={index} className="label-tag">
                           {label}
                           <button 
@@ -1125,8 +1124,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                     </div>
                   )}
                 </div>
-              </div>
-              
+
               <div className="modal-actions">
                 {isEditMode ? (
                   <>
@@ -1167,7 +1165,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                     >
                       닫기
                     </button>
-                    {user && (user.role === 'admin' || user.role === 'user') && (
+                    {user && ['admin', 'user'].includes(user.role) && (
                       <button 
                         className="btn btn-primary"
                         onClick={() => {
@@ -1188,9 +1186,9 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                   </>
                 )}
               </div>
-            </div>
-          </div>
-      )}
+          </>
+        )}
+      </SlidePanel>
 
       {showAssigneeModal && selectedIssue && (
         <div className="jira-modal-overlay" onClick={() => setShowAssigneeModal(false)}>
@@ -1257,11 +1255,11 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
               </div>
               
               {/* 기존 레이블 표시 */}
-              {selectedIssue.labels && JSON.parse(selectedIssue.labels).length > 0 && (
+              {selectedIssue.labels && parseLabels(selectedIssue.labels).length > 0 && (
                 <div className="form-group">
                   <label>기존 레이블</label>
                   <div className="existing-labels">
-                    {JSON.parse(selectedIssue.labels).map((label, index) => (
+                    {parseLabels(selectedIssue.labels).map((label, index) => (
                       <span key={index} className="existing-label-tag">
                         {label}
                       </span>
@@ -1294,118 +1292,6 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                 disabled={!newLabel.trim()}
               >
                 추가
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 이슈 수정 모달 */}
-      {showEditModal && selectedIssue && (
-        <div className="jira-modal-overlay" onClick={() => setShowEditModal(false)}>
-          <div className="jira-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="jira-modal-header">
-              <div className="jira-modal-title">
-                <span className="jira-modal-icon">✏️</span>
-                <h3>이슈 수정</h3>
-              </div>
-              <button className="jira-modal-close" onClick={() => setShowEditModal(false)}>×</button>
-            </div>
-            
-            <div className="jira-modal-body">
-              <div className="form-group">
-                <label>이슈 키: {selectedIssue.issue_key}</label>
-              </div>
-              
-              <div className="form-group">
-                <label>제목 *</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={editFormData.summary}
-                  onChange={(e) => setEditFormData({...editFormData, summary: e.target.value})}
-                  placeholder="이슈 제목을 입력하세요"
-                  required
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>설명</label>
-                <textarea
-                  className="form-control"
-                  value={editFormData.description}
-                  onChange={(e) => setEditFormData({...editFormData, description: e.target.value})}
-                  placeholder="이슈 설명을 입력하세요"
-                  rows="5"
-                />
-              </div>
-              
-              <div className="form-row">
-                <div className="form-group">
-                  <label>상태</label>
-                  <select
-                    className="form-control"
-                    value={editFormData.status}
-                    onChange={(e) => setEditFormData({...editFormData, status: e.target.value})}
-                  >
-                    <option value="To Do">To Do</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Done">Done</option>
-                  </select>
-                </div>
-                
-                <div className="form-group">
-                  <label>우선순위</label>
-                  <select
-                    className="form-control"
-                    value={editFormData.priority}
-                    onChange={(e) => setEditFormData({...editFormData, priority: e.target.value})}
-                  >
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                    <option value="Critical">Critical</option>
-                  </select>
-                </div>
-                
-                <div className="form-group">
-                  <label>환경</label>
-                  <select
-                    className="form-control"
-                    value={editFormData.environment}
-                    onChange={(e) => setEditFormData({...editFormData, environment: e.target.value})}
-                  >
-                    <option value="alpha">alpha</option>
-                    <option value="prod">prod</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div className="form-group">
-                <label>이슈 타입</label>
-                <select
-                  className="form-control"
-                  value={editFormData.issue_type}
-                  onChange={(e) => setEditFormData({...editFormData, issue_type: e.target.value})}
-                >
-                  <option value="Bug">🐛 Bug</option>
-                  <option value="Task">📋 Task</option>
-                  <option value="Story">📖 Story</option>
-                  <option value="Epic">🏗️ Epic</option>
-                </select>
-              </div>
-            </div>
-            
-            <div className="jira-modal-actions">
-              <button className="btn btn-secondary" onClick={() => setShowEditModal(false)}>
-                취소
-              </button>
-              <button 
-                className="btn btn-primary" 
-                onClick={updateIssue}
-                disabled={!editFormData.summary.trim()}
-              >
-                저장
               </button>
             </div>
           </div>

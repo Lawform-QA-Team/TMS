@@ -1,38 +1,49 @@
-// k6: __ENV.BASE_URL / Node: process.env.BASE_URL (동적 import 미지원 환경 대응)
+// k6: __ENV.ADMIN_BASE_URL / Node: process.env.ADMIN_BASE_URL
+// admin 스크립트 실행 시에만 필수. web 스크립트만 실행 시 미설정 가능.
 let BASE_URL;
-if (typeof __ENV !== 'undefined' && __ENV.BASE_URL) {
-    BASE_URL = __ENV.BASE_URL;
-    // console.log('BASE_URL:', BASE_URL);
-} else if (typeof process !== 'undefined' && process.env && process.env.BASE_URL) {
-    BASE_URL = process.env.BASE_URL;
-    // console.log('BASE_URL:', BASE_URL);
-} else {
-    throw new Error(
-        'BASE_URL이 필요합니다. k6 실행 예: k6 run -e BASE_URL=https://대상주소 -e LOGIN_EMAIL=... -e LOGIN_PASSWORD=... 스크립트경로\n' +
-        '.env 사용 시: (test-scripts/performance 폴더에서) export $(grep -v "^#" .env | xargs) && k6 run ...'
-    );
+if (typeof __ENV !== 'undefined' && __ENV.ADMIN_BASE_URL) {
+    BASE_URL = __ENV.ADMIN_BASE_URL.replace(/\/$/, '');
+} else if (typeof process !== 'undefined' && process.env && process.env.ADMIN_BASE_URL) {
+    BASE_URL = process.env.ADMIN_BASE_URL.replace(/\/$/, '');
 }
 
-// 로그인 관련 URL
+// 웹(서비스) URL — admin과 별도 도메인 사용
+// web 스크립트 실행 시에만 필수. admin 스크립트만 실행 시 미설정 가능.
+let WEB_BASE_URL;
+if (typeof __ENV !== 'undefined' && __ENV.WEB_BASE_URL) {
+    WEB_BASE_URL = __ENV.WEB_BASE_URL.replace(/\/$/, '');
+} else if (typeof process !== 'undefined' && process.env && process.env.WEB_BASE_URL) {
+    WEB_BASE_URL = process.env.WEB_BASE_URL.replace(/\/$/, '');
+} else {
+    WEB_BASE_URL = BASE_URL; // fallback
+}
+
+// 어드민 로그인 관련 URL
 export const LOGIN_URLS = {
     HOME: `${BASE_URL}`,
-    LOGIN: `${BASE_URL}/login`,
+    LOGIN: `${BASE_URL}/id-login`,
     DASHBOARD: `${BASE_URL}/dashboard` // 통계 = 대시보드
+};
+
+// 웹 서비스 로그인 관련 URL
+export const WEB_LOGIN_URLS = {
+    HOME: `${WEB_BASE_URL}`,
+    LOGIN: `${WEB_BASE_URL}/id-login`,
+    DASHBOARD: `${WEB_BASE_URL}/dashboard`
 };
 
 // 표준 양식 관리
 export const AUTODOC_URLS = {
-    AUTODOC: `${BASE_URL}/autodoc`,
-
     // 백오피스
+    AUTODOC: `${BASE_URL}/autodoc`,
     CREATE: `${BASE_URL}/autodoc/document/list`,
     NEW: `${BASE_URL}/autodoc/tool?formType=`, // 신규 양식
     CATEGORY: `${BASE_URL}/autodoc/categories`, // 카테고리
 
-    // 서비스
-    STANDARD: `${BASE_URL}/autodoc?method=standard&page=1`,
-    TEMP: `${BASE_URL}/autodoc?method=temp&page=1`,
-    EXISTING: `${BASE_URL}/autodoc?method=existing&page=1`,
+    // 서비스(웹)
+    STANDARD: `${WEB_BASE_URL}/autodoc?method=standard`,
+    TEMP: `${WEB_BASE_URL}/autodoc?method=temp`,
+    EXISTING: `${WEB_BASE_URL}/autodoc?method=existing`,
 }
 
 //AI 외부 데이터 관리
@@ -49,7 +60,8 @@ export const AI_CHAT_URLS ={
 
 //문서 업데이트 리포트
 export const DOCUMENT_UPDATE_URLS = {
-    LAW: `${BASE_URL}/document-update-report`,
+    LAW: `${BASE_URL}/document-update-report?tab=law`,
+    OTHER: `${BASE_URL}/document-update-report?tab=other`,
 }
 
 //필터링 관리
@@ -63,7 +75,10 @@ export const SERVICE_URLS = {
     QNA: `${BASE_URL}/qna`, //1:1 문의 관리
     PRIVACY: `${BASE_URL}/service-terms?tab=privacy`, //약관 관리 - 개인정보처리방침
     TERMS: `${BASE_URL}/service-terms?tab=terms`, //약관 관리 - 이용약관
-    IP: `${BASE_URL}/ip-management`  // IP 관리
+    IP: `${BASE_URL}/ip-management`,  // IP 관리
+
+    WEB_NOTICE: `${WEB_BASE_URL}/notice`, //공지사항
+    WEB_QNA: `${WEB_BASE_URL}/qna`, //1:1 문의 관리
 }
 
 //사용자 관리
@@ -79,13 +94,15 @@ export const LOG_URLS = {
 
 // 서비스 - 문서 조회
 export const DRIVE_URLS = {
-    DRIVE: `${BASE_URL}/drive`,
+    DRIVE: `${WEB_BASE_URL}/drive`,
 }
 
 // 모든 URL을 하나의 객체로 통합
 export const URLS = {
     BASE: BASE_URL,
+    WEB_BASE: WEB_BASE_URL,
     LOGIN: LOGIN_URLS,
+    WEB_LOGIN: WEB_LOGIN_URLS,
     AUTODOC: AUTODOC_URLS,
     AI_DATA: AI_DATA_URLS,
     AI_CHAT: AI_CHAT_URLS,
@@ -95,6 +112,4 @@ export const URLS = {
     MEMBER: MEMBER_URLS,
     LOG: LOG_URLS,
     DRIVE: DRIVE_URLS,
-}; 
-
-console.log('BASE_URL:', BASE_URL);
+};

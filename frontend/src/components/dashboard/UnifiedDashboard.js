@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '@tms/config';
 import '@tms/components/dashboard/UnifiedDashboard.css';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
-import { Doughnut, Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Filler } from 'chart.js';
+import { Doughnut, Bar, Line } from 'react-chartjs-2';
 
 // Chart.js 등록
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Filler);
 
 // GitHub Secrets 설정 완료 후 배포 테스트
 
@@ -68,6 +68,10 @@ const UnifiedDashboard = ({ setActiveTab }) => {
   const [jiraRecentIssues, setJiraRecentIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [passRateTrend, setPassRateTrend] = useState(null);
+  const [trendDays, setTrendDays] = useState(30); // 0 = 전체, -1 = 커스텀
+  const [trendCustomStart, setTrendCustomStart] = useState('');
+  const [trendCustomEnd, setTrendCustomEnd] = useState('');
   
   // 대시보드 카드 설정 상태
   const [showCardSettings, setShowCardSettings] = useState(false);
@@ -90,6 +94,7 @@ const UnifiedDashboard = ({ setActiveTab }) => {
           jiraEnvironment: { enabled: true, order: 7, size: 'medium' },
           jiraLabels: { enabled: true, order: 8, size: 'medium' },
           jiraRecentIssues: { enabled: true, order: 9, size: 'medium' },
+          passRateTrend: { enabled: true, order: 14, size: 'large' },
           ...otherSettings
         };
       } catch (e) {
@@ -110,6 +115,7 @@ const UnifiedDashboard = ({ setActiveTab }) => {
       performanceTests: { enabled: true, order: 11, size: 'medium' },
       testExecutions: { enabled: true, order: 12, size: 'medium' },
       screenshots: { enabled: true, order: 13, size: 'small' },
+      passRateTrend: { enabled: true, order: 14, size: 'large' },
       projectStats: { enabled: true, order: 0, size: 'large' }
     };
   });
@@ -117,6 +123,7 @@ const UnifiedDashboard = ({ setActiveTab }) => {
   // 드래그 앤 드롭 상태
   const [draggedCard, setDraggedCard] = useState(null);
   const [dragOverCard, setDragOverCard] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [isDragging, setIsDragging] = useState(false);
   
   // 페이징 상태 추가
@@ -133,6 +140,24 @@ const UnifiedDashboard = ({ setActiveTab }) => {
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  // Pass Rate 추이 요청 함수
+  const fetchPassRateTrend = (days, customStart, customEnd) => {
+    let url;
+    if (days === -1 && customStart && customEnd) {
+      url = `/analytics/pass-rate-trend?start_date=${customStart}&end_date=${customEnd}`;
+    } else {
+      url = `/analytics/pass-rate-trend?days=${days}`;
+    }
+    axios.get(url).then(r => setPassRateTrend(r.data)).catch(() => {});
+  };
+
+  // trendDays 변경 시 Pass Rate 추이 재요청
+  useEffect(() => {
+    if (trendDays !== -1) {
+      fetchPassRateTrend(trendDays);
+    }
+  }, [trendDays]);
 
   // 카드 설정이 변경될 때 localStorage에 저장
   useEffect(() => {
@@ -283,7 +308,8 @@ const UnifiedDashboard = ({ setActiveTab }) => {
       testCases: '테스트 케이스',
       performanceTests: '성능 테스트',
       testExecutions: '테스트 실행 결과',
-      screenshots: '스크린샷'
+      screenshots: '스크린샷',
+      passRateTrend: 'Pass Rate 추이'
     };
     return names[cardKey] || cardKey;
   };
@@ -291,7 +317,7 @@ const UnifiedDashboard = ({ setActiveTab }) => {
   // 최근 이슈 가져오기
   const fetchJiraRecentIssues = async (page = 1) => {
     try {
-      const response = await axios.get(`/api/jira/issues?page=${page}&per_page=${itemsPerPage}`);
+      const response = await axios.get(`/jira/issues?page=${page}&per_page=${itemsPerPage}`);
       if (response.data.success) {
         setJiraRecentIssuesPagination(response.data.data.pagination);
         return response.data.data.issues || [];
@@ -397,31 +423,36 @@ const UnifiedDashboard = ({ setActiveTab }) => {
       setLoading(true);
       setError(null);
       
-      // 최적화: 불필요한 헬스체크 요청 제거, 병렬 요청만 유지
-      const [testCasesRes, performanceTestsRes, testExecutionsRes, summariesRes, testcaseSummariesRes, projectStatsRes, jiraStatsRes, jiraEnvironmentStatsRes, jiraRecentIssuesRes] = await Promise.all([
+      // 병렬 요청 — 하나가 실패해도 나머지 데이터는 표시
+      const results = await Promise.allSettled([
         axios.get(`/testcases?page=1&per_page=${itemsPerPage}`),
         axios.get(`/performance-tests?page=1&per_page=${itemsPerPage}`),
         axios.get(`/test-executions?page=1&per_page=${itemsPerPage}`),
         axios.get('/dashboard-summaries'),
         axios.get('/testcases/summary/all'),
         axios.get('/dashboard/project-stats'),
-        axios.get('/api/jira/stats'),
-        axios.get('/api/jira/stats/environment'),
-        axios.get(`/api/jira/issues?page=1&per_page=${itemsPerPage}`)
+        axios.get('/jira/stats'),
+        axios.get('/jira/stats/environment'),
+        axios.get(`/jira/issues?page=1&per_page=${itemsPerPage}`)
       ]);
 
-      setTestCases(testCasesRes.data.items || testCasesRes.data);
-      setPerformanceTests(performanceTestsRes.data.items || performanceTestsRes.data);
-      setTestExecutions(testExecutionsRes.data.items || testExecutionsRes.data);
-      setDashboardSummaries(summariesRes.data);
-      setTestcaseSummaries(testcaseSummariesRes.data);
-      setProjectStats(Array.isArray(projectStatsRes.data) ? projectStatsRes.data : []);
+      const labels = ['testcases', 'performance-tests', 'test-executions', 'dashboard-summaries', 'testcases/summary/all', 'dashboard/project-stats', 'jira/stats', 'jira/stats/environment', 'jira/issues'];
+      results.forEach((r, i) => {
+        if (r.status === 'rejected') console.error(`[Dashboard] ${labels[i]} 실패:`, r.reason);
+      });
+
+      const [testCasesRes, performanceTestsRes, testExecutionsRes, summariesRes, testcaseSummariesRes, projectStatsRes, jiraStatsRes, jiraEnvironmentStatsRes, jiraRecentIssuesRes] = results.map((r) => r.status === 'fulfilled' ? r.value : null);
+
+      if (testCasesRes) setTestCases(testCasesRes.data.items || testCasesRes.data || []);
+      if (performanceTestsRes) setPerformanceTests(performanceTestsRes.data.items || performanceTestsRes.data || []);
+      if (testExecutionsRes) setTestExecutions(testExecutionsRes.data.items || testExecutionsRes.data || []);
+      if (summariesRes) setDashboardSummaries(summariesRes.data || []);
+      if (testcaseSummariesRes) setTestcaseSummaries(testcaseSummariesRes.data || []);
+      if (projectStatsRes) setProjectStats(Array.isArray(projectStatsRes.data) ? projectStatsRes.data : []);
 
       // JIRA 통계 처리
-      console.log('📊 JIRA 통계 응답:', jiraStatsRes.data);
-      if (jiraStatsRes.data && jiraStatsRes.data.success) {
+      if (jiraStatsRes && jiraStatsRes.data && jiraStatsRes.data.success) {
         const stats = jiraStatsRes.data.data;
-        console.log('📊 JIRA 통계 데이터:', stats);
         setJiraStats({
           totalIssues: stats.total_issues || 0,
           issuesByStatus: stats.issues_by_status || {},
@@ -430,14 +461,10 @@ const UnifiedDashboard = ({ setActiveTab }) => {
           issuesByLabels: stats.issues_by_labels || {},
           recentIssues: stats.recent_issues || []
         });
-        console.log('📊 JIRA 통계 상태 설정 완료');
-      } else {
-        console.log('❌ JIRA 통계 응답 실패:', jiraStatsRes.data);
       }
-      
+
       // 환경별 JIRA 통계 처리
-      console.log('🌍 환경별 JIRA 통계 응답:', jiraEnvironmentStatsRes.data);
-      if (jiraEnvironmentStatsRes.data && jiraEnvironmentStatsRes.data.success) {
+      if (jiraEnvironmentStatsRes && jiraEnvironmentStatsRes.data && jiraEnvironmentStatsRes.data.success) {
         const envStats = jiraEnvironmentStatsRes.data.data || {};
         console.log('🌍 환경별 JIRA 통계 데이터:', envStats);
         
@@ -457,39 +484,29 @@ const UnifiedDashboard = ({ setActiveTab }) => {
         });
 
         setJiraEnvironmentStats(normalizedEnvStats);
-        console.log('🌍 환경별 JIRA 통계 상태 설정 완료');
-      } else {
-        console.log('❌ 환경별 JIRA 통계 응답 실패:', jiraEnvironmentStatsRes.data);
       }
-      
+
       // 최근 이슈 처리
-      if (jiraRecentIssuesRes.data && jiraRecentIssuesRes.data.success) {
+      if (jiraRecentIssuesRes?.data?.success) {
         setJiraRecentIssues(jiraRecentIssuesRes.data.data.issues || []);
         setJiraRecentIssuesPagination(jiraRecentIssuesRes.data.data.pagination);
       } else {
-        console.error('최근 이슈 조회 실패:', jiraRecentIssuesRes.data?.error);
         setJiraRecentIssues([]);
         setJiraRecentIssuesPagination(null);
       }
       
       // 페이징 정보 설정
-      if (testCasesRes.data.pagination) {
-        setTestCasesPagination(testCasesRes.data.pagination);
-      }
-      if (performanceTestsRes.data.pagination) {
-        setPerformanceTestsPagination(performanceTestsRes.data.pagination);
-      }
-      if (testExecutionsRes.data.pagination) {
-        setTestExecutionsPagination(testExecutionsRes.data.pagination);
-      }
-      
+      if (testCasesRes?.data?.pagination) setTestCasesPagination(testCasesRes.data.pagination);
+      if (performanceTestsRes?.data?.pagination) setPerformanceTestsPagination(performanceTestsRes.data.pagination);
+      if (testExecutionsRes?.data?.pagination) setTestExecutionsPagination(testExecutionsRes.data.pagination);
+
+      // Pass Rate 추이 초기 로드
+      axios.get(`/analytics/pass-rate-trend?days=30`)
+        .then(r => setPassRateTrend(r.data))
+        .catch(() => {});
+
     } catch (err) {
-      // 오류는 조용히 처리 (개발 환경에서만 로그 출력)
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Dashboard 데이터 로드 오류:', err);
-      }
-      
-      
+      console.error('Dashboard 데이터 로드 오류:', err);
       setError('데이터를 불러오는 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
@@ -578,12 +595,14 @@ const UnifiedDashboard = ({ setActiveTab }) => {
     setTestExecutionsPage(1);
   };
 
+  // eslint-disable-next-line no-unused-vars
   const getStatusColor = (passRate) => {
     if (passRate >= 90) return '#4CAF50'; // Green
     if (passRate >= 70) return '#FF9800'; // Orange
     return '#F44336'; // Red
   };
 
+  // eslint-disable-next-line no-unused-vars
   const createChartData = (environment) => {
     const summary = getEnvironmentSummary(environment);
     const passed = summary.passed_tests;
@@ -921,7 +940,8 @@ const UnifiedDashboard = ({ setActiveTab }) => {
                     testCases: { enabled: true, order: 10, size: 'medium' },
                     performanceTests: { enabled: true, order: 11, size: 'medium' },
                     testExecutions: { enabled: true, order: 12, size: 'medium' },
-                    screenshots: { enabled: true, order: 13, size: 'small' }
+                    screenshots: { enabled: true, order: 13, size: 'small' },
+                    passRateTrend: { enabled: true, order: 14, size: 'large' }
                   };
                   saveCardSettings(defaultSettings);
                 }}
@@ -1535,6 +1555,120 @@ const UnifiedDashboard = ({ setActiveTab }) => {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+            {cardKey === 'passRateTrend' && (
+              <div
+                className={`dashboard-card card-size-${config.size} draggable-card ${isDragging ? 'dragging' : ''} ${isDragOver ? 'drag-over' : ''}`}
+                draggable={true}
+                onDragStart={(e) => handleDragStart(e, cardKey)}
+                onDragOver={(e) => handleDragOver(e, cardKey)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, cardKey)}
+                onDragEnd={handleDragEnd}
+              >
+                <div className="card-header">
+                  <h3>Pass Rate 추이</h3>
+                  <div className="trend-period-buttons">
+                    {[7, 30, 90].map(d => (
+                      <button
+                        key={d}
+                        className={`btn-period ${trendDays === d ? 'active' : ''}`}
+                        onClick={() => setTrendDays(d)}
+                      >
+                        {d}일
+                      </button>
+                    ))}
+                    <button
+                      className={`btn-period ${trendDays === 0 ? 'active' : ''}`}
+                      onClick={() => setTrendDays(0)}
+                    >
+                      전체
+                    </button>
+                    <button
+                      className={`btn-period ${trendDays === -1 ? 'active' : ''}`}
+                      onClick={() => setTrendDays(-1)}
+                    >
+                      직접입력
+                    </button>
+                  </div>
+                </div>
+                {trendDays === -1 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', background: '#f8f9fa', borderTop: '1px solid #eee' }}>
+                    <input
+                      type="date"
+                      value={trendCustomStart}
+                      onChange={e => setTrendCustomStart(e.target.value)}
+                      style={{ padding: '4px 8px', border: '1px solid #ccc', borderRadius: 4, fontSize: '0.85em' }}
+                    />
+                    <span style={{ color: '#888' }}>~</span>
+                    <input
+                      type="date"
+                      value={trendCustomEnd}
+                      onChange={e => setTrendCustomEnd(e.target.value)}
+                      style={{ padding: '4px 8px', border: '1px solid #ccc', borderRadius: 4, fontSize: '0.85em' }}
+                    />
+                    <button
+                      onClick={() => fetchPassRateTrend(-1, trendCustomStart, trendCustomEnd)}
+                      disabled={!trendCustomStart || !trendCustomEnd}
+                      style={{ padding: '4px 12px', background: '#007bff', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: '0.85em' }}
+                    >
+                      조회
+                    </button>
+                  </div>
+                )}
+                <div className="card-content">
+                  {passRateTrend && passRateTrend.dates && passRateTrend.dates.length > 0 ? (
+                    <div className="chart-wrapper" style={{ height: '280px' }}>
+                      <Line
+                        data={{
+                          labels: passRateTrend.dates,
+                          datasets: [
+                            {
+                              label: 'Pass Rate (%)',
+                              data: passRateTrend.pass_rates,
+                              borderColor: '#28a745',
+                              backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                              fill: true,
+                              tension: 0.3,
+                              pointRadius: 4,
+                              pointHoverRadius: 6,
+                            }
+                          ]
+                        }}
+                        options={{
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                              callbacks: {
+                                label: (ctx) => {
+                                  const idx = ctx.dataIndex;
+                                  const p = passRateTrend.pass_counts[idx];
+                                  const f = passRateTrend.fail_counts[idx];
+                                  return [`Pass Rate: ${ctx.parsed.y}%`, `Pass: ${p}  Fail: ${f}`];
+                                }
+                              }
+                            }
+                          },
+                          scales: {
+                            y: {
+                              min: 0,
+                              max: 100,
+                              ticks: { callback: (v) => `${v}%` }
+                            },
+                            x: {
+                              ticks: { maxTicksLimit: 10, maxRotation: 45, minRotation: 0 }
+                            }
+                          }
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <p className="no-trend-data">이력 데이터가 아직 없습니다. result_status를 변경하면 데이터가 쌓입니다.</p>
+                  )}
                 </div>
               </div>
             )}

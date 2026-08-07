@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, send_file
-from models import db, TestCase, TestResult, Screenshot, Project, Folder, User, TestCaseTemplate, TestPlan, TestPlanTestCase, SystemConfig
+from models import db, TestCase, TestResult, Screenshot, Project, Folder, User, TestCaseTemplate, TestPlan, TestPlanTestCase, SystemConfig, AiConversation, AiConversationMessage, UserAiConfig
 from utils.cors import add_cors_headers
 from utils.auth_decorators import admin_required, user_required, guest_allowed
 from utils.serializers import serialize_testcase, serialize_project, serialize_folder, get_testcase_effective_project_id
@@ -26,6 +26,7 @@ testcases_bp = Blueprint('testcases', __name__)
 
 # 기존 TCM API 엔드포인트들
 @testcases_bp.route('/projects', methods=['GET'])
+@guest_allowed
 def get_projects():
     from sqlalchemy.sql import case
     from sqlalchemy import func
@@ -81,6 +82,9 @@ def update_project(project_id):
         })
         return add_cors_headers(response), 200
     except Exception as e:
+        from werkzeug.exceptions import HTTPException
+        if isinstance(e, HTTPException):
+            raise
         db.session.rollback()
         logger.error(f"프로젝트 수정 오류: {str(e)}")
         response = jsonify({'error': str(e)})
@@ -143,7 +147,7 @@ def get_testcase(id):
     effective_project_id = get_testcase_effective_project_id(tc)
     project_name = None
     if effective_project_id:
-        proj = Project.query.get(effective_project_id)
+        proj = db.session.get(Project, effective_project_id)
         project_name = proj.name if proj else None
     
     # alpha DB 스키마에 맞춤: Screenshot은 test_result_id를 통해 연결됨
@@ -169,6 +173,7 @@ def get_testcase(id):
         'pre_condition': tc.pre_condition,
         'expected_result': tc.expected_result,
         'result_status': tc.result_status,
+        'priority': tc.priority,
         'remark': tc.remark,
         'test_steps': tc.test_steps,
         'automation_code_path': tc.automation_code_path,
@@ -193,10 +198,11 @@ def generate_testcases_ai():
         from utils.common_helpers import handle_options_request
         return handle_options_request()
 
-    prompt = (request.get_json() or {}).get('prompt', '').strip()
+    body = request.get_json() or {}
+    prompt = body.get('prompt', '').strip()
     if not prompt:
-        response = jsonify({'error': 'prompt가 필요합니다.'})
-        return add_cors_headers(response), 400
+        return add_cors_headers(jsonify({'error': 'prompt가 필요합니다.'})), 400
+    count = min(int(body.get('count', 5)), 20)
 
     # 설정에 저장된 기본 프롬프트가 있으면 앞에 붙임
     default_row = SystemConfig.query.filter_by(key='tc_default_prompt').first()
@@ -205,95 +211,441 @@ def generate_testcases_ai():
     else:
         full_prompt = prompt
 
-    api_key = os.getenv('OPENAI_API_KEY')
-    if not api_key:
-        response = jsonify({'error': 'OPENAI_API_KEY가 설정되지 않았습니다.'})
-        return add_cors_headers(response), 500
+    user_id = _get_current_user_id()
+    system_prompt = (
+        "QA 테스트 케이스 설계 전문가입니다. 한국어로 간결하게 작성하세요. "
+        f"정확히 {count}개의 테스트 케이스를 생성하세요. "
+        "반드시 JSON 코드블록으로 감싸 반환하세요. "
+        '형식: ```json { "test_cases": [...] }``` '
+        "각 TC 필드: name, main_category, sub_category, detail_category, "
+        "pre_condition, expected_result, remark. 값은 간결하게."
+    )
+    content, err = _call_ai_api(
+        messages=[{'role': 'user', 'content': full_prompt}],
+        system_prompt=system_prompt,
+        user_id=user_id,
+        max_tokens=2000,
+    )
+    if err:
+        return add_cors_headers(jsonify({'error': err})), 502
 
-    model = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
-    try:
-        payload = {
-            "model": model,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a QA test case designer. Generate concise test cases in Korean. "
-                        "Return only JSON with key 'test_cases' containing an array of objects. "
-                        "Each object fields: name, main_category, sub_category, detail_category, "
-                        "pre_condition, expected_result, remark. Keep values short."
-                    ),
-                },
-                {"role": "user", "content": full_prompt},
-            ],
-            "temperature": 0.25,
-            "max_tokens": 800,
-            "response_format": {"type": "json_object"},
-        }
-
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        }
-
-        r = requests.post(
-            "https://api.openai.com/v1/chat/completions",
-            headers=headers,
-            json=payload,
-            timeout=30,
-        )
-        if not r.ok:
-            response = jsonify({'error': f'OpenAI 호출 실패: {r.status_code} {r.text}'})
-            return add_cors_headers(response), 502
-
-        result = r.json()
-        content = (
-            result.get("choices", [{}])[0]
-            .get("message", {})
-            .get("content", "")
-            .strip()
-        )
-
-        parsed = {}
+    items = _parse_test_cases_from_content(content)
+    # json 블록 파싱 실패 시 직접 JSON 파싱 시도
+    if not items:
         try:
             parsed = json.loads(content) if content else {}
-        except json.JSONDecodeError:
-            parsed = {}
+            raw = parsed.get('test_cases') if isinstance(parsed, dict) else None
+            if isinstance(raw, list):
+                for idx, item in enumerate(raw):
+                    if not isinstance(item, dict):
+                        continue
+                    items.append({
+                        'name': item.get('name') or f'AI 테스트 케이스 {idx+1}',
+                        'main_category': item.get('main_category', ''),
+                        'sub_category': item.get('sub_category', ''),
+                        'detail_category': item.get('detail_category', ''),
+                        'pre_condition': item.get('pre_condition', ''),
+                        'expected_result': item.get('expected_result', ''),
+                        'remark': item.get('remark', ''),
+                    })
+        except (json.JSONDecodeError, ValueError):
+            pass
 
-        items = []
-        raw_items = parsed.get("test_cases") if isinstance(parsed, dict) else None
-        if raw_items is None and isinstance(parsed, list):
-            raw_items = parsed
+    return add_cors_headers(jsonify({'items': items, 'raw': content})), 200
 
-        if isinstance(raw_items, list):
-            for idx, item in enumerate(raw_items):
-                if not isinstance(item, dict):
-                    continue
-                items.append({
-                    "name": item.get("name") or f"AI 테스트 케이스 {idx+1}",
-                    "main_category": item.get("main_category", ""),
-                    "sub_category": item.get("sub_category", ""),
-                    "detail_category": item.get("detail_category", ""),
-                    "pre_condition": item.get("pre_condition", ""),
-                    "expected_result": item.get("expected_result", ""),
-                    "remark": item.get("remark", ""),
-                })
 
-        response = jsonify({
-            "items": items,
-            "raw": content,
-            "model": model,
-            "usage": result.get("usage", {}),
-        })
-        return add_cors_headers(response), 200
+# ──────────────────────────────────────────────────────────────
+# AI 대화형 TC 엔드포인트
+# ──────────────────────────────────────────────────────────────
 
+def _get_current_user_id():
+    """request 컨텍스트에서 현재 유저 ID 반환"""
+    uid = getattr(request, 'current_user_id', None)
+    if uid is not None:
+        try:
+            return int(uid)
+        except (TypeError, ValueError):
+            pass
+    return None
+
+
+# OpenAI 호환 API base URL 매핑
+_OPENAI_COMPAT_URLS = {
+    'openai':     'https://api.openai.com/v1',
+    'xai':        'https://api.x.ai/v1',
+    'perplexity': 'https://api.perplexity.ai',
+    'mistral':    'https://api.mistral.ai/v1',
+    'groq':       'https://api.groq.com/openai/v1',
+    'upstage':    'https://api.upstage.ai/v1/solar',
+}
+
+# 공급자별 기본 모델
+_DEFAULT_MODELS = {
+    'openai':     'gpt-4o-mini',
+    'xai':        'grok-3-mini',
+    'perplexity': 'sonar',
+    'mistral':    'mistral-small-latest',
+    'groq':       'llama-3.3-70b-versatile',
+    'upstage':    'solar-pro',
+    'anthropic':  'claude-sonnet-4-6',
+    'google':     'gemini-2.0-flash',
+}
+
+
+def _call_ai_api(messages, system_prompt, user_id=None, max_tokens=2000):
+    """
+    공급자별 AI API 호출 통합 헬퍼.
+    사용자 설정 키/모델 우선, 없으면 서버 env var (OpenAI) fallback.
+    반환: (content: str, error: str|None)
+    """
+    provider = 'openai'
+    api_key = None
+    model_name = None
+
+    if user_id:
+        cfg = UserAiConfig.query.filter_by(user_id=user_id).first()
+        if cfg and cfg.api_key:
+            provider = cfg.provider or 'openai'
+            api_key = cfg.api_key
+            model_name = cfg.model_name
+
+    # fallback: 서버 env (OpenAI)
+    if not api_key:
+        provider = 'openai'
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key:
+            return None, 'AI API 키가 설정되지 않았습니다. 프로필 > AI API 설정에서 키를 등록하세요.'
+
+    model = model_name or _DEFAULT_MODELS.get(provider, 'gpt-4o-mini')
+
+    try:
+        if provider in _OPENAI_COMPAT_URLS:
+            return _call_openai_compat(api_key, model, system_prompt, messages, max_tokens, _OPENAI_COMPAT_URLS[provider])
+        elif provider == 'anthropic':
+            return _call_anthropic(api_key, model, system_prompt, messages, max_tokens)
+        elif provider == 'google':
+            return _call_google(api_key, model, system_prompt, messages, max_tokens)
+        else:
+            return None, f'지원하지 않는 AI 공급자: {provider}'
     except requests.exceptions.Timeout:
-        response = jsonify({'error': 'OpenAI 응답 대기 시간 초과'})
-        return add_cors_headers(response), 504
+        return None, 'AI 응답 대기 시간 초과'
     except Exception as e:
-        logger.error(f"AI 테스트 케이스 생성 오류: {str(e)}")
-        response = jsonify({'error': 'AI 생성 중 오류가 발생했습니다.'})
-        return add_cors_headers(response), 500
+        logger.error(f'AI API 호출 오류 ({provider}): {str(e)}')
+        return None, 'AI 호출 중 오류가 발생했습니다.'
+
+
+def _call_openai_compat(api_key, model, system_prompt, messages, max_tokens, base_url):
+    """OpenAI 호환 API 공통 호출 (OpenAI/xAI/Perplexity/Mistral/DeepSeek/Groq/Upstage)"""
+    payload = {
+        'model': model,
+        'messages': [{'role': 'system', 'content': system_prompt}, *messages],
+        'temperature': 0.3,
+        'max_tokens': max_tokens,
+    }
+    r = requests.post(
+        f'{base_url}/chat/completions',
+        headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
+        json=payload, timeout=60,
+    )
+    if not r.ok:
+        return None, f'AI 호출 실패 ({base_url}): {r.status_code} {r.text[:200]}'
+    content = r.json().get('choices', [{}])[0].get('message', {}).get('content', '').strip()
+    return content, None
+
+
+def _call_anthropic(api_key, model, system_prompt, messages, max_tokens):
+    # user/assistant 교대 검증 (Anthropic은 첫 메시지가 user여야 함)
+    filtered = []
+    for m in messages:
+        if filtered and filtered[-1]['role'] == m['role']:
+            continue
+        filtered.append({'role': m['role'], 'content': m['content']})
+    if not filtered or filtered[0]['role'] != 'user':
+        filtered = [{'role': 'user', 'content': '안녕하세요'}] + filtered
+
+    payload = {
+        'model': model,
+        'system': system_prompt,
+        'messages': filtered,
+        'max_tokens': max_tokens,
+    }
+    r = requests.post(
+        'https://api.anthropic.com/v1/messages',
+        headers={
+            'x-api-key': api_key,
+            'anthropic-version': '2023-06-01',
+            'Content-Type': 'application/json',
+        },
+        json=payload, timeout=60,
+    )
+    if not r.ok:
+        return None, f'Anthropic 호출 실패: {r.status_code} {r.text[:200]}'
+    content_blocks = r.json().get('content', [])
+    content = ''.join(b.get('text', '') for b in content_blocks if b.get('type') == 'text').strip()
+    return content, None
+
+
+def _call_google(api_key, model, system_prompt, messages, max_tokens):
+    # Gemini는 user/model 역할 사용
+    role_map = {'user': 'user', 'assistant': 'model'}
+    contents = []
+    for m in messages:
+        contents.append({'role': role_map.get(m['role'], 'user'), 'parts': [{'text': m['content']}]})
+    if not contents:
+        contents = [{'role': 'user', 'parts': [{'text': system_prompt}]}]
+
+    payload = {
+        'system_instruction': {'parts': [{'text': system_prompt}]},
+        'contents': contents,
+        'generationConfig': {'maxOutputTokens': max_tokens, 'temperature': 0.3},
+    }
+    url = f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}'
+    r = requests.post(url, headers={'Content-Type': 'application/json'}, json=payload, timeout=60)
+    if not r.ok:
+        return None, f'Google Gemini 호출 실패: {r.status_code} {r.text[:200]}'
+    candidates = r.json().get('candidates', [{}])
+    parts = candidates[0].get('content', {}).get('parts', [{}])
+    content = ''.join(p.get('text', '') for p in parts).strip()
+    return content, None
+
+
+def _parse_test_cases_from_content(content):
+    """assistant 응답에서 ```json 블록 파싱 → test_cases 추출"""
+    import re
+    items = []
+    # ```json ... ``` 블록 추출
+    match = re.search(r'```json\s*([\s\S]*?)\s*```', content)
+    if match:
+        try:
+            parsed = json.loads(match.group(1))
+            raw = parsed.get('test_cases') if isinstance(parsed, dict) else None
+            if raw is None and isinstance(parsed, list):
+                raw = parsed
+            if isinstance(raw, list):
+                for idx, item in enumerate(raw):
+                    if not isinstance(item, dict):
+                        continue
+                    items.append({
+                        'name': item.get('name') or f'AI 테스트 케이스 {idx+1}',
+                        'main_category': item.get('main_category', ''),
+                        'sub_category': item.get('sub_category', ''),
+                        'detail_category': item.get('detail_category', ''),
+                        'pre_condition': item.get('pre_condition', ''),
+                        'expected_result': item.get('expected_result', ''),
+                        'remark': item.get('remark', ''),
+                    })
+        except (json.JSONDecodeError, ValueError):
+            pass
+    return items
+
+
+@testcases_bp.route('/testcases/ai/conversations', methods=['GET', 'OPTIONS'])
+@user_required
+def list_ai_conversations():
+    if request.method == 'OPTIONS':
+        from utils.common_helpers import handle_options_request
+        return handle_options_request()
+    user_id = _get_current_user_id()
+    convs = (AiConversation.query
+             .filter_by(user_id=user_id)
+             .order_by(AiConversation.updated_at.desc())
+             .all())
+    data = []
+    for c in convs:
+        data.append({
+            'id': c.id,
+            'title': c.title,
+            'folder_id': c.folder_id,
+            'message_count': c.messages.count(),
+            'created_at': c.created_at.isoformat() if c.created_at else None,
+            'updated_at': c.updated_at.isoformat() if c.updated_at else None,
+        })
+    return add_cors_headers(jsonify(data)), 200
+
+
+@testcases_bp.route('/testcases/ai/conversations', methods=['POST'])
+@user_required
+def create_ai_conversation():
+    user_id = _get_current_user_id()
+    body = request.get_json() or {}
+    title = body.get('title', '새 대화').strip() or '새 대화'
+    folder_id = body.get('folder_id')
+    conv = AiConversation(user_id=user_id, title=title, folder_id=folder_id)
+    db.session.add(conv)
+    db.session.commit()
+    response = jsonify({
+        'id': conv.id,
+        'title': conv.title,
+        'folder_id': conv.folder_id,
+        'message_count': 0,
+        'created_at': conv.created_at.isoformat() if conv.created_at else None,
+        'updated_at': conv.updated_at.isoformat() if conv.updated_at else None,
+    })
+    return add_cors_headers(response), 201
+
+
+@testcases_bp.route('/testcases/ai/conversations/<int:conversation_id>', methods=['GET', 'OPTIONS'])
+@user_required
+def get_ai_conversation(conversation_id):
+    if request.method == 'OPTIONS':
+        from utils.common_helpers import handle_options_request
+        return handle_options_request()
+    user_id = _get_current_user_id()
+    conv = db.session.get(AiConversation, conversation_id)
+    if not conv or conv.user_id != user_id:
+        return add_cors_headers(jsonify({'error': '대화를 찾을 수 없습니다.'})), 404
+    msgs = [
+        {'id': m.id, 'role': m.role, 'content': m.content,
+         'created_at': m.created_at.isoformat() if m.created_at else None}
+        for m in conv.messages.all()
+    ]
+    data = {
+        'id': conv.id,
+        'title': conv.title,
+        'folder_id': conv.folder_id,
+        'created_at': conv.created_at.isoformat() if conv.created_at else None,
+        'updated_at': conv.updated_at.isoformat() if conv.updated_at else None,
+        'messages': msgs,
+    }
+    return add_cors_headers(jsonify(data)), 200
+
+
+@testcases_bp.route('/testcases/ai/conversations/<int:conversation_id>/messages', methods=['POST', 'OPTIONS'])
+@user_required
+def send_ai_conversation_message(conversation_id):
+    if request.method == 'OPTIONS':
+        from utils.common_helpers import handle_options_request
+        return handle_options_request()
+    user_id = _get_current_user_id()
+    conv = db.session.get(AiConversation, conversation_id)
+    if not conv or conv.user_id != user_id:
+        return add_cors_headers(jsonify({'error': '대화를 찾을 수 없습니다.'})), 404
+
+    body = request.get_json() or {}
+    content = body.get('content', '').strip()
+    if not content:
+        return add_cors_headers(jsonify({'error': 'content가 필요합니다.'})), 400
+
+    # user 메시지 저장
+    user_msg = AiConversationMessage(conversation_id=conv.id, role='user', content=content)
+    db.session.add(user_msg)
+    db.session.flush()
+
+    # 히스토리 최근 20개
+    history = conv.messages.order_by(AiConversationMessage.created_at.desc()).limit(20).all()
+    history.reverse()
+    openai_messages = [
+        {'role': m.role, 'content': m.content}
+        for m in history
+    ]
+
+    system_prompt = (
+        'QA 테스트 케이스 설계 전문가입니다. 한국어로 답변하세요. '
+        'TC를 생성할 때는 반드시 JSON 코드블록으로 감싸 반환하세요. '
+        '형식: ```json { "test_cases": [...] }``` '
+        '각 TC 필드: name, main_category, sub_category, detail_category, '
+        'pre_condition, expected_result, remark'
+    )
+    assistant_content, err = _call_ai_api(
+        messages=openai_messages,
+        system_prompt=system_prompt,
+        user_id=user_id,
+        max_tokens=2000,
+    )
+    if err:
+        db.session.rollback()
+        return add_cors_headers(jsonify({'error': err})), 502
+
+    # assistant 메시지 저장
+    asst_msg = AiConversationMessage(
+        conversation_id=conv.id, role='assistant', content=assistant_content
+    )
+    db.session.add(asst_msg)
+    conv.updated_at = get_kst_now()
+    db.session.commit()
+
+    test_cases = _parse_test_cases_from_content(assistant_content)
+
+    return add_cors_headers(jsonify({
+        'user_message': {
+            'id': user_msg.id, 'role': 'user', 'content': content,
+            'created_at': user_msg.created_at.isoformat() if user_msg.created_at else None,
+        },
+        'assistant_message': {
+            'id': asst_msg.id, 'role': 'assistant', 'content': assistant_content,
+            'created_at': asst_msg.created_at.isoformat() if asst_msg.created_at else None,
+        },
+        'test_cases': test_cases,
+    })), 200
+
+
+@testcases_bp.route('/testcases/ai/conversations/<int:conversation_id>', methods=['DELETE', 'OPTIONS'])
+@user_required
+def delete_ai_conversation(conversation_id):
+    if request.method == 'OPTIONS':
+        from utils.common_helpers import handle_options_request
+        return handle_options_request()
+    user_id = _get_current_user_id()
+    conv = db.session.get(AiConversation, conversation_id)
+    if not conv or conv.user_id != user_id:
+        return add_cors_headers(jsonify({'error': '대화를 찾을 수 없습니다.'})), 404
+    db.session.delete(conv)
+    db.session.commit()
+    return add_cors_headers(jsonify({'message': '대화가 삭제되었습니다.'})), 200
+
+
+@testcases_bp.route('/testcases/ai/extract', methods=['POST', 'OPTIONS'])
+@user_required
+def extract_testcases_from_spec():
+    """스펙 문서에서 TC 추출"""
+    if request.method == 'OPTIONS':
+        from utils.common_helpers import handle_options_request
+        return handle_options_request()
+
+    spec_text = (request.get_json() or {}).get('spec_text', '').strip()
+    if not spec_text:
+        return add_cors_headers(jsonify({'error': 'spec_text가 필요합니다.'})), 400
+
+    user_id = _get_current_user_id()
+    system_prompt = (
+        '스펙 문서에서 테스트 케이스를 추출해 JSON으로 반환하세요. '
+        '반드시 JSON 코드블록으로 감싸 반환하세요. '
+        '형식: ```json { "test_cases": [...] }``` '
+        '각 TC 필드: name, main_category, sub_category, detail_category, '
+        'pre_condition, expected_result, remark. 한국어로 작성.'
+    )
+    content, err = _call_ai_api(
+        messages=[{'role': 'user', 'content': spec_text}],
+        system_prompt=system_prompt,
+        user_id=user_id,
+        max_tokens=4000,
+    )
+    if err:
+        return add_cors_headers(jsonify({'error': err})), 502
+
+    items = _parse_test_cases_from_content(content)
+    if not items:
+        try:
+            parsed = json.loads(content) if content else {}
+            raw = parsed.get('test_cases') if isinstance(parsed, dict) else None
+            if isinstance(raw, list):
+                for idx, item in enumerate(raw):
+                    if not isinstance(item, dict):
+                        continue
+                    items.append({
+                        'name': item.get('name') or f'추출 테스트 케이스 {idx+1}',
+                        'main_category': item.get('main_category', ''),
+                        'sub_category': item.get('sub_category', ''),
+                        'detail_category': item.get('detail_category', ''),
+                        'pre_condition': item.get('pre_condition', ''),
+                        'expected_result': item.get('expected_result', ''),
+                        'remark': item.get('remark', ''),
+                    })
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+    return add_cors_headers(jsonify({'items': items, 'raw': content})), 200
+
 
 @testcases_bp.route('/testcases/<int:id>/history', methods=['GET'])
 @guest_allowed
@@ -348,7 +700,7 @@ def create_testcase():
     # project_id: 요청값 우선, 없으면 연결 폴더의 프로젝트로 설정
     project_id = data.get('project_id')
     if not project_id and folder_id:
-        folder = Folder.query.get(folder_id)
+        folder = db.session.get(Folder, folder_id)
         if folder and folder.project_id:
             project_id = folder.project_id
     if not project_id:
@@ -358,13 +710,14 @@ def create_testcase():
     # 폴더의 환경 정보를 자동으로 가져오기
     folder_environment = 'dev'  # 기본값
     if folder_id:
-        folder = Folder.query.get(folder_id)
+        folder = db.session.get(Folder, folder_id)
         if folder:
             folder_environment = folder.environment
             logger.debug(f"폴더 '{folder.folder_name}'의 환경: {folder_environment}")
     
     tc = TestCase(
         name=data.get('name'),
+        tc_number=data.get('tc_number') or None,
         project_id=project_id,
         main_category=data.get('main_category', ''),
         sub_category=data.get('sub_category', ''),
@@ -372,6 +725,7 @@ def create_testcase():
         pre_condition=data.get('pre_condition', ''),
         expected_result=data.get('expected_result', ''),
         result_status=data.get('result_status', 'N/T'),
+        priority=data.get('priority') or None,
         remark=data.get('remark', ''),
         test_steps=data.get('test_steps') or None,
         environment=folder_environment,  # 폴더의 환경 정보 사용
@@ -400,7 +754,7 @@ def create_testcase():
                     test_case_name = ' > '.join([c for c in categories if c]) or f"테스트 케이스 #{tc.id}"
                 else:
                     test_case_name = f"테스트 케이스 #{tc.id}"
-                new_assignee = User.query.get(tc.assignee_id)
+                new_assignee = db.session.get(User, tc.assignee_id)
                 new_assignee_display = new_assignee.get_display_name() if new_assignee else str(tc.assignee_id)
                 metadata = {
                     'test_case_name': test_case_name,
@@ -444,6 +798,8 @@ def create_testcase():
 
 def update_dashboard_summary_for_environment(environment):
     """특정 환경의 대시보드 요약 데이터 업데이트"""
+    if not environment:
+        return True  # environment 없으면 업데이트 스킵
     try:
         from sqlalchemy import text
         from datetime import datetime
@@ -534,7 +890,13 @@ def update_testcase_status(id):
         # 상태 업데이트
         tc.result_status = new_status
         db.session.commit()
-        
+
+        # result_status 변경 이력 기록
+        try:
+            track_test_case_change(id, 'result_status', old_status, new_status, current_user_id)
+        except Exception as e:
+            logger.warning(f"result_status 히스토리 추적 실패: {str(e)}")
+
         # 알림 생성 (상태 변경 시 작성자와 담당자에게 발송)
         try:
             from services.notification_service import notification_service
@@ -586,7 +948,7 @@ def update_testcase(id):
         new_folder_id = data.get('folder_id', tc.folder_id)
         if new_folder_id != tc.folder_id:
             # 새 폴더의 환경·프로젝트 정보로 자동 업데이트
-            new_folder = Folder.query.get(new_folder_id)
+            new_folder = db.session.get(Folder, new_folder_id)
             if new_folder:
                 tc.environment = new_folder.environment
                 if new_folder.project_id is not None:
@@ -594,12 +956,17 @@ def update_testcase(id):
                 print(f"🔄 폴더 변경으로 인한 환경 정보 업데이트: {tc.environment} → {new_folder.environment}")
         
         # 테스트 케이스 정보 업데이트
+        if 'tc_number' in data:
+            tc.tc_number = data.get('tc_number') or None
         tc.main_category = data.get('main_category', tc.main_category)
         tc.sub_category = data.get('sub_category', tc.sub_category)
         tc.detail_category = data.get('detail_category', tc.detail_category)
         tc.pre_condition = data.get('pre_condition', tc.pre_condition)
         tc.expected_result = data.get('expected_result', tc.expected_result)
+        old_result_status = tc.result_status
         tc.result_status = data.get('result_status', tc.result_status)
+        if 'priority' in data:
+            tc.priority = data.get('priority') or None
         tc.remark = data.get('remark', tc.remark)
         if 'test_steps' in data:
             tc.test_steps = data.get('test_steps') or None
@@ -630,8 +997,8 @@ def update_testcase(id):
                         test_case_name = ' > '.join([c for c in categories if c]) or f"테스트 케이스 #{tc.id}"
                     else:
                         test_case_name = f"테스트 케이스 #{tc.id}"
-                    old_assignee = User.query.get(old_assignee_id) if old_assignee_id else None
-                    new_assignee = User.query.get(new_assignee_id) if new_assignee_id else None
+                    old_assignee = db.session.get(User, old_assignee_id) if old_assignee_id else None
+                    new_assignee = db.session.get(User, new_assignee_id) if new_assignee_id else None
                     old_assignee_display = old_assignee.get_display_name() if old_assignee else '(없음)'
                     new_assignee_display = new_assignee.get_display_name() if new_assignee else str(new_assignee_id)
                     metadata = {
@@ -656,17 +1023,27 @@ def update_testcase(id):
                     logger.error(f"❌ 담당자 변경 알림 전송 실패: {str(e)}", exc_info=True)
         
         db.session.commit()
-        
+
+        # result_status 변경 이력 기록
+        if old_result_status != tc.result_status:
+            try:
+                track_test_case_change(id, 'result_status', old_result_status, tc.result_status, request.user.id)
+            except Exception as e:
+                logger.warning(f"result_status 히스토리 추적 실패: {str(e)}")
+
         # 대시보드 요약 데이터 자동 업데이트
         if update_dashboard_summary_for_environment(tc.environment):
             print(f"✅ 대시보드 요약 데이터 업데이트 성공: {tc.environment}")
         else:
             print(f"⚠️ 대시보드 요약 데이터 업데이트 실패: {tc.environment}")
-        
+
         response = jsonify({'message': '테스트 케이스 업데이트 완료'})
         return add_cors_headers(response), 200
         
     except Exception as e:
+        from werkzeug.exceptions import HTTPException
+        if isinstance(e, HTTPException):
+            raise
         print(f"❌ 테스트 케이스 업데이트 실패: {str(e)}")
         db.session.rollback()
         response = jsonify({'error': f'업데이트 중 오류가 발생했습니다: {str(e)}'})
@@ -681,24 +1058,14 @@ def delete_testcase(id):
         testcase_name = tc.name
         
         print(f"🗑️ 테스트 케이스 삭제: {testcase_name} ({environment})")
-        
-        # 연관된 데이터 먼저 삭제
-        # 1. 테스트 결과 삭제
+
+        # 스크린샷은 CASCADE 미설정이므로 수동 삭제
         test_results = TestResult.query.filter_by(test_case_id=id).all()
         for result in test_results:
-            # 테스트 결과에 연결된 스크린샷 삭제
-            screenshots = Screenshot.query.filter_by(test_result_id=result.id).all()
-            for screenshot in screenshots:
+            for screenshot in Screenshot.query.filter_by(test_result_id=result.id).all():
                 db.session.delete(screenshot)
-            # 테스트 결과 삭제
-            db.session.delete(result)
-        
-        # 2. 테스트 계획에서의 연결 삭제
-        test_plan_testcases = TestPlanTestCase.query.filter_by(test_case_id=id).all()
-        for ptc in test_plan_testcases:
-            db.session.delete(ptc)
-        
-        # 3. 마지막으로 테스트 케이스 삭제
+
+        # 나머지 연관 테이블은 ON DELETE CASCADE로 자동 삭제됨
         db.session.delete(tc)
         db.session.commit()
         
@@ -712,6 +1079,9 @@ def delete_testcase(id):
         return add_cors_headers(response), 200
         
     except Exception as e:
+        from werkzeug.exceptions import HTTPException
+        if isinstance(e, HTTPException):
+            raise
         print(f"❌ 테스트 케이스 삭제 실패: {str(e)}")
         db.session.rollback()
         response = jsonify({'error': f'삭제 중 오류가 발생했습니다: {str(e)}'})
@@ -752,22 +1122,15 @@ def bulk_delete_testcases():
             failed_deletions = []
         
         if testcases_to_delete:
-            # 연관된 데이터를 bulk delete로 최적화
             testcase_ids_list = [tc.id for tc in testcases_to_delete]
-            
-            # 1. 스크린샷 삭제 (test_result_id를 통해)
+
+            # 스크린샷은 CASCADE 미설정이므로 수동 삭제
             test_result_ids = db.session.query(TestResult.id).filter(
                 TestResult.test_case_id.in_(testcase_ids_list)
             ).subquery()
             Screenshot.query.filter(Screenshot.test_result_id.in_(test_result_ids)).delete(synchronize_session=False)
-            
-            # 2. 테스트 결과 삭제
-            TestResult.query.filter(TestResult.test_case_id.in_(testcase_ids_list)).delete(synchronize_session=False)
-            
-            # 3. 테스트 계획에서의 연결 삭제
-            TestPlanTestCase.query.filter(TestPlanTestCase.test_case_id.in_(testcase_ids_list)).delete(synchronize_session=False)
-            
-            # 4. 테스트 케이스 삭제
+
+            # 나머지 연관 테이블은 ON DELETE CASCADE로 자동 삭제됨
             deleted_count = TestCase.query.filter(TestCase.id.in_(testcase_ids_list)).delete(synchronize_session=False)
         else:
             deleted_count = 0
@@ -801,7 +1164,47 @@ def bulk_delete_testcases():
         response = jsonify({'error': f'다중 삭제 중 오류가 발생했습니다: {str(e)}'})
         return add_cors_headers(response), 500
 
+@testcases_bp.route('/testcases/bulk-move', methods=['POST'])
+@user_required
+def bulk_move_testcases():
+    """다중 테스트 케이스 폴더 이동"""
+    try:
+        data = request.get_json()
+        testcase_ids = data.get('testcase_ids', [])
+        target_folder_id = data.get('folder_id')
+
+        if not testcase_ids:
+            response = jsonify({'error': '이동할 테스트 케이스 ID 목록이 필요합니다'})
+            return add_cors_headers(response), 400
+        if not target_folder_id:
+            response = jsonify({'error': '대상 폴더 ID가 필요합니다'})
+            return add_cors_headers(response), 400
+
+        folder = db.session.get(Folder, target_folder_id)
+        if not folder:
+            response = jsonify({'error': '대상 폴더를 찾을 수 없습니다'})
+            return add_cors_headers(response), 404
+
+        moved = TestCase.query.filter(TestCase.id.in_(testcase_ids)).all()
+        for tc in moved:
+            tc.folder_id = target_folder_id
+            tc.environment = folder.environment
+            if folder.project_id:
+                tc.project_id = folder.project_id
+
+        db.session.commit()
+        response = jsonify({'moved': len(moved)})
+        return add_cors_headers(response), 200
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"폴더 이동 오류: {str(e)}")
+        response = jsonify({'error': str(e)})
+        return add_cors_headers(response), 500
+
+
 @testcases_bp.route('/testresults/<int:test_case_id>', methods=['GET'])
+@guest_allowed
 def get_test_results(test_case_id):
     """특정 테스트 케이스의 실행 결과 조회"""
     try:
@@ -829,6 +1232,7 @@ def get_test_results(test_case_id):
         return add_cors_headers(response), 500
 
 @testcases_bp.route('/testcases/<int:id>/screenshots', methods=['GET'])
+@guest_allowed
 def get_testcase_screenshots(id):
     """테스트 케이스의 스크린샷 목록 조회 (최적화: N+1 쿼리 문제 해결)"""
     try:
@@ -855,11 +1259,16 @@ def get_testcase_screenshots(id):
         return add_cors_headers(response), 500
 
 @testcases_bp.route('/screenshots/<path:filename>', methods=['GET'])
+@user_required
 def get_screenshot(filename):
     """스크린샷 파일 조회"""
     try:
         import os
-        screenshot_path = os.path.join('screenshots', filename)
+        screenshots_root = os.path.abspath('screenshots')
+        screenshot_path = os.path.abspath(os.path.join(screenshots_root, filename))
+        if os.path.commonpath([screenshots_root, screenshot_path]) != screenshots_root:
+            response = jsonify({'error': '허용되지 않은 경로입니다'})
+            return add_cors_headers(response), 403
         if os.path.exists(screenshot_path):
             return send_file(screenshot_path, mimetype='image/png')
         else:
@@ -927,15 +1336,21 @@ def upload_testcases_excel():
         for index, row in df.iterrows():
             print(f"🔍 처리 중인 행 {index + 1}: {row.to_dict()}")
             
+            sub_cat = str(row.get('sub_category', '') or '')
+            tc_num = str(row.get('tc_number', '') or '')
+            tc_name = sub_cat or tc_num or f'TC-{index+1}'
             test_case = TestCase(
+                name=tc_name,
+                tc_number=tc_num or None,
                 project_id=row.get('project_id', 1),
                 main_category=row.get('main_category', ''),
-                sub_category=row.get('sub_category', ''),
+                sub_category=sub_cat,
                 detail_category=row.get('detail_category', ''),
                 pre_condition=row.get('pre_condition', ''),
                 expected_result=row.get('expected_result', ''),
-                result_status=row.get('result_status', 'N/T'),
+                result_status=row.get('result_status', 'N/T') or 'N/T',
                 remark=row.get('remark', ''),
+                test_steps=row.get('test_steps') or None,
                 environment=row.get('environment', 'dev'),
                 automation_code_path=row.get('automation_code_path', ''),
                 automation_code_type=row.get('automation_code_type', '')
@@ -965,8 +1380,218 @@ def upload_testcases_excel():
         response = jsonify({'error': str(e)})
         return add_cors_headers(response), 500
 
+# 구글 시트 가져오기 API
+@testcases_bp.route('/testcases/import-sheets', methods=['POST'])
+@user_required
+def import_from_google_sheets():
+    """구글 시트에서 TC 가져오기"""
+    import csv
+    import re
+    from io import StringIO
+
+    try:
+        data = request.get_json()
+        url = (data.get('url') or '').strip()
+        raw_text = data.get('raw_text')  # 클립보드 붙여넣기 텍스트
+        project_id = data.get('project_id')
+        folder_id = data.get('folder_id')
+        environment = data.get('environment', 'dev')
+        preview_only = data.get('preview_only', False)
+
+        if raw_text:
+            # 클립보드 텍스트 파싱 (탭 구분 TSV)
+            # csv.DictReader로 파싱 → 셀 내 줄바꿈·따옴표 처리
+            text = raw_text.strip()
+            if not text:
+                response = jsonify({'error': '붙여넣기 데이터가 비어 있습니다'})
+                return add_cors_headers(response), 400
+            reader = csv.DictReader(StringIO(text), delimiter='\t')
+            # 헤더 공백 정규화
+            reader.fieldnames = [h.strip() for h in (reader.fieldnames or [])]
+            rows = [{k.strip(): (v or '').strip() for k, v in row.items()} for row in reader]
+        elif url:
+            # URL → CSV export URL 변환
+            match = re.search(r'/spreadsheets/d/([^/]+)', url)
+            if not match:
+                response = jsonify({'error': '유효하지 않은 구글 시트 URL입니다'})
+                return add_cors_headers(response), 400
+
+            sheet_id = match.group(1)
+            gid_match = re.search(r'[?&#]gid=(\d+)', url)
+            gid = gid_match.group(1) if gid_match else '0'
+            csv_url = f'https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}'
+
+            resp = requests.get(csv_url, timeout=15)
+            if resp.status_code != 200:
+                response = jsonify({'error': f'구글 시트 접근 실패 (HTTP {resp.status_code}). 시트가 공개 공유되어 있는지 확인하세요.'})
+                return add_cors_headers(response), 400
+
+            # HTML 응답 = 로그인 페이지로 리디렉션 (비공개 시트)
+            content_type = resp.headers.get('Content-Type', '')
+            if 'text/html' in content_type:
+                response = jsonify({'error': '구글 시트에 접근할 수 없습니다. 시트를 "링크가 있는 사용자 누구나 볼 수 있음"으로 공유해야 합니다.'})
+                return add_cors_headers(response), 400
+
+            content = resp.content.decode('utf-8-sig')
+            reader = csv.DictReader(StringIO(content))
+            reader.fieldnames = [h.strip() for h in (reader.fieldnames or [])]
+            rows = [{k.strip(): (v or '').strip() for k, v in row.items()} for row in reader]
+        else:
+            response = jsonify({'error': 'URL 또는 붙여넣기 데이터가 필요합니다'})
+            return add_cors_headers(response), 400
+
+        if not rows:
+            response = jsonify({'error': '시트에 데이터가 없습니다'})
+            return add_cors_headers(response), 400
+
+        # 컬럼 매핑 정의
+        COL_MAP = {
+            'TC No.': 'tc_number',
+            '카테고리': 'main_category',
+            '테스트 항목': 'sub_category',
+            '테스트 과정': 'test_steps',
+            '사전조건': 'pre_condition',
+            '기대결과': 'expected_result',
+            'Level': 'priority',
+            'result': 'result_status',
+            '비고': 'remark',
+        }
+
+        def map_row(raw):
+            mapped = {}
+            for sheet_col, field in COL_MAP.items():
+                mapped[field] = raw.get(sheet_col, '') or ''
+            return mapped
+
+        def clean_result_status(val):
+            val = (val or '').strip()
+            VALID = {'Pass', 'Fail', 'N/T', 'N/A', 'Block'}
+            return val if val in VALID else 'N/T'
+
+        # 병합 셀(빈 값) forward-fill: main_category, sub_category
+        FILL_FIELDS = ['main_category', 'sub_category']
+        last_vals = {f: '' for f in FILL_FIELDS}
+
+        mapped_rows = []
+        for raw in rows:
+            m = map_row(raw)
+            for f in FILL_FIELDS:
+                if m[f]:
+                    last_vals[f] = m[f]
+                else:
+                    m[f] = last_vals[f]
+            mapped_rows.append(m)
+
+        # 미리보기 모드
+        if preview_only:
+            raw_headers = list(rows[0].keys()) if rows else []
+            matched = [h for h in raw_headers if h in COL_MAP]
+            unmatched = [h for h in raw_headers if h not in COL_MAP]
+            response = jsonify({
+                'preview': mapped_rows[:5],
+                'total': len(mapped_rows),
+                'raw_headers': raw_headers,
+                'matched_headers': matched,
+                'unmatched_headers': unmatched,
+                'raw_sample': rows[0] if rows else {},
+            })
+            return add_cors_headers(response), 200
+
+        # folder_id/project_id 결정
+        if not folder_id:
+            from utils.common_helpers import get_or_create_default_folder
+            default_folder = get_or_create_default_folder()
+            if default_folder:
+                folder_id = default_folder.id
+
+        if not project_id and folder_id:
+            folder = db.session.get(Folder, folder_id)
+            if folder and folder.project_id:
+                project_id = folder.project_id
+        if not project_id:
+            from utils.common_helpers import get_or_create_default_project
+            default_project = get_or_create_default_project()
+            project_id = default_project.id
+
+        # 폴더 환경 정보
+        if folder_id:
+            folder_obj = db.session.get(Folder, folder_id)
+            if folder_obj:
+                environment = folder_obj.environment
+
+        created_count = 0
+        created_tcs = []
+
+        for m in mapped_rows:
+            tc_number = m.get('tc_number', '').strip() or None
+            sub_cat = m.get('sub_category', '').strip()
+            tc_name = sub_cat or tc_number or '(제목 없음)'
+
+            tc = TestCase(
+                name=tc_name,
+                tc_number=tc_number,
+                project_id=project_id,
+                folder_id=folder_id,
+                environment=environment,
+                main_category=m.get('main_category', ''),
+                sub_category=sub_cat,
+                pre_condition=m.get('pre_condition', ''),
+                expected_result=m.get('expected_result', ''),
+                test_steps=m.get('test_steps') or None,
+                result_status=clean_result_status(m.get('result_status', '')),
+                remark=m.get('remark', ''),
+                priority=m.get('priority') or None,
+                creator_id=request.user.id,
+            )
+            db.session.add(tc)
+            created_tcs.append(tc)
+            created_count += 1
+
+        db.session.commit()
+
+        # Pass/Fail 상태가 있는 TC는 history 기록 (Pass Rate 추이 차트 반영용)
+        # changed_at: 폴더 계층에서 deployment_date 찾기 (없으면 현재 시각)
+        from models import TestCaseHistory
+
+        def find_deployment_date(fid):
+            """폴더 계층을 타고 올라가며 deployment_date 타입 폴더의 날짜 반환"""
+            while fid:
+                f = db.session.get(Folder, fid)
+                if not f:
+                    break
+                if f.folder_type == 'deployment_date' and f.deployment_date:
+                    return datetime(f.deployment_date.year, f.deployment_date.month, f.deployment_date.day)
+                fid = f.parent_folder_id
+            return None
+
+        history_dt = find_deployment_date(folder_id) or get_kst_now()
+
+        for tc in created_tcs:
+            if tc.result_status in ('Pass', 'Fail'):
+                db.session.add(TestCaseHistory(
+                    test_case_id=tc.id,
+                    field_name='result_status',
+                    old_value=None,
+                    new_value=tc.result_status,
+                    changed_by=request.user.id,
+                    change_type='create',
+                    changed_at=history_dt,
+                ))
+        db.session.commit()
+
+        response = jsonify({'created': created_count})
+        return add_cors_headers(response), 201
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"구글 시트 가져오기 오류: {str(e)}")
+        response = jsonify({'error': str(e)})
+        return add_cors_headers(response), 500
+
+
 # 엑셀 다운로드 API
 @testcases_bp.route('/testcases/download', methods=['GET'])
+@user_required
 def download_testcases_excel():
     """테스트 케이스를 엑셀 파일로 다운로드 (필터 적용 가능)"""
     try:
@@ -1017,7 +1642,7 @@ def download_testcases_excel():
         
         # 폴더 필터
         if folder_id:
-            folder = Folder.query.get(folder_id)
+            folder = db.session.get(Folder, folder_id)
             if folder:
                 # 폴더 타입에 따라 필터링
                 if folder.folder_type == 'environment':
@@ -1131,6 +1756,7 @@ def download_testcases_excel():
 
 # 자동화 코드 실행 API
 @testcases_bp.route('/testcases/<int:id>/execute', methods=['POST'])
+@user_required
 def execute_automation_code(id):
     """테스트 케이스의 자동화 코드 실행 (스크립트 경로 또는 test_steps JSON 지원)"""
     try:

@@ -2,7 +2,7 @@
 공통 헬퍼 함수들
 """
 from flask import jsonify
-from models import Project, Folder, TestCase, TestResult
+from models import db, Project, Folder, TestCase, TestResult
 from utils.cors import add_cors_headers
 from utils.logger import get_logger
 

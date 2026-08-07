@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, send_from_directory
-from models import db, AutomationTest, TestResult
+from models import db, AutomationTest, TestExecution
 from utils.cors import add_cors_headers
 from utils.auth_decorators import guest_allowed, user_required, admin_required
 from utils.timezone_utils import get_kst_now
@@ -17,6 +17,27 @@ automation_bp = Blueprint('automation', __name__)
 # 스크린샷 관련 설정
 SCREENSHOT_BASE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'test-scripts')
 
+
+def _serialize_automation_execution(execution):
+    """자동화 실행 결과를 프런트엔드 응답 스키마로 변환"""
+    summary = {}
+    if execution.result_summary:
+        try:
+            summary = json.loads(execution.result_summary)
+        except (json.JSONDecodeError, TypeError):
+            summary = {}
+
+    return {
+        'id': execution.id,
+        'automation_test_id': execution.automation_test_id,
+        'result': summary.get('result') or execution.status,
+        'execution_time': summary.get('execution_time'),
+        'environment': execution.environment,
+        'executed_by': execution.executed_by,
+        'executed_at': (execution.completed_at or execution.started_at).isoformat() if (execution.completed_at or execution.started_at) else None,
+        'notes': summary.get('notes')
+    }
+
 # 자동화 테스트 API
 @automation_bp.route('/automation-tests', methods=['GET'])
 @guest_allowed
@@ -32,14 +53,14 @@ def get_automation_tests():
             # 작성자 정보 조회
             creator_name = None
             if test.creator_id:
-                creator = User.query.get(test.creator_id)
+                creator = db.session.get(User, test.creator_id)
                 if creator:
                     creator_name = creator.get_display_name()
             
             # 담당자 정보 조회
             assignee_name = None
             if test.assignee_id:
-                assignee = User.query.get(test.assignee_id)
+                assignee = db.session.get(User, test.assignee_id)
                 if assignee:
                     assignee_name = assignee.get_display_name()
             
@@ -191,18 +212,23 @@ def execute_automation_test(id):
         output = f"테스트 '{test.name}' 실행 완료"
         error_message = None
         
-        # TestResult 모델을 사용하여 결과 저장
-        result = TestResult(
+        execution = TestExecution(
             automation_test_id=test.id,
-            result=status,
-            execution_time=execution_duration,
+            test_type='automation',
             environment=test.environment,
-            executed_by='system',  # 또는 실제 사용자 ID
-            executed_at=execution_end,
-            notes=output
+            executed_by=request.user.username if getattr(request, 'user', None) else 'system',
+            status=status,
+            result_summary=json.dumps({
+                'result': status,
+                'execution_time': execution_duration,
+                'notes': output,
+                'error_message': error_message
+            }, ensure_ascii=False),
+            started_at=execution_start,
+            completed_at=execution_end
         )
         
-        db.session.add(result)
+        db.session.add(execution)
         db.session.commit()
         
         response = jsonify({
@@ -210,7 +236,7 @@ def execute_automation_test(id):
             'test_name': test.name,
             'status': status,
             'execution_duration': execution_duration,
-            'result_id': result.id
+            'result_id': execution.id
         })
         return add_cors_headers(response), 200
     except Exception as e:
@@ -218,62 +244,38 @@ def execute_automation_test(id):
         return add_cors_headers(response), 500
 
 @automation_bp.route('/automation-tests/<int:id>/results', methods=['GET'])
+@user_required
 def get_automation_test_results(id):
     """자동화 테스트의 실행 결과 조회"""
     try:
-        # TestResult 모델에서 자동화 테스트 결과 조회
-        results = TestResult.query.filter_by(
+        executions = TestExecution.query.filter_by(
             automation_test_id=id
-        ).order_by(TestResult.executed_at.desc()).all()
+        ).order_by(TestExecution.completed_at.desc(), TestExecution.started_at.desc()).all()
         
-        result_list = []
-        for result in results:
-            result_data = {
-                'id': result.id,
-                'automation_test_id': result.automation_test_id,
-                'result': result.result,  # 실제 존재하는 컬럼
-                'execution_time': result.execution_time,
-                'environment': result.environment,
-                'executed_by': result.executed_by,
-                'executed_at': result.executed_at.isoformat() if result.executed_at else None,
-                'notes': result.notes
-            }
-            result_list.append(result_data)
-        
-        response = jsonify(result_list)
+        response = jsonify([_serialize_automation_execution(execution) for execution in executions])
         return add_cors_headers(response), 200
     except Exception as e:
         response = jsonify({'error': str(e)})
         return add_cors_headers(response), 500
 
 @automation_bp.route('/automation-tests/<int:id>/results/<int:result_id>', methods=['GET'])
+@user_required
 def get_automation_test_result_detail(id, result_id):
     """특정 자동화 테스트 실행 결과 상세 조회"""
     try:
-        # TestResult 모델에서 특정 결과 조회
-        result = TestResult.query.filter_by(
+        execution = TestExecution.query.filter_by(
             automation_test_id=id,
             id=result_id
         ).first_or_404()
-        
-        result_data = {
-            'id': result.id,
-            'automation_test_id': result.automation_test_id,
-            'result': result.result,  # 실제 존재하는 컬럼
-            'execution_time': result.execution_time,
-            'environment': result.environment,
-            'executed_by': result.executed_by,
-            'executed_at': result.executed_at.isoformat() if result.executed_at else None,
-            'notes': result.notes
-        }
-        
-        response = jsonify(result_data)
+
+        response = jsonify(_serialize_automation_execution(execution))
         return add_cors_headers(response), 200
     except Exception as e:
         response = jsonify({'error': str(e)})
         return add_cors_headers(response), 500
 
 @automation_bp.route('/screenshots', methods=['GET'])
+@user_required
 def get_screenshots():
     """사용 가능한 스크린샷 목록 조회"""
     try:
@@ -288,7 +290,6 @@ def get_screenshots():
                     screenshots.append({
                         'filename': file,
                         'path': rel_path,
-                        'full_path': os.path.join(root, file),
                         'timestamp': os.path.getmtime(os.path.join(root, file)),
                         'size': os.path.getsize(os.path.join(root, file))
                     })
@@ -302,35 +303,8 @@ def get_screenshots():
         response = jsonify({'error': str(e)})
         return add_cors_headers(response), 500
 
-@automation_bp.route('/screenshots/<path:filename>', methods=['GET'])
-def get_screenshot(filename):
-    """특정 스크린샷 파일 제공"""
-    try:
-        # 보안을 위해 경로 검증
-        safe_path = os.path.normpath(unquote(filename))
-        if safe_path.startswith('..') or safe_path.startswith('/'):
-            response = jsonify({'error': 'Invalid path'})
-            return add_cors_headers(response), 400
-        
-        file_path = os.path.join(SCREENSHOT_BASE_PATH, safe_path)
-        
-        if not os.path.exists(file_path):
-            response = jsonify({'error': 'Screenshot not found'})
-            return add_cors_headers(response), 404
-        
-        # 파일의 디렉토리와 파일명 분리
-        directory = os.path.dirname(safe_path)
-        filename_only = os.path.basename(safe_path)
-        
-        if directory:
-            return send_from_directory(os.path.join(SCREENSHOT_BASE_PATH, directory), filename_only)
-        else:
-            return send_from_directory(SCREENSHOT_BASE_PATH, filename_only)
-    except Exception as e:
-        response = jsonify({'error': str(e)})
-        return add_cors_headers(response), 500
-
 @automation_bp.route('/screenshots/by-test/<int:test_id>', methods=['GET'])
+@user_required
 def get_screenshots_by_test(test_id):
     """특정 테스트와 관련된 스크린샷 조회"""
     try:
@@ -360,7 +334,6 @@ def get_screenshots_by_test(test_id):
                             screenshots.append({
                                 'filename': file,
                                 'path': rel_path,
-                                'full_path': os.path.join(root, file),
                                 'timestamp': os.path.getmtime(os.path.join(root, file)),
                                 'size': os.path.getsize(os.path.join(root, file))
                             })
@@ -375,6 +348,7 @@ def get_screenshots_by_test(test_id):
         return add_cors_headers(response), 500
 
 @automation_bp.route('/screenshots/recent', methods=['GET'])
+@user_required
 def get_recent_screenshots():
     """최근 스크린샷 조회"""
     try:
@@ -389,7 +363,6 @@ def get_recent_screenshots():
                     screenshots.append({
                         'filename': file,
                         'path': rel_path,
-                        'full_path': os.path.join(root, file),
                         'timestamp': os.path.getmtime(os.path.join(root, file)),
                         'size': os.path.getsize(os.path.join(root, file))
                     })

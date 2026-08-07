@@ -235,9 +235,7 @@ const NotificationBell = () => {
                   className={`notification-item ${!notification.read ? 'unread' : ''}`}
                   onClick={() => !notification.read && markAsRead(notification.id)}
                 >
-                  <div className="notification-icon">
-                    {getNotificationIcon(notification.notification_type)}
-                  </div>
+
                   <div className="notification-content">
                     <div className="notification-message">{notification.message}</div>
                     <div className="notification-time">{formatTime(notification.created_at)}</div>

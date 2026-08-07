@@ -215,7 +215,7 @@ def bulk_delete_performance_tests():
         
         for test_id in test_ids:
             try:
-                pt = PerformanceTest.query.get(test_id)
+                pt = db.session.get(PerformanceTest, test_id)
                 if pt:
                     test_name = pt.name
                     print(f"🗑️ 성능 테스트 삭제: {test_name}")
@@ -365,6 +365,7 @@ def get_performance_test_results(id):
     return add_cors_headers(response), 200
 
 @performance_bp.route('/test-executions', methods=['GET'])
+@guest_allowed
 def get_test_executions():
     try:
         # 페이징 파라미터 처리
@@ -426,6 +427,7 @@ def get_test_executions():
         return add_cors_headers(response), 500
 
 @performance_bp.route('/test-executions', methods=['POST'])
+@user_required
 def create_test_execution():
     data = request.get_json()
     

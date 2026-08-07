@@ -264,7 +264,7 @@ class CICDService:
     def update_execution_with_results(self, execution_id, test_results):
         """실행 결과로 실행 기록 업데이트"""
         try:
-            execution = CICDExecution.query.get(execution_id)
+            execution = db.session.get(CICDExecution, execution_id)
             if not execution:
                 return False
             

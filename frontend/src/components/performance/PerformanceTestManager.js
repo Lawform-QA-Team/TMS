@@ -1,10 +1,12 @@
 // src/PerformanceTestManager.js
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '@tms/config';
 import { useAuth } from '@tms/contexts/AuthContext';
 import { formatUTCToKST } from '@tms/utils/dateUtils';
 import { getUserDisplayName } from '@tms/utils/userDisplay';
+import SlidePanel from '@tms/components/common/SlidePanel';
+import '@tms/components/testcases/TestCaseTable.css';
 import '@tms/components/performance/PerformanceTestManager.css';
 import '@tms/components/common/Modal.css';
 
@@ -55,6 +57,7 @@ axios.defaults.baseURL = config.apiUrl;
 
 const PerformanceTestManager = () => {
     const { user } = useAuth();
+    const canModify = user && ['admin', 'user'].includes(user.role);
     const [performanceTests, setPerformanceTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -315,7 +318,7 @@ const PerformanceTestManager = () => {
         test_ids: selectedTests
       });
 
-      const { deleted_count, total_requested, failed_deletions, warning } = response.data;
+      const { deleted_count, failed_deletions, warning } = response.data;
       
       let message = `${deleted_count}개의 성능 테스트가 성공적으로 삭제되었습니다.`;
       if (warning) {
@@ -440,6 +443,8 @@ const PerformanceTestManager = () => {
         case 'updated_at':
           comparison = new Date(a.updated_at || 0).getTime() - new Date(b.updated_at || 0).getTime();
           break;
+        default:
+          break;
       }
       return sortOrder === 'asc' ? comparison : -comparison;
     });
@@ -474,7 +479,7 @@ const PerformanceTestManager = () => {
           </div>
         )}
         <div className="header-actions">
-          {user && (user.role === 'admin' || user.role === 'user') && (
+          {user && ['admin', 'user'].includes(user.role) && (
                     <button 
                         className="performance-btn performance-btn-add"
               onClick={() => setShowAddModal(true)}
@@ -600,8 +605,8 @@ const PerformanceTestManager = () => {
         </div>
 
         {/* 테이블 형태로 변경 */}
-        <div className="performance-table-container">
-          <table className="performance-table">
+        <div className="tc-table-wrap">
+          <table className="tc-table">
             <thead>
               <tr>
                 <th className="checkbox-column">
@@ -651,7 +656,7 @@ const PerformanceTestManager = () => {
             </thead>
             <tbody>
               {filteredTests.map((test, index) => (
-                <tr key={test.id} className="performance-table-row">
+                <tr key={test.id} className="tc-row">
                   <td className="checkbox-column">
                     <input 
                       type="checkbox"
@@ -666,7 +671,7 @@ const PerformanceTestManager = () => {
                         {test.name}
                       </div>
                             <div className="test-meta">
-                        <span className="environment-badge">{test.environment || 'prod'}</span>
+                        <span className="tag-chip">{test.environment || 'prod'}</span>
                         {test.script_path && (
                           <span className="script-badge">📄 {test.script_path.split('/').pop()}</span>
                         )}
@@ -674,29 +679,31 @@ const PerformanceTestManager = () => {
                         </div>
                   </td>
                   <td className="environment-column">
-                    <span className="environment-badge">{test.environment || 'prod'}</span>
+                    <span className="tag-chip">{test.environment || 'prod'}</span>
                   </td>
                   <td className="assignee-column">
                     <div className="assignee-section">
                       <span className="assignee-badge">
                         👤 {test.assignee_name || '없음'}
                       </span>
-                      <select
-                        className="assignee-select"
-                        value={test.assignee_id || ''}
-                        onChange={(e) => handleAssigneeChange(test.id, e.target.value)}
-                      >
-                        <option value="">담당자 변경</option>
-                        {users && users.length > 0 ? (
-                          users.map(user => (
-                            <option key={user.id} value={user.id}>
-                              {getUserDisplayName(user) || 'Unknown'}
-                            </option>
-                          ))
-                        ) : (
-                          <option value="" disabled>사용자 목록 로딩 중...</option>
-                        )}
-                      </select>
+                      {canModify && (
+                        <select
+                          className="assignee-select"
+                          value={test.assignee_id || ''}
+                          onChange={(e) => handleAssigneeChange(test.id, e.target.value)}
+                        >
+                          <option value="">담당자 변경</option>
+                          {users && users.length > 0 ? (
+                            users.map(user => (
+                              <option key={user.id} value={user.id}>
+                                {getUserDisplayName(user) || 'Unknown'}
+                              </option>
+                            ))
+                          ) : (
+                            <option value="" disabled>사용자 목록 로딩 중...</option>
+                          )}
+                        </select>
+                      )}
                     </div>
                   </td>
                   <td className="creator-column">
@@ -705,19 +712,19 @@ const PerformanceTestManager = () => {
                     </span>
                   </td>
                   <td className="actions-column">
-                    <div className="action-buttons">
-                      {/* 실행 버튼 */}
-                      <button 
-                        className="performance-btn performance-btn-automation"
-                        onClick={() => executePerformanceTest(test.id)}
-                        disabled={executing}
-                        title="테스트 실행"
-                      >
-                        {executing ? '실행 중' : '실행'}
-                      </button>
-                      {/* 상세보기 버튼 */}
-                      <button 
-                        className="performance-btn performance-btn-details"
+                    <div className="action-btns">
+                      {canModify && (
+                        <button
+                          className="row-btn btn-run"
+                          onClick={() => executePerformanceTest(test.id)}
+                          disabled={executing}
+                          title="테스트 실행"
+                        >
+                          {executing ? '실행 중' : '실행'}
+                        </button>
+                      )}
+                      <button
+                        className="row-btn btn-run"
                         onClick={() => {
                           setSelectedTest(test);
                           setShowDetailModal(true);
@@ -726,10 +733,9 @@ const PerformanceTestManager = () => {
                       >
                         상세
                       </button>
-                      {/* 수정 버튼 */}
-                      {user && (user.role === 'admin' || user.role === 'user') && (
-                        <button 
-                          className="performance-btn performance-btn-edit"
+                      {canModify && (
+                        <button
+                          className="row-btn btn-edit"
                           onClick={() => {
                             setEditingTest(test);
                             setShowEditModal(true);
@@ -739,10 +745,9 @@ const PerformanceTestManager = () => {
                           수정
                         </button>
                       )}
-                      {/* 삭제 버튼 */}
                       {user && user.role === 'admin' && (
-                        <button 
-                          className="performance-btn performance-btn-delete"
+                        <button
+                          className="row-btn btn-del"
                           onClick={() => handleDeleteTest(test.id)}
                           title="삭제"
                         >
@@ -1059,23 +1064,14 @@ const PerformanceTestManager = () => {
         </div>
       )}
 
-      {/* 상세보기 모달 */}
-      {showDetailModal && selectedTest && (
-        <div className="modal-overlay fullscreen-modal">
-          <div className="modal fullscreen-modal-content">
-            <div className="modal-header">
-              <h3>📋 성능 테스트 상세 정보</h3>
-              <button 
-                className="modal-close"
-                onClick={() => {
-                  setShowDetailModal(false);
-                  setSelectedTest(null);
-                }}
-              >
-                ×
-              </button>
-            </div>
-            <div className="modal-body" style={{ padding: '24px', overflowY: 'auto' }}>
+      {/* 상세보기 패널 */}
+      <SlidePanel
+        isOpen={showDetailModal && !!selectedTest}
+        onClose={() => { setShowDetailModal(false); setSelectedTest(null); }}
+        title="성능 테스트 상세 정보"
+      >
+        {selectedTest && (
+          <div>
               <div className="test-info-table">
                 <table className="info-table">
                   <tbody>
@@ -1084,7 +1080,7 @@ const PerformanceTestManager = () => {
                       <td>{selectedTest.name || '없음'}</td>
                       <th>환경</th>
                       <td>
-                        <span className={`environment-badge ${selectedTest.environment || 'prod'}`}>
+                        <span className={`tag-chip ${selectedTest.environment || 'prod'}`}>
                           {selectedTest.environment || 'prod'}
                         </span>
                       </td>
@@ -1198,21 +1194,9 @@ const PerformanceTestManager = () => {
                   </div>
                 )}
               </div>
-            </div>
-            <div className="modal-actions">
-              <button 
-                className="btn btn-secondary"
-                onClick={() => {
-                  setShowDetailModal(false);
-                  setSelectedTest(null);
-                }}
-              >
-                닫기
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        )}
+      </SlidePanel>
         </div>
     );
 };

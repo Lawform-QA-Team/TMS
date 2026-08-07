@@ -32,15 +32,15 @@ export async function selectRandomDateFromRdpCalendar(page, datepickerSelector, 
     const calendar = page.locator(calendarSelector);
     await calendar.waitFor({ state: 'visible', timeout });
 
-    const cells = calendar.locator(DAY_CELL);
-    await cells.first().waitFor({ state: 'visible', timeout: 3000 });
-    const count = await cells.count();
+    const enabledBtns = calendar.locator(`${DAY_CELL} button.rdp-day_button:not([disabled]):not([aria-disabled="true"])`);
+    await enabledBtns.first().waitFor({ state: 'visible', timeout: 3000 });
+    const count = await enabledBtns.count();
     if (count === 0) return null;
 
     const idx = Math.floor(Math.random() * count);
-    const cell = cells.nth(idx);
-    const dataDay = await cell.getAttribute('data-day');
-    await cell.locator('button.rdp-day_button').click();
+    const btn = enabledBtns.nth(idx);
+    const dataDay = await btn.getAttribute('data-day');
+    await btn.click();
     await wait(200);
 
     return dataDay || null; // e.g. "2026-03-15"
