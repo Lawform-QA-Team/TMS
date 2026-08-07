@@ -129,11 +129,17 @@ automationRouter.post(
     'json',
     z.object({
       name: z.string().min(1),
-      description: z.string().optional(),
-      script_path: z.string().optional(),
+      description: z.string().optional().nullable(),
+      script_path: z.string().optional().nullable(),
+      test_type: z.string().optional(),
       environment: z.string().default('prod'),
-      parameters: z.record(z.unknown()).optional(),
-      assignee_id: z.number().optional(),
+      parameters: z.union([z.record(z.unknown()), z.string()]).optional().nullable().transform((v) => {
+        if (!v) return undefined
+        if (typeof v !== 'string') return v
+        if (!v.trim()) return undefined
+        try { return JSON.parse(v) as Record<string, unknown> } catch { return undefined }
+      }),
+      assignee_id: z.number().nullish(),
     }),
   ),
   async (c) => {
@@ -145,6 +151,7 @@ automationRouter.post(
           name: data.name,
           description: data.description ?? null,
           scriptPath: data.script_path ?? null,
+          testType: data.test_type ?? null,
           environment: data.environment,
           parameters: data.parameters ? JSON.stringify(data.parameters) : null,
           creatorId: Number(caller.sub),
@@ -188,6 +195,7 @@ automationRouter.put('/:id', requireAuth, async (c) => {
         ...(data.name !== undefined && { name: data.name }),
         ...(data.description !== undefined && { description: data.description }),
         ...(data.script_path !== undefined && { scriptPath: data.script_path }),
+        ...(data.test_type !== undefined && { testType: data.test_type }),
         ...(data.environment !== undefined && { environment: data.environment }),
         ...(data.parameters !== undefined && { parameters: JSON.stringify(data.parameters) }),
       },
@@ -338,6 +346,7 @@ function serializeTest(test: {
   name: string
   description: string | null
   scriptPath: string | null
+  testType: string | null
   environment: string | null
   parameters: string | null
   creatorId: number | null
@@ -351,6 +360,7 @@ function serializeTest(test: {
     name: test.name,
     description: test.description,
     script_path: test.scriptPath,
+    test_type: test.testType,
     environment: test.environment,
     parameters: test.parameters ? (JSON.parse(test.parameters) as unknown) : {},
     creator_id: test.creatorId,
