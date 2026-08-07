@@ -6,7 +6,9 @@ const isDev = env.NODE_ENV === 'development'
 export const corsMiddleware = cors({
   origin: isDev
     ? (origin) => (origin?.startsWith('http://localhost') ? origin : null)
-    : env.ALLOWED_ORIGINS.includes('*') ? '*' : env.ALLOWED_ORIGINS,
+    : env.ALLOWED_ORIGINS.includes('*')
+      ? (origin) => origin ?? '*'
+      : env.ALLOWED_ORIGINS,
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
