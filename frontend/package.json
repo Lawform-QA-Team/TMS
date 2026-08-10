@@ -31,7 +31,7 @@
     "test": "craco test",
     "eject": "react-scripts eject"
   },
-  "homepage": ".",
+  "homepage": "/",
   "jest": {
     "transformIgnorePatterns": [
       "node_modules/(?!(axios)/)"
