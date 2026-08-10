@@ -54,143 +54,104 @@
 > 조건: 도메인 없음 (ALB DNS / CloudFront 기본 도메인 사용), 데이터 이관 없음
 
 ### 2-1. IAM 사전 준비
-- [ ] GitHub Actions용 IAM 사용자 생성
-  - 정책: ECR 전체 + ECS 배포 + S3 sync + CloudFront 무효화
-  - Access Key 발급 → GitHub Secrets 등록 예정
-- [ ] ECS Task 실행용 IAM Role 생성 (`tms-ecs-task-role`)
+- [ ] GitHub Actions용 IAM 사용자 생성 — 본인 계정 액세스 키 사용으로 스킵
+- [x] ECS Task 실행용 IAM Role 생성 (`tms-ecs-task-role`)
   - 정책: Secrets Manager 읽기 (`secretsmanager:GetSecretValue`)
   - 정책: CloudWatch Logs 쓰기
 
 ### 2-2. 네트워크 (VPC)
-- [ ] VPC 생성 — CIDR: `10.0.0.0/16`, 이름: `tms-vpc`
-- [ ] 퍼블릭 서브넷 2개 (가용영역 a, c) — ALB 배치
-  - `10.0.1.0/24` (ap-northeast-2a)
-  - `10.0.2.0/24` (ap-northeast-2c)
-- [ ] 프라이빗 서브넷 2개 (가용영역 a, c) — ECS, RDS, Redis 배치
-  - `10.0.11.0/24` (ap-northeast-2a)
-  - `10.0.12.0/24` (ap-northeast-2c)
-- [ ] Internet Gateway 생성 → VPC 연결
-- [ ] NAT Gateway 생성 (퍼블릭 서브넷 a) + Elastic IP
-- [ ] 라우팅 테이블
-  - 퍼블릭: 0.0.0.0/0 → Internet Gateway
-  - 프라이빗: 0.0.0.0/0 → NAT Gateway
-- [ ] Security Group 4개 생성
-  - `tms-alb-sg`: 인바운드 80 전체 허용
-  - `tms-ecs-sg`: 인바운드 8000 from tms-alb-sg 만
-  - `tms-rds-sg`: 인바운드 5432 from tms-ecs-sg 만
-  - `tms-redis-sg`: 인바운드 6379 from tms-ecs-sg 만
+- [x] VPC 생성 — `TMS-vpc`
+- [x] 퍼블릭 서브넷 2개 (ap-northeast-2a, 2c)
+- [x] 프라이빗 서브넷 2개 (ap-northeast-2a, 2c)
+- [x] Internet Gateway + NAT Gateway
+- [x] 라우팅 테이블
+- [x] Security Group 4개 생성
+  - `tms-alb-sg` ✅
+  - `tms-ecs-sg` ✅
+  - `tms-rds-sg` ✅
+  - `tms-redis-sg` ✅
 
 ### 2-3. 비밀 관리 (Secrets Manager)
-- [ ] 시크릿 생성 — 이름: `tms/production`, 타입: Other
-  ```
-  DATABASE_URL         = postgresql://...@rds엔드포인트:5432/tms
-  JWT_SECRET_KEY       = (랜덤 32자 이상)
-  REDIS_URL            = redis://elasticache엔드포인트:6379
-  ANTHROPIC_API_KEY    = (선택)
-  JIRA_SERVER_URL      = (선택)
-  JIRA_USERNAME        = (선택)
-  JIRA_API_TOKEN       = (선택)
-  JIRA_WEBHOOK_SECRET  = (선택)
-  JIRA_CRON_ENABLED    = false (Jira 폴링 사용 시 true)
-  JIRA_CRON_JQL        = (선택, JIRA_CRON_ENABLED=true 시)
-  SLACK_WEBHOOK_URL    = (선택)
-  SLACK_BOT_TOKEN      = (선택)
-  SLACK_CHANNEL_ID     = (선택)
-  TEST_APP_BASE_URL    = (선택, 페이지 분석 대상 앱 URL)
-  PLAYWRIGHT_ENABLED   = false
-  ALLOWED_ORIGINS      = https://CloudFront도메인
-  ```
-  > RDS/ElastiCache 엔드포인트는 생성 후 채워 넣기
+- [x] 시크릿 생성 — `tms/production`
+- [x] `DATABASE_URL` 업데이트 (RDS 엔드포인트)
+- [x] `REDIS_URL` 업데이트 (rediss:// — TLS 활성화)
 
 ### 2-4. 데이터베이스 (RDS PostgreSQL)
-- [ ] RDS → PostgreSQL 16 생성
-  - 템플릿: 프리 티어 (개발/초기) 또는 프로덕션
-  - 인스턴스: `db.t4g.micro` (초기)
+- [x] RDS PostgreSQL 18.3 생성 (db.t4g.micro, tms-db)
   - DB 이름: `tms`, 사용자: `tms_user`
-  - 서브넷 그룹: 프라이빗 서브넷 2개로 생성
-  - SG: `tms-rds-sg`
-  - 퍼블릭 액세스: 아니오
-  - 자동 백업: 활성화 (보존 7일)
-- [ ] RDS 엔드포인트 확인 후 Secrets Manager `DATABASE_URL` 업데이트
+  - SG: `tms-rds-sg`, 퍼블릭 액세스: 아니오
+- [x] RDS 엔드포인트 → Secrets Manager `DATABASE_URL` 업데이트
 
 ### 2-5. Redis (ElastiCache)
-- [ ] ElastiCache → Redis OSS 생성
-  - 배포 옵션: 단일 노드 (Serverless 아닌 일반)
-  - 노드 유형: `cache.t4g.micro`
-  - 서브넷 그룹: 프라이빗 서브넷 2개로 생성
+- [x] ElastiCache Redis OSS 생성 (cache.t4g.micro, tms-redis)
+  - 노드 기반 캐시, 전송 중 암호화 활성화 (rediss://)
+  - 서브넷 그룹: 프라이빗 서브넷 2개
+- [x] 보안 그룹 tms-redis-sg 설정
+- [x] 엔드포인트 → Secrets Manager `REDIS_URL` 업데이트
   - SG: `tms-redis-sg`
   - 클러스터 모드: 비활성화
-- [ ] ElastiCache 엔드포인트 확인 후 Secrets Manager `REDIS_URL` 업데이트
+- [x] ElastiCache 엔드포인트 확인 후 Secrets Manager `REDIS_URL` 업데이트
 
 ### 2-6. 컨테이너 레지스트리 (ECR)
-- [ ] ECR → 레포지터리 생성
+- [x] ECR → 레포지터리 생성
   - 이름: `tms-server`
   - 가시성: 프라이빗
   - 이미지 스캔: 활성화
+- [x] amd64 플랫폼으로 이미지 빌드 후 ECR 푸시 완료 (`--platform linux/amd64`)
 
 ### 2-7. 로드밸런서 (ALB)
-- [ ] EC2 → 로드밸런서 → ALB 생성
+- [x] EC2 → 로드밸런서 → ALB 생성
   - 이름: `tms-alb`
   - 체계: 인터넷 경계
   - VPC: tms-vpc, 퍼블릭 서브넷 2개 선택
   - SG: `tms-alb-sg`
-- [ ] Target Group 생성
+- [x] Target Group 생성
   - 이름: `tms-server-tg`
   - 대상 유형: IP (Fargate용)
   - 포트: 8000, 프로토콜: HTTP
   - 헬스 체크: `GET /health`
-- [ ] ALB 리스너: HTTP 80 → tms-server-tg
-- [ ] ALB idle timeout: 300초로 변경 (WebSocket 대비, 기본 60s)
-- [ ] ALB DNS 주소 메모 (프론트엔드 REACT_APP_API_URL에 사용)
+- [x] ALB 리스너: HTTP 80 → tms-server-tg
+- [x] ALB idle timeout: 300초로 변경 (WebSocket 대비, 기본 60s)
+- [x] ALB DNS 주소 메모: `tms-alb-1949000332.ap-northeast-2.elb.amazonaws.com`
 
 ### 2-8. 컨테이너 서비스 (ECS)
-- [ ] ECS → 클러스터 생성
-  - 이름: `tms-cluster`
+- [x] ECS → 클러스터 생성
+  - 이름: `ecs-tms-cluster` (개발팀 네이밍 규칙)
   - 인프라: AWS Fargate
-- [ ] ECR에 초기 이미지 수동 푸시 (Task Definition 등록 전 필요)
-  ```bash
-  aws ecr get-login-password --region ap-northeast-2 | \
-    docker login --username AWS --password-stdin [계정ID].dkr.ecr.ap-northeast-2.amazonaws.com
-  docker tag tms-server:test [계정ID].dkr.ecr.ap-northeast-2.amazonaws.com/tms-server:latest
-  docker push [계정ID].dkr.ecr.ap-northeast-2.amazonaws.com/tms-server:latest
-  ```
-- [ ] Task Definition 생성
+- [x] ECR에 초기 이미지 수동 푸시 완료
+- [x] Task Definition 생성
   - 이름: `tms-server`
   - 시작 유형: Fargate
   - CPU: 512, Memory: 1024
   - Task Role: `tms-ecs-task-role`
-  - 컨테이너
-    - 이름: `tms-server`
-    - 이미지: ECR 이미지 URI
-    - 포트: 8000
-    - 환경변수: Secrets Manager ARN 참조 방식으로 주입
-      - `NODE_ENV` = `production` (값 직접 입력)
-      - 나머지는 `tms/production` 시크릿에서 valueFrom으로 참조
-    - 로그: CloudWatch Logs (`/ecs/tms-server`)
-- [ ] ECS Service 생성
+  - 컨테이너: 포트 8000, Secrets Manager valueFrom, CloudWatch Logs `/ecs/tms-server`
+  - ※ ECS는 퍼블릭 서브넷 배치 (NAT Gateway 없음, 사내 솔루션)
+- [x] ECS Service 생성
   - 이름: `tms-server-service`
   - 시작 유형: Fargate
   - 태스크 수: 1
-  - 네트워크: 프라이빗 서브넷 2개, SG: `tms-ecs-sg`
+  - 네트워크: 퍼블릭 서브넷 2개, SG: `tms-ecs-sg`
   - 로드밸런서: `tms-alb` → `tms-server-tg`
+- [x] DATABASE_URL 특수문자 URL 인코딩 수정 (비밀번호 `#`→`%23`, `+`→`%2B`, `(`→`%28`)
+  - 수정 후 Secrets Manager 업데이트 → 새 배포 강제 실행 필요
 
 ### 2-9. 프론트엔드 (S3 + CloudFront)
-- [ ] S3 버킷 생성
-  - 이름: `tms-frontend-[계정ID]` (전역 고유)
+- [x] S3 버킷 생성
+  - 이름: `lawform.tms-frontend`
   - 리전: ap-northeast-2
   - 퍼블릭 액세스 차단: 유지 (CloudFront OAC로 접근)
-- [ ] CloudFront Distribution 생성
-  - Origin: S3 버킷 (OAC 방식)
+- [x] CloudFront Distribution 생성
+  - Origin: S3 버킷 (OAC 방식, CloudFront가 S3 버킷 정책 자동 업데이트)
   - 기본 루트 객체: `index.html`
   - SPA 라우팅 에러 페이지: 403/404 → `/index.html` (200 응답)
-  - 뷰어 프로토콜: HTTPS only
-- [ ] CloudFront 도메인(*.cloudfront.net) 확인
-  - GitHub Secrets `REACT_APP_API_URL` = ALB DNS
-  - GitHub Secrets `ALLOWED_ORIGINS` (Secrets Manager) = CloudFront 도메인
+  - 요금제: Free
+- [x] CloudFront 도메인 확인
+  - 도메인: `d1xo0n7wg4djpw.cloudfront.net`
+  - 배포 ID: `E1NYWCIP3ZLC8Q`
 
 ### 2-10. DB 스키마 마이그레이션
-- [ ] ECS 태스크가 정상 기동된 것 확인 (`/health` 응답)
-- [ ] 마이그레이션 전용 ECS 태스크 실행 (1회성)
+- [x] ECS 태스크가 정상 기동된 것 확인 (`/health` 응답) — DB connected 확인
+- [x] 마이그레이션 전용 ECS 태스크 실행 (1회성)
   ```bash
   # ECS Run Task — 커맨드 오버라이드
   command: ["npx", "prisma", "migrate", "deploy", "--schema=prisma/schema.prod.prisma"]
@@ -205,28 +166,18 @@
 ## Phase 3: CI/CD 파이프라인 구성
 
 ### 3-1. GitHub Actions — 백엔드 (server/)
-- [ ] `.github/workflows/deploy-server.yml` 작성
+- [x] `.github/workflows/deploy-server.yml` 작성 및 배포 성공
   - 트리거: `main` 브랜치 push + `server/**` 경로 변경
-  - 단계:
-    1. `vitest` 테스트 실행
-    2. Docker 이미지 빌드
-    3. ECR push (태그: `latest` + 커밋 SHA)
-    4. ECS 태스크 정의 업데이트
-    5. ECS Service 롤링 배포
-- [ ] GitHub Secrets 등록
-  - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`
-  - `ECR_REPOSITORY`, `ECS_CLUSTER`, `ECS_SERVICE`, `ECS_TASK_DEFINITION`
+  - vitest → ECR push → ECS 롤링 배포
+- [x] GitHub Secrets 등록 완료
+  - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
 
 ### 3-2. GitHub Actions — 프론트엔드 (frontend/)
-- [ ] `.github/workflows/deploy-frontend.yml` 작성
+- [x] `.github/workflows/deploy-frontend.yml` 작성 및 배포 성공
   - 트리거: `main` 브랜치 push + `frontend/**` 경로 변경
-  - 단계:
-    1. `REACT_APP_API_URL` 주입 후 프로덕션 빌드
-    2. S3 sync (`aws s3 sync build/ s3://버킷명 --delete`)
-    3. CloudFront 캐시 무효화 (`/*`)
-- [ ] GitHub Secrets 등록
-  - `S3_BUCKET`, `CLOUDFRONT_DISTRIBUTION_ID`
-  - `REACT_APP_API_URL` (api.도메인)
+  - 빌드(env 주입) → S3 sync → CloudFront 무효화
+- [x] GitHub Secrets 등록 완료
+  - `S3_BUCKET`, `CLOUDFRONT_DISTRIBUTION_ID`, `REACT_APP_API_URL`, `REACT_APP_UPLOAD_URL`
 
 ---
 
