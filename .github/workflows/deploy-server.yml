@@ -10,7 +10,7 @@ on:
 env:
   AWS_REGION: ap-northeast-2
   ECR_REPOSITORY: tms-server
-  ECS_CLUSTER: tms-cluster
+  ECS_CLUSTER: ecs-tms-cluster
   ECS_SERVICE: tms-server-service
   ECS_TASK_DEFINITION: tms-server
   CONTAINER_NAME: tms-server
