@@ -1,11 +1,11 @@
 const config = {
   development: {
-    apiUrl: 'http://localhost:8080',
-    uploadUrl: 'http://localhost:8080/uploads'
+    apiUrl: process.env.REACT_APP_API_URL || 'http://localhost:8000',
+    uploadUrl: process.env.REACT_APP_UPLOAD_URL || 'http://localhost:8000/uploads'
   },
   production: {
-    apiUrl: process.env.REACT_APP_API_URL || 'https://tms-production-4a38.up.railway.app',
-    uploadUrl: process.env.REACT_APP_UPLOAD_URL || 'https://tms-production-4a38.up.railway.app/uploads'
+    apiUrl: process.env.REACT_APP_API_URL || '',
+    uploadUrl: process.env.REACT_APP_UPLOAD_URL || ''
   }
 };
 
