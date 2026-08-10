@@ -15,5 +15,6 @@ const currentConfig = config[environment];
 
 // 환경 정보는 로그에 출력하지 않음
 // prod: REACT_APP_API_URL = CloudFront 도메인
+// REACT_APP_API_URL 에 /api 추가
 
 export default currentConfig;
