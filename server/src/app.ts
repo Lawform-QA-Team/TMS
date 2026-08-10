@@ -40,6 +40,15 @@ export function createApp(): Hono {
 
   app.get('/ping', (c) => c.json({ status: 'success', message: 'pong' }))
 
+  // 일회성 admin 설정 (마이그레이션 후 제거 예정)
+  app.post('/internal/set-admin', async (c) => {
+    const secret = c.req.header('x-internal-secret')
+    if (secret !== 'tms-init-2026') return c.json({ error: 'forbidden' }, 403)
+    const { username } = await c.req.json()
+    const user = await db.user.update({ where: { username }, data: { role: 'admin' } })
+    return c.json({ ok: true, username: user.username, role: user.role })
+  })
+
   // API 라우트 등록 (prefix 없이 + /api prefix 둘 다 지원)
   registerRoutes(app)
   const apiApp = new Hono()
