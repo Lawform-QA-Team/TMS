@@ -978,3 +978,94 @@ model PipelineBug {
   @@index([pipelineId])
   @@map("PipelineBugs")
 }
+
+model PlaywrightRun {
+  id          Int                    @id @default(autoincrement())
+  runId       String                 @unique @map("run_id") @db.VarChar(36)
+  project     String                 @db.VarChar(50)
+  branch      String?                @db.VarChar(100)
+  environment String                 @default("staging") @db.VarChar(20)
+  totalTests  Int                    @map("total_tests")
+  passed      Int
+  failed      Int
+  skipped     Int
+  durationMs  Int                    @map("duration_ms")
+  startedAt   DateTime               @map("started_at") @db.DateTime(0)
+  createdAt   DateTime               @default(now()) @map("created_at") @db.DateTime(0)
+  testResults PlaywrightTestResult[]
+
+  @@index([project])
+  @@index([startedAt])
+  @@map("PlaywrightRuns")
+}
+
+model PlaywrightTestResult {
+  id           Int           @id @default(autoincrement())
+  runId        Int           @map("run_id")
+  suiteName    String        @map("suite_name") @db.VarChar(200)
+  testName     String        @map("test_name") @db.VarChar(300)
+  status       String        @db.VarChar(20)
+  durationMs   Int           @map("duration_ms")
+  browser      String?       @db.VarChar(30)
+  retries      Int           @default(0)
+  errorMessage String?       @map("error_message") @db.Text
+  run          PlaywrightRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@index([status])
+  @@map("PlaywrightTestResults")
+}
+
+model K6Run {
+  id              Int            @id @default(autoincrement())
+  runId           String         @unique @map("run_id") @db.VarChar(36)
+  scenario        String         @db.VarChar(100)
+  environment     String         @default("staging") @db.VarChar(20)
+  virtualUsers    Int            @map("virtual_users")
+  durationSeconds Int            @map("duration_seconds")
+  startedAt       DateTime       @map("started_at") @db.DateTime(0)
+  createdAt       DateTime       @default(now()) @map("created_at") @db.DateTime(0)
+  metrics         K6Metrics?
+  timeseries      K6Timeseries[]
+
+  @@index([scenario])
+  @@index([startedAt])
+  @@map("K6Runs")
+}
+
+model K6Metrics {
+  id             Int    @id @default(autoincrement())
+  runId          Int    @unique @map("run_id")
+  totalRequests  Int    @map("total_requests")
+  failedRequests Int    @map("failed_requests")
+  errorRate      Float  @map("error_rate")
+  avgResponseMs  Float  @map("avg_response_ms")
+  p95ResponseMs  Float  @map("p95_response_ms")
+  p99ResponseMs  Float  @map("p99_response_ms")
+  lcp            Float?
+  fcp            Float?
+  ttfb           Float?
+  cls            Float?
+  fid            Float?
+  inp            Float?
+  run            K6Run  @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@map("K6Metrics")
+}
+
+model K6Timeseries {
+  id                Int      @id @default(autoincrement())
+  runId             Int      @map("run_id")
+  timestamp         DateTime @db.DateTime(0)
+  requestRate       Float    @map("request_rate")
+  responseMs        Float    @map("response_ms")
+  errorRate         Float    @map("error_rate")
+  activeVus         Int      @map("active_vus")
+  dataSentBytes     Float    @default(0) @map("data_sent_bytes")
+  dataReceivedBytes Float    @default(0) @map("data_received_bytes")
+  run               K6Run    @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@index([timestamp])
+  @@map("K6Timeseries")
+}

@@ -586,3 +586,14 @@ user = User(username=f'admin_{suffix}', email=f'admin_{suffix}@test.com', ...)
 
 **교훈**: 테스트 픽스처의 고정 식별자는 UUID suffix로 대체해 충돌 방지할 것
 
+
+## 2025-08-07: 모니터링 대시보드 — Prisma 신규 모델 추가 시 서버 재시작 필수
+
+새 Prisma 모델 추가 후 `db push` / `generate`가 완료되어도 실행 중인 서버는 이전 클라이언트를 사용하므로
+`db.playwrightRun is undefined` 같은 런타임 에러가 발생한다.
+**반드시 서버를 재빌드 + 재시작**해야 새 모델이 인식된다.
+
+## 2025-08-07: 기존 iframe → 자체 차트 교체 시 파일명 유지 패턴
+
+App.js의 import를 건드리지 않으려면 기존 파일명(`GrafanaDashboard.js`)을 유지하고 내용만 교체.
+서브 컴포넌트(`PlaywrightTab.js`, `K6Tab.js`)는 같은 디렉토리에 분리 생성.

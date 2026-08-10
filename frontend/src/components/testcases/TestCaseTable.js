@@ -3,6 +3,8 @@ import { getUserDisplayName } from '@tms/utils/userDisplay';
 import { formatUTCToKST } from '@tms/utils/dateUtils';
 import '@tms/components/testcases/TestCaseTable.css';
 
+const normalizeStatus = (s) => (!s || s === 'pending') ? 'N/T' : s;
+
 const STATUS_CONFIG = {
   'Pass':  { dot: '#28a745', bg: '#eaf6ec', color: '#1a7a35', rowCls: '' },
   'Fail':  { dot: '#dc3545', bg: '#fde8ea', color: '#a71d2a', rowCls: 'row-fail' },
@@ -73,7 +75,7 @@ const TestCaseTable = ({
         </thead>
         <tbody>
           {testCases.map((tc) => {
-            const status = tc.result_status || 'N/T';
+            const status = normalizeStatus(tc.result_status);
             const cfg = STATUS_CONFIG[status] || STATUS_CONFIG['N/T'];
             const priority = (tc.priority || '').toLowerCase();
             const priCfg = PRIORITY_CONFIG[priority];
@@ -111,7 +113,7 @@ const TestCaseTable = ({
                   {canModify && (
                     <select
                       className="status-select"
-                      value={tc.result_status || 'N/T'}
+                      value={normalizeStatus(tc.result_status)}
                       onChange={(e) => onStatusChange(tc.id, e.target.value)}
                     >
                       {Object.keys(STATUS_CONFIG).map(s => (

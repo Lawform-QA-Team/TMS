@@ -30,6 +30,7 @@ import { customReportsRouter } from './customReports.js'
 import { queueRouter } from './queue.js'
 import { pipelineRouter } from './pipeline.js'
 import { slackRouter } from './slack.js'
+import { monitoringRouter } from './monitoring.js'
 
 export function registerRoutes(app: Hono): void {
   // Phase 2: 인증 & 사용자
@@ -79,4 +80,7 @@ export function registerRoutes(app: Hono): void {
 
   // Phase 8: Slack 인터랙션
   app.route('/slack', slackRouter)
+
+  // Phase 9: 모니터링 (Playwright + K6)
+  app.route('/monitoring', monitoringRouter)
 }
