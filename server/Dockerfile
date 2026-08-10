@@ -9,7 +9,7 @@ COPY prisma ./prisma/
 
 RUN npm ci
 
-RUN npx prisma generate
+RUN npx prisma generate --schema=prisma/schema.prod.prisma
 
 COPY . .
 
@@ -29,12 +29,10 @@ COPY prisma ./prisma/
 
 RUN npm ci --omit=dev
 
-RUN npx prisma generate
+RUN npx prisma generate --schema=prisma/schema.prod.prisma
 
 COPY --from=builder /app/dist ./dist
 
-ENV NODE_ENV=production
+EXPOSE 8000
 
-EXPOSE 8080
-
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/index.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=prisma/schema.prod.prisma && node dist/index.js"]
