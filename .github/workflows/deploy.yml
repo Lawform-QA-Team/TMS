@@ -1,4 +1,4 @@
-name: Test and Deploy to Vercel
+name: CI
 
 on:
   push:
@@ -41,32 +41,4 @@ jobs:
           cd frontend
           npm run build
 
-  deploy-frontend:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js for Vercel CLI
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Vercel CLI
-        run: npm install -g vercel@latest
-
-      - name: Deploy Frontend to Vercel
-        run: |
-          cd frontend
-          vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --yes
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_FRONTEND_PROJECT_ID }}
-
-      - name: Deploy Status
-        run: |
-          echo "✅ All tests passed!"
-          echo "🚀 Frontend deployed to Vercel"
-          echo "📋 Frontend URL: https://frontend-alpha-jade-15.vercel.app"
         
