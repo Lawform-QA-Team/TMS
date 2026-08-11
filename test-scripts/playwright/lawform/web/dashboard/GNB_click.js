@@ -2,7 +2,7 @@
  * GNB (Global Navigation Bar) 클릭 테스트 - Playwright용
  */
 import { URLS } from '../../url_base_lawform.js';
-import { getFormattedTimestamp } from '../../../../common/utils.js';
+import { getFormattedTimestamp } from '../../../common/utils.js';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 
 /**

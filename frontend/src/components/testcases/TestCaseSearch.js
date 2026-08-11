@@ -30,7 +30,7 @@ const TestCaseSearch = ({
         <div className="testcase-search-input-wrapper">
           <input
             type="text"
-            placeholder="🔍 테스트 케이스 검색... (대분류, 중분류, 소분류, 기대결과, 비고, 작성자, 담당자)"
+            placeholder="테스트 케이스 검색... (대분류, 중분류, 소분류, 기대결과, 비고, 작성자, 담당자)"
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             className="testcase-search-input"
@@ -141,7 +141,7 @@ const TestCaseSearch = ({
               className="testcase-btn testcase-btn-clear-filters"
               title="모든 필터 초기화"
             >
-              🗑️
+              초기화
             </button>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { useAuth } from '@tms/contexts/AuthContext';
 import PromptModal from '@tms/components/common/PromptModal';
 import { getUserDisplayName } from '@tms/utils/userDisplay';
 import SlidePanel from '@tms/components/common/SlidePanel';
+import '@tms/components/testcases/TestCaseTable.css';
 import '@tms/components/jira/JiraIssuesList.css';
 import '@tms/components/common/Modal.css';
 
@@ -558,8 +559,8 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
             {!testCaseId && <p>필터 조건을 조정해보세요.</p>}
           </div>
         ) : (
-          <div className="jira-issues-table-wrapper">
-            <table className="jira-issues-table">
+          <div className="tc-table-wrap">
+            <table className="tc-table">
               <thead>
                 <tr>
                   <th>Key No.</th>
@@ -577,7 +578,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
               </thead>
               <tbody>
                 {paginatedIssues.map(issue => (
-                  <tr key={issue.id} className="jira-issue-row">
+                  <tr key={issue.id} className="tc-row">
                     <td className="col-key">
                       <span className="issue-key">{issue.issue_key}</span>
                     </td>
@@ -587,17 +588,17 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                       </span>
                     </td>
                     <td className="col-status">
-                      <span className={`issue-status status-${(issue.status || '').toLowerCase().replace(' ', '-')}`}>
+                      <span className={`status-pill status-${(issue.status || '').toLowerCase().replace(' ', '-')}`}>
                         {issue.status}
                       </span>
                     </td>
                     <td className="col-priority">
-                      <span className={`issue-priority priority-${(issue.priority || '').toLowerCase()}`}>
+                      <span className={`priority-badge priority-${(issue.priority || '').toLowerCase()}`}>
                         {issue.priority}
                       </span>
                     </td>
                     <td className="col-type">
-                      <span className={`issue-type type-${(issue.issue_type || '').toLowerCase()}`}>
+                      <span className={`tag-chip type-${(issue.issue_type || '').toLowerCase()}`}>
                         {issue.issue_type}
                       </span>
                     </td>
@@ -671,10 +672,10 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                       {issue.updated_at ? new Date(issue.updated_at).toLocaleDateString() : '-'}
                     </td>
                     <td className="col-actions">
-                      <div className="issue-actions-inline">
+                      <div className="action-btns">
                         <button
                           type="button"
-                          className="btn btn-primary btn-sm"
+                          className="row-btn btn-run"
                           onClick={() => showIssueDetail(issue)}
                           title="상세보기"
                         >
@@ -693,7 +694,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                             </select>
                             <button
                               type="button"
-                              className="btn btn-secondary btn-sm"
+                              className="row-btn btn-edit"
                               onClick={() => {
                                 setSelectedIssue(issue);
                                 setShowAssigneeModal(true);
@@ -704,7 +705,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                             </button>
                             <button
                               type="button"
-                              className="btn btn-warning btn-sm"
+                              className="row-btn btn-edit"
                               onClick={() => {
                                 setSelectedIssue(issue);
                                 setShowLabelModal(true);
@@ -715,7 +716,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
                             </button>
                             <button
                               type="button"
-                              className="btn btn-secondary btn-sm"
+                              className="row-btn btn-edit"
                               onClick={() => {
                                 setCommentIssueKey(issue.issue_key);
                                 setShowCommentPrompt(true);

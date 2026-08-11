@@ -127,7 +127,7 @@ const TestCaseFormModal = ({
         <div className="form-group">
           <label>결과 상태</label>
           <select 
-            value={testCase.result_status || 'N/T'}
+            value={(!testCase.result_status || testCase.result_status === 'pending') ? 'N/T' : testCase.result_status}
             onChange={(e) => handleChange('result_status', e.target.value)}
           >
             <option value="N/T">N/T (Not Tested)</option>

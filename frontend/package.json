@@ -13,6 +13,8 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "1.15.2",
     "chart.js": "^4.5.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
     "qrcode.react": "^3.2.0",
     "react": "^19.2.1",
     "react-chartjs-2": "^5.3.0",
@@ -29,7 +31,7 @@
     "test": "craco test",
     "eject": "react-scripts eject"
   },
-  "homepage": ".",
+  "homepage": "/",
   "jest": {
     "transformIgnorePatterns": [
       "node_modules/(?!(axios)/)"

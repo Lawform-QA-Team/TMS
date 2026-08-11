@@ -6,6 +6,7 @@ import { useAuth } from '@tms/contexts/AuthContext';
 import { formatUTCToKST } from '@tms/utils/dateUtils';
 import { getUserDisplayName } from '@tms/utils/userDisplay';
 import SlidePanel from '@tms/components/common/SlidePanel';
+import '@tms/components/testcases/TestCaseTable.css';
 import '@tms/components/performance/PerformanceTestManager.css';
 import '@tms/components/common/Modal.css';
 
@@ -604,8 +605,8 @@ const PerformanceTestManager = () => {
         </div>
 
         {/* 테이블 형태로 변경 */}
-        <div className="performance-table-container">
-          <table className="performance-table">
+        <div className="tc-table-wrap">
+          <table className="tc-table">
             <thead>
               <tr>
                 <th className="checkbox-column">
@@ -655,7 +656,7 @@ const PerformanceTestManager = () => {
             </thead>
             <tbody>
               {filteredTests.map((test, index) => (
-                <tr key={test.id} className="performance-table-row">
+                <tr key={test.id} className="tc-row">
                   <td className="checkbox-column">
                     <input 
                       type="checkbox"
@@ -670,7 +671,7 @@ const PerformanceTestManager = () => {
                         {test.name}
                       </div>
                             <div className="test-meta">
-                        <span className="environment-badge">{test.environment || 'prod'}</span>
+                        <span className="tag-chip">{test.environment || 'prod'}</span>
                         {test.script_path && (
                           <span className="script-badge">📄 {test.script_path.split('/').pop()}</span>
                         )}
@@ -678,7 +679,7 @@ const PerformanceTestManager = () => {
                         </div>
                   </td>
                   <td className="environment-column">
-                    <span className="environment-badge">{test.environment || 'prod'}</span>
+                    <span className="tag-chip">{test.environment || 'prod'}</span>
                   </td>
                   <td className="assignee-column">
                     <div className="assignee-section">
@@ -711,11 +712,10 @@ const PerformanceTestManager = () => {
                     </span>
                   </td>
                   <td className="actions-column">
-                    <div className="action-buttons">
-                      {/* 실행 버튼 */}
+                    <div className="action-btns">
                       {canModify && (
                         <button
-                          className="performance-btn performance-btn-automation"
+                          className="row-btn btn-run"
                           onClick={() => executePerformanceTest(test.id)}
                           disabled={executing}
                           title="테스트 실행"
@@ -723,9 +723,8 @@ const PerformanceTestManager = () => {
                           {executing ? '실행 중' : '실행'}
                         </button>
                       )}
-                      {/* 상세보기 버튼 */}
-                      <button 
-                        className="performance-btn performance-btn-details"
+                      <button
+                        className="row-btn btn-run"
                         onClick={() => {
                           setSelectedTest(test);
                           setShowDetailModal(true);
@@ -734,10 +733,9 @@ const PerformanceTestManager = () => {
                       >
                         상세
                       </button>
-                      {/* 수정 버튼 */}
                       {canModify && (
-                        <button 
-                          className="performance-btn performance-btn-edit"
+                        <button
+                          className="row-btn btn-edit"
                           onClick={() => {
                             setEditingTest(test);
                             setShowEditModal(true);
@@ -747,10 +745,9 @@ const PerformanceTestManager = () => {
                           수정
                         </button>
                       )}
-                      {/* 삭제 버튼 */}
                       {user && user.role === 'admin' && (
-                        <button 
-                          className="performance-btn performance-btn-delete"
+                        <button
+                          className="row-btn btn-del"
                           onClick={() => handleDeleteTest(test.id)}
                           title="삭제"
                         >
@@ -1083,7 +1080,7 @@ const PerformanceTestManager = () => {
                       <td>{selectedTest.name || '없음'}</td>
                       <th>환경</th>
                       <td>
-                        <span className={`environment-badge ${selectedTest.environment || 'prod'}`}>
+                        <span className={`tag-chip ${selectedTest.environment || 'prod'}`}>
                           {selectedTest.environment || 'prod'}
                         </span>
                       </td>

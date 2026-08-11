@@ -1,324 +1,288 @@
-# 🚀 Integrated Test Platform
+# Integrated Test Platform
 
-## 📋 프로젝트 개요
+## 프로젝트 개요
 
 통합 테스트 플랫폼은 다양한 테스트 유형(API, 성능, 자동화)을 통합 관리할 수 있는 웹 기반 플랫폼입니다.
 
-## ✨ 주요 기능
+## 주요 기능
 
-- **🧪 Test Cases**: 테스트 케이스 관리 및 실행
-- **⚡ Performance Tests**: K6 기반 성능 테스트
-- **🤖 Automation Tests**: Playwright 기반 자동화 테스트
-- **📁 Folder Management**: 계층적 폴더 구조 관리
-- **📊 Dashboard**: 테스트 결과 통계 및 분석
-- **👥 User Management**: 사용자 및 프로젝트 관리
-- **🌍 KST 시간대**: 한국 표준시 기반 일관된 시간 처리
-- **☁️ S3 Integration**: AWS S3를 통한 테스트 스크립트 클라우드 저장
-- **💻 Code Editor**: Monaco Editor 기반 고급 코드 에디터
-- **📝 Script Management**: 테스트 스크립트 생성, 편집, 관리
+- **Test Cases**: 테스트 케이스 관리 및 실행
+- **Performance Tests**: K6 기반 성능 테스트
+- **Automation Tests**: Playwright 기반 자동화 테스트
+- **Folder Management**: 계층적 폴더 구조 관리
+- **Dashboard**: 테스트 결과 통계 및 분석
+- **User Management**: 사용자 및 프로젝트 관리
+- **Jira 연동**: Jira 이슈 자동 TC 생성 파이프라인
 
-## 🏗️ 기술 스택
+---
 
-### Backend
-- **Python 3.13+**
-- **Flask 3.1+**
-- **SQLAlchemy 2.0+**
+## 기술 스택
+
+### Backend (TypeScript)
+- **Node.js 20+**
+- **TypeScript**
+- **Hono** — 경량 웹 프레임워크
+- **Prisma** — ORM
 - **MySQL 8.0+**
-- **Docker**
-- **pytz**: KST 시간대 처리
-- **boto3**: AWS S3 연동
+- **bcryptjs** — 비밀번호 해싱
+- **Jose** — JWT 인증
 
 ### Frontend
 - **React 18+**
 - **Axios**
 - **Chart.js**
-- **Monaco Editor**: 고급 코드 에디터
+- **Monaco Editor**
 
 ### Testing Tools
 - **K6** (성능 테스트)
 - **Playwright** (자동화 테스트)
 
-## 🚀 빠른 시작
+---
+
+## 빠른 시작
+
+### 사전 요구사항
+
+- Node.js 20.12+
+- MySQL 8.0+
+
+---
 
 ### 1. 저장소 클론
+
 ```bash
 git clone <repository-url>
-cd integrated-test-platform
+cd TMS
 ```
 
-### 2. 백엔드 실행
+---
+
+### 2. TypeScript 백엔드 설치 및 실행
+
 ```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python app.py
+cd server
+npm install
 ```
+
+**환경 변수 설정**
+
+```bash
+cp .env.example .env
+```
+
+`.env` 파일에서 아래 항목을 실제 값으로 수정합니다:
+
+```env
+NODE_ENV=development
+PORT=8080
+
+# MySQL 연결 (URL 인코딩 필요: # → %23, $ → %24)
+DATABASE_URL=mysql://root:1q2w%23E%24R@127.0.0.1:3306/test_management
+
+# JWT
+JWT_SECRET_KEY=your-secret-key
+
+# CORS (프론트엔드 출처)
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3010
+```
+
+> **비밀번호 특수문자 주의**: URL에서 `#` → `%23`, `$` → `%24` 로 인코딩 필요
+
+**Prisma 클라이언트 생성**
+
+```bash
+npm run db:generate
+```
+
+> 기존 DB를 사용하는 경우 `db:migrate`는 불필요합니다. 새 DB라면 아래 실행:
+> ```bash
+> npm run db:migrate
+> ```
+
+**서버 실행**
+
+```bash
+# 개발 모드 (파일 변경 감지 자동 재시작)
+npm run dev
+
+# 프로덕션 빌드 후 실행
+npm run build
+npm run start
+```
+
+서버가 정상 실행되면 `http://localhost:8080/health` 에서 상태를 확인할 수 있습니다.
+
+```json
+{"status":"healthy","message":"TMS Server is running","version":"3.0.0","database":{"status":"connected"}}
+```
+
+---
 
 ### 3. 프론트엔드 실행
+
 ```bash
 cd frontend
 npm install
 npm start
 ```
 
+기본 포트: **3000** (또는 3010 등 다음 빈 포트)
+
+프론트엔드 API 요청 대상은 `frontend/src/config.js` 에서 관리합니다:
+
+```js
+development: {
+  apiUrl: 'http://localhost:8080',  // TS 백엔드
+}
+```
+
+---
+
 ### 4. 데이터베이스 설정
+
+로컬 MySQL을 직접 사용하거나 Docker를 사용할 수 있습니다.
+
 ```bash
 # Docker로 MySQL 실행
 docker-compose up -d mysql
 
-# 또는 스크립트 사용
-./scripts/start-ubuntu-mysql.sh
-
-# 데이터베이스 복구 (필요한 경우)
-./scripts/restore_local_mysql.sh
+# 또는 로컬 MySQL에 DB 생성
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS test_management CHARACTER SET utf8mb4;"
 ```
-
-### 5. 애플리케이션 재시작
-```bash
-# 전체 애플리케이션 재시작
-./scripts/restart-all.sh
-
-# 백엔드만 재시작
-./scripts/restart-backend.sh
-```
-
-## 📁 프로젝트 구조
-
-```
-integrated-test-platform/
-├── backend/                 # Flask 백엔드
-│   ├── app.py              # 메인 애플리케이션
-│   ├── models.py           # 데이터베이스 모델
-│   ├── routes/             # API 라우트
-│   ├── utils/              # 유틸리티 함수
-│   │   └── timezone_utils.py # KST 시간대 처리
-│   └── engines/            # 테스트 엔진 (K6, Playwright)
-├── frontend/                # React 프론트엔드
-│   ├── src/
-│   │   ├── components/     # React 컴포넌트
-│   │   ├── contexts/       # React Context
-│   │   ├── pages/          # 페이지 컴포넌트
-│   │   └── config.js       # API 설정
-│   └── package.json
-├── docs/                    # 문서 및 설정 파일
-│   ├── database/           # 데이터베이스 설정 가이드
-│   ├── deployment/         # 배포 가이드
-│   ├── reports/            # 프로젝트 리포트
-│   ├── API_TESTING_GUIDE.md # API 테스트 가이드
-│   ├── TESTING_GUIDE.md    # 테스트 가이드
-│   └── PROJECT_STRUCTURE.md # 프로젝트 구조
-├── scripts/                 # 실행 및 관리 스크립트
-│   ├── restart-all.sh      # 전체 애플리케이션 재시작
-│   ├── restart-backend.sh  # 백엔드 재시작
-│   ├── restore_database.sh # 데이터베이스 복구
-│   └── ...                 # 기타 유틸리티 스크립트
-├── test-scripts/            # 테스트 스크립트
-│   ├── performance/        # K6 성능 테스트
-│   └── playwright/         # Playwright 자동화 테스트
-├── slack_reporter/          # Slack 리포트 리포터
-│   ├── slack_reporter.ts   # Playwright Slack 리포터
-│   └── playwright.config.ts # Playwright 설정
-└── README.md               # 이 파일
-```
-
-## 🔐 권한 시스템
-
-이 플랫폼은 **admin**, **executive**, **user**, **guest** 네 가지 사용자 역할을 지원합니다.
-
-- **📖 [권한별 기능 가이드](docs/PERMISSION_GUIDE.md)** - 각 역할별 접근 가능한 기능 상세 설명
-- **🛡️ JWT 기반 인증** - 보안된 API 접근
-- **🔒 역할 기반 접근 제어** - 사용자 권한에 따른 기능 제한
-
-## 🌍 시간대 처리
-
-- **KST (한국 표준시) 기반**: 모든 시간 데이터를 KST로 일관되게 처리
-- **백엔드**: `utils/timezone_utils.py`를 통한 KST 시간 생성 및 변환
-- **데이터베이스**: 모든 타임스탬프를 KST로 저장
-- **API 응답**: KST 시간 형식으로 응답
-
-## 🌐 배포
-
-### Vercel 배포
-- **Backend**: `https://backend-alpha-liard.vercel.app`
-- **Frontend**: `https://integrated-test-platform-dydlxktca-gyeonggong-parks-projects.vercel.app`
-
-### 환경 변수
-```bash
-DATABASE_URL=mysql+pymysql://user:password@host:port/database
-SECRET_KEY=your-secret-key
-FLASK_ENV=production
-```
-
-## 📚 문서
-
-### 일반 문서
-- **API 가이드**: `docs/API_TESTING_GUIDE.md`
-- **Postman 사용법**: `docs/POSTMAN_USAGE_GUIDE.md`
-- **프로젝트 구조**: `docs/PROJECT_STRUCTURE.md`
-- **테스트 가이드**: `docs/TESTING_GUIDE.md`
-- **권한 가이드**: `docs/PERMISSION_GUIDE.md`
-
-### 데이터베이스 관련
-- **데이터베이스 설정**: `docs/database/README.md`
-- **로컬 MySQL 설정**: `docs/database/LOCAL_DATABASE_SETUP.md`
-- **MySQL Workbench 연결**: `docs/database/MYSQL_WORKBENCH_CONNECTION.md`
-
-### 배포 관련
-- **배포 가이드**: `docs/deployment/README.md`
-- **Vercel 배포**: `docs/deployment/VERCEL_DEPLOYMENT_GUIDE.md`
-- **S3 백업**: `docs/deployment/S3_BACKUP_GUIDE.md`
-
-### 리포트
-- **테스트 케이스 분석**: `docs/reports/TESTCASE_ANALYSIS_REPORT.md`
-- **프로젝트 정리 요약**: `docs/reports/PROJECT_CLEANUP_SUMMARY.md`
-
-### 스크립트
-- **스크립트 사용법**: `scripts/README.md`
-
-## 🧪 테스트
-
-### API 테스트
-```bash
-# Postman Collection 사용
-docs/postman_collection_v2.3.0.json
-```
-
-### 성능 테스트
-```bash
-cd test-scripts/performance
-k6 run script.js
-```
-
-### 자동화 테스트
-```bash
-cd test-scripts/playwright
-npx playwright test
-```
-
-## 🤝 기여하기
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-
-## 🆕 최신 기능 (v2.8.0)
-
-### 🔐 백엔드 보안 및 코드 품질 개선 (v2.8.0)
-- **CORS 보안 수정**: `supports_credentials` + wildcard origin 충돌 해소
-- **인증 강화**: 인증 누락 엔드포인트 일괄 보완 (`@guest_allowed`, `@login_required`, `@admin_required`)
-- **비밀번호 변경 보안**: non-admin 사용자 비밀번호 변경 시 현재 비밀번호 검증 추가
-- **Path Traversal 보안**: `startswith` 방식 → `os.path.commonpath` 방식으로 강화
-- **SQLAlchemy 2.0 마이그레이션**: `Model.query.get()` 47건 → `db.session.get()` 일괄 전환
-- **의존성 업데이트**: Flask 3.1.3, requests 2.33.1, cryptography 46.0.5
-- **Route 충돌 해소**: Jira Blueprint 중복 7개 제거, testcases_extended 중복 8개 제거
-
-### 💻 프론트엔드 UX 개선 (v2.8.0)
-- **사이드바 토글**: 접기/펼치기 버튼으로 화면 공간 확장
-- **계정 관리 개선**: 사용자 생성 시 first_name/last_name 필드 추가, 임시 비밀번호 자동 생성
-- **인증 보안 강화**: 로그인 로그에서 토큰 직접 노출 제거
-
-### 🧹 문서 및 시스템 최신화 (v2.7.0)
-- **문서 전면 업데이트**: `docs/` 하위 모든 가이드 문서의 경로 및 내용 최신화
-- **시스템 버전 동기화**: 백엔드 API 버전과 문서 버전 일치 (v2.7.0)
-- **테스트 스크립트 경로 수정**: 실제 디렉토리 구조에 맞게 테스트 가이드 경로 업데이트
-- **프로젝트 구조 최신화**: 현재 폴더 및 파일 구조를 반영하여 `PROJECT_STRUCTURE.md` 업데이트
-
-### 🤝 협업 및 워크플로우 (v2.5.0)
-- **댓글 시스템**: 테스트 케이스, 테스트 결과 등에 댓글 추가/수정/삭제
-- **멘션 기능**: `@username` 형식으로 멘션, 자동 알림
-- **워크플로우 관리**: 커스텀 워크플로우 정의, 상태 전환, 권한 관리
-
-### 🔗 테스트 의존성 관리 (v2.5.0)
-- **의존성 그래프**: 테스트 케이스 간 의존성 시각화
-- **실행 순서 계산**: 위상 정렬로 의존성 기반 실행 순서 계산
-- **순환 의존성 검사**: 자동 감지 및 방지
-- **의존성 조건 확인**: 결과 기반 실행 가능 여부 확인
-
-### 📊 고급 리포트 및 대시보드 (v2.5.0)
-- **커스텀 리포트 빌더**: 리포트 타입별 데이터 수집
-- **다양한 출력 형식**: HTML, JSON, CSV 지원
-- **리포트 실행 기록**: 리포트 생성 이력 관리
-- **리포트 다운로드**: 생성된 리포트 파일 다운로드
-
-### ⚡ 성능 최적화 (v2.5.0)
-- **Redis 캐싱**: 자주 조회되는 데이터 캐싱
-- **응답 압축**: gzip 압축으로 네트워크 전송량 감소
-- **캐시 무효화**: 데이터 변경 시 관련 캐시 자동 삭제
-- **캐시 데코레이터**: 함수 결과 자동 캐싱
-
-### 🔔 실시간 모니터링 및 알림 (v2.5.0)
-- **WebSocket 통신**: Flask-SocketIO 기반 실시간 통신
-- **알림 시스템**: 테스트 실행, 스케줄 실행 등 알림
-- **사용자별 알림 설정**: 이메일, Slack, 인앱 알림 설정
-
-### ⏰ 자동화 및 스케줄링 (v2.5.0)
-- **테스트 스케줄 관리**: 일일, 주간, 월간, cron 스케줄
-- **APScheduler 기반**: 백그라운드 스케줄러 서비스
-- **스케줄 실행 기록**: 스케줄 실행 이력 관리
-
-### 🔄 병렬 실행 및 큐 관리 (v2.5.0)
-- **Celery + Redis**: 비동기 테스트 실행
-- **큐 관리 API**: 큐 상태 조회, 작업 취소, 통계
-- **워커 모니터링**: 워커 상태 및 통계 조회
-
-### 🔌 CI/CD 통합 (v2.5.0)
-- **GitHub Actions**: 웹훅 기반 통합
-- **Jenkins**: 웹훅 기반 통합
-- **CI/CD 실행 기록**: 실행 이력 및 결과 관리
-
-### 💾 테스트 데이터 관리 (v2.5.0)
-- **테스트 데이터 세트**: 데이터 세트 생성, 수정, 삭제
-- **데이터 마스킹**: 민감 정보 자동 마스킹
-- **버전 관리**: 데이터 세트 버전 관리
-- **필드 매핑**: 테스트 케이스와 데이터 세트 매핑
-- **동적 데이터 생성**: 스키마 기반 테스트 데이터 생성
-
-### 📈 고급 분석 및 트렌드 (v2.5.0)
-- **트렌드 분석**: 테스트 결과 트렌드 분석
-- **Flaky 테스트 감지**: 불안정한 테스트 자동 감지
-- **회귀 감지**: 테스트 결과 회귀 패턴 감지
-- **실행 시간 분석**: 테스트 실행 시간 추적
-- **커버리지 분석**: 테스트 커버리지 통계
-- **실패 패턴 분석**: 실패 패턴 분석 및 인사이트
-- **테스트 헬스**: 테스트 케이스 건강도 평가
-
-### 🧹 프로젝트 정리 및 최적화 (v2.3.0)
-- **불필요한 파일 정리**: 로그, 캐시, 임시 파일 자동 정리
-- **코드 리팩토링**: 중복 코드 제거 및 구조 개선
-- **문서 최신화**: API 문서 및 프로젝트 가이드 업데이트
-- **성능 최적화**: 데이터베이스 쿼리 및 응답 시간 개선
-
-### ☁️ S3 통합 테스트 스크립트 관리 (v2.3.0)
-- **클라우드 저장**: AWS S3를 통한 테스트 스크립트 클라우드 저장
-- **운영 환경 호환**: 로컬 파일 의존성 제거로 운영 환경에서 완전 동작
-- **실시간 편집**: Monaco Editor를 통한 고급 코드 편집 기능
-- **파일 관리**: 업로드, 다운로드, 삭제, 편집 등 완전한 파일 관리
-- **다중 언어 지원**: JavaScript, Python, JSON, Markdown 등 다양한 언어 지원
-
-### 💻 고급 코드 에디터 (v2.3.0)
-- **Monaco Editor**: VS Code와 동일한 편집 경험
-- **구문 강조**: 프로그래밍 언어별 자동 구문 강조
-- **자동 완성**: 스마트 자동 완성 및 IntelliSense
-- **폴딩**: 코드 블록 접기/펼치기
-- **다크 모드**: 눈에 편한 다크 테마 지원
-
-## 📞 연락처
-
-- 프로젝트 링크: [https://github.com/username/integrated-test-platform](https://github.com/username/integrated-test-platform)
-- E-Mail : [bakgg93@gmail.com](bakgg93@gmail.com)
-- H.P : 010-8496-1463
 
 ---
 
-**마지막 업데이트**: 2026년 5월 11일
-**버전**: 2.8.0
-**상태**: 프로덕션 배포 완료 ✅
-**주요 업데이트**:
-- 백엔드 보안 이슈 전면 점검 및 수정 (May 2026)
-- 프론트엔드 UX 개선 (사이드바 토글, 계정 관리)
-- SQLAlchemy 2.0 마이그레이션 완료
-- Flask 3.1 업그레이드
+## 프로젝트 구조
+
+```
+TMS/
+├── server/                  # TypeScript 백엔드 (메인)
+│   ├── src/
+│   │   ├── app.ts           # Hono 앱 설정
+│   │   ├── index.ts         # 서버 진입점
+│   │   ├── env.ts           # 환경 변수 파싱
+│   │   ├── lib/
+│   │   │   ├── db.ts        # Prisma 클라이언트
+│   │   │   ├── logger.ts    # 로거
+│   │   │   └── password.ts  # bcrypt + werkzeug 호환 해싱
+│   │   ├── middleware/
+│   │   │   ├── auth.ts      # JWT 인증 미들웨어
+│   │   │   └── cors.ts      # CORS 설정
+│   │   └── routes/          # API 라우트
+│   ├── prisma/
+│   │   └── schema.prisma    # DB 스키마 정의
+│   ├── .env.example         # 환경 변수 예시
+│   └── package.json
+├── frontend/                # React 프론트엔드
+│   ├── src/
+│   │   ├── components/
+│   │   ├── contexts/
+│   │   ├── hooks/
+│   │   └── config.js        # API URL 설정
+│   └── package.json
+├── docs/                    # 문서
+├── scripts/                 # 유틸리티 스크립트
+└── README.md
+```
+
+---
+
+## 환경 변수 상세
+
+### server/.env
+
+| 변수 | 필수 | 설명 | 예시 |
+|------|------|------|------|
+| `NODE_ENV` | 선택 | 실행 환경 | `development` |
+| `PORT` | 선택 | 서버 포트 (기본 8080) | `8080` |
+| `DATABASE_URL` | **필수** | MySQL 연결 URL | `mysql://user:pass@host:3306/db` |
+| `JWT_SECRET_KEY` | **필수** | JWT 서명 키 | 임의의 긴 문자열 |
+| `JWT_ACCESS_EXPIRES_IN` | 선택 | Access 토큰 만료 | `24h` |
+| `JWT_REFRESH_EXPIRES_IN` | 선택 | Refresh 토큰 만료 | `30d` |
+| `ALLOWED_ORIGINS` | 선택 | CORS 허용 출처 | `http://localhost:3000` |
+| `ANTHROPIC_API_KEY` | 선택 | AI 기능용 Claude API 키 | `sk-ant-...` |
+| `JIRA_SERVER_URL` | 선택 | Jira 서버 URL | `https://xxx.atlassian.net` |
+| `JIRA_API_TOKEN` | 선택 | Jira API 토큰 | |
+| `SLACK_WEBHOOK_URL` | 선택 | Slack 알림 웹훅 | |
+
+> **개발 환경 CORS**: `NODE_ENV=development` 일 때 `localhost` 모든 포트를 자동 허용합니다.
+
+---
+
+## API 엔드포인트
+
+서버 기본 URL: `http://localhost:8080`
+
+| 메서드 | 경로 | 설명 |
+|--------|------|------|
+| GET | `/health` | 서버 상태 확인 |
+| POST | `/auth/login` | 로그인 |
+| POST | `/auth/register` | 회원가입 |
+| POST | `/auth/guest` | 게스트 로그인 |
+| GET | `/auth/profile` | 내 프로필 조회 |
+| GET | `/testcases` | 테스트 케이스 목록 |
+| POST | `/testcases` | 테스트 케이스 생성 |
+| GET | `/folders` | 폴더 목록 |
+| GET | `/dashboard` | 대시보드 통계 |
+
+모든 API는 `/api/` prefix도 동시 지원합니다 (예: `/api/auth/login`).
+
+---
+
+## 권한 시스템
+
+| 역할 | 설명 |
+|------|------|
+| `admin` | 전체 기능 접근, 사용자 관리 |
+| `user` | TC 생성/수정/실행 |
+| `viewer` | 읽기 전용 |
+| `guest` | 비로그인 제한적 접근 |
+
+---
+
+## 트러블슈팅
+
+### DB 연결 오류 (P1012 / P1013)
+- `DATABASE_URL`이 `mysql://` 로 시작하는지 확인
+- 비밀번호 특수문자를 URL 인코딩했는지 확인 (`#` → `%23`, `$` → `%24`)
+
+### 로그인 CORS 오류
+- `server/.env`의 `ALLOWED_ORIGINS`에 프론트엔드 출처 추가
+- 개발 환경(`NODE_ENV=development`)에서는 모든 localhost 포트가 자동 허용됨
+
+### Prisma 클라이언트 에러
+```bash
+cd server && npm run db:generate
+```
+
+### 포트 충돌
+- 기본 포트 8080이 사용 중이면 `.env`의 `PORT`를 변경 후 `frontend/src/config.js`의 `apiUrl`도 맞춰 수정
+
+---
+
+## 개발 스크립트 (server/)
+
+| 명령 | 설명 |
+|------|------|
+| `npm run dev` | 개발 서버 실행 (파일 감지 자동 재시작) |
+| `npm run build` | TypeScript 빌드 |
+| `npm run start` | 프로덕션 서버 실행 |
+| `npm run db:generate` | Prisma 클라이언트 생성 |
+| `npm run db:migrate` | DB 마이그레이션 실행 |
+| `npm run db:studio` | Prisma Studio (DB GUI) 실행 |
+| `npm run typecheck` | TypeScript 타입 검사 |
+| `npm run test` | 테스트 실행 |
+
+---
+
+## 문서
+
+- `docs/API_TESTING_GUIDE.md` — API 테스트 가이드
+- `docs/PERMISSION_GUIDE.md` — 권한별 기능 가이드
+- `docs/database/` — DB 설정 가이드
+- `docs/deployment/` — 배포 가이드
+
+---
+
+**마지막 업데이트**: 2026년 8월
+**버전**: 3.0.0
