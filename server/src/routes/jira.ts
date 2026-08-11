@@ -7,6 +7,8 @@ import { logger } from '../lib/logger.js'
 import { jiraClient } from '../lib/jiraClient.js'
 import { getJiraQueue } from '../lib/jiraPipeline.js'
 import { env } from '../env.js'
+import { isQATarget } from '../lib/ticketNormalizer.js'
+import { jiraCollectorService } from '../lib/jiraCollectorService.js'
 
 export const jiraRouter = new Hono()
 
@@ -510,10 +512,30 @@ jiraRouter.post('/webhook', async (c) => {
         projectKey,
         environment: 'dev',
       })
+
+      // 파이프라인 수집 (fire-and-forget)
+      if (isQATarget(fields)) {
+        jiraCollectorService.collect(issue, 'webhook')
+          .catch((e) => logger.warn({ e }, 'JiraCollector 실패 (비치명)'))
+      }
+
       return c.json({ message: '파이프라인 큐에 등록되었습니다.', issue_key: issueKey })
     }
 
     if (event?.includes('updated') || event === 'jira:issue_updated') {
+      // qa-requested 레이블이 새로 추가된 경우 → 파이프라인 트리거
+      const changelog = (payload.changelog?.items ?? []) as Array<{ field: string; fromString?: string; toString?: string }>
+      const labelChange = changelog.find((item) => item.field === 'labels')
+      const isQaLabelAdded = labelChange &&
+        String(labelChange.toString ?? '').includes('qa-requested') &&
+        !String(labelChange.fromString ?? '').includes('qa-requested')
+
+      if (isQaLabelAdded) {
+        jiraCollectorService.collect(issue, 'webhook')
+          .catch((e) => logger.warn({ e }, 'JiraCollector 실패 (비치명)'))
+        return c.json({ message: 'qa-requested 레이블 감지 — 파이프라인 시작', issue_key: issueKey })
+      }
+
       const queue = getJiraQueue()
       await queue.add('sync-status', {
         type: 'sync-jira-status',
