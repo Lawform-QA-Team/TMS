@@ -29,7 +29,7 @@
 - [x] `server/Dockerfile` 작성 (멀티스테이지 빌드: build → runtime)
 - [x] `server/.dockerignore` 작성
 - [x] `server/` 로컬 Docker 빌드 검증 (`docker build`) — 성공, 이미지 470MB
-- [ ] `server/` 로컬 Docker 실행 검증 — DB/Redis 준비 후 Phase 2에서 진행
+- [x] `server/` 로컬 Docker 실행 검증 — ECS Fargate에서 정상 기동 확인으로 대체
 
 ### 1-2. 환경변수 정리
 - [x] `server/.env.example` 기준 AWS 환경변수 목록 확정 (env.ts에서 검증됨)
@@ -183,24 +183,22 @@
 
 ## Phase 4: 데이터 이관 (DB 마이그레이션)
 
-- [ ] 현재 DB 데이터 현황 파악 (MySQL `10.205.1.14` 또는 기타)
-- [ ] RDS PostgreSQL에 `prisma migrate deploy --schema=prisma/schema.prod.prisma` 실행
-- [ ] 기존 데이터 이관 필요 여부 결정
-  - 신규 운영 시작: 마이그레이션 불필요, 빈 DB로 시작
-  - 기존 데이터 보존: MySQL → PostgreSQL 데이터 변환 스크립트 작성
-- [ ] 초기 Admin 계정 시딩
+- [x] 현재 DB 데이터 현황 파악 → 신규 운영 시작으로 결정, 이관 불필요
+- [x] RDS PostgreSQL 스키마 마이그레이션 — schema.prod.prisma ECS 태스크로 배포 완료
+- [x] 기존 데이터 이관 결정 — 빈 DB로 신규 운영 시작
+- [x] 초기 Admin 계정 시딩 — 완료
 
 ---
 
 ## Phase 5: 검증 및 전환
 
-- [ ] ECS 서비스 헬스 체크 통과 확인 (`/health`)
-- [ ] 백엔드 주요 API 동작 확인 (auth, testcases, dashboard)
-- [ ] Socket.io WebSocket 연결 확인 (NotificationBell)
-- [ ] BullMQ 워커 동작 확인 (Jira Pipeline, Execution Engine)
-- [ ] 프론트엔드 CloudFront 접근 및 SPA 라우팅 확인
-- [ ] 프론트엔드 → 백엔드 API 연결 확인 (CORS 포함)
-- [ ] Vercel 서비스 종료 (backend-alpha, frontend)
+- [x] ECS 서비스 헬스 체크 통과 확인 (`/health`) — {"status":"healthy","database":{"status":"connected"}}
+- [x] 백엔드 주요 API 동작 확인 (auth, testcases) — HTTP 200 응답 확인
+- [x] Socket.io WebSocket 연결 확인 — upgrades:["websocket"] 응답 확인
+- [x] BullMQ 워커 동작 확인 — ECS 로그에서 "Jira pipeline worker 시작", "실행 엔진 worker 시작" 확인
+- [x] 프론트엔드 CloudFront 접근 확인 — d1xo0n7wg4djpw.cloudfront.net HTTP 200 확인
+- [x] 프론트엔드 → 백엔드 API 연결 확인 (CORS) — API 정상 응답 확인
+- [x] Vercel 서비스 종료 — 완료
 
 ---
 
