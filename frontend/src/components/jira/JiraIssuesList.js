@@ -69,8 +69,8 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
 
       // testCaseId가 있으면 해당 테스트 케이스와 연결된 이슈만 조회
       const url = testCaseId
-        ? `${config.apiUrl}/api/jira/issues/testcase/${testCaseId}`
-        : `${config.apiUrl}/api/jira/issues`;
+        ? `${config.apiUrl}/jira/issues/testcase/${testCaseId}`
+        : `${config.apiUrl}/jira/issues`;
 
       const response = await axios.get(url, { headers: authHeader });
 
@@ -90,7 +90,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
     try {
       setLoading(true);
       setError(null);
-      await axios.post(`${config.apiUrl}/api/jira/issues/import`, {}, { headers: authHeader });
+      await axios.post(`${config.apiUrl}/jira/issues/import`, {}, { headers: authHeader });
       await fetchJiraIssues();
     } catch (err) {
       console.error('Jira 동기화 오류:', err);
@@ -102,7 +102,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
   // 이슈 상태 업데이트
   const updateIssueStatus = async (issueKey, newStatus) => {
     try {
-      const response = await axios.put(`${config.apiUrl}/api/jira/issues/${issueKey}`, {
+      const response = await axios.put(`${config.apiUrl}/jira/issues/${issueKey}`, {
         status: newStatus
       }, { headers: authHeader });
       
@@ -120,7 +120,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
   const addComment = async (issueKey, comment) => {
     try {
       const authorEmail = user?.email || user?.username || '';
-      const response = await axios.post(`${config.apiUrl}/api/jira/issues/${issueKey}/comments`, {
+      const response = await axios.post(`${config.apiUrl}/jira/issues/${issueKey}/comments`, {
         body: comment,
         author_email: authorEmail
       }, { headers: authHeader });
@@ -145,7 +145,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
   // 담당자 할당
   const assignIssue = async (issueKey, assigneeEmail) => {
     try {
-      const response = await axios.put(`${config.apiUrl}/api/jira/issues/${issueKey}`, {
+      const response = await axios.put(`${config.apiUrl}/jira/issues/${issueKey}`, {
         assignee_email: assigneeEmail
       }, { headers: authHeader });
       
@@ -174,7 +174,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
       // 새 레이블 추가 (중복 제거)
       const updatedLabels = [...new Set([...existingLabels, ...newLabels])];
       
-      const response = await axios.put(`${config.apiUrl}/api/jira/issues/${issueKey}`, {
+      const response = await axios.put(`${config.apiUrl}/jira/issues/${issueKey}`, {
         labels: updatedLabels
       }, { headers: authHeader });
 
@@ -200,7 +200,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
       // 레이블 제거
       const updatedLabels = existingLabels.filter(label => label !== labelToRemove);
       
-      const response = await axios.put(`${config.apiUrl}/api/jira/issues/${issueKey}`, {
+      const response = await axios.put(`${config.apiUrl}/jira/issues/${issueKey}`, {
         labels: updatedLabels
       }, { headers: authHeader });
 
@@ -218,7 +218,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
   const fetchComments = async (issueKey) => {
     setLoadingComments(true);
     try {
-      const response = await axios.get(`${config.apiUrl}/api/jira/issues/${issueKey}/comments`, { headers: authHeader });
+      const response = await axios.get(`${config.apiUrl}/jira/issues/${issueKey}/comments`, { headers: authHeader });
       if (response.data.success) {
         setComments(response.data.data || []);
       }
@@ -280,7 +280,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
         ? { ...issueData, test_case_id: testCaseId }
         : issueData;
       
-      const response = await axios.post(`${config.apiUrl}/api/jira/issues`, dataToSend, { headers: authHeader });
+      const response = await axios.post(`${config.apiUrl}/jira/issues`, dataToSend, { headers: authHeader });
       
       if (response.data.success) {
         fetchJiraIssues();
@@ -314,7 +314,7 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
     if (!selectedIssue) return;
 
     try {
-      const response = await axios.put(`${config.apiUrl}/api/jira/issues/${selectedIssue.issue_key}`, {
+      const response = await axios.put(`${config.apiUrl}/jira/issues/${selectedIssue.issue_key}`, {
         summary: editFormData.summary,
         description: editFormData.description,
         status: editFormData.status,
@@ -331,8 +331,8 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
           setIsEditMode(false);
           // 업데이트된 이슈 정보 다시 조회
           const url = testCaseId
-            ? `${config.apiUrl}/api/jira/issues/testcase/${testCaseId}`
-            : `${config.apiUrl}/api/jira/issues`;
+            ? `${config.apiUrl}/jira/issues/testcase/${testCaseId}`
+            : `${config.apiUrl}/jira/issues`;
           const updatedIssuesResponse = await axios.get(url, { headers: authHeader });
           if (updatedIssuesResponse.data.success) {
             const foundIssue = updatedIssuesResponse.data.data.issues.find(

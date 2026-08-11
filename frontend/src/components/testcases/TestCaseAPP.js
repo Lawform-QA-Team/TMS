@@ -694,7 +694,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
     setLoadingComments(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${config.apiUrl}/api/collaboration/comments`, {
+      const response = await axios.get(`${config.apiUrl}/collaboration/comments`, {
         params: {
           entity_type: 'test_case',
           entity_id: testCaseId
@@ -853,7 +853,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
     
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`${config.apiUrl}/api/collaboration/comments`, {
+      await axios.post(`${config.apiUrl}/collaboration/comments`, {
         entity_type: 'test_case',
         entity_id: selectedTestCase.id,
         content: newComment.trim()
@@ -898,7 +898,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
     
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`${config.apiUrl}/api/collaboration/comments/${commentId}`, {
+      await axios.put(`${config.apiUrl}/collaboration/comments/${commentId}`, {
         content: editingCommentContent.trim()
       }, {
         headers: {
@@ -926,7 +926,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
     
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`${config.apiUrl}/api/collaboration/comments/${commentId}`, {
+      await axios.delete(`${config.apiUrl}/collaboration/comments/${commentId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

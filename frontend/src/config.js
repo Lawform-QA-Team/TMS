@@ -1,6 +1,6 @@
 const config = {
   development: {
-    apiUrl: process.env.REACT_APP_API_URL || 'http://localhost:8000',
+    apiUrl: process.env.REACT_APP_API_URL || 'http://localhost:8000/api',
     uploadUrl: process.env.REACT_APP_UPLOAD_URL || 'http://localhost:8000/uploads'
   },
   production: {
