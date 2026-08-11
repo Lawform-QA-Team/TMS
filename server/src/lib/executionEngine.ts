@@ -65,7 +65,7 @@ let _worker: Worker<ExecutionJobData> | null = null
 
 export function getExecutionQueue(): Queue<ExecutionJobData> {
   if (!_queue) {
-    _queue = new Queue<ExecutionJobData>(QUEUE_NAME, { connection: getRedis() })
+    _queue = new Queue<ExecutionJobData>(QUEUE_NAME, { connection: getRedis(), prefix: '{bull}' })
   }
   return _queue
 }
@@ -424,6 +424,7 @@ export function startExecutionWorker(): Worker<ExecutionJobData> {
 
   _worker = new Worker<ExecutionJobData>(QUEUE_NAME, processJob, {
     connection: getRedis(),
+    prefix: '{bull}',
     concurrency: env.NODE_ENV === 'production' ? 5 : 2,
   })
 

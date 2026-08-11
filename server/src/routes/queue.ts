@@ -12,7 +12,7 @@ export const queueRouter = new Hono()
 const QUEUE_NAME = 'test_execution'
 
 function getQueue(): Queue {
-  return new Queue(QUEUE_NAME, { connection: getRedis() })
+  return new Queue(QUEUE_NAME, { connection: getRedis(), prefix: '{bull}' })
 }
 
 // ──────────────────────────────────────────────
@@ -201,7 +201,7 @@ queueRouter.post('/purge', requireAdmin, async (c) => {
     const body = await c.req.json().catch(() => ({}))
     const queueName: string = body?.queue_name ?? QUEUE_NAME
 
-    const queue = new Queue(queueName, { connection: getRedis() })
+    const queue = new Queue(queueName, { connection: getRedis(), prefix: '{bull}' })
     await queue.obliterate({ force: true })
     await queue.close()
 

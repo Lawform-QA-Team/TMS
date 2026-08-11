@@ -100,7 +100,7 @@ let _worker: Worker<JiraPipelineJobData> | null = null
 
 export function getJiraQueue(): Queue<JiraPipelineJobData> {
   if (!_queue) {
-    _queue = new Queue<JiraPipelineJobData>(env.QUEUE_NAME, { connection: getRedis() })
+    _queue = new Queue<JiraPipelineJobData>(env.QUEUE_NAME, { connection: getRedis(), prefix: '{bull}' })
   }
   return _queue
 }
@@ -458,6 +458,7 @@ export function startJiraPipelineWorker(): Worker<JiraPipelineJobData> {
 
   _worker = new Worker<JiraPipelineJobData>(env.QUEUE_NAME, processJob, {
     connection: getRedis(),
+    prefix: '{bull}',
     concurrency: 3,
   })
 
