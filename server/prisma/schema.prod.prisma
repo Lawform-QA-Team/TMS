@@ -786,3 +786,232 @@ model SystemConfig {
 
   @@map("SystemConfig")
 }
+
+model CollectedTicket {
+  id              Int      @id @default(autoincrement())
+  pipelineId      String   @unique @map("pipeline_id") @db.VarChar(36)
+  ticketKey       String   @unique @map("ticket_key") @db.VarChar(50)
+  projectKey      String   @map("project_key") @db.VarChar(20)
+  issueType       String   @map("issue_type") @db.VarChar(50)
+  priority        String   @db.VarChar(20)
+  summary         String   @db.VarChar(500)
+  descriptionRaw  String?  @map("description_raw")
+  descriptionText String?  @map("description_text")
+  labels          String?
+  sourceType      String   @default("webhook") @map("source_type") @db.VarChar(20)
+  pipelineStatus  String   @default("collected") @map("pipeline_status") @db.VarChar(30)
+  errorMessage    String?  @map("error_message")
+  collectedAt     DateTime @default(now()) @map("collected_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  qaPlan          QAPlan?
+
+  @@index([pipelineStatus])
+  @@index([projectKey])
+  @@index([collectedAt])
+  @@map("CollectedTickets")
+}
+
+model QAPlan {
+  id                Int              @id @default(autoincrement())
+  pipelineId        String           @unique @map("pipeline_id") @db.VarChar(36)
+  collectedTicketId Int              @unique @map("collected_ticket_id")
+  planContent       String?          @map("plan_content")
+  approvalStatus    String           @default("pending") @map("approval_status") @db.VarChar(20)
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+  collectedTicket   CollectedTicket  @relation(fields: [collectedTicketId], references: [id], onDelete: Cascade)
+  autoQaTestCases   AutoQaTestCase[]
+
+  @@map("QAPlans")
+}
+
+model AutoQaTestCase {
+  id             Int      @id @default(autoincrement())
+  qaPlanId       Int      @map("qa_plan_id")
+  pipelineId     String   @map("pipeline_id") @db.VarChar(36)
+  title          String   @db.VarChar(200)
+  caseType       String   @default("happyPath") @map("case_type") @db.VarChar(20)
+  priority       String   @default("P2") @db.VarChar(10)
+  preconditions  String?
+  steps          String?
+  expectedResult String?  @map("expected_result")
+  tags           String?
+  gherkin        String?
+  status         String   @default("draft") @db.VarChar(20)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  qaPlan         QAPlan   @relation(fields: [qaPlanId], references: [id], onDelete: Cascade)
+
+  @@index([qaPlanId])
+  @@index([pipelineId])
+  @@map("AutoQaTestCases")
+}
+
+model PageAnalysis {
+  id          Int      @id @default(autoincrement())
+  pipelineId  String   @map("pipeline_id") @db.VarChar(36)
+  pageName    String   @map("page_name") @db.VarChar(200)
+  urlPattern  String?  @map("url_pattern") @db.VarChar(500)
+  elements    String?
+  flows       String?
+  rawAnalysis String?  @map("raw_analysis")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([pipelineId])
+  @@map("PageAnalyses")
+}
+
+model GeneratedCode {
+  id         Int      @id @default(autoincrement())
+  pipelineId String   @unique @map("pipeline_id") @db.VarChar(36)
+  language   String   @default("typescript") @db.VarChar(20)
+  framework  String   @default("playwright") @db.VarChar(20)
+  fileName   String?  @map("file_name") @db.VarChar(200)
+  code       String
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("GeneratedCodes")
+}
+
+model TestRunResult {
+  id           Int       @id @default(autoincrement())
+  pipelineId   String    @unique @map("pipeline_id") @db.VarChar(36)
+  status       String    @default("pending") @db.VarChar(20)
+  totalTests   Int       @default(0) @map("total_tests")
+  passed       Int       @default(0)
+  failed       Int       @default(0)
+  skipped      Int       @default(0)
+  durationMs   Int?      @map("duration_ms")
+  results      String?
+  errorMessage String?   @map("error_message")
+  startedAt    DateTime? @map("started_at")
+  completedAt  DateTime? @map("completed_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@map("TestRunResults")
+}
+
+model PipelineReport {
+  id              Int      @id @default(autoincrement())
+  pipelineId      String   @unique @map("pipeline_id") @db.VarChar(36)
+  summary         String?
+  content         String?
+  passRate        Float?   @map("pass_rate")
+  riskLevel       String?  @map("risk_level") @db.VarChar(20)
+  qualityScore    Int?     @map("quality_score")
+  readyForRelease Boolean  @default(false) @map("ready_for_release")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("PipelineReports")
+}
+
+model PipelineBug {
+  id           Int      @id @default(autoincrement())
+  pipelineId   String   @map("pipeline_id") @db.VarChar(36)
+  title        String   @db.VarChar(500)
+  description  String?
+  severity     String   @default("medium") @db.VarChar(20)
+  status       String   @default("open") @db.VarChar(20)
+  tcTitle      String?  @map("tc_title") @db.VarChar(500)
+  jiraIssueKey String?  @map("jira_issue_key") @db.VarChar(50)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([pipelineId])
+  @@map("PipelineBugs")
+}
+
+model PlaywrightRun {
+  id          Int                    @id @default(autoincrement())
+  runId       String                 @unique @map("run_id") @db.VarChar(36)
+  project     String                 @db.VarChar(50)
+  branch      String?                @db.VarChar(100)
+  environment String                 @default("staging") @db.VarChar(20)
+  totalTests  Int                    @map("total_tests")
+  passed      Int
+  failed      Int
+  skipped     Int
+  durationMs  Int                    @map("duration_ms")
+  startedAt   DateTime               @map("started_at")
+  createdAt   DateTime               @default(now()) @map("created_at")
+  testResults PlaywrightTestResult[]
+
+  @@index([project])
+  @@index([startedAt])
+  @@map("PlaywrightRuns")
+}
+
+model PlaywrightTestResult {
+  id           Int           @id @default(autoincrement())
+  runId        Int           @map("run_id")
+  suiteName    String        @map("suite_name") @db.VarChar(200)
+  testName     String        @map("test_name") @db.VarChar(300)
+  status       String        @db.VarChar(20)
+  durationMs   Int           @map("duration_ms")
+  browser      String?       @db.VarChar(30)
+  retries      Int           @default(0)
+  errorMessage String?       @map("error_message")
+  run          PlaywrightRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@index([status])
+  @@map("PlaywrightTestResults")
+}
+
+model K6Run {
+  id              Int            @id @default(autoincrement())
+  runId           String         @unique @map("run_id") @db.VarChar(36)
+  scenario        String         @db.VarChar(100)
+  environment     String         @default("staging") @db.VarChar(20)
+  virtualUsers    Int            @map("virtual_users")
+  durationSeconds Int            @map("duration_seconds")
+  startedAt       DateTime       @map("started_at")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  metrics         K6Metrics?
+  timeseries      K6Timeseries[]
+
+  @@index([scenario])
+  @@index([startedAt])
+  @@map("K6Runs")
+}
+
+model K6Metrics {
+  id             Int    @id @default(autoincrement())
+  runId          Int    @unique @map("run_id")
+  totalRequests  Int    @map("total_requests")
+  failedRequests Int    @map("failed_requests")
+  errorRate      Float  @map("error_rate")
+  avgResponseMs  Float  @map("avg_response_ms")
+  p95ResponseMs  Float  @map("p95_response_ms")
+  p99ResponseMs  Float  @map("p99_response_ms")
+  lcp            Float?
+  fcp            Float?
+  ttfb           Float?
+  cls            Float?
+  fid            Float?
+  inp            Float?
+  run            K6Run  @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@map("K6Metrics")
+}
+
+model K6Timeseries {
+  id                Int      @id @default(autoincrement())
+  runId             Int      @map("run_id")
+  timestamp         DateTime
+  requestRate       Float    @map("request_rate")
+  responseMs        Float    @map("response_ms")
+  errorRate         Float    @map("error_rate")
+  activeVus         Int      @map("active_vus")
+  dataSentBytes     Float    @default(0) @map("data_sent_bytes")
+  dataReceivedBytes Float    @default(0) @map("data_received_bytes")
+  run               K6Run    @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@index([timestamp])
+  @@map("K6Timeseries")
+}
