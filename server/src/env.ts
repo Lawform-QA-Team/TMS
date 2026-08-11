@@ -28,6 +28,7 @@ const envSchema = z.object({
 
   // LLM
   ANTHROPIC_API_KEY: z.string().optional(),
+  FIGMA_API_TOKEN: z.string().optional(),
   TEST_APP_BASE_URL: z.string().optional(),  // 페이지 분석 대상 앱 URL (예: http://localhost:3000)
   PLAYWRIGHT_ENABLED: z.string().default('false').transform((v) => v === 'true'),
 

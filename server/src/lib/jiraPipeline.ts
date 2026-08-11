@@ -16,6 +16,7 @@ import { jiraClient } from './jiraClient.js'
 import { env } from '../env.js'
 import { logger } from './logger.js'
 import type { NormalizedTicket } from './ticketNormalizer.js'
+import { resolveEpicContext } from './epicContextResolver.js'
 import { generateQAPlan, createQAPlanRecord } from './qaPlanGenerator.js'
 import { sendQAPlanApprovalRequest, sendTestCasesComplete, sendPageAnalysisComplete, sendCodegenComplete, sendTestRunComplete, sendReportComplete, sendBugsComplete } from './slackNotifier.js'
 import { generateTestCases } from './testCaseGenerator.js'
@@ -272,6 +273,16 @@ async function processJob(job: Job<JiraPipelineJobData>): Promise<void> {
   else if (data.type === 'qaplan-approved') {
     logger.info({ pipelineId: data.pipelineId, qaPlanId: data.qaPlanId }, 'QA Plan 승인 → TC 생성 시작')
     try {
+      // qa-requested 레이블이 있으면 Epic 컨텍스트 재조회
+      const collectedTicket = await db.collectedTicket.findUnique({ where: { pipelineId: data.pipelineId } })
+      let epicContext: Awaited<ReturnType<typeof resolveEpicContext>> | undefined
+      if (collectedTicket) {
+        const labels = JSON.parse(collectedTicket.labels ?? '[]') as string[]
+        if (labels.includes('qa-requested')) {
+          epicContext = await resolveEpicContext(collectedTicket.ticketKey)
+        }
+      }
+      const { saved } = await generateTestCases(data.qaPlanId, data.pipelineId, epicContext)
       const { saved } = await generateTestCases(data.qaPlanId, data.pipelineId)
       await sendTestCasesComplete(data.pipelineId, saved)
       // Phase 4: 페이지 분석으로 자동 진행

@@ -1,6 +1,7 @@
 import { getRedis } from './redis.js'
 import { getJiraQueue } from './jiraPipeline.js'
 import { normalizeTicket } from './ticketNormalizer.js'
+import { resolveEpicContext } from './epicContextResolver.js'
 import { db } from './db.js'
 import { logger } from './logger.js'
 import type { JiraIssueResponse } from './jiraClient.js'
@@ -25,6 +26,12 @@ export class JiraCollectorService {
     // 2. 정규화
     const normalized = normalizeTicket(issue, sourceType)
 
+    // 2-1. qa-requested 레이블이 있으면 Epic → [기획] Task 컨텍스트 보강
+    if (normalized.labels.includes('qa-requested')) {
+      logger.info({ ticketKey }, 'qa-requested 감지 → Epic 컨텍스트 조회 시작')
+      normalized.epicContext = await resolveEpicContext(ticketKey)
+    }
+      
     // 3. DB upsert
     await db.collectedTicket.upsert({
       where: { ticketKey },

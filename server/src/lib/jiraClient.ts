@@ -188,6 +188,35 @@ export class JiraClient {
       transition: { id: transitionId },
     })
   }
+
+  /** 특정 필드만 지정하여 이슈 조회 */
+  async getIssueWithFields(issueKey: string, fields?: string[]): Promise<JiraIssueResponse> {
+    const params: Record<string, string> = {}
+    if (fields?.length) params.fields = fields.join(',')
+    return this.request<JiraIssueResponse>('GET', `/rest/api/3/issue/${issueKey}`, undefined, params)
+  }
+
+  /** Epic 하위 이슈 조회 (Next-gen: parent=key, Classic: Epic Link=key 순으로 시도) */
+  async getEpicChildren(epicKey: string, maxResults = 100): Promise<JiraIssueResponse[]> {
+    try {
+      const result = await this.searchIssues(`parent = "${epicKey}"`, 0, maxResults)
+      if (result.total > 0) return result.issues
+    } catch { /* Classic fallback */ }
+    try {
+      const result = await this.searchIssues(`"Epic Link" = "${epicKey}"`, 0, maxResults)
+      return result.issues
+    } catch {
+      return []
+    }
+  }
+
+  /** 이슈에 첨부된 원격 링크(웹 링크) 목록 조회 */
+  async getRemoteLinks(issueKey: string): Promise<Array<{ object?: { url?: string; title?: string } }>> {
+    return this.request<Array<{ object?: { url?: string; title?: string } }>>(
+      'GET',
+      `/rest/api/3/issue/${issueKey}/remotelink`,
+    )
+  }
 }
 
 // 싱글턴 클라이언트
