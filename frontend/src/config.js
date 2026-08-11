@@ -1,11 +1,11 @@
 const config = {
   development: {
-    apiUrl: 'http://localhost:8080',
-    uploadUrl: 'http://localhost:8080/uploads'
+    apiUrl: process.env.REACT_APP_API_URL || 'http://localhost:8000',
+    uploadUrl: process.env.REACT_APP_UPLOAD_URL || 'http://localhost:8000/uploads'
   },
   production: {
-    apiUrl: process.env.REACT_APP_API_URL || 'https://backend-alpha-liard.vercel.app',
-    uploadUrl: process.env.REACT_APP_UPLOAD_URL || 'https://backend-alpha-liard.vercel.app/uploads'
+    apiUrl: process.env.REACT_APP_API_URL || '',
+    uploadUrl: process.env.REACT_APP_UPLOAD_URL || ''
   }
 };
 
@@ -14,5 +14,7 @@ const environment = process.env.NODE_ENV || 'development';
 const currentConfig = config[environment];
 
 // 환경 정보는 로그에 출력하지 않음
+// prod: REACT_APP_API_URL = CloudFront 도메인
+// REACT_APP_API_URL 에 /api 추가
 
 export default currentConfig;

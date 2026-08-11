@@ -23,7 +23,6 @@ const MAX_TC = 10  // 토큰 절약을 위한 상한
 const SYSTEM_PROMPT = `당신은 시니어 QA 엔지니어입니다.
 QA Plan과 티켓 정보를 분석하여 구체적인 테스트 케이스를 JSON 배열로 작성합니다.
 반드시 JSON 배열만 반환하고 다른 텍스트는 포함하지 마세요.`
-
 function buildEpicContextSection(epicContext: import('./ticketNormalizer.js').NormalizedTicket['epicContext']): string {
   if (!epicContext?.epicKey) return ''
   const lines: string[] = ['\n--- 기획 컨텍스트 ---']
@@ -53,6 +52,8 @@ function buildPrompt(
   const count = Math.min(targetCount, MAX_TC)
   const epicSection = buildEpicContextSection(epicContext)
 
+): string {
+  const count = Math.min(targetCount, MAX_TC)
   return `다음 정보를 바탕으로 테스트 케이스 ${count}개를 작성해주세요.
 
 티켓: ${ticketKey}

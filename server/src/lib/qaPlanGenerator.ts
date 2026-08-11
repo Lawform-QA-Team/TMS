@@ -18,6 +18,7 @@ const SYSTEM_PROMPT = `당신은 시니어 QA 엔지니어입니다.
 Jira 티켓 정보를 분석하여 QA 계획을 JSON 형식으로 작성합니다.
 반드시 아래 JSON 스키마만 반환하고 다른 텍스트는 포함하지 마세요.`
 
+
 function buildEpicContextSection(ticket: NormalizedTicket): string {
   const ctx = ticket.epicContext
   if (!ctx?.epicKey) return ''
@@ -45,7 +46,7 @@ function buildEpicContextSection(ticket: NormalizedTicket): string {
 function buildPrompt(ticket: NormalizedTicket): string {
   const epicSection = buildEpicContextSection(ticket)
   const hasEpicContext = !!ticket.epicContext?.epicKey
-
+function buildPrompt(ticket: NormalizedTicket): string {
   return `다음 Jira 티켓에 대한 QA 계획을 작성해주세요.
 
 티켓 정보:

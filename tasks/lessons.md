@@ -436,6 +436,32 @@ def _get_current_user_id():
 
 ---
 
+## 2026-08-06
+
+### Prisma MySQL + prisma migrate dev 불가 (migration_lock.toml provider 불일치)
+
+**현상**: `prisma migrate dev` 실행 시 `P3019: datasource provider mysql does not match postgresql in migration_lock.toml`
+
+**원인**: 기존 migrations 폴더가 PostgreSQL로 초기화되어 있음
+
+**해결**: `prisma db push` 사용 (schema를 직접 DB에 동기화, migration 히스토리 불필요)
+
+**교훈**: MySQL TMS 프로젝트에서 스키마 변경 시 `prisma migrate dev` 대신 **`prisma db push`** 를 사용할 것
+
+---
+
+### tsx watch — Prisma Client 재생성 후 서버 재시작 필요
+
+**현상**: `prisma db push`로 새 모델 추가 후 `db.collectedTicket`이 undefined
+
+**원인**: tsx watch는 소스 파일 변경만 감지, node_modules(Prisma Client 재생성)는 감지 안 함
+
+**해결**: 소스 파일 한 개를 `touch`해 tsx watch 재시작 유발
+
+**교훈**: Prisma 스키마 변경(db push/generate) 후에는 반드시 서버 재시작 확인
+
+---
+
 ## 2026-05-14
 
 ### fullscreen-modal → SlidePanel 교체 패턴
@@ -560,3 +586,14 @@ user = User(username=f'admin_{suffix}', email=f'admin_{suffix}@test.com', ...)
 
 **교훈**: 테스트 픽스처의 고정 식별자는 UUID suffix로 대체해 충돌 방지할 것
 
+
+## 2025-08-07: 모니터링 대시보드 — Prisma 신규 모델 추가 시 서버 재시작 필수
+
+새 Prisma 모델 추가 후 `db push` / `generate`가 완료되어도 실행 중인 서버는 이전 클라이언트를 사용하므로
+`db.playwrightRun is undefined` 같은 런타임 에러가 발생한다.
+**반드시 서버를 재빌드 + 재시작**해야 새 모델이 인식된다.
+
+## 2025-08-07: 기존 iframe → 자체 차트 교체 시 파일명 유지 패턴
+
+App.js의 import를 건드리지 않으려면 기존 파일명(`GrafanaDashboard.js`)을 유지하고 내용만 교체.
+서브 컴포넌트(`PlaywrightTab.js`, `K6Tab.js`)는 같은 디렉토리에 분리 생성.

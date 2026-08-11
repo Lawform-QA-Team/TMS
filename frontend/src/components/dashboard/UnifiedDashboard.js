@@ -317,7 +317,7 @@ const UnifiedDashboard = ({ setActiveTab }) => {
   // 최근 이슈 가져오기
   const fetchJiraRecentIssues = async (page = 1) => {
     try {
-      const response = await axios.get(`/api/jira/issues?page=${page}&per_page=${itemsPerPage}`);
+      const response = await axios.get(`/jira/issues?page=${page}&per_page=${itemsPerPage}`);
       if (response.data.success) {
         setJiraRecentIssuesPagination(response.data.data.pagination);
         return response.data.data.issues || [];
@@ -423,31 +423,36 @@ const UnifiedDashboard = ({ setActiveTab }) => {
       setLoading(true);
       setError(null);
       
-      // 최적화: 불필요한 헬스체크 요청 제거, 병렬 요청만 유지
-      const [testCasesRes, performanceTestsRes, testExecutionsRes, summariesRes, testcaseSummariesRes, projectStatsRes, jiraStatsRes, jiraEnvironmentStatsRes, jiraRecentIssuesRes] = await Promise.all([
+      // 병렬 요청 — 하나가 실패해도 나머지 데이터는 표시
+      const results = await Promise.allSettled([
         axios.get(`/testcases?page=1&per_page=${itemsPerPage}`),
         axios.get(`/performance-tests?page=1&per_page=${itemsPerPage}`),
         axios.get(`/test-executions?page=1&per_page=${itemsPerPage}`),
         axios.get('/dashboard-summaries'),
         axios.get('/testcases/summary/all'),
         axios.get('/dashboard/project-stats'),
-        axios.get('/api/jira/stats'),
-        axios.get('/api/jira/stats/environment'),
-        axios.get(`/api/jira/issues?page=1&per_page=${itemsPerPage}`)
+        axios.get('/jira/stats'),
+        axios.get('/jira/stats/environment'),
+        axios.get(`/jira/issues?page=1&per_page=${itemsPerPage}`)
       ]);
 
-      setTestCases(testCasesRes.data.items || testCasesRes.data);
-      setPerformanceTests(performanceTestsRes.data.items || performanceTestsRes.data);
-      setTestExecutions(testExecutionsRes.data.items || testExecutionsRes.data);
-      setDashboardSummaries(summariesRes.data);
-      setTestcaseSummaries(testcaseSummariesRes.data);
-      setProjectStats(Array.isArray(projectStatsRes.data) ? projectStatsRes.data : []);
+      const labels = ['testcases', 'performance-tests', 'test-executions', 'dashboard-summaries', 'testcases/summary/all', 'dashboard/project-stats', 'jira/stats', 'jira/stats/environment', 'jira/issues'];
+      results.forEach((r, i) => {
+        if (r.status === 'rejected') console.error(`[Dashboard] ${labels[i]} 실패:`, r.reason);
+      });
+
+      const [testCasesRes, performanceTestsRes, testExecutionsRes, summariesRes, testcaseSummariesRes, projectStatsRes, jiraStatsRes, jiraEnvironmentStatsRes, jiraRecentIssuesRes] = results.map((r) => r.status === 'fulfilled' ? r.value : null);
+
+      if (testCasesRes) setTestCases(testCasesRes.data.items || testCasesRes.data || []);
+      if (performanceTestsRes) setPerformanceTests(performanceTestsRes.data.items || performanceTestsRes.data || []);
+      if (testExecutionsRes) setTestExecutions(testExecutionsRes.data.items || testExecutionsRes.data || []);
+      if (summariesRes) setDashboardSummaries(summariesRes.data || []);
+      if (testcaseSummariesRes) setTestcaseSummaries(testcaseSummariesRes.data || []);
+      if (projectStatsRes) setProjectStats(Array.isArray(projectStatsRes.data) ? projectStatsRes.data : []);
 
       // JIRA 통계 처리
-      console.log('📊 JIRA 통계 응답:', jiraStatsRes.data);
-      if (jiraStatsRes.data && jiraStatsRes.data.success) {
+      if (jiraStatsRes && jiraStatsRes.data && jiraStatsRes.data.success) {
         const stats = jiraStatsRes.data.data;
-        console.log('📊 JIRA 통계 데이터:', stats);
         setJiraStats({
           totalIssues: stats.total_issues || 0,
           issuesByStatus: stats.issues_by_status || {},
@@ -456,14 +461,10 @@ const UnifiedDashboard = ({ setActiveTab }) => {
           issuesByLabels: stats.issues_by_labels || {},
           recentIssues: stats.recent_issues || []
         });
-        console.log('📊 JIRA 통계 상태 설정 완료');
-      } else {
-        console.log('❌ JIRA 통계 응답 실패:', jiraStatsRes.data);
       }
-      
+
       // 환경별 JIRA 통계 처리
-      console.log('🌍 환경별 JIRA 통계 응답:', jiraEnvironmentStatsRes.data);
-      if (jiraEnvironmentStatsRes.data && jiraEnvironmentStatsRes.data.success) {
+      if (jiraEnvironmentStatsRes && jiraEnvironmentStatsRes.data && jiraEnvironmentStatsRes.data.success) {
         const envStats = jiraEnvironmentStatsRes.data.data || {};
         console.log('🌍 환경별 JIRA 통계 데이터:', envStats);
         
@@ -483,31 +484,21 @@ const UnifiedDashboard = ({ setActiveTab }) => {
         });
 
         setJiraEnvironmentStats(normalizedEnvStats);
-        console.log('🌍 환경별 JIRA 통계 상태 설정 완료');
-      } else {
-        console.log('❌ 환경별 JIRA 통계 응답 실패:', jiraEnvironmentStatsRes.data);
       }
-      
+
       // 최근 이슈 처리
-      if (jiraRecentIssuesRes.data && jiraRecentIssuesRes.data.success) {
+      if (jiraRecentIssuesRes?.data?.success) {
         setJiraRecentIssues(jiraRecentIssuesRes.data.data.issues || []);
         setJiraRecentIssuesPagination(jiraRecentIssuesRes.data.data.pagination);
       } else {
-        console.error('최근 이슈 조회 실패:', jiraRecentIssuesRes.data?.error);
         setJiraRecentIssues([]);
         setJiraRecentIssuesPagination(null);
       }
       
       // 페이징 정보 설정
-      if (testCasesRes.data.pagination) {
-        setTestCasesPagination(testCasesRes.data.pagination);
-      }
-      if (performanceTestsRes.data.pagination) {
-        setPerformanceTestsPagination(performanceTestsRes.data.pagination);
-      }
-      if (testExecutionsRes.data.pagination) {
-        setTestExecutionsPagination(testExecutionsRes.data.pagination);
-      }
+      if (testCasesRes?.data?.pagination) setTestCasesPagination(testCasesRes.data.pagination);
+      if (performanceTestsRes?.data?.pagination) setPerformanceTestsPagination(performanceTestsRes.data.pagination);
+      if (testExecutionsRes?.data?.pagination) setTestExecutionsPagination(testExecutionsRes.data.pagination);
 
       // Pass Rate 추이 초기 로드
       axios.get(`/analytics/pass-rate-trend?days=30`)
@@ -515,12 +506,7 @@ const UnifiedDashboard = ({ setActiveTab }) => {
         .catch(() => {});
 
     } catch (err) {
-      // 오류는 조용히 처리 (개발 환경에서만 로그 출력)
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Dashboard 데이터 로드 오류:', err);
-      }
-      
-      
+      console.error('Dashboard 데이터 로드 오류:', err);
       setError('데이터를 불러오는 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);

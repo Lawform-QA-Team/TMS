@@ -31,7 +31,7 @@ export class JiraCollectorService {
       logger.info({ ticketKey }, 'qa-requested 감지 → Epic 컨텍스트 조회 시작')
       normalized.epicContext = await resolveEpicContext(ticketKey)
     }
-
+      
     // 3. DB upsert
     await db.collectedTicket.upsert({
       where: { ticketKey },

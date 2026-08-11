@@ -296,11 +296,11 @@ const AutomationTestDetail = ({ test, onClose, onRefresh }) => {
                   {test.description || '설명 없음'}
                 </td>
               </tr>
-              {test.parameters && (
+              {test.parameters && Object.keys(test.parameters).length > 0 && (
                 <tr>
                   <th>매개변수</th>
                   <td colSpan="3" className="parameters">
-                    <pre className="parameters-json">{test.parameters}</pre>
+                    <pre className="parameters-json">{JSON.stringify(test.parameters, null, 2)}</pre>
                   </td>
                 </tr>
               )}

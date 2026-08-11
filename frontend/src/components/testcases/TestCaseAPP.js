@@ -286,7 +286,8 @@ const TestCaseAPP = ({ setActiveTab }) => {
 
     // 상태 필터 적용
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(tc => tc.result_status === statusFilter);
+      const normalize = (s) => (!s || s === 'pending') ? 'N/T' : s;
+      filtered = filtered.filter(tc => normalize(tc.result_status) === statusFilter);
     }
 
     // 환경 필터 적용
@@ -383,7 +384,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
     };
 
     filteredTestCases.forEach((tc) => {
-      const rawStatus = (tc.result_status || 'N/T').toString().toLowerCase();
+      const rawStatus = (!tc.result_status || tc.result_status === 'pending' ? 'N/T' : tc.result_status).toString().toLowerCase();
       if (rawStatus === 'pass') {
         counts.pass += 1;
       } else if (rawStatus === 'fail') {
@@ -1056,14 +1057,6 @@ const TestCaseAPP = ({ setActiveTab }) => {
                 {isExpanded ? '▼' : '▶'}
               </span>
             )}
-            <span className="folder-icon">
-              {
-                nodeType === 'project' ? '🗂️' :
-                nodeType === 'environment' ? '🌍' : 
-                nodeType === 'deployment_date' ? '📅' : 
-                nodeType === 'feature' ? '🔧' : '📄'
-              }
-            </span>
             <span className="folder-name">{node.name}</span>
             {isFolder && (
               <span className="folder-type-badge">
@@ -1126,13 +1119,13 @@ const TestCaseAPP = ({ setActiveTab }) => {
                   className="testcase-btn testcase-btn-add"
                   onClick={() => setShowAddModal(true)}
                 >
-                  ➕ 테스트 케이스 추가
+                  테스트 케이스 추가
                 </button>
                 <button 
                   className="testcase-btn testcase-btn-upload"
                   onClick={() => setShowUploadModal(true)}
                 >
-                  📤 엑셀 업로드
+                  엑셀 업로드
                 </button>
               </>
             )}
@@ -1140,7 +1133,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
               className="testcase-btn testcase-btn-download"
               onClick={handleDownload}
             >
-              📥 엑셀 다운로드
+              엑셀 다운로드
             </button>
             {user && ['admin', 'user'].includes(user.role) && selectedTestCases.length > 0 && (
               <>
