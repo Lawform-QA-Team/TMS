@@ -36,6 +36,11 @@ const envSchema = z.object({
   SLACK_BOT_TOKEN: z.string().optional(),
   SLACK_CHANNEL_ID: z.string().optional(),
 
+  // AWS S3 (test scripts)
+  AWS_REGION: z.string().default('ap-northeast-2'),
+  TEST_SCRIPTS_S3_BUCKET: z.string().default('lawform.tms-frontend'),
+  TEST_SCRIPTS_S3_PREFIX: z.string().default('test-scripts/'),
+
   // CORS
   ALLOWED_ORIGINS: z
     .string()
