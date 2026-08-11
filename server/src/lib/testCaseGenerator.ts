@@ -51,9 +51,6 @@ function buildPrompt(
 ): string {
   const count = Math.min(targetCount, MAX_TC)
   const epicSection = buildEpicContextSection(epicContext)
-
-): string {
-  const count = Math.min(targetCount, MAX_TC)
   return `다음 정보를 바탕으로 테스트 케이스 ${count}개를 작성해주세요.
 
 티켓: ${ticketKey}
