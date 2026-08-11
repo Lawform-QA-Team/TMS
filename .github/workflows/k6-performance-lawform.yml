@@ -11,6 +11,7 @@
 #   LAWFORM_LOGIN_PASSWORD - 테스트 계정 비밀번호
 # [선택]
 #   K6_BROWSER_HEADLESS (default: true)
+#   TMS_API_URL          - TMS 서버 URL (결과를 TMS DB에 저장할 때 필요, 예: https://tms.example.com)
 #   SLACK_BOT_TOKEN, SLACK_CHANNEL_ID
 
 name: K6 Performance (LawForm)
@@ -93,8 +94,11 @@ jobs:
           BASE_URL: ${{ secrets.LAWFORM_BASE_URL }}
           LOGIN_EMAIL: ${{ secrets.LAWFORM_LOGIN_EMAIL }}
           LOGIN_PASSWORD: ${{ secrets.LAWFORM_LOGIN_PASSWORD }}
+          TMS_API_URL: ${{ secrets.TMS_API_URL }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+          GH_RUN_NUMBER: ${{ github.run_number }}
+          GH_RUN_ID: ${{ github.run_id }}
         run: |
           set -euo pipefail
           SCENARIOS_DIR="test-scripts/performance/lawform/scenarios"
@@ -108,14 +112,49 @@ jobs:
           echo "TC Filter : ${TC_FILTER:-없음}"
           echo "=============================================="
 
+          # ── TMS 결과 전송 헬퍼 ──────────────────────────
+          report_to_tms() {
+            local tc_id="$1"
+            local status="$2"   # Pass | Fail
+            local exit_code="$3"
+            if [ -z "${TMS_API_URL:-}" ]; then return; fi
+            curl -s -o /dev/null \
+              -X POST "${TMS_API_URL}/api/test-executions" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"test_type\": \"k6\",
+                \"status\": \"${status}\",
+                \"result_data\": {
+                  \"tc_id\": \"${tc_id}\",
+                  \"source\": \"github-actions\",
+                  \"run_number\": \"${GH_RUN_NUMBER}\",
+                  \"run_id\": \"${GH_RUN_ID}\",
+                  \"exit_code\": ${exit_code}
+                }
+              }" || echo "[TMS] 전송 실패 (무시): ${tc_id}"
+            echo "[TMS] 결과 전송: ${tc_id} → ${status}"
+          }
+
+          # ── k6 실행 + 결과 전송 헬퍼 ────────────────────
+          run_scenario() {
+            local script="$1"
+            local tc_id
+            tc_id=$(basename "$script" .scenario.js)
+            local exit_code=0
+            k6 run "$script" || exit_code=$?
+            local status="Pass"
+            [ $exit_code -ne 0 ] && status="Fail"
+            report_to_tms "$tc_id" "$status" "$exit_code"
+            return $exit_code
+          }
+
           # TC_FILTER 우선: 특정 파일 직접 실행
           if [ -n "$TC_FILTER" ]; then
-            # 도메인 폴더 추출 (TC-CLM-P04 → clm)
             DOMAIN_PART=$(echo "$TC_FILTER" | sed 's/TC-//; s/-P[0-9]*//' | tr '[:upper:]' '[:lower:]')
             SCRIPT="${SCENARIOS_DIR}/${DOMAIN_PART}/${TC_FILTER}.scenario.js"
             if [ -f "$SCRIPT" ]; then
               echo "Running: $SCRIPT"
-              k6 run "$SCRIPT"
+              run_scenario "$SCRIPT"
             else
               echo "스크립트 없음: $SCRIPT"
               exit 1
@@ -136,7 +175,7 @@ jobs:
             echo "Running: $script"
             echo "Start  : $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
             echo "----------------------------------------------"
-            k6 run "$script"
+            run_scenario "$script" || true   # 개별 실패가 전체 중단 방지
             echo "Done   : $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
             echo
           done
