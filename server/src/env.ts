@@ -28,6 +28,7 @@ const envSchema = z.object({
 
   // LLM
   ANTHROPIC_API_KEY: z.string().optional(),
+  FIGMA_API_TOKEN: z.string().optional(),
   TEST_APP_BASE_URL: z.string().optional(),  // 페이지 분석 대상 앱 URL (예: http://localhost:3000)
   PLAYWRIGHT_ENABLED: z.string().default('false').transform((v) => v === 'true'),
 
@@ -35,6 +36,11 @@ const envSchema = z.object({
   SLACK_WEBHOOK_URL: z.string().optional(),
   SLACK_BOT_TOKEN: z.string().optional(),
   SLACK_CHANNEL_ID: z.string().optional(),
+
+  // AWS S3 (test scripts)
+  AWS_REGION: z.string().default('ap-northeast-2'),
+  TEST_SCRIPTS_S3_BUCKET: z.string().default('lawform.tms-frontend'),
+  TEST_SCRIPTS_S3_PREFIX: z.string().default('test-scripts/'),
 
   // CORS
   ALLOWED_ORIGINS: z

@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto'
 import type { JiraIssueFields, JiraIssueResponse } from './jiraClient.js'
+import type { EpicContext } from './epicContextResolver.js'
 
 export interface NormalizedTicket {
   pipelineId: string
@@ -12,6 +13,7 @@ export interface NormalizedTicket {
   descriptionText: string
   labels: string[]
   sourceType: 'webhook' | 'cron'
+  epicContext?: EpicContext
 }
 
 const PRIORITY_MAP: Record<string, string> = {

@@ -18,6 +18,34 @@ const SYSTEM_PROMPT = `당신은 시니어 QA 엔지니어입니다.
 Jira 티켓 정보를 분석하여 QA 계획을 JSON 형식으로 작성합니다.
 반드시 아래 JSON 스키마만 반환하고 다른 텍스트는 포함하지 마세요.`
 
+
+function buildEpicContextSection(ticket: NormalizedTicket): string {
+  const ctx = ticket.epicContext
+  if (!ctx?.epicKey) return ''
+
+  const lines: string[] = ['\n--- 기획 컨텍스트 ---']
+  if (ctx.epicSummary) lines.push(`Epic: [${ctx.epicKey}] ${ctx.epicSummary}`)
+  if (ctx.epicDescription) lines.push(`Epic 설명:\n${ctx.epicDescription}`)
+
+  if (ctx.planningTaskKey && ctx.planningContent) {
+    lines.push(`\n기획 내용 (${ctx.planningTaskKey}):`)
+    lines.push(ctx.planningContent.slice(0, 3000))
+  }
+
+  if (ctx.figmaContent) {
+    lines.push(`\nFigma 기획 내용:`)
+    lines.push(ctx.figmaContent.slice(0, 2000))
+  } else if (ctx.figmaUrls.length > 0) {
+    lines.push(`\n참고 Figma 링크 (직접 확인 필요):`)
+    lines.push(ctx.figmaUrls.map(u => `- ${u}`).join('\n'))
+  }
+
+  return lines.join('\n')
+}
+
+function buildPrompt(ticket: NormalizedTicket): string {
+  const epicSection = buildEpicContextSection(ticket)
+  const hasEpicContext = !!ticket.epicContext?.epicKey
 function buildPrompt(ticket: NormalizedTicket): string {
   return `다음 Jira 티켓에 대한 QA 계획을 작성해주세요.
 
@@ -28,6 +56,8 @@ function buildPrompt(ticket: NormalizedTicket): string {
 - 제목: ${ticket.summary}
 - 설명: ${ticket.descriptionText || '(없음)'}
 - 레이블: ${ticket.labels.join(', ') || '(없음)'}
+${epicSection}
+${hasEpicContext ? '\n※ 이 QA Task는 기획 내용 기반으로 자동 생성됩니다. 위 기획/Figma 내용을 중심으로 QA 계획을 수립하세요.' : ''}
 
 다음 JSON 스키마를 정확히 따라 반환하세요:
 {

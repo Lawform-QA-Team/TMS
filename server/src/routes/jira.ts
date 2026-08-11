@@ -523,6 +523,19 @@ jiraRouter.post('/webhook', async (c) => {
     }
 
     if (event?.includes('updated') || event === 'jira:issue_updated') {
+      // qa-requested 레이블이 새로 추가된 경우 → 파이프라인 트리거
+      const changelog = (payload.changelog?.items ?? []) as Array<{ field: string; fromString?: string; toString?: string }>
+      const labelChange = changelog.find((item) => item.field === 'labels')
+      const isQaLabelAdded = labelChange &&
+        String(labelChange.toString ?? '').includes('qa-requested') &&
+        !String(labelChange.fromString ?? '').includes('qa-requested')
+
+      if (isQaLabelAdded) {
+        jiraCollectorService.collect(issue, 'webhook')
+          .catch((e) => logger.warn({ e }, 'JiraCollector 실패 (비치명)'))
+        return c.json({ message: 'qa-requested 레이블 감지 — 파이프라인 시작', issue_key: issueKey })
+      }
+
       const queue = getJiraQueue()
       await queue.add('sync-status', {
         type: 'sync-jira-status',
