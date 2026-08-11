@@ -1,0 +1,181 @@
+# K6 성능 측정 - LawForm 시나리오 실행
+#
+# 트리거:
+#   - push / PR: main 브랜치 대상 (lawform performance 스크립트 변경 시)
+#   - schedule: 매일 오전 9시 (KST = UTC 00:00), 평일만
+#   - workflow_dispatch: 수동 실행 (도메인 선택 가능)
+#
+# [필수] Settings → Secrets and variables → Actions:
+#   LAWFORM_BASE_URL       - LawForm 서비스 URL
+#   LAWFORM_LOGIN_EMAIL    - 테스트 계정 이메일
+#   LAWFORM_LOGIN_PASSWORD - 테스트 계정 비밀번호
+# [선택]
+#   K6_INFLUXDB_ADDR, K6_INFLUXDB_ORGANIZATION, K6_INFLUXDB_BUCKET, K6_INFLUXDB_TOKEN
+#   K6_BROWSER_HEADLESS (default: true)
+#   SLACK_BOT_TOKEN, SLACK_CHANNEL_ID
+
+name: K6 Performance (LawForm)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'test-scripts/performance/lawform/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'test-scripts/performance/lawform/**'
+  schedule:
+    - cron: '0 0 * * 1-5'   # 평일 오전 9시 KST
+  workflow_dispatch:
+    inputs:
+      domain:
+        description: '도메인 선택 (비워두면 전체 실행)'
+        required: false
+        default: ''
+        type: choice
+        options:
+          - ''
+          - CLM
+          - ADV
+          - LIT
+          - SEAL
+          - MISC
+      tc_id:
+        description: '특정 TC ID 실행 (예: TC-CLM-P04 / 비워두면 도메인 전체)'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  k6-lawform:
+    name: K6 Performance — LawForm
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Chromium dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3 libatk-bridge2.0-0 libdrm2 libxkbcommon0 \
+            libgbm1 libasound2t64 libxshmfence1 libxrandr2 \
+            libpangocairo-1.0-0 libgtk-3-0 \
+            chromium-browser || true
+
+      - name: Increase /dev/shm size
+        run: sudo mount -t tmpfs -o size=2g tmpfs /dev/shm
+
+      - name: Prepare Result & screenshots directories
+        run: |
+          mkdir -p test-scripts/performance/lawform/Result
+          mkdir -p test-scripts/performance/lawform/screenshots
+
+      - name: Build k6 with xk6-influxdb
+        run: |
+          mkdir -p /tmp/k6-build
+          chmod 777 /tmp/k6-build
+          docker run --rm \
+            -v "/tmp/k6-build:/output" \
+            grafana/xk6 build \
+            --with github.com/grafana/xk6-output-influxdb@latest \
+            --output /output/k6
+          cp /tmp/k6-build/k6 ./k6
+          chmod +x ./k6
+          ./k6 version
+
+      - name: Run LawForm K6 scenarios
+        env:
+          K6_BROWSER_HEADLESS: ${{ secrets.K6_BROWSER_HEADLESS || 'true' }}
+          K6_BROWSER_ARGS: >-
+            --no-sandbox
+            --disable-dev-shm-usage
+            --disable-gpu
+            --disable-features=CpuFreqScaling,VizDisplayCompositor
+            --disable-setuid-sandbox
+          BASE_URL: ${{ secrets.LAWFORM_BASE_URL }}
+          LOGIN_EMAIL: ${{ secrets.LAWFORM_LOGIN_EMAIL }}
+          LOGIN_PASSWORD: ${{ secrets.LAWFORM_LOGIN_PASSWORD }}
+          K6_INFLUXDB_ADDR: ${{ secrets.K6_INFLUXDB_ADDR }}
+          K6_INFLUXDB_ORGANIZATION: ${{ secrets.K6_INFLUXDB_ORGANIZATION }}
+          K6_INFLUXDB_BUCKET: ${{ secrets.K6_INFLUXDB_BUCKET }}
+          K6_INFLUXDB_TOKEN: ${{ secrets.K6_INFLUXDB_TOKEN }}
+          K6_INFLUXDB_PUSH_INTERVAL: ${{ secrets.K6_INFLUXDB_PUSH_INTERVAL || '60s' }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        run: |
+          set -euo pipefail
+          SCENARIOS_DIR="test-scripts/performance/lawform/scenarios"
+          DOMAIN_FILTER="${{ inputs.domain || '' }}"
+          TC_FILTER="${{ inputs.tc_id || '' }}"
+
+          echo "=============================================="
+          echo "[K6 LawForm] 시나리오 실행 시작"
+          echo "Timestamp : $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "Domain    : ${DOMAIN_FILTER:-전체}"
+          echo "TC Filter : ${TC_FILTER:-없음}"
+          echo "=============================================="
+
+          # TC_FILTER 우선: 특정 파일 직접 실행
+          if [ -n "$TC_FILTER" ]; then
+            # 도메인 폴더 추출 (TC-CLM-P04 → clm)
+            DOMAIN_PART=$(echo "$TC_FILTER" | sed 's/TC-//; s/-P[0-9]*//' | tr '[:upper:]' '[:lower:]')
+            SCRIPT="${SCENARIOS_DIR}/${DOMAIN_PART}/${TC_FILTER}.scenario.js"
+            if [ -f "$SCRIPT" ]; then
+              echo "Running: $SCRIPT"
+              if [ -n "${K6_INFLUXDB_ADDR:-}" ]; then
+                ./k6 run --out "xk6-influxdb=${K6_INFLUXDB_ADDR}" "$SCRIPT"
+              else
+                ./k6 run "$SCRIPT"
+              fi
+            else
+              echo "스크립트 없음: $SCRIPT"
+              exit 1
+            fi
+            exit 0
+          fi
+
+          # DOMAIN_FILTER: 특정 도메인만 실행
+          if [ -n "$DOMAIN_FILTER" ]; then
+            DOMAIN_DIR="${SCENARIOS_DIR}/$(echo $DOMAIN_FILTER | tr '[:upper:]' '[:lower:]')"
+            FIND_PATTERN="$DOMAIN_DIR"
+          else
+            FIND_PATTERN="$SCENARIOS_DIR"
+          fi
+
+          find "$FIND_PATTERN" -type f -name "*.scenario.js" | sort | while read -r script; do
+            echo "----------------------------------------------"
+            echo "Running: $script"
+            echo "Start  : $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+            echo "----------------------------------------------"
+            if [ -n "${K6_INFLUXDB_ADDR:-}" ]; then
+              ./k6 run --out "xk6-influxdb=${K6_INFLUXDB_ADDR}" "$script"
+            else
+              ./k6 run "$script"
+            fi
+            echo "Done   : $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+            echo
+          done
+
+          echo "=============================================="
+          echo "[K6 LawForm] 전체 완료: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "=============================================="
+
+      - name: Upload HTML reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-lawform-reports-${{ github.run_number }}
+          path: test-scripts/performance/lawform/Result/
+          retention-days: 14
+
+      - name: Upload screenshots (실패 시)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-lawform-screenshots-${{ github.run_number }}
+          path: test-scripts/performance/lawform/screenshots/
+          retention-days: 7
