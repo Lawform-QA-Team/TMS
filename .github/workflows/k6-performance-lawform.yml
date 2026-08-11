@@ -10,7 +10,6 @@
 #   LAWFORM_LOGIN_EMAIL    - 테스트 계정 이메일
 #   LAWFORM_LOGIN_PASSWORD - 테스트 계정 비밀번호
 # [선택]
-#   K6_INFLUXDB_ADDR, K6_INFLUXDB_ORGANIZATION, K6_INFLUXDB_BUCKET, K6_INFLUXDB_TOKEN
 #   K6_BROWSER_HEADLESS (default: true)
 #   SLACK_BOT_TOKEN, SLACK_CHANNEL_ID
 
@@ -74,18 +73,13 @@ jobs:
           mkdir -p test-scripts/performance/lawform/Result
           mkdir -p test-scripts/performance/lawform/screenshots
 
-      - name: Build k6 with xk6-influxdb
+      - name: Install k6
         run: |
-          mkdir -p /tmp/k6-build
-          chmod 777 /tmp/k6-build
-          docker run --rm \
-            -v "/tmp/k6-build:/output" \
-            grafana/xk6 build \
-            --with github.com/grafana/xk6-output-influxdb@latest \
-            --output /output/k6
-          cp /tmp/k6-build/k6 ./k6
-          chmod +x ./k6
-          ./k6 version
+          curl -s https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" \
+            | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update && sudo apt-get install -y k6
+          k6 version
 
       - name: Run LawForm K6 scenarios
         env:
@@ -99,11 +93,6 @@ jobs:
           BASE_URL: ${{ secrets.LAWFORM_BASE_URL }}
           LOGIN_EMAIL: ${{ secrets.LAWFORM_LOGIN_EMAIL }}
           LOGIN_PASSWORD: ${{ secrets.LAWFORM_LOGIN_PASSWORD }}
-          K6_INFLUXDB_ADDR: ${{ secrets.K6_INFLUXDB_ADDR }}
-          K6_INFLUXDB_ORGANIZATION: ${{ secrets.K6_INFLUXDB_ORGANIZATION }}
-          K6_INFLUXDB_BUCKET: ${{ secrets.K6_INFLUXDB_BUCKET }}
-          K6_INFLUXDB_TOKEN: ${{ secrets.K6_INFLUXDB_TOKEN }}
-          K6_INFLUXDB_PUSH_INTERVAL: ${{ secrets.K6_INFLUXDB_PUSH_INTERVAL || '60s' }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
         run: |
@@ -126,11 +115,7 @@ jobs:
             SCRIPT="${SCENARIOS_DIR}/${DOMAIN_PART}/${TC_FILTER}.scenario.js"
             if [ -f "$SCRIPT" ]; then
               echo "Running: $SCRIPT"
-              if [ -n "${K6_INFLUXDB_ADDR:-}" ]; then
-                ./k6 run --out "xk6-influxdb=${K6_INFLUXDB_ADDR}" "$SCRIPT"
-              else
-                ./k6 run "$SCRIPT"
-              fi
+              k6 run "$SCRIPT"
             else
               echo "스크립트 없음: $SCRIPT"
               exit 1
@@ -151,11 +136,7 @@ jobs:
             echo "Running: $script"
             echo "Start  : $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
             echo "----------------------------------------------"
-            if [ -n "${K6_INFLUXDB_ADDR:-}" ]; then
-              ./k6 run --out "xk6-influxdb=${K6_INFLUXDB_ADDR}" "$script"
-            else
-              ./k6 run "$script"
-            fi
+            k6 run "$script"
             echo "Done   : $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
             echo
           done
