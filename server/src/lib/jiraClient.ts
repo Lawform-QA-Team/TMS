@@ -161,7 +161,7 @@ export class JiraClient {
 
   /** JQL 검색 */
   async searchIssues(jql: string, startAt = 0, maxResults = 50): Promise<JiraSearchResult> {
-    return this.request<JiraSearchResult>('GET', '/rest/api/3/search', undefined, {
+    return this.request<JiraSearchResult>('GET', '/rest/api/3/search/jql', undefined, {
       jql,
       startAt: String(startAt),
       maxResults: String(maxResults),
