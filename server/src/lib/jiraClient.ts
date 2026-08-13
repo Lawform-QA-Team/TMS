@@ -165,6 +165,7 @@ export class JiraClient {
       jql,
       startAt: String(startAt),
       maxResults: String(maxResults),
+      fields: 'summary,description,issuetype,priority,project,status,labels,assignee,reporter,created,updated',
     })
   }
 
