@@ -78,7 +78,7 @@ jobs:
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ steps.build-image.outputs.image }}
           environment-variables: |
-            JIRA_CRON_ENABLED=${{ secrets.JIRA_CRON_ENABLED }}
+            JIRA_CRON_ENABLED=true
 
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
