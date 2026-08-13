@@ -79,6 +79,11 @@ jobs:
           image: ${{ steps.build-image.outputs.image }}
           environment-variables: |
             JIRA_CRON_ENABLED=true
+            JIRA_SERVER_URL=${{ secrets.JIRA_SERVER_URL }}
+            JIRA_USERNAME=${{ secrets.JIRA_USERNAME }}
+            JIRA_API_TOKEN=${{ secrets.JIRA_API_TOKEN }}
+            JIRA_PROJECT_KEY=${{ secrets.JIRA_PROJECT_KEY }}
+            JIRA_WATCHED_PROJECTS=${{ secrets.JIRA_WATCHED_PROJECTS }}
             SLACK_BOT_TOKEN=${{ secrets.SLACK_BOT_TOKEN }}
             SLACK_CHANNEL_ID=${{ secrets.SLACK_CHANNEL_ID }}
             SLACK_WEBHOOK_URL=${{ secrets.SLACK_WEBHOOK_URL }}
