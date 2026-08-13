@@ -24,7 +24,7 @@ export function startJiraCronPoller(): void {
         await jiraCollectorService.collect(issue, 'cron')
       }
     } catch (e) {
-      logger.error({ e }, 'Jira Cron Poller 오류')
+      logger.error({ err: e instanceof Error ? { message: e.message, stack: e.stack } : String(e) }, 'Jira Cron Poller 오류')
     }
   })
 }
