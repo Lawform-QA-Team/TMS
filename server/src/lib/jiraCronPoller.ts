@@ -15,9 +15,9 @@ export function startJiraCronPoller(): void {
     return
   }
   const jql = env.JIRA_CRON_JQL ?? DEFAULT_JQL
-  logger.info({ jql }, 'Jira Cron Poller 시작 (*/5 * * * *)')
+  logger.info({ jql }, 'Jira Cron Poller 시작 (*/30 * * * *)')
 
-  _task = cron.schedule('*/5 * * * *', async () => {
+  _task = cron.schedule('*/30 * * * *', async () => {
     try {
       for await (const issue of jiraClient.searchIssuesPaginated(jql)) {
         if (!isQATarget(issue.fields)) continue
