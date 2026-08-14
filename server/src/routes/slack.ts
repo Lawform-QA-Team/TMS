@@ -17,7 +17,7 @@ slackRouter.post('/interaction', async (c) => {
     // Slack은 application/x-www-form-urlencoded + payload 필드로 전송
     const form = await c.req.parseBody()
     const payloadStr = form['payload'] as string | undefined
-    if (!payloadStr) return c.json({ error: 'payload 없음' }, 400)
+    if (!payloadStr) return c.json({ ok: true })
 
     const payload = JSON.parse(payloadStr) as SlackInteractionPayload
     const action = payload.actions?.[0]
