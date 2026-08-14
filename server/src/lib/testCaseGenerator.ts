@@ -189,6 +189,21 @@ export async function generateTestCases(
         status: 'draft',
       },
     })
+
+    // 메인 테스트 케이스 탭에도 등록
+    await db.testCase.create({
+      data: {
+        name: tc.title.slice(0, 100),
+        testSteps: JSON.stringify(tc.steps ?? []),
+        expectedResult: tc.expectedResult ?? null,
+        priority: tc.priority ?? 'P2',
+        status: 'draft',
+        mainCategory: `Pipeline:${ticket.projectKey}`,
+        subCategory: tc.caseType ?? 'happyPath',
+        remark: `자동 생성: ${ticket.ticketKey} (QA 파이프라인)`,
+      },
+    })
+
     saved++
   }
 
