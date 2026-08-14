@@ -20,11 +20,14 @@ slackRouter.post('/interaction', async (c) => {
     if (!payloadStr) return c.json({ ok: true })
 
     const payload = JSON.parse(payloadStr) as SlackInteractionPayload
+    logger.info({ type: payload.type, action_id: payload.actions?.[0]?.action_id, user: payload.user?.name, container: payload.container }, 'Slack interaction 수신')
+
     const action = payload.actions?.[0]
     if (!action) return c.json({ ok: true })
 
     const { action_id, value } = action
     if (!['qaplan_approve', 'qaplan_reject'].includes(action_id)) {
+      logger.info({ action_id }, 'Slack interaction — 미처리 action_id 무시')
       return c.json({ ok: true })
     }
 
