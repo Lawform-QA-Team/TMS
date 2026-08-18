@@ -248,63 +248,78 @@ testcasesRouter.post(
 )
 
 // ──────────────────────────────────────────────
+// GET /testcases/download  (주의: /:id 보다 먼저)
+// ──────────────────────────────────────────────
+testcasesRouter.get('/download', async (c) => {
+  try {
+    const where = await buildTestCaseWhere(c.req.query.bind(c.req))
+    const testcases = await db.testCase.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: { creator: true, assignee: true },
+    })
+
+    const headers = [
+      'ID',
+      'TC Number',
+      'Main Category',
+      'Sub Category',
+      'Detail Category',
+      'Pre Condition',
+      'Test Steps',
+      'Expected Result',
+      'Result Status',
+      'Priority',
+      'Environment',
+      'Creator',
+      'Assignee',
+      'Remark',
+      'Created At',
+      'Updated At',
+    ]
+
+    const rows = testcases.map((tc) => [
+      tc.id,
+      'tc_number' in tc ? tc.tc_number : null,
+      tc.mainCategory,
+      tc.subCategory,
+      tc.detailCategory,
+      tc.preCondition,
+      tc.testSteps,
+      tc.expectedResult,
+      tc.resultStatus,
+      tc.priority,
+      tc.environment,
+      getDisplayName(tc.creator),
+      getDisplayName(tc.assignee),
+      tc.remark,
+      tc.createdAt.toISOString(),
+      tc.updatedAt.toISOString(),
+    ])
+
+    const csv = [headers, ...rows].map((row) => row.map(toCsvCell).join(',')).join('\r\n')
+    const filename = `testcases_${new Date().toISOString().slice(0, 10)}.csv`
+
+    return new Response(`\uFEFF${csv}`, {
+      headers: {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+      },
+    })
+  } catch (e) {
+    logger.error({ e }, '테스트케이스 다운로드 오류')
+    return c.json({ error: String(e) }, 500)
+  }
+})
+
+// ──────────────────────────────────────────────
 // GET /testcases
 // ──────────────────────────────────────────────
 testcasesRouter.get('/', async (c) => {
   try {
-    const search = c.req.query('search') ?? ''
-    const status = c.req.query('status') ?? ''
-    const environment = c.req.query('environment') ?? ''
-    const category = c.req.query('category') ?? ''
-    const creator = c.req.query('creator') ?? ''
-    const assignee = c.req.query('assignee') ?? ''
-    const priority = c.req.query('priority') ?? ''
-    const folderIdStr = c.req.query('folder_id')
     const page = c.req.query('page') ? Number(c.req.query('page')) : null
     const perPage = c.req.query('per_page') ? Number(c.req.query('per_page')) : null
-
-    const where: Record<string, unknown> = {}
-
-    if (search) {
-      where.OR = [
-        { mainCategory: { contains: search } },
-        { subCategory: { contains: search } },
-        { detailCategory: { contains: search } },
-        { expectedResult: { contains: search } },
-        { remark: { contains: search } },
-      ]
-    }
-    if (status && status !== 'all') where.resultStatus = status
-    if (environment && environment !== 'all') where.environment = environment
-    if (priority && priority !== 'all') where.priority = priority
-
-    if (category && category !== 'all') {
-      const parts = category.split(' > ')
-      if (parts[0]) where.mainCategory = parts[0]
-      if (parts[1]) where.subCategory = parts[1]
-      if (parts[2]) where.detailCategory = parts[2]
-    }
-
-    if (folderIdStr) {
-      const folderId = Number(folderIdStr)
-      const folder = await db.folder.findUnique({ where: { id: folderId } })
-      if (folder) {
-        const folderIds = await collectFolderIds(folder)
-        where.folderId = { in: folderIds }
-      }
-    }
-
-    if (creator && creator !== 'all') {
-      const u = await db.user.findUnique({ where: { username: creator } })
-      if (u) where.creatorId = u.id
-      else where.creatorId = -1 // 결과 없음
-    }
-
-    if (assignee && assignee !== 'all') {
-      const u = await db.user.findUnique({ where: { username: assignee } })
-      if (u) where.assigneeId = u.id
-      else where.assigneeId = -1
-    }
+    const where = await buildTestCaseWhere(c.req.query.bind(c.req))
 
     if (!page || !perPage) {
       const testcases = await db.testCase.findMany({
@@ -1120,11 +1135,77 @@ async function collectFolderIds(
 }
 
 type UserRef = { username: string; firstName: string | null; lastName: string | null } | null
+type QueryReader = (key: string) => string | undefined
+
+async function buildTestCaseWhere(query: QueryReader): Promise<Record<string, unknown>> {
+  const search = query('search') ?? ''
+  const status = query('status') ?? ''
+  const environment = query('environment') ?? ''
+  const category = query('category') ?? ''
+  const creator = query('creator') ?? ''
+  const assignee = query('assignee') ?? ''
+  const priority = query('priority') ?? ''
+  const folderIdStr = query('folder_id')
+
+  const where: Record<string, unknown> = {}
+
+  if (search) {
+    where.OR = [
+      { mainCategory: { contains: search } },
+      { subCategory: { contains: search } },
+      { detailCategory: { contains: search } },
+      { expectedResult: { contains: search } },
+      { remark: { contains: search } },
+    ]
+  }
+  if (status && status !== 'all') where.resultStatus = status
+  if (environment && environment !== 'all') where.environment = environment
+  if (priority && priority !== 'all') where.priority = priority
+
+  if (category && category !== 'all') {
+    const parts = category.split(' > ')
+    if (parts[0]) where.mainCategory = parts[0]
+    if (parts[1]) where.subCategory = parts[1]
+    if (parts[2]) where.detailCategory = parts[2]
+  }
+
+  if (folderIdStr) {
+    const folderId = Number(folderIdStr)
+    if (Number.isFinite(folderId)) {
+      const folder = await db.folder.findUnique({ where: { id: folderId } })
+      if (folder) {
+        const folderIds = await collectFolderIds(folder)
+        where.folderId = { in: folderIds }
+      }
+    }
+  }
+
+  if (creator && creator !== 'all') {
+    const u = await db.user.findUnique({ where: { username: creator } })
+    if (u) where.creatorId = u.id
+    else where.creatorId = -1
+  }
+
+  if (assignee && assignee !== 'all') {
+    const u = await db.user.findUnique({ where: { username: assignee } })
+    if (u) where.assigneeId = u.id
+    else where.assigneeId = -1
+  }
+
+  return where
+}
 
 function getDisplayName(u: UserRef): string | null {
   if (!u) return null
   const full = [u.firstName, u.lastName].filter(Boolean).join(' ')
   return full || u.username
+}
+
+function toCsvCell(value: unknown): string {
+  if (value === null || value === undefined) return ''
+  const text = String(value)
+  if (!/[",\r\n]/.test(text)) return text
+  return `"${text.replace(/"/g, '""')}"`
 }
 
 function serializeProject(p: {

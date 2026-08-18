@@ -1007,13 +1007,25 @@ const TestCaseAPP = ({ setActiveTab }) => {
       const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.setAttribute('download', `testcases_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      link.setAttribute('download', `testcases_${new Date().toISOString().slice(0, 10)}.csv`);
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(blobUrl);
     } catch (err) {
-      alert('파일 다운로드 중 오류가 발생했습니다: ' + err.message);
+      let message = err.message;
+      if (err.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const parsed = JSON.parse(text);
+          message = parsed.error || parsed.message || message;
+        } catch {
+          // Blob 응답이 JSON이 아니면 axios 메시지를 그대로 사용합니다.
+        }
+      } else if (err.response?.data?.error || err.response?.data?.message) {
+        message = err.response.data.error || err.response.data.message;
+      }
+      alert('파일 다운로드 중 오류가 발생했습니다: ' + message);
     }
   };
 
