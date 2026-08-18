@@ -18,10 +18,12 @@ export interface GeneratedTestCase {
   gherkin: string
 }
 
-const MAX_TC = 10  // 토큰 절약을 위한 상한
+const BATCH_SIZE = 10   // 배치당 TC 수
+const MAX_TOTAL = 50    // 최대 생성 상한
 
 const SYSTEM_PROMPT = `당신은 시니어 QA 엔지니어입니다.
-QA Plan과 티켓 정보를 분석하여 구체적인 테스트 케이스를 JSON 배열로 작성합니다.
+QA Plan과 티켓 정보를 분석하여 구체적이고 상세한 테스트 케이스를 JSON 배열로 작성합니다.
+각 테스트 케이스의 steps는 실제 QA 엔지니어가 실행할 수 있도록 구체적인 행동 단계로 작성하세요.
 반드시 JSON 배열만 반환하고 다른 텍스트는 포함하지 마세요.`
 function buildEpicContextSection(epicContext: import('./ticketNormalizer.js').NormalizedTicket['epicContext']): string {
   if (!epicContext?.epicKey) return ''
@@ -46,22 +48,32 @@ function buildPrompt(
   summary: string,
   descriptionText: string,
   plan: QAPlanContent,
-  targetCount: number,
+  batchCount: number,
   epicContext?: import('./ticketNormalizer.js').NormalizedTicket['epicContext'],
+  existingTitles?: string[],
 ): string {
-  const count = Math.min(targetCount, MAX_TC)
   const epicSection = buildEpicContextSection(epicContext)
-  return `다음 정보를 바탕으로 테스트 케이스 ${count}개를 작성해주세요.
+  const existingSection = existingTitles?.length
+    ? `\n--- 이미 작성된 TC (중복 금지) ---\n${existingTitles.map((t, i) => `${i + 1}. ${t}`).join('\n')}`
+    : ''
+
+  return `다음 정보를 바탕으로 테스트 케이스 ${batchCount}개를 작성해주세요.
 
 티켓: ${ticketKey}
 제목: ${summary}
 설명: ${descriptionText || '(없음)'}
-${epicSection}
+${epicSection}${existingSection}
 
 QA Plan:
 - 목표: ${plan.objective}
 - 범위: ${plan.scope.join(', ')}
 - 테스트 유형: ${plan.testTypes.join(', ')}
+
+작성 지침:
+- steps는 실제 QA 엔지니어가 수행할 수 있도록 구체적인 행동 단계로 작성 (최소 3단계 이상)
+- expectedResult는 명확하고 검증 가능한 결과로 작성
+- 이미 작성된 TC와 중복되지 않는 새로운 시나리오 작성
+- 다양한 caseType으로 작성 (happyPath, negative, boundary, edge)
 
 아래 JSON 배열 스키마를 정확히 따라 반환하세요 (배열 외 텍스트 금지):
 [
@@ -77,8 +89,7 @@ QA Plan:
   }
 ]
 
-우선순위 기준: P1=치명적, P2=주요, P3=일반, P4=낮음
-caseType 비율 권장: happyPath 40%, negative 30%, boundary 20%, edge 10%`
+우선순위 기준: P1=치명적, P2=주요, P3=일반, P4=낮음`
 }
 
 function parseTestCases(text: string): GeneratedTestCase[] {
@@ -131,13 +142,14 @@ export async function generateTestCases(
   const ticket = qaPlan.collectedTicket
   const plan: QAPlanContent = JSON.parse(qaPlan.planContent ?? '{}')
 
-  const targetCount = Math.min(plan.estimatedTcCount ?? 5, MAX_TC)
+  const targetCount = Math.min(plan.estimatedTcCount ?? 5, MAX_TOTAL)
+  const batches = Math.ceil(targetCount / BATCH_SIZE)
 
-  let cases: GeneratedTestCase[]
+  const allCases: GeneratedTestCase[] = []
 
   if (!env.ANTHROPIC_API_KEY) {
     logger.warn('ANTHROPIC_API_KEY 미설정 — 기본 TC 생성')
-    cases = [{
+    allCases.push({
       title: `[${ticket.ticketKey}] 기본 기능 동작 확인`,
       caseType: 'happyPath',
       priority: ticket.priority as TCPriority ?? 'P2',
@@ -146,30 +158,53 @@ export async function generateTestCases(
       expectedResult: '기능이 정상적으로 동작한다.',
       tags: [ticket.issueType, ticket.projectKey],
       gherkin: `Feature: ${ticket.summary}\n  Scenario: 기본 동작\n    Given 서비스가 정상 동작 중\n    When 기능을 실행하면\n    Then 정상 결과가 반환된다`,
-    }]
+    })
   } else {
     const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY })
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 8192,
-      system: SYSTEM_PROMPT,
-      messages: [{
-        role: 'user',
-        content: buildPrompt(
-          ticket.ticketKey,
-          ticket.summary,
-          ticket.descriptionText ?? '',
-          plan,
-          targetCount,
-          epicContext,
-        ),
-      }],
-    })
 
-    const content = response.content[0]
-    if (!content || content.type !== 'text') throw new Error('Claude 응답 오류')
-    cases = parseTestCases(content.text)
+    for (let i = 0; i < batches; i++) {
+      const batchCount = Math.min(BATCH_SIZE, targetCount - allCases.length)
+      if (batchCount <= 0) break
+
+      const existingTitles = allCases.map((tc) => tc.title)
+
+      logger.info({ pipelineId, batch: i + 1, total: batches, batchCount }, 'TC 배치 생성 중')
+
+      const response = await client.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 8192,
+        system: SYSTEM_PROMPT,
+        messages: [{
+          role: 'user',
+          content: buildPrompt(
+            ticket.ticketKey,
+            ticket.summary,
+            ticket.descriptionText ?? '',
+            plan,
+            batchCount,
+            epicContext,
+            existingTitles,
+          ),
+        }],
+      })
+
+      const content = response.content[0]
+      if (!content || content.type !== 'text') {
+        logger.warn({ pipelineId, batch: i + 1 }, 'TC 배치 응답 오류 — 건너뜀')
+        continue
+      }
+
+      try {
+        const batchCases = parseTestCases(content.text)
+        allCases.push(...batchCases)
+        logger.info({ pipelineId, batch: i + 1, generated: batchCases.length }, 'TC 배치 완료')
+      } catch (e) {
+        logger.warn({ e, pipelineId, batch: i + 1 }, 'TC 배치 파싱 실패 — 건너뜀')
+      }
+    }
   }
+
+  const cases = allCases
 
   // DB 저장
   let saved = 0
