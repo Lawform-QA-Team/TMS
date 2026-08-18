@@ -154,7 +154,10 @@ pipelineRouter.get('/:pipelineId', async (c) => {
         where: { pipelineId },
         include: {
           qaPlan: {
-            include: { autoQaTestCases: { take: 5 } },
+            include: {
+              autoQaTestCases: true,
+              _count: { select: { autoQaTestCases: true } },
+            },
           },
         },
       }),
@@ -174,7 +177,7 @@ pipelineRouter.get('/:pipelineId', async (c) => {
           plan_content: ticket.qaPlan.planContent,
           approval_status: ticket.qaPlan.approvalStatus,
           created_at: ticket.qaPlan.createdAt.toISOString(),
-          test_case_count: ticket.qaPlan.autoQaTestCases.length,
+          test_case_count: ticket.qaPlan._count.autoQaTestCases,
           test_cases: ticket.qaPlan.autoQaTestCases.map((tc) => ({
             id: tc.id,
             title: tc.title,
