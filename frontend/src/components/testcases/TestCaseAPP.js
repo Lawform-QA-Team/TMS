@@ -1441,6 +1441,26 @@ const TestCaseAPP = ({ setActiveTab }) => {
                       </td>
                     </tr>
                     <tr>
+                      <th>테스트 단계</th>
+                      <td colSpan="3" className="test-steps">
+                        {(() => {
+                          const raw = selectedTestCase.test_steps;
+                          if (!raw) return '없음';
+                          try {
+                            const steps = JSON.parse(raw);
+                            if (Array.isArray(steps) && steps.length > 0) {
+                              return (
+                                <ol className="test-steps-list">
+                                  {steps.map((step, i) => <li key={i}>{step}</li>)}
+                                </ol>
+                              );
+                            }
+                          } catch {}
+                          return raw;
+                        })()}
+                      </td>
+                    </tr>
+                    <tr>
                       <th>기대결과</th>
                       <td colSpan="3" className="expected-result">
                         <div className="expected-result-content">
