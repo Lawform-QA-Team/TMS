@@ -703,7 +703,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
           'Authorization': `Bearer ${token}`
         }
       });
-      setComments(response.data || []);
+      setComments(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
       console.error('댓글 조회 오류:', err);
       setComments([]);
