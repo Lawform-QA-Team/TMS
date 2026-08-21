@@ -269,7 +269,7 @@ foldersRouter.put(
       folder_type: z.enum(['environment', 'deployment_date', 'feature']).optional(),
       environment: z.string().optional(),
       deployment_date: z.string().optional(),
-      project_id: z.number().optional(),
+      project_id: z.number().nullable().optional(),
     }),
   ),
   async (c) => {
