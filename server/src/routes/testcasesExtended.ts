@@ -52,6 +52,7 @@ testcasesExtendedRouter.post('/import-sheets', requireAuth, async (c) => {
     const rows: Record<string, unknown>[] = data.rows ?? []
     const folderId: number | null = data.folder_id ?? null
     const environment: string = data.environment ?? 'dev'
+    const projectId: number | null = data.project_id != null ? Number(data.project_id) : null
 
     if (!rows.length) return c.json({ error: '가져올 데이터가 없습니다' }, 400)
 
@@ -79,6 +80,7 @@ testcasesExtendedRouter.post('/import-sheets', requireAuth, async (c) => {
           priority: row.priority ? String(row.priority) : null,
           environment,
           folderId,
+          projectId,
           creatorId: Number(caller.sub),
         },
       })
@@ -134,21 +136,62 @@ testcasesExtendedRouter.post('/reorganize', async (c) => {
 // ──────────────────────────────────────────────
 testcasesExtendedRouter.get('/download', async (c) => {
   try {
-    const testcases = await db.testCase.findMany()
-    const data = testcases.map((tc) => ({
-      id: tc.id,
-      name: tc.name,
-      description: tc.description,
-      project_id: tc.projectId,
-      folder_id: tc.folderId,
-      main_category: tc.mainCategory,
-      sub_category: tc.subCategory,
-      detail_category: tc.detailCategory,
-      environment: tc.environment,
-      result_status: tc.resultStatus,
-      created_at: tc.createdAt.toISOString(),
-    }))
-    return c.json({ message: 'Excel 파일이 생성되었습니다', filename: 'testcases.xlsx', data })
+    const idsParam = c.req.query('ids')
+    const search = c.req.query('search')
+    const status = c.req.query('status')
+    const environment = c.req.query('environment')
+    const category = c.req.query('category')
+    const creator = c.req.query('creator')
+    const folderIdParam = c.req.query('folder_id')
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = {}
+
+    if (idsParam) {
+      const idList = idsParam.split(',').map(Number).filter(Boolean)
+      where.id = { in: idList }
+    } else {
+      if (search) {
+        where.OR = [
+          { mainCategory: { contains: search } },
+          { subCategory: { contains: search } },
+          { detailCategory: { contains: search } },
+        ]
+      }
+      if (status) where.resultStatus = status
+      if (environment) where.environment = environment
+      if (category) where.mainCategory = { contains: category }
+      if (creator) where.creatorId = Number(creator)
+      if (folderIdParam) where.folderId = Number(folderIdParam)
+    }
+
+    const testcases = await db.testCase.findMany({ where, orderBy: { id: 'asc' } })
+
+    const headers = ['ID', 'TC번호', '대분류', '중분류', '소분류', '사전조건', '테스트단계', '예상결과', '비고', '환경', '상태', '우선순위', '생성일']
+    const escape = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`
+    const rows = testcases.map((tc) => [
+      tc.id,
+      tc.tc_number ?? '',
+      tc.mainCategory ?? '',
+      tc.subCategory ?? '',
+      tc.detailCategory ?? '',
+      tc.preCondition ?? '',
+      tc.testSteps ?? '',
+      tc.expectedResult ?? '',
+      tc.remark ?? '',
+      tc.environment ?? '',
+      tc.resultStatus ?? '',
+      tc.priority ?? '',
+      tc.createdAt.toISOString().slice(0, 10),
+    ].map(escape).join(','))
+
+    const bom = '\uFEFF'
+    const csv = bom + [headers.map(escape).join(','), ...rows].join('\r\n')
+
+    return c.body(csv, 200, {
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': 'attachment; filename="testcases.csv"',
+    })
   } catch (e) {
     logger.error({ e }, '테스트케이스 다운로드 오류')
     return c.json({ error: String(e) }, 500)
