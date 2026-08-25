@@ -1,3 +1,12 @@
+# Task: KT-CS 환경 최소 검증 k6 (1인)
+
+- [x] `editer-load-test.js` 로그인 API 기준으로 1VU/1iteration 스모크 스크립트 작성
+- [x] `BASE_URL` + `LOGIN_ID`/`LOGIN_PASSWORD` 환경변수로 로그인만 검증
+- [x] k6 inspect / 환경변수 누락 시 setup() 실패 확인
+- [x] BASE_URL 끝 `/api` 중복 시 `/api/api/login/email` 404 → origin 정규화
+
+---
+
 # Task: AWS 이관 계획
 
 ## 배경

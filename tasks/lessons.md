@@ -2,6 +2,21 @@
 
 ---
 
+## 2026-08-25
+
+### k6 BASE_URL에 `/api`를 붙이면 경로가 중복된다
+
+**현상**: `BASE_URL=https://alpha.api.lfdev.io/api` 로 실행 시 `Cannot POST /api/api/login/email` 404
+
+**원인**: 스크립트가 이미 `${BASE_URL}/api/login/email` 을 붙이는데, 호출자가 origin 뒤에 `/api` 까지 넣음
+
+**교훈**:
+- `BASE_URL`은 origin만 (`https://alpha.api.lfdev.io`)
+- 사용자가 `/api` 를 붙여도 동작하도록 trailing `/api` 를 정규화할 것
+- 실패 로그에 실제 요청 path를 남겨 중복을 바로 보이게 할 것
+
+---
+
 ## 워크플로우 필수 순서
 
 **커밋 전 반드시 .md 업데이트 먼저:**
