@@ -1,0 +1,458 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - img [ref=e5]
+      - button "Open Tanstack query devtools" [ref=e53] [cursor=pointer]:
+        - img [ref=e54]
+    - generic [ref=e103]:
+      - generic [ref=e104]:
+        - img "네비게이션 열기/접기 버튼" [ref=e106] [cursor=pointer]
+        - generic [ref=e107]:
+          - link "로폼 로폼 비즈니스":
+            - /url: http://localhost:3000/
+            - img "로폼"
+            - generic: 로폼 비즈니스
+        - navigation [ref=e108]:
+          - generic [ref=e109]:
+            - link "대시보드" [ref=e111] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e113]
+              - text: 대시보드
+            - link "My 계약서" [ref=e119] [cursor=pointer]:
+              - /url: /drive
+              - img [ref=e121]
+              - text: My 계약서
+            - generic [ref=e124]:
+              - generic [ref=e125]: 통계
+              - link "전체 통계" [ref=e126] [cursor=pointer]:
+                - /url: /statistics
+                - img [ref=e128]
+                - text: 전체 통계
+            - generic [ref=e130]:
+              - generic [ref=e131]: 통합검색
+              - link "전체검색" [ref=e132] [cursor=pointer]:
+                - /url: /clm/search
+                - img [ref=e134]
+                - text: 전체검색
+            - generic [ref=e137]:
+              - generic [ref=e138]: 계약서 생성/분석
+              - link "자동작성" [ref=e139] [cursor=pointer]:
+                - /url: SPECIAL_GO_TO_AUTODOC
+                - img [ref=e141]
+                - text: 자동작성
+              - link "ChatGLD" [ref=e145] [cursor=pointer]:
+                - /url: SPECIAL_GO_TO_CHATGLD
+                - img [ref=e147]
+                - text: ChatGLD
+              - link "기업 표준 계약서" [ref=e149] [cursor=pointer]:
+                - /url: /team_standard_contract
+                - img [ref=e151]
+                - text: 기업 표준 계약서
+            - generic [ref=e154]:
+              - generic [ref=e155]: 계약 검토
+              - link "계약 검토 요청" [ref=e156] [cursor=pointer]:
+                - /url: /clm/draft
+                - img [ref=e158]
+                - text: 계약 검토 요청
+              - link "검토 요청 조회" [ref=e160] [cursor=pointer]:
+                - /url: /clm/review
+                - img [ref=e162]
+                - text: 검토 요청 조회
+              - link "재무 검토 요청 조회" [ref=e166] [cursor=pointer]:
+                - /url: /clm/financial
+                - img [ref=e168]
+                - text: 재무 검토 요청 조회
+              - link "일시 중단 중 요청 조회" [ref=e172] [cursor=pointer]:
+                - /url: /clm/complete?is_paused=2
+                - img [ref=e174]
+                - text: 일시 중단 중 요청 조회
+              - link "AI 계약 내용 비교" [ref=e176] [cursor=pointer]:
+                - /url: /document_compare
+                - img [ref=e178]
+                - text: AI 계약 내용 비교
+            - generic [ref=e180]:
+              - generic [ref=e181]: 체결 계약 관리
+              - link "체결계약서 등록" [ref=e182] [cursor=pointer]:
+                - /url: SPECIAL_GO_TO_SEPARATELY
+                - img [ref=e184]
+                - text: 체결계약서 등록
+              - link "체결계약서 조회" [ref=e189] [cursor=pointer]:
+                - /url: /clm/complete
+                - img [ref=e191]
+                - text: 체결계약서 조회
+            - generic [ref=e195]:
+              - generic [ref=e196]: 인감 관리
+              - link "인감 사용 신청" [ref=e197] [cursor=pointer]:
+                - /url: SPECIAL_GO_TO_SEAL
+                - img [ref=e199]
+                - text: 인감 사용 신청
+              - link "인감 사용 신청 조회" [ref=e202] [cursor=pointer]:
+                - /url: /seal
+                - img [ref=e204]
+                - text: 인감 사용 신청 조회
+              - link "인감 관리 대장" [ref=e207] [cursor=pointer]:
+                - /url: /seal/ledger
+                - img [ref=e209]
+                - text: 인감 관리 대장
+            - generic [ref=e212]:
+              - generic [ref=e213]: 법률 자문
+              - link "법률 자문 요청" [ref=e214] [cursor=pointer]:
+                - /url: /advice/draft
+                - img [ref=e216]
+                - text: 법률 자문 요청
+              - link "법률 자문 조회" [ref=e220] [cursor=pointer]:
+                - /url: /advice
+                - img [ref=e222]
+                - text: 법률 자문 조회
+            - generic [ref=e224]:
+              - generic [ref=e225]: 송무
+              - link "송무 등록" [ref=e226] [cursor=pointer]:
+                - /url: /litigation/draft
+                - img [ref=e228]
+                - text: 송무 등록
+              - link "송무 조회" [ref=e231] [cursor=pointer]:
+                - /url: /litigation
+                - img [ref=e233]
+                - text: 송무 조회
+              - link "송무 캘린더" [ref=e236] [cursor=pointer]:
+                - /url: /litigation/schedule
+                - img [ref=e238]
+                - text: 송무 캘린더
+            - generic [ref=e242]:
+              - generic [ref=e243]: 법령 정보
+              - link "법령 캘린더" [ref=e244] [cursor=pointer]:
+                - /url: /law
+                - img [ref=e246]
+                - text: 법령 캘린더
+            - generic [ref=e248]:
+              - generic [ref=e249]: 프로젝트
+              - link "프로젝트 조회" [ref=e250] [cursor=pointer]:
+                - /url: /project
+                - img [ref=e252]
+                - text: 프로젝트 조회
+            - generic [ref=e254]:
+              - generic [ref=e255]: 계약 정보 관리
+              - link "계약처 관리" [ref=e256] [cursor=pointer]:
+                - /url: /contact
+                - img [ref=e258]
+                - text: 계약처 관리
+              - link "로고/도장 관리" [ref=e261] [cursor=pointer]:
+                - /url: /template
+                - img [ref=e263]
+                - text: 로고/도장 관리
+            - generic [ref=e266]:
+              - generic [ref=e267]: 시스템 설정
+              - link "구성원 관리" [ref=e268] [cursor=pointer]:
+                - /url: /teams
+                - img [ref=e270]
+                - text: 구성원 관리
+              - link "회원 정보" [ref=e273] [cursor=pointer]:
+                - /url: /profile
+                - img [ref=e275]
+                - text: 회원 정보
+              - link "관리자" [ref=e287] [cursor=pointer]:
+                - /url: /setup
+                - img [ref=e289]
+                - text: 관리자
+      - generic [ref=e292]:
+        - banner [ref=e293]:
+          - generic [ref=e294]:
+            - text: 안녕하세요
+            - generic "김지은-변경" [ref=e295]
+            - text: 님
+            - img "ic_stroke_person_user" [ref=e296]:
+              - img [ref=e297]
+          - generic [ref=e300]:
+            - generic [ref=e301]:
+              - generic [ref=e303] [cursor=pointer]:
+                - generic "한국어" [ref=e304]
+                - img "ic_stroke_chevron_down" [ref=e305]:
+                  - img [ref=e306]
+              - generic [ref=e308]:
+                - textbox "키워드를 입력해 주세요" [ref=e309]
+                - button "ic_stroke_search" [ref=e311] [cursor=pointer]:
+                  - img "ic_stroke_search" [ref=e312]:
+                    - img [ref=e313]
+            - link "ic_stroke_notice 내부 공지" [ref=e316] [cursor=pointer]:
+              - /url: /internal_notice
+              - img "ic_stroke_notice" [ref=e317]:
+                - img [ref=e318]
+              - generic [ref=e322]: 내부 공지
+            - generic [ref=e323] [cursor=pointer]:
+              - img [ref=e324]
+              - generic [ref=e325]: 새로운 알림 99+건
+        - main [ref=e326]:
+          - generic [ref=e327]:
+            - generic [ref=e328]:
+              - generic [ref=e330]: 검토 요청 조회
+              - generic [ref=e331]:
+                - button "전체" [ref=e332] [cursor=pointer]
+                - button "내 결재 대기" [ref=e333] [cursor=pointer]
+                - button "검토 필요" [ref=e334] [cursor=pointer]
+            - generic [ref=e336]:
+              - generic [ref=e337]:
+                - generic [ref=e339]: 전체 335건
+                - generic [ref=e340]:
+                  - generic [ref=e341]:
+                    - generic [ref=e342] [cursor=pointer]:
+                      - img "선택" [ref=e344]
+                      - generic [ref=e345]: 나의 요청 문서
+                    - generic [ref=e346] [cursor=pointer]:
+                      - img "선택" [ref=e348]
+                      - generic [ref=e349]: 참조 문서
+                  - generic [ref=e350]:
+                    - generic [ref=e352] [cursor=pointer]:
+                      - generic "대분류 선택" [ref=e353]
+                      - img "ic_stroke_chevron_down" [ref=e354]:
+                        - img [ref=e355]
+                    - generic:
+                      - generic:
+                        - generic "중분류 선택"
+                        - img "ic_stroke_chevron_down":
+                          - img
+                    - generic:
+                      - generic:
+                        - generic "소분류 선택"
+                        - img "ic_stroke_chevron_down":
+                          - img
+                  - generic [ref=e357]:
+                    - generic [ref=e359] [cursor=pointer]:
+                      - generic "진행 상태" [ref=e360]
+                      - img "ic_stroke_chevron_down" [ref=e361]:
+                        - img [ref=e362]
+                    - button "엑셀 다운로드 다운로드" [ref=e364] [cursor=pointer]:
+                      - text: 엑셀 다운로드
+                      - img "다운로드" [ref=e365]
+              - table [ref=e367]:
+                - rowgroup [ref=e368]:
+                  - row "관리번호 계약명 계약서 진행 상태 계약 분류 상대 계약자 요청자 검토 담당자 검토 마감기한 검토 요청일" [ref=e369]:
+                    - columnheader "관리번호" [ref=e370] [cursor=pointer]:
+                      - generic [ref=e371]: 관리번호
+                    - columnheader "계약명" [ref=e372] [cursor=pointer]:
+                      - generic [ref=e373]: 계약명
+                    - columnheader "계약서" [ref=e374]
+                    - columnheader "진행 상태" [ref=e375] [cursor=pointer]:
+                      - generic [ref=e376]: 진행 상태
+                    - columnheader "계약 분류" [ref=e377] [cursor=pointer]:
+                      - generic [ref=e378]: 계약 분류
+                    - columnheader "상대 계약자" [ref=e379] [cursor=pointer]:
+                      - generic [ref=e380]: 상대 계약자
+                    - columnheader "요청자" [ref=e381] [cursor=pointer]:
+                      - generic [ref=e382]: 요청자
+                    - columnheader "검토 담당자" [ref=e383] [cursor=pointer]:
+                      - generic [ref=e384]: 검토 담당자
+                    - columnheader "검토 마감기한" [ref=e385] [cursor=pointer]:
+                      - generic [ref=e386]: 검토 마감기한
+                    - columnheader "검토 요청일" [ref=e387] [cursor=pointer]:
+                      - generic [ref=e388]: 검토 요청일
+                - rowgroup [ref=e389]:
+                  - row "BG-C20260804-00001 용역계약서(퓨처솔루션) (1) (1) (1) 제한 공개 계약서 15% d (계약분류합쳐짐테스트2 > c) test 김지은-변경 미배정 2026-08-04 09:45:39" [ref=e390]:
+                    - cell "BG-C20260804-00001" [ref=e391]
+                    - cell "용역계약서(퓨처솔루션) (1) (1) (1) 제한 공개" [ref=e392]:
+                      - link "용역계약서(퓨처솔루션) (1) (1) (1) 제한 공개" [ref=e393] [cursor=pointer]:
+                        - /url: /clm/268447
+                        - text: 용역계약서(퓨처솔루션) (1) (1) (1)
+                        - img "제한 공개" [ref=e395]
+                    - cell "계약서" [ref=e396]:
+                      - button "계약서" [ref=e397] [cursor=pointer]:
+                        - img "계약서" [ref=e398]
+                    - cell "15%" [ref=e399]:
+                      - generic [ref=e403]: 15%
+                    - cell "d (계약분류합쳐짐테스트2 > c)" [ref=e404]:
+                      - generic [ref=e405]:
+                        - generic [ref=e406]: d
+                        - generic [ref=e407]: (계약분류합쳐짐테스트2 > c)
+                    - cell "test" [ref=e408]:
+                      - generic [ref=e409]: test
+                    - cell "김지은-변경" [ref=e410]
+                    - cell "미배정" [ref=e411]:
+                      - generic [ref=e412]: 미배정
+                    - cell [ref=e413]
+                    - cell "2026-08-04 09:45:39" [ref=e414]
+                  - row "BG-C20260731-00002 가사도우미계약서 제한 공개 계약서 15% 김지은-변경 미배정 2026-07-31 10:14:15" [ref=e415]:
+                    - cell "BG-C20260731-00002" [ref=e416]
+                    - cell "가사도우미계약서 제한 공개" [ref=e417]:
+                      - link "가사도우미계약서 제한 공개" [ref=e418] [cursor=pointer]:
+                        - /url: /clm/267803
+                        - text: 가사도우미계약서
+                        - img "제한 공개" [ref=e420]
+                    - cell "계약서" [ref=e421]:
+                      - button "계약서" [ref=e422] [cursor=pointer]:
+                        - img "계약서" [ref=e423]
+                    - cell "15%" [ref=e424]:
+                      - generic [ref=e428]: 15%
+                    - cell [ref=e429]
+                    - cell [ref=e430]
+                    - cell "김지은-변경" [ref=e431]
+                    - cell "미배정" [ref=e432]:
+                      - generic [ref=e433]: 미배정
+                    - cell [ref=e434]
+                    - cell "2026-07-31 10:14:15" [ref=e435]
+                  - row "BG-C20260731-00001 예비군_개인사유서 제한 공개 계약서 15% 김지은-변경 미배정 2026-07-31 09:56:24" [ref=e436]:
+                    - cell "BG-C20260731-00001" [ref=e437]
+                    - cell "예비군_개인사유서 제한 공개" [ref=e438]:
+                      - link "예비군_개인사유서 제한 공개" [ref=e439] [cursor=pointer]:
+                        - /url: /clm/265672
+                        - text: 예비군_개인사유서
+                        - img "제한 공개" [ref=e441]
+                    - cell "계약서" [ref=e442]:
+                      - button "계약서" [ref=e443] [cursor=pointer]:
+                        - img "계약서" [ref=e444]
+                    - cell "15%" [ref=e445]:
+                      - generic [ref=e449]: 15%
+                    - cell [ref=e450]
+                    - cell [ref=e451]
+                    - cell "김지은-변경" [ref=e452]
+                    - cell "미배정" [ref=e453]:
+                      - generic [ref=e454]: 미배정
+                    - cell [ref=e455]
+                    - cell "2026-07-31 09:56:24" [ref=e456]
+                  - row "BG-C20260729-00004 용역계약서(퓨처솔루션) (1) (1) 제한 공개 계약서 78% 김지은-변경 검토 미진행 2026-07-29 13:32:59" [ref=e457]:
+                    - cell "BG-C20260729-00004" [ref=e458]
+                    - cell "용역계약서(퓨처솔루션) (1) (1) 제한 공개" [ref=e459]:
+                      - link "용역계약서(퓨처솔루션) (1) (1) 제한 공개" [ref=e460] [cursor=pointer]:
+                        - /url: /clm/264698
+                        - text: 용역계약서(퓨처솔루션) (1) (1)
+                        - img "제한 공개" [ref=e462]
+                    - cell "계약서" [ref=e463]:
+                      - button "계약서" [ref=e464] [cursor=pointer]:
+                        - img "계약서" [ref=e465]
+                    - cell "78%" [ref=e466]:
+                      - generic [ref=e470]: 78%
+                    - cell [ref=e471]
+                    - cell [ref=e472]
+                    - cell "김지은-변경" [ref=e473]
+                    - cell "검토 미진행" [ref=e474]:
+                      - generic [ref=e475]: 검토 미진행
+                    - cell [ref=e476]
+                    - cell "2026-07-29 13:32:59" [ref=e477]
+                  - row "BG-C20260729-00003 예비군_개인사유서 제한 공개 계약서 54% 김지은-변경 검토 미진행 2026-07-29 13:16:21" [ref=e478]:
+                    - cell "BG-C20260729-00003" [ref=e479]
+                    - cell "예비군_개인사유서 제한 공개" [ref=e480]:
+                      - link "예비군_개인사유서 제한 공개" [ref=e481] [cursor=pointer]:
+                        - /url: /clm/264697
+                        - text: 예비군_개인사유서
+                        - img "제한 공개" [ref=e483]
+                    - cell "계약서" [ref=e484]:
+                      - button "계약서" [ref=e485] [cursor=pointer]:
+                        - img "계약서" [ref=e486]
+                    - cell "54%" [ref=e487]:
+                      - generic [ref=e491]: 54%
+                    - cell [ref=e492]
+                    - cell [ref=e493]
+                    - cell "김지은-변경" [ref=e494]
+                    - cell "검토 미진행" [ref=e495]:
+                      - generic [ref=e496]: 검토 미진행
+                    - cell [ref=e497]
+                    - cell "2026-07-29 13:16:21" [ref=e498]
+                  - row "BG-C20260729-00002 docx_sample_1MB 제한 공개 계약서 78% 김지은-변경 김지은-변경 2026-07-29 12:46:48" [ref=e499]:
+                    - cell "BG-C20260729-00002" [ref=e500]
+                    - cell "docx_sample_1MB 제한 공개" [ref=e501]:
+                      - link "docx_sample_1MB 제한 공개" [ref=e502] [cursor=pointer]:
+                        - /url: /clm/264694
+                        - text: docx_sample_1MB
+                        - img "제한 공개" [ref=e504]
+                    - cell "계약서" [ref=e505]:
+                      - button "계약서" [ref=e506] [cursor=pointer]:
+                        - img "계약서" [ref=e507]
+                    - cell "78%" [ref=e508]:
+                      - generic [ref=e512]: 78%
+                    - cell [ref=e513]
+                    - cell [ref=e514]
+                    - cell "김지은-변경" [ref=e515]
+                    - cell "김지은-변경" [ref=e516]
+                    - cell [ref=e517]
+                    - cell "2026-07-29 12:46:48" [ref=e518]
+                  - row "BG-C20260728-00001 docx_sample_1MB 제한 공개 계약서 15% 김지은-변경 미배정 2026-07-28 10:59:53" [ref=e519]:
+                    - cell "BG-C20260728-00001" [ref=e520]
+                    - cell "docx_sample_1MB 제한 공개" [ref=e521]:
+                      - link "docx_sample_1MB 제한 공개" [ref=e522] [cursor=pointer]:
+                        - /url: /clm/260765
+                        - text: docx_sample_1MB
+                        - img "제한 공개" [ref=e524]
+                    - cell "계약서" [ref=e525]:
+                      - button "계약서" [ref=e526] [cursor=pointer]:
+                        - img "계약서" [ref=e527]
+                    - cell "15%" [ref=e528]:
+                      - generic [ref=e532]: 15%
+                    - cell [ref=e533]
+                    - cell [ref=e534]
+                    - cell "김지은-변경" [ref=e535]
+                    - cell "미배정" [ref=e536]:
+                      - generic [ref=e537]: 미배정
+                    - cell [ref=e538]
+                    - cell "2026-07-28 10:59:53" [ref=e539]
+                  - row "BG-C20260723-00004 용역계약서(퓨처솔루션) (1) (1) (1) 제한 공개 계약서 15% 김지은-변경 미배정 2026-07-23 17:41:48" [ref=e540]:
+                    - cell "BG-C20260723-00004" [ref=e541]
+                    - cell "용역계약서(퓨처솔루션) (1) (1) (1) 제한 공개" [ref=e542]:
+                      - link "용역계약서(퓨처솔루션) (1) (1) (1) 제한 공개" [ref=e543] [cursor=pointer]:
+                        - /url: /clm/258763
+                        - text: 용역계약서(퓨처솔루션) (1) (1) (1)
+                        - img "제한 공개" [ref=e545]
+                    - cell "계약서" [ref=e546]:
+                      - button "계약서" [ref=e547] [cursor=pointer]:
+                        - img "계약서" [ref=e548]
+                    - cell "15%" [ref=e549]:
+                      - generic [ref=e553]: 15%
+                    - cell [ref=e554]
+                    - cell [ref=e555]
+                    - cell "김지은-변경" [ref=e556]
+                    - cell "미배정" [ref=e557]:
+                      - generic [ref=e558]: 미배정
+                    - cell [ref=e559]
+                    - cell "2026-07-23 17:41:48" [ref=e560]
+                  - row "BG-C20260723-00003 내용증명(대여금 청구용) 제한 공개 계약서 15% 김지은-변경 미배정 2026-07-23 16:48:08" [ref=e561]:
+                    - cell "BG-C20260723-00003" [ref=e562]
+                    - cell "내용증명(대여금 청구용) 제한 공개" [ref=e563]:
+                      - link "내용증명(대여금 청구용) 제한 공개" [ref=e564] [cursor=pointer]:
+                        - /url: /clm/258458
+                        - text: 내용증명(대여금 청구용)
+                        - img "제한 공개" [ref=e566]
+                    - cell "계약서" [ref=e567]:
+                      - button "계약서" [ref=e568] [cursor=pointer]:
+                        - img "계약서" [ref=e569]
+                    - cell "15%" [ref=e570]:
+                      - generic [ref=e574]: 15%
+                    - cell [ref=e575]
+                    - cell [ref=e576]
+                    - cell "김지은-변경" [ref=e577]
+                    - cell "미배정" [ref=e578]:
+                      - generic [ref=e579]: 미배정
+                    - cell [ref=e580]
+                    - cell "2026-07-23 16:48:08" [ref=e581]
+                  - row "BG-C20260723-00002 가지급금 약정서 (5) 제한 공개 계약서 15% 김지은-변경 미배정 2026-07-23 16:46:13" [ref=e582]:
+                    - cell "BG-C20260723-00002" [ref=e583]
+                    - cell "가지급금 약정서 (5) 제한 공개" [ref=e584]:
+                      - link "가지급금 약정서 (5) 제한 공개" [ref=e585] [cursor=pointer]:
+                        - /url: /clm/258457
+                        - text: 가지급금 약정서 (5)
+                        - img "제한 공개" [ref=e587]
+                    - cell "계약서" [ref=e588]:
+                      - button "계약서" [ref=e589] [cursor=pointer]:
+                        - img "계약서" [ref=e590]
+                    - cell "15%" [ref=e591]:
+                      - generic [ref=e595]: 15%
+                    - cell [ref=e596]
+                    - cell [ref=e597]
+                    - cell "김지은-변경" [ref=e598]
+                    - cell "미배정" [ref=e599]:
+                      - generic [ref=e600]: 미배정
+                    - cell [ref=e601]
+                    - cell "2026-07-23 16:46:13" [ref=e602]
+            - generic [ref=e603]:
+              - img "이전으로 가기" [ref=e604] [cursor=pointer]
+              - generic [ref=e605] [cursor=pointer]: "1"
+              - generic [ref=e606] [cursor=pointer]: "2"
+              - generic [ref=e607] [cursor=pointer]: "3"
+              - generic [ref=e608] [cursor=pointer]: "4"
+              - generic [ref=e609] [cursor=pointer]: "5"
+              - img "다음으로 가기" [ref=e610] [cursor=pointer]
+        - contentinfo [ref=e611]:
+          - generic [ref=e612]: 2024 AmicusLex Inc. all rights reserved.
+          - link "공지사항" [ref=e614] [cursor=pointer]:
+            - /url: /notice
+  - alert [ref=e615]: /clm/review?tab=all
+```
