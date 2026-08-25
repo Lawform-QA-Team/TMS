@@ -2,6 +2,23 @@
 
 ---
 
+## 워크플로우 필수 순서
+
+**커밋 전 반드시 .md 업데이트 먼저:**
+1. `tasks/todo.md` — 완료 항목 체크 및 검토 섹션 추가
+2. `tasks/lessons.md` — 새로 얻은 교훈 기록
+3. 그 다음 커밋 (코드 + .md 파일 함께)
+
+---
+
+## UI 메뉴 통합 패턴
+
+- 관련된 외부 서비스 설정들은 하나의 "연동 설정" 메뉴로 묶는 것이 UX상 좋음
+- 독립 컴포넌트(JiraConfigPanel 등)를 다른 페이지에서 재사용할 때: 해당 컴포넌트 파일에 CSS import를 직접 추가해 자립성 확보
+- `JiraIssuesList.css`처럼 여러 컴포넌트 스타일이 하나의 CSS에 혼재할 때, 해당 CSS를 사용하는 각 컴포넌트가 직접 import하면 어디서든 동작 보장
+
+---
+
 ## 워크플로우 규칙 (항상 적용)
 
 ### Playwright ↔ K6 양방향 동기화
@@ -278,6 +295,138 @@ run.sh (Python): JSON + ERRO 합쳐 Bot API로 단일 발송
 - k6 내부(handleSummary)와 외부(run.sh) 두 곳에서 Slack을 발송하면 반드시 충돌 발생
 - run.sh를 통해 실행되는 경우 항상 외부(run.sh)에서 단일 발송하는 구조가 옳음
 - `_K6_METRICS_FILE` env var를 통해 k6 → shell 간 데이터 전달
+### React ESLint 경고 수정 패턴
+
+**현상**: 빌드 경고가 여러 파일에 분산되어 누적됨
+
+**수정 원칙 (우선순위 순)**:
+
+1. **미사용 변수를 완전히 제거할 수 있으면 제거**
+   - 구조분해에서 getter만 미사용 → `const [, setter] = useState(...)` 패턴으로 교체
+   - 단순 대입 미사용 → 대입 제거 (`const response = await...` → `await ...`)
+   - import에서 미사용 → import 목록에서 제거
+
+2. **제거하면 로직 변경이 되는 경우 → `eslint-disable-next-line` 주석**
+   - `useEffect` missing deps: 의도적 deps 배열인 경우 `// eslint-disable-next-line react-hooks/exhaustive-deps`
+   - 미사용이지만 향후 사용 예정인 함수/변수: `// eslint-disable-next-line no-unused-vars`
+
+3. **실제 코드 버그 수정**
+   - `no-dupe-keys`: 중복 객체 키 → 하나 제거
+   - `default-case`: switch에 `default: break` 추가
+
+**교훈**:
+- `useEffect` deps 경고를 억제할 때, 억제 이유를 주석으로 남기면 나중에 혼란 방지 (단, 이번 프로젝트는 간결함 우선으로 이유 주석 생략)
+- 한 번에 여러 파일을 수정할 때 병렬 Read → 병렬 Edit 패턴으로 처리
+- 빌드로 최종 검증 (`Compiled successfully.` 확인 필수)
+
+---
+
+### 업로드 모달 - 폴더 선택 드롭다운 추가 패턴
+
+**배경**: 엑셀 업로드 시 `folder_id` 컬럼에만 의존하면 사용자가 업로드 시점에 폴더를 지정할 수 없음
+
+**해결**:
+- Frontend: 업로드 모달에 폴더 드롭다운 추가, `folder_id`를 FormData에 포함
+- Backend: `request.form.get('folder_id')`로 수신, 엑셀 컬럼보다 우선 적용
+
+**교훈**:
+- 주석 처리된 state/훅(`allFolders`)은 필요 시 즉시 주석 해제 후 활용할 것
+- FormData 전송 시 파일 외 추가 필드는 `formData.append(key, value)`로 붙임
+- 모달 닫기/완료 시 추가한 state도 반드시 리셋할 것 (`setUploadFolderId('')`)
+
+---
+
+### Flask Blueprint route 충돌 감지
+
+**현상**: 앱 기동 시 에러 없이 실행되지만 일부 엔드포인트가 예상과 다른 핸들러로 처리됨
+
+**원인**: 두 Blueprint가 동일한 URL + method를 등록할 때, Flask는 먼저 등록된 것을 우선하고 나머지는 무시함 (에러 없음)
+
+**감지 방법**:
+```python
+from app import app
+with app.app_context():
+    rules = [(str(r), r.endpoint) for r in app.url_map.iter_rules()]
+    from collections import Counter
+    counts = Counter(f"{r.methods} {str(r)}" for r in app.url_map.iter_rules())
+    for url, count in counts.items():
+        if count > 1:
+            print(f"충돌: {url}")
+```
+
+**교훈**:
+- Blueprint를 추가하면 반드시 전체 route 충돌 검사를 실행할 것
+- 기존 Blueprint와 동일 URL을 등록하는 신규 Blueprint는 에러 없이 묻힘 → 침묵 버그
+- `url_prefix`가 없는 Blueprint는 다른 Blueprint와 충돌 가능성이 높음
+
+---
+
+### CORS `supports_credentials=True` + wildcard origin 충돌
+
+**현상**: 브라우저 콘솔에 `The value of the 'Access-Control-Allow-Origin' header must not be the wildcard '*' when credentials mode is 'include'` 오류
+
+**원인**: `Flask-CORS`에서 `supports_credentials=True`와 `origins="*"` 동시 사용 불가. 브라우저 스펙상 wildcard + credentials 조합 금지.
+
+**수정**: 프로덕션에서는 `origins` 명시적 목록 지정. 개발 환경에서는 `supports_credentials=False`로 유지.
+
+---
+
+### SQLAlchemy 2.0 - `Model.query.get()` deprecation
+
+**현상**: SQLAlchemy 2.0에서 `Model.query.get(id)` 사용 시 deprecation warning 또는 에러
+
+**수정**: `db.session.get(Model, id)`로 교체
+```python
+# 이전 (deprecated)
+user = User.query.get(user_id)
+
+# 신규 (SQLAlchemy 2.0+)
+user = db.session.get(User, user_id)
+```
+
+**일괄 치환**: Python regex로 자동화 가능
+```python
+re.sub(r'(\w+)\.query\.get\((.+?)\)', r'db.session.get(\1, \2)', code)
+```
+
+---
+
+### 백엔드 인증 누락 패턴
+
+**현상**: 인증 없이 민감 데이터 조회 가능. 프론트엔드 동작은 정상처럼 보임.
+
+**체크리스트**:
+- 공개 읽기가 허용된 엔드포인트 → `@guest_allowed`
+- 로그인 필요 엔드포인트 → `@login_required` 또는 `@user_required`
+- 관리자 전용 엔드포인트 → `@admin_required`
+- `/init-db`, `/db-status` 등 인프라 엔드포인트 → 반드시 `@admin_required`
+
+**교훈**: 신규 Blueprint 파일 작성 시 각 route에 데코레이터 누락 여부를 먼저 확인할 것
+
+---
+
+### Jira 코드 검수 — 재발 방지 패턴
+
+**프론트엔드 API 호출 인증 헤더**
+- 신규 컴포넌트 작성 시 `const { user, token } = useAuth()` + `const authHeader = ...` 선언을 가장 먼저 할 것
+- 같은 파일에서 컴포넌트마다 인증 헤더 적용 여부를 각각 확인할 것 (JiraConfigPanel은 있는데 JiraIssuesList는 없는 케이스 발생)
+
+**백엔드 신규 Blueprint 체크리스트**
+- 시스템 설정 변경 엔드포인트(POST/PUT) → `@admin_required`
+- 조회 전용이라도 인증 없이 노출 금지 → `@user_required` 최소 적용
+- health check, init-db 등 인프라 엔드포인트도 인증 필요
+
+**datetime 일관성**
+- 프로젝트 전체 `get_kst_now()` 사용 → 신규 코드에 `datetime.utcnow()` 절대 금지
+- `from utils.timezone_utils import get_kst_now` 만 import하면 실수 방지
+
+**데드코드 방지**
+- `eslint-disable-next-line no-unused-vars`로 억압된 함수는 제거 대상 신호
+- 해당 함수가 여는 modal state도 함께 제거 대상인지 확인할 것
+
+**JSON.parse 방어**
+- DB에서 온 JSON 컬럼(labels 등)은 렌더 중 직접 `JSON.parse()` 호출 금지
+- `parseLabels()` 같은 try/catch 헬퍼로 감싸서 사용할 것
 
 ---
 
@@ -294,3 +443,226 @@ run.sh (Python): JSON + ERRO 합쳐 Bot API로 단일 발송
   metric.add(duration);
   console.log(`duration: ${duration}ms`);
   ```
+
+---
+
+### HSAD 테스트 공통 모듈 정리 패턴
+
+- HSAD Playwright/K6에서 루트 `url_base_hsad.js`와 `util/url_base_hsad.js`를 동시에 구현하면 URL/selector drift가 생긴다.
+- 루트 파일은 `util/url_base_hsad.js`를 재수출하고, 실제 구현은 `util` 한 곳에서만 관리한다.
+- selector는 URL 파일에 두지 않고 `selector_hsad.js`처럼 별도 파일로 분리한다. FE `test-tid`가 늘어날수록 URL/selector가 섞이면 검색과 유지보수가 어려워진다.
+- k6 `check()`에는 Promise를 직접 반환하지 말고, `await locator.isVisible()` 결과를 boolean 변수로 만든 뒤 전달한다.
+- Playwright config의 `testDir`가 `tests`만 가리키면 `HSAD/**/*.spec.js`는 수집되지 않으므로 `testMatch` 또는 전용 실행 스크립트를 함께 추가한다.
+- TC 매트릭스의 `LC_001~LC_010` 같은 범위를 테스트명에 쓰면 해당 범위의 각 LC assertion을 실제로 포함해야 한다. smoke 수준이면 테스트명을 실제 LC 번호로 줄인다.
+
+---
+
+### Flask auth_decorators - 현재 유저 ID 접근 방법
+
+**현상**: `g.current_user`로 접근하면 None 반환
+
+**원인**: `auth_decorators.py`의 `_attach_request_auth`는 `request.current_user_id`와 `request.user`에 저장함. `flask.g`가 아님.
+
+**패턴**:
+```python
+def _get_current_user_id():
+    uid = getattr(request, 'current_user_id', None)
+    if uid is not None:
+        try:
+            return int(uid)
+        except (TypeError, ValueError):
+            pass
+    return None
+```
+
+---
+
+### AI 대화형 TC 엔드포인트 - response_format json_object 사용 불가
+
+**현상**: 대화형 엔드포인트는 json_object 강제 시 JSON만 반환 → 일반 텍스트 응답 불가
+
+**해결**: 대화형 엔드포인트는 `response_format` 미설정. 응답에서 ` ```json ``` ` 블록만 파싱. 스펙 추출처럼 JSON만 필요한 경우는 `response_format: json_object` 유지.
+
+---
+
+### AI 멀티 공급자 통합 - 공급자별 API 차이점
+
+**OpenAI**: `messages` 배열에 `{"role": "system", ...}` 포함 가능, `response_format: json_object` 지원
+
+**Anthropic**: `system`은 별도 최상위 필드. `messages`는 user/assistant 교대로만 가능 (user로 시작해야 함). 같은 역할 연속 시 에러 → 필터링 필요.
+
+**Google Gemini**: role이 `user`/`model` (assistant 아님). `system_instruction`이 별도 최상위 필드. URL에 API 키를 쿼리 파라미터로 전달 (`?key=...`).
+
+**패턴**: 공급자별 함수 분리(`_call_openai`, `_call_anthropic`, `_call_google`) 후 `_call_ai_api()` 헬퍼로 통합. 사용자 설정 우선 → 서버 env fallback.
+
+---
+
+### API 키 저장 - 보안 패턴
+
+- DB에 저장된 API 키는 GET 응답 시 반드시 마스킹 (`앞8자...뒤4자`)
+- PUT 시 빈 문자열이면 기존 키 유지 (덮어쓰기 방지)
+- 별도 `clear-key` 엔드포인트로 명시적 삭제만 허용
+
+---
+
+## 2026-08-06
+
+### Prisma MySQL + prisma migrate dev 불가 (migration_lock.toml provider 불일치)
+
+**현상**: `prisma migrate dev` 실행 시 `P3019: datasource provider mysql does not match postgresql in migration_lock.toml`
+
+**원인**: 기존 migrations 폴더가 PostgreSQL로 초기화되어 있음
+
+**해결**: `prisma db push` 사용 (schema를 직접 DB에 동기화, migration 히스토리 불필요)
+
+**교훈**: MySQL TMS 프로젝트에서 스키마 변경 시 `prisma migrate dev` 대신 **`prisma db push`** 를 사용할 것
+
+---
+
+### tsx watch — Prisma Client 재생성 후 서버 재시작 필요
+
+**현상**: `prisma db push`로 새 모델 추가 후 `db.collectedTicket`이 undefined
+
+**원인**: tsx watch는 소스 파일 변경만 감지, node_modules(Prisma Client 재생성)는 감지 안 함
+
+**해결**: 소스 파일 한 개를 `touch`해 tsx watch 재시작 유발
+
+**교훈**: Prisma 스키마 변경(db push/generate) 후에는 반드시 서버 재시작 확인
+
+---
+
+## 2026-05-14
+
+### fullscreen-modal → SlidePanel 교체 패턴
+
+모달을 SlidePanel로 교체할 때 두 번의 Edit으로 나눠서 처리:
+1. **상단**: `modal-overlay` + `modal-header` 제거 → `<SlidePanel isOpen=... onClose=... title=...>` + `{children && (<>` 로 교체
+2. **하단**: 남은 `</div></div>)}` (overlay 닫기들) → `</></SlidePanel>` 로 교체
+3. `modal-body` 감싸는 div가 있으면 별도로 제거할 것 (orphan `</div>` 생김 주의)
+
+---
+
+### CSS selector 범위 — 컴포넌트 교체 시 적용 안 되는 문제
+
+`.modal-overlay .modal-actions`처럼 특정 컨텍스트에 묶인 selector는 컴포넌트 구조가 바뀌면 적용되지 않는다.
+- 교체 후 selector에서 중간 컨텍스트(`.modal-overlay`) 제거 필요
+- 컴포넌트 교체 후 반드시 CSS selector 유효성 재확인
+
+---
+
+### SlidePanel — width는 CSS에서 관리
+
+JS props(`width={600}`)로 고정 픽셀을 전달하면 반응형 통일이 어렵다.
+- `SlidePanel.css`에서 `width: 50vw; min-width: 400px`로 CSS 레벨에서 관리
+- JS에서 width prop 제거, 예외적인 크기는 CSS 클래스로 처리
+
+---
+
+### `@media (prefers-color-scheme: dark)` — 앱 전체 다크 모드 미지원 시 금지
+
+앱이 다크 모드를 지원하지 않는데 특정 컴포넌트에만 `prefers-color-scheme: dark` 쿼리가 있으면, OS/브라우저 설정에 따라 해당 컴포넌트만 배경이 바뀌어 흰색/검은색으로 달라 보인다.
+- 앱 전체 다크 모드 지원 전까지 개별 컴포넌트에 dark 미디어 쿼리 추가 금지
+
+---
+
+### box-shadow 일괄 제거 시 transition 참조도 함께 정리
+
+`box-shadow:` 속성을 제거해도 `transition: border-color 0.15s, box-shadow 0.15s;`처럼 transition에 섞인 참조가 남는다.
+- `/box-shadow:/d` 로 속성 줄 제거 후, `grep -rn "box-shadow"` 로 transition 잔여 참조 확인 및 제거
+
+---
+
+## 2026-07-27
+
+### 화이트박스 테스트 - auth_decorators HTTPException 삼킴 버그
+
+**현상**: `@admin_required`, `@user_required` 등 보호된 엔드포인트에서 `get_or_404()` 호출 시 404가 아닌 401 반환
+
+**원인**: 데코레이터의 `except Exception` 블록이 `werkzeug.exceptions.HTTPException`(404, 405 등)을 catch해 401로 변환함
+
+**수정**:
+```python
+except Exception as e:
+    from werkzeug.exceptions import HTTPException
+    if isinstance(e, HTTPException):
+        raise  # 반드시 re-raise
+    logger.error(...)
+    return jsonify({'error': '로그인이 필요합니다.'}), 401
+```
+
+**교훈**: Flask route 내에서 `except Exception`을 쓸 때는 반드시 `HTTPException` re-raise 선행. `abort(404)`, `get_or_404()` 모두 HTTPException을 raise함.
+
+---
+
+### 화이트박스 테스트 - update_dashboard_summary None environment 에러
+
+**현상**: `environment=None`인 TestCase를 삭제하면 500 에러
+
+**원인**: `update_dashboard_summary_for_environment(None)` 호출 시 `DashboardSummary(environment=None)` INSERT → NOT NULL 제약 위반
+
+**수정**:
+```python
+def update_dashboard_summary_for_environment(environment):
+    if not environment:
+        return True  # environment 없으면 업데이트 스킵
+    ...
+```
+
+**교훈**: DB 함수 호출 전 nullable 인자에 대한 early return 방어 코드를 항상 추가할 것
+
+---
+
+### 화이트박스 테스트 - SQLite FK CASCADE 미작동
+
+**현상**: `PRAGMA foreign_keys=ON` 설정에도 불구하고 부모 레코드 삭제 시 자식 레코드가 자동 삭제되지 않음
+
+**원인**: SQLAlchemy 모델에 `cascade="all, delete-orphan"` 또는 `ondelete="CASCADE"` 옵션이 없으면 FK는 존재하지만 CASCADE 동작은 없음
+
+**테스트 해결책**: 부모 삭제 전 자식 테이블 레코드를 명시적으로 먼저 삭제
+```python
+# TC 삭제 전 history 먼저 정리
+TestCaseHistory.query.filter_by(test_case_id=tc_id).delete()
+db.session.commit()
+# User 삭제 전 history, session 먼저 정리
+TestCaseHistory.query.filter_by(changed_by=user_id).delete()
+UserSession.query.filter_by(user_id=user_id).delete()
+db.session.commit()
+```
+
+**교훈**: 테스트 픽스처 teardown은 FK 의존성 역순으로 작성할 것. SQLite 인메모리 DB라도 FK 무결성을 신뢰하지 말 것.
+
+---
+
+### 화이트박스 테스트 - SQLAlchemy Column default는 flush 후 적용
+
+**현상**: `User()` 생성 직후 `user.role`이 `None` (기대값 `'user'`)
+
+**원인**: `Column(String, default='user')`의 default는 Python-side server default로, `db.session.flush()` 또는 `commit()` 이후 DB에서 값이 채워짐. 객체 생성 시점엔 None.
+
+**교훈**: default 값을 테스트할 때는 반드시 `db.session.flush()` 후 확인할 것
+
+---
+
+### 화이트박스 테스트 - UNIQUE 제약 충돌로 인한 픽스처 오염
+
+**현상**: 이전 테스트의 teardown 실패 시 다음 테스트에서 동일 username/email UNIQUE 에러
+
+**해결**: 픽스처에서 UUID suffix 사용
+```python
+suffix = uuid.uuid4().hex[:8]
+user = User(username=f'admin_{suffix}', email=f'admin_{suffix}@test.com', ...)
+```
+
+**교훈**: 테스트 픽스처의 고정 식별자는 UUID suffix로 대체해 충돌 방지할 것
+
+
+## 2025-08-07: 모니터링 대시보드 — Prisma 신규 모델 추가 시 서버 재시작 필수
+
+새 Prisma 모델 추가 후 `db push` / `generate`가 완료되어도 실행 중인 서버는 이전 클라이언트를 사용하므로
+`db.playwrightRun is undefined` 같은 런타임 에러가 발생한다.
+**반드시 서버를 재빌드 + 재시작**해야 새 모델이 인식된다.
+
+## 2025-08-07: 기존 iframe → 자체 차트 교체 시 파일명 유지 패턴
+
+App.js의 import를 건드리지 않으려면 기존 파일명(`GrafanaDashboard.js`)을 유지하고 내용만 교체.
+서브 컴포넌트(`PlaywrightTab.js`, `K6Tab.js`)는 같은 디렉토리에 분리 생성.

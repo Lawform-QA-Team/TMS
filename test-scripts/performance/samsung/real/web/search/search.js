@@ -70,7 +70,7 @@ export default async function() {
         const webSearchFilterStart = Date.now();
         await selectComboboxOption(page, SELECTORS.WEB.SEARCH.SELECT)
         await page.waitForSelector(SELECTORS.WEB.SEARCH.INPUT);
-        await page.fill(SELECTORS.WEB.SEARCH.INPUT, 'heekun');
+        await page.fill(SELECTORS.WEB.SEARCH.INPUT, 'ggp');
         await page.waitForSelector(SELECTORS.WEB.SEARCH.DATEPICKER);
         await page.waitForSelector(SELECTORS.WEB.SEARCH.DATEPICKER_START);
         await selectDateRangeInRdpCalendar(page, SELECTORS.WEB.SEARCH.DATEPICKER, SELECTORS.WEB.SEARCH.DATEPICKER_START, '2026-03-01', '2026-03-31')
@@ -88,6 +88,7 @@ export default async function() {
         await page.waitForSelector(SELECTORS.WEB.NAVBAR.INPUT);
         await page.type(SELECTORS.WEB.NAVBAR.INPUT, '테스트');
         await page.keyboard.press('Enter');
+        await page.waitForSelector('button.text-base.font-semibold.text-foreground.hover\\:text-primary.cursor-pointer.text-left');
         const results = await page.$$('button.text-base.font-semibold.text-foreground.hover\\:text-primary.cursor-pointer.text-left');
         await results[0].click();
         const webSearchResultClickDuration = Date.now() - webSearchResultClickStart;

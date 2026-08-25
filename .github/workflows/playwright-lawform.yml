@@ -1,0 +1,124 @@
+# LawForm E2E 시나리오 자동화
+#
+# 트리거:
+#   - push / PR: main 브랜치 대상
+#   - schedule: 매일 오전 9시 (KST = UTC 00:00)
+#   - workflow_dispatch: 수동 실행 (도메인 선택 가능)
+#
+# [필수] Settings → Secrets and variables → Actions:
+#   LAWFORM_BASE_URL      - LawForm 서비스 URL
+#   LAWFORM_LOGIN_EMAIL   - 테스트 계정 이메일
+#   LAWFORM_LOGIN_PASSWORD - 테스트 계정 비밀번호
+# [선택]
+#   SLACK_BOT_TOKEN, SLACK_CHANNEL_ID
+
+name: Playwright E2E (LawForm)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'test-scripts/playwright/lawform/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'test-scripts/playwright/lawform/**'
+  schedule:
+    - cron: '0 0 * * 1-5'   # 평일 오전 9시 KST
+  workflow_dispatch:
+    inputs:
+      grep:
+        description: '실행할 시나리오 필터 (비워두면 전체 실행)'
+        required: false
+        default: ''
+        type: string
+      domain:
+        description: '도메인 선택 (전체 실행 시 비워두기)'
+        required: false
+        default: ''
+        type: choice
+        options:
+          - ''
+          - CLM
+          - ADV
+          - LIT
+          - SEAL
+          - MISC
+
+jobs:
+  lawform-e2e:
+    name: LawForm E2E Scenarios
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: test-scripts/playwright/package-lock.json
+
+      - name: Increase /dev/shm size
+        run: sudo mount -t tmpfs -o size=2g tmpfs /dev/shm
+
+      - name: Install dependencies
+        working-directory: test-scripts/playwright
+        run: npm install
+
+      - name: Install Playwright browsers
+        working-directory: test-scripts/playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Run LawForm E2E scenarios
+        working-directory: test-scripts/playwright
+        env:
+          BASE_URL: ${{ secrets.LAWFORM_BASE_URL }}
+          LAWFORM_BASE_URL: ${{ secrets.LAWFORM_BASE_URL }}
+          LOGIN_EMAIL: ${{ secrets.LAWFORM_LOGIN_EMAIL }}
+          LOGIN_PASSWORD: ${{ secrets.LAWFORM_LOGIN_PASSWORD }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        run: |
+          set -euo pipefail
+
+          # 도메인/grep 필터 조합
+          GREP_FILTER="${{ inputs.grep || inputs.domain }}"
+
+          echo "================================================"
+          echo "[LawForm E2E] 시나리오 실행 시작"
+          echo "Timestamp : $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "Filter    : ${GREP_FILTER:-전체}"
+          echo "================================================"
+
+          GREP_ARGS=""
+          if [ -n "$GREP_FILTER" ]; then
+            GREP_ARGS="--grep $GREP_FILTER"
+          fi
+
+          npx playwright test lawform/lawform.spec.js \
+            --config=lawform/playwright.lawform.config.js \
+            $GREP_ARGS
+
+          echo "================================================"
+          echo "[LawForm E2E] 완료: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "================================================"
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lawform-playwright-report-${{ github.run_number }}
+          path: test-scripts/playwright/lawform-report/
+          retention-days: 14
+
+      - name: Upload screenshots (실패 시)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lawform-screenshots-${{ github.run_number }}
+          path: test-scripts/playwright/screenshots/
+          retention-days: 7

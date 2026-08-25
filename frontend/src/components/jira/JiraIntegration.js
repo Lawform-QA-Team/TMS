@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import config from '@tms/config';
 import PromptModal from '@tms/components/common/PromptModal';
 import '@tms/components/jira/JiraIntegration.css';
 
@@ -20,7 +19,7 @@ const JiraIntegration = ({ testId, testType, testName, testResult, errorMessage,
   const fetchJiraIssues = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${config.apiUrl}/api/jira/issues`);
+      const response = await axios.get('/jira/issues');
       
       if (response.data.success) {
         setJiraIssues(response.data.data.issues || []);
@@ -37,7 +36,7 @@ const JiraIntegration = ({ testId, testType, testName, testResult, errorMessage,
   const createJiraIssue = async (issueData) => {
     try {
       setLoading(true);
-      const response = await axios.post(`${config.apiUrl}/api/jira/issues`, {
+      const response = await axios.post('/jira/issues', {
         ...issueData,
         test_case_id: testType === 'testcase' ? testId : null,
         automation_test_id: testType === 'automation' ? testId : null,
@@ -73,7 +72,7 @@ const JiraIntegration = ({ testId, testType, testName, testResult, errorMessage,
           performance_test_id: testType === 'performance' ? testId : null
         };
         
-        const response = await axios.post(`${config.apiUrl}/api/jira/issues`, issueData);
+        const response = await axios.post(`/jira/issues`, issueData);
         
         if (response.data.success) {
           alert('테스트 실패로 인해 Jira 이슈가 자동 생성되었습니다.');
@@ -93,7 +92,7 @@ const JiraIntegration = ({ testId, testType, testName, testResult, errorMessage,
   // Jira 이슈 상태 업데이트
   const updateIssueStatus = async (issueKey, newStatus) => {
     try {
-      const response = await axios.put(`${config.apiUrl}/api/jira/issues/${issueKey}`, {
+      const response = await axios.put(`/jira/issues/${issueKey}`, {
         status: newStatus
       });
       
@@ -110,7 +109,7 @@ const JiraIntegration = ({ testId, testType, testName, testResult, errorMessage,
   // Jira 이슈에 댓글 추가
   const addComment = async (issueKey, comment) => {
     try {
-      const response = await axios.post(`${config.apiUrl}/api/jira/issues/${issueKey}/comments`, {
+      const response = await axios.post(`/jira/issues/${issueKey}/comments`, {
         body: comment,
         author_email: 'admin@example.com'
       });
@@ -133,7 +132,7 @@ const JiraIntegration = ({ testId, testType, testName, testResult, errorMessage,
   const fetchComments = async (issueKey) => {
     setLoadingComments(true);
     try {
-      const response = await axios.get(`${config.apiUrl}/api/jira/issues/${issueKey}/comments`);
+      const response = await axios.get(`/jira/issues/${issueKey}/comments`);
       if (response.data.success) {
         setComments(response.data.data || []);
       }
@@ -225,7 +224,7 @@ const JiraIntegration = ({ testId, testType, testName, testResult, errorMessage,
               
               <div className="issue-actions">
                 {/* 게스트는 상태 변경 불가 */}
-                {user && (user.role === 'admin' || user.role === 'user') && (
+                {user && ['admin', 'user'].includes(user.role) && (
                   <>
                     <select
                       className="status-select"

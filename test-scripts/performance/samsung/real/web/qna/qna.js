@@ -3,10 +3,15 @@ import { URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
-import { getCredentials, loginWithPage } from '../login/login_helper.js';
+import { SharedArray } from 'k6/data';
+import { loginWithPage } from '../login/login_helper.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
 import { buildK6SummaryMessage } from '../../../../common/slack_helper.js';
 import { Trend } from 'k6/metrics';
+
+const accounts = new SharedArray('accounts', function () {
+    return JSON.parse(open('./accounts.json'));
+});
 
 export const webQnaPageLoad = new Trend('web_qna_page_load', true);
 export const webQnaStatusFilter = new Trend('web_qna_status_filter', true);
@@ -20,8 +25,8 @@ export const options = {
     scenarios: {
         ui: {
             executor: 'shared-iterations',
-            vus: 1,
-            iterations: 1,
+            vus: 300,
+            iterations: 300,
             options: {
                 browser: {
                     type: 'chromium',
@@ -39,7 +44,7 @@ export default async function() {
         viewport: { width: 1960, height: 1080 },
     });
     const page = await context.newPage();
-    const credentials = getCredentials();
+    const credentials = accounts[(__VU - 1) % accounts.length];
     const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
     try {
@@ -49,7 +54,7 @@ export default async function() {
         const webQnaPageLoadStart = Date.now();
         await page.goto(URLS.SERVICE.WEB_QNA);
         let timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_QNA.png` });
+        await page.screenshot({ path: `screenshots/${timestamp}_vu${__VU}_QNA.png` });
         const webQnaPageLoadDuration = Date.now() - webQnaPageLoadStart;
         webQnaPageLoad.add(webQnaPageLoadDuration);
         console.log(`web_qna_page_load: ${webQnaPageLoadDuration}ms`);
@@ -58,7 +63,7 @@ export default async function() {
         // await page.waitForSelector(SELECTORS.FEATURES.QNA.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_LAST);
         // timestamp = getNewTimeStamp();
-        // await page.screenshot({ path: `screenshots/${timestamp}_QNA_pagination_last.png` });
+        // await page.screenshot({ path: `screenshots/${timestamp}_vu${__VU}_QNA_pagination_last.png` });
         // await page.waitForSelector(SELECTORS.FEATURES.QNA.PAGINATION);
         // await page.click(SELECTORS.COMMON.PAGE_FIRST);
 
@@ -70,7 +75,7 @@ export default async function() {
         webQnaStatusFilter.add(webQnaStatusFilterDuration);
         console.log(`web_qna_status_filter: ${webQnaStatusFilterDuration}ms`);
         timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_QNA_status.png` });
+        await page.screenshot({ path: `screenshots/${timestamp}_vu${__VU}_QNA_status.png` });
 
         // 1:1 문의, 검색
         const webQnaSearchStart = Date.now();
@@ -81,14 +86,14 @@ export default async function() {
         webQnaSearch.add(webQnaSearchDuration);
         console.log(`web_qna_search: ${webQnaSearchDuration}ms`);
         timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_QNA_search.png` });
+        await page.screenshot({ path: `screenshots/${timestamp}_vu${__VU}_QNA_search.png` });
         await page.goto(URLS.SERVICE.WEB_QNA);
 
         // 1:1 문의, 문의 등록 진입
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CREATE_QNA);
         await page.click(SELECTORS.WEB.QNA.BUTTON_CREATE_QNA);
         timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_QNA_create.png` });
+        await page.screenshot({ path: `screenshots/${timestamp}_vu${__VU}_QNA_create.png` });
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CANCEL);
         await page.click(SELECTORS.WEB.QNA.BUTTON_CANCEL);
 
@@ -103,7 +108,7 @@ export default async function() {
         await page.keyboard.press('Enter');
         await page.locator(`[contenteditable="true"]`).first().type('문의 테스트 2');
         timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_QNA_create_write.png` });
+        await page.screenshot({ path: `screenshots/${timestamp}_vu${__VU}_QNA_create_write.png` });
 
         // 1:1 문의, 문의 등록
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CLICK_SUBMIT);
@@ -112,7 +117,7 @@ export default async function() {
         webQnaRegisterSave.add(webQnaRegisterSaveDuration);
         console.log(`web_qna_register_save: ${webQnaRegisterSaveDuration}ms`);
         timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_QNA_create_submit.png` });
+        await page.screenshot({ path: `screenshots/${timestamp}_vu${__VU}_QNA_create_submit.png` });
 
         // 1:1 문의, 테이블 클릭
         const webQnaTableClickStart = Date.now();
@@ -122,7 +127,7 @@ export default async function() {
         webQnaTableClick.add(webQnaTableClickDuration);
         console.log(`web_qna_table_click: ${webQnaTableClickDuration}ms`);
         timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_QNA_table.png` });
+        await page.screenshot({ path: `screenshots/${timestamp}_vu${__VU}_QNA_table.png` });
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CLICK_GO_TO_LIST);
         await page.click(SELECTORS.WEB.QNA.BUTTON_CLICK_GO_TO_LIST);
 
@@ -132,7 +137,7 @@ export default async function() {
         await page.waitForSelector(SELECTORS.WEB.QNA.BUTTON_CLICK_CANCEL);
         await page.click(SELECTORS.WEB.QNA.BUTTON_CLICK_CANCEL);
         timestamp = getNewTimeStamp();
-        await page.screenshot({ path: `screenshots/${timestamp}_QNA_cancel.png` });
+        await page.screenshot({ path: `screenshots/${timestamp}_vu${__VU}_QNA_cancel.png` });
 
         // 모달 관련 내용 추가 필요
 

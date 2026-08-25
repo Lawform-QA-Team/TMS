@@ -39,7 +39,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     first_name = db.Column(db.String(50))
     last_name = db.Column(db.String(50))
-    role = db.Column(db.String(20), default='user')  # admin, user, tester
+    role = db.Column(db.String(20), default='user')  # admin, executive, user, guest
     is_active = db.Column(db.Boolean, default=True)
     is_verified = db.Column(db.Boolean, default=False)
     email_verification_token = db.Column(db.String(255))
@@ -1205,4 +1205,3 @@ export default Register;
 
 **버전**: 1.0  
 **상태**: 계획 단계  
-

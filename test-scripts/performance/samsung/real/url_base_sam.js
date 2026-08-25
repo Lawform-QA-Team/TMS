@@ -21,14 +21,14 @@ if (typeof __ENV !== 'undefined' && __ENV.WEB_BASE_URL) {
 // 어드민 로그인 관련 URL
 export const LOGIN_URLS = {
     HOME: `${BASE_URL}`,
-    LOGIN: `${BASE_URL}/login`,
+    LOGIN: `${BASE_URL}/id-login`,
     DASHBOARD: `${BASE_URL}/dashboard` // 통계 = 대시보드
 };
 
 // 웹 서비스 로그인 관련 URL
 export const WEB_LOGIN_URLS = {
     HOME: `${WEB_BASE_URL}`,
-    LOGIN: `${WEB_BASE_URL}/login`,
+    LOGIN: `${WEB_BASE_URL}/id-login`,
     DASHBOARD: `${WEB_BASE_URL}/dashboard`
 };
 

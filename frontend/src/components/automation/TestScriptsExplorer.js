@@ -27,7 +27,7 @@ const FileTreeItem = ({ item, level = 0, scriptType }) => {
   const loadChildren = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${config.apiUrl}/api/test-scripts/explore?path=${encodeURIComponent(item.path)}`);
+      const response = await axios.get(`${config.apiUrl}/test-scripts/explore?path=${encodeURIComponent(item.path)}`);
       
       // scriptType에 따라 필터링
       let filteredChildren = response.data.children || [];
@@ -167,7 +167,7 @@ const TestScriptsExplorer = ({ scriptType = 'playwright' }) => {
       }
       
       // 백엔드에서 루트 구조 로드
-      const response = await axios.get(`/api/test-scripts/explore?path=${encodeURIComponent(requestPath)}`);
+      const response = await axios.get(`/test-scripts/explore?path=${encodeURIComponent(requestPath)}`);
       
       // scriptType에 따라 필터링
       let filteredItems = response.data.children || [];

@@ -11,7 +11,7 @@ const TestScriptsManager = () => {
   const [s3Files, setS3Files] = useState([]);
   const [localFiles, setLocalFiles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileContent, setFileContent] = useState('');
   const [activeTab, setActiveTab] = useState('local'); // 's3' or 'local'
@@ -21,6 +21,7 @@ const TestScriptsManager = () => {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [newFileName, setNewFileName] = useState('');
   const [newFileContent, setNewFileContent] = useState('');
+  // eslint-disable-next-line no-unused-vars
   const [showFolderUploadModal, setShowFolderUploadModal] = useState(false);
   const [uploadingFolder, setUploadingFolder] = useState(false);
   const [currentPath, setCurrentPath] = useState('test-scripts');
@@ -73,7 +74,7 @@ const TestScriptsManager = () => {
   useEffect(() => {
     const fetchUserS3Prefix = async () => {
       try {
-        const res = await axios.get(`${config.apiUrl}/api/test-scripts/s3/settings/prefix`, {
+        const res = await axios.get(`${config.apiUrl}/test-scripts/s3/settings/prefix`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -96,6 +97,7 @@ const TestScriptsManager = () => {
     const handleGlobalClick = () => setContextMenu({ visible: false, x: 0, y: 0, folder: null });
     window.addEventListener('click', handleGlobalClick);
     return () => window.removeEventListener('click', handleGlobalClick);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   // S3 파일 목록 로드
@@ -103,7 +105,7 @@ const TestScriptsManager = () => {
     try {
       setLoading(true);
       const prefix = s3PathHistory.length > 0 ? s3PathHistory[s3PathHistory.length - 1] : s3BasePrefix;
-      const response = await axios.get(`${config.apiUrl}/api/test-scripts/s3/list?prefix=${encodeURIComponent(prefix)}`, {
+      const response = await axios.get(`${config.apiUrl}/test-scripts/s3/list?prefix=${encodeURIComponent(prefix)}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -122,7 +124,7 @@ const TestScriptsManager = () => {
   // S3 폴더 목록 로드
   const loadS3Folders = useCallback(async () => {
     try {
-      const response = await axios.get(`${config.apiUrl}/api/test-scripts/s3/folders?prefix=${encodeURIComponent(s3BasePrefix)}`, {
+      const response = await axios.get(`${config.apiUrl}/test-scripts/s3/folders?prefix=${encodeURIComponent(s3BasePrefix)}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -146,7 +148,7 @@ const TestScriptsManager = () => {
     try {
       setLoading(true);
       const targetPath = path || localBasePath || 'test-scripts';
-      const response = await axios.get(`${config.apiUrl}/api/test-scripts/explore?path=${encodeURIComponent(targetPath)}`);
+      const response = await axios.get(`${config.apiUrl}/test-scripts/explore?path=${encodeURIComponent(targetPath)}`);
       setLocalFiles(response.data.children || []);
       setCurrentPath(targetPath);
     } catch (err) {
@@ -176,7 +178,7 @@ const TestScriptsManager = () => {
     try {
       setLoading(true);
       const prefix = directory.key.endsWith('/') ? directory.key : `${directory.key}/`;
-      const response = await axios.get(`${config.apiUrl}/api/test-scripts/s3/list?prefix=${encodeURIComponent(prefix)}`, {
+      const response = await axios.get(`${config.apiUrl}/test-scripts/s3/list?prefix=${encodeURIComponent(prefix)}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -223,7 +225,7 @@ const TestScriptsManager = () => {
       try {
         setLoading(true);
         const prefix = parentPath.endsWith('/') ? parentPath : `${parentPath}/`;
-        const response = await axios.get(`${config.apiUrl}/api/test-scripts/s3/list?prefix=${encodeURIComponent(prefix)}`, {
+        const response = await axios.get(`${config.apiUrl}/test-scripts/s3/list?prefix=${encodeURIComponent(prefix)}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -249,7 +251,7 @@ const TestScriptsManager = () => {
       let content;
       
       if (activeTab === 's3') {
-        const response = await axios.get(`${config.apiUrl}/api/test-scripts/s3/content?key=${encodeURIComponent(file.key)}`, {
+        const response = await axios.get(`${config.apiUrl}/test-scripts/s3/content?key=${encodeURIComponent(file.key)}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -257,7 +259,7 @@ const TestScriptsManager = () => {
         });
         content = response.data.content;
       } else {
-        const response = await axios.get(`${config.apiUrl}/api/test-scripts/file-content?path=${encodeURIComponent(file.path)}`);
+        const response = await axios.get(`${config.apiUrl}/test-scripts/file-content?path=${encodeURIComponent(file.path)}`);
         content = response.data.content;
       }
       
@@ -288,7 +290,7 @@ const TestScriptsManager = () => {
       
       if (activeTab === 's3') {
         // S3 파일 수정 (덮어쓰기)
-        await axios.post(`${config.apiUrl}/api/test-scripts/s3/upload-content`, {
+        await axios.post(`${config.apiUrl}/test-scripts/s3/upload-content`, {
           content: fileContent,
           filename: selectedFile.key.split('/').pop(),
           is_new_file: false,
@@ -349,7 +351,7 @@ const TestScriptsManager = () => {
       // 선택된 폴더에 새 파일명으로 저장 (항상 새 파일 생성)
       const fullPath = selectedFolder.endsWith('/') ? selectedFolder + tempFileName : selectedFolder + '/' + tempFileName;
       
-      await axios.post(`${config.apiUrl}/api/test-scripts/s3/upload-content`, {
+      await axios.post(`${config.apiUrl}/test-scripts/s3/upload-content`, {
         content: fileContent,
         filename: fullPath,
         is_new_file: true
@@ -382,7 +384,7 @@ const TestScriptsManager = () => {
     
     try {
       setLoading(true);
-      await axios.post(`${config.apiUrl}/api/test-scripts/s3/upload-content`, {
+      await axios.post(`${config.apiUrl}/test-scripts/s3/upload-content`, {
         content: newFileContent,
         filename: newFileName,
         is_new_file: true
@@ -414,7 +416,7 @@ const TestScriptsManager = () => {
       setLoading(true);
       
       if (activeTab === 's3') {
-        await axios.delete(`${config.apiUrl}/api/test-scripts/s3/delete`, {
+        await axios.delete(`${config.apiUrl}/test-scripts/s3/delete`, {
           data: { s3_key: file.key },
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -438,7 +440,7 @@ const TestScriptsManager = () => {
   const downloadFile = async (file) => {
     try {
       if (activeTab === 's3') {
-        const response = await axios.get(`${config.apiUrl}/api/test-scripts/s3/download-url?key=${encodeURIComponent(file.key)}`, {
+        const response = await axios.get(`${config.apiUrl}/test-scripts/s3/download-url?key=${encodeURIComponent(file.key)}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -467,7 +469,7 @@ const TestScriptsManager = () => {
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await axios.post(`${config.apiUrl}/api/test-scripts/s3/upload`, formData, {
+      await axios.post(`${config.apiUrl}/test-scripts/s3/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`
@@ -495,7 +497,7 @@ const TestScriptsManager = () => {
       setUploadingFolder(true);
       setUploadProgress(0);
       
-      const response = await axios.post(`${config.apiUrl}/api/test-scripts/s3/upload-folder`, {
+      const response = await axios.post(`${config.apiUrl}/test-scripts/s3/upload-folder`, {
         folder_path: folderPath
       }, {
         headers: {
@@ -536,7 +538,7 @@ const TestScriptsManager = () => {
       if (!name) return;
       try {
         const fullPath = folderKey + name;
-        await axios.post(`${config.apiUrl}/api/test-scripts/s3/upload-content`, {
+        await axios.post(`${config.apiUrl}/test-scripts/s3/upload-content`, {
           content: fileContent,
           filename: fullPath,
           is_new_file: true
@@ -576,6 +578,7 @@ const TestScriptsManager = () => {
       }
       loadLocalFiles(localBasePath);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, loadS3Files, loadLocalFiles, s3BasePrefix, localBasePath]);
 
   const currentFiles = activeTab === 's3' ? s3Files : localFiles;
@@ -848,7 +851,6 @@ const TestScriptsManager = () => {
                     selectOnLineNumbers: true,
                     roundedSelection: false,
                     cursorStyle: 'line',
-                    automaticLayout: true,
                   }}
                 />
               </div>
@@ -1061,7 +1063,7 @@ const TestScriptsManager = () => {
                 className="save-button"
                 onClick={async () => {
                   try {
-                    const res = await axios.post(`${config.apiUrl}/api/test-scripts/s3/settings/prefix`, {
+                    const res = await axios.post(`${config.apiUrl}/test-scripts/s3/settings/prefix`, {
                       s3_base_prefix: s3BasePrefix
                     }, {
                       headers: {

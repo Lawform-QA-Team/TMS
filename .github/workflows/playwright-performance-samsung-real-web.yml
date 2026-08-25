@@ -1,0 +1,74 @@
+# Playwright E2E 테스트 - samsung/real/web 주기 실행
+# PC 잠자기와 관계없이 GitHub 서버에서 실행됩니다.
+#
+# [필수] 저장소 Settings → Secrets and variables → Actions 에서 다음 추가:
+#   WEB_BASE_URL             - web 대상 URL (예: https://dev.privacydocs.kr/)
+#   WEB_LOGIN_EMAIL          - web 로그인 이메일
+#   WEB_LOGIN_PASSWORD       - web 로그인 비밀번호
+#   PW_INFLUXDB_ADDR         - InfluxDB 주소 (예: https://us-east-1-1.aws.cloud2.influxdata.com)
+#   PW_INFLUXDB_ORGANIZATION - InfluxDB 조직명
+#   PW_INFLUXDB_BUCKET       - InfluxDB 버킷명
+#   PW_INFLUXDB_TOKEN        - InfluxDB 토큰
+# [선택] SLACK_BOT_TOKEN, SLACK_CHANNEL_ID
+#
+name: Playwright E2E (samsung/real/web)
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  playwright-samsung-real-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout (sam-k6)
+        uses: actions/checkout@v4
+        with:
+          ref: sam-k6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: test-scripts/playwright/package-lock.json
+
+      - name: Increase /dev/shm size
+        run: sudo mount -t tmpfs -o size=2g tmpfs /dev/shm
+
+      - name: Install dependencies (Playwright)
+        working-directory: test-scripts/playwright
+        run: npm install
+
+      - name: Install Playwright browsers
+        working-directory: test-scripts/playwright
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Run Playwright tests (samsung/real/web)
+        working-directory: test-scripts/playwright
+        env:
+          BASE_URL: ${{ secrets.WEB_BASE_URL }}
+          WEB_BASE_URL: ${{ secrets.WEB_BASE_URL }}
+          LOGIN_EMAIL: ${{ secrets.WEB_LOGIN_EMAIL }}
+          LOGIN_PASSWORD: ${{ secrets.WEB_LOGIN_PASSWORD }}
+          INFLUXDB_URL: ${{ secrets.PW_INFLUXDB_ADDR }}
+          INFLUXDB_ORG: ${{ secrets.PW_INFLUXDB_ORGANIZATION }}
+          INFLUXDB_BUCKET: ${{ secrets.PW_INFLUXDB_BUCKET }}
+          INFLUXDB_TOKEN: ${{ secrets.PW_INFLUXDB_TOKEN }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        run: |
+          set -euo pipefail
+          echo "=============================================="
+          echo "[Playwright] Running samsung/real/web tests"
+          echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S')"
+          echo "=============================================="
+          npx playwright test tests/samsung/real/web \
+            --config=./reporter/playwright.config.ts
+          echo "=============================================="
+          echo "[Playwright] samsung/real/web tests finished"
+          echo "End: $(date -u '+%Y-%m-%d %H:%M:%S')"
+          echo "=============================================="

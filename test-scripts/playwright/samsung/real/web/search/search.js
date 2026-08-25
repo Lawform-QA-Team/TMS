@@ -1,10 +1,9 @@
 /**
  * 서비스 - 통합검색 (웹) - Playwright용
  */
-import { URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
-import { getWebCredentials, loginWithPage } from '../../admin/login/login_helper.js';
+import { getWebCredentials, loginWebWithPage } from '../../admin/login/login_helper.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
 import { selectDateRangeInRdpCalendar } from '../../../../common/datepicker_helper.js';
 
@@ -19,7 +18,7 @@ export async function run(page) {
   const credentials = getWebCredentials();
   const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
-  await loginWithPage(page, credentials, URLS.WEB_LOGIN.HOME);
+  await loginWebWithPage(page, credentials);
 
   // 통합검색
   await page.waitForSelector(SELECTORS.WEB.NAVBAR.INPUT);
@@ -44,7 +43,7 @@ export async function run(page) {
   // 통합검색, 검색 필터 적용
   await selectComboboxOption(page, SELECTORS.WEB.SEARCH.SELECT)
   await page.waitForSelector(SELECTORS.WEB.SEARCH.INPUT);
-  await page.fill(SELECTORS.WEB.SEARCH.INPUT, 'heekun');
+  await page.fill(SELECTORS.WEB.SEARCH.INPUT, 'ggp');
   await page.waitForSelector(SELECTORS.WEB.SEARCH.DATEPICKER);
   await page.waitForSelector(SELECTORS.WEB.SEARCH.DATEPICKER_START);
   await selectDateRangeInRdpCalendar(page, SELECTORS.WEB.SEARCH.DATEPICKER, SELECTORS.WEB.SEARCH.DATEPICKER_START, '2026-01-01', '2026-03-19')

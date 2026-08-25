@@ -4,7 +4,7 @@
 import { URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
-import { getWebCredentials, loginWithPage } from '../../admin/login/login_helper.js';
+import { getWebCredentials, loginWebWithPage } from '../../admin/login/login_helper.js';
 
 async function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -17,7 +17,7 @@ export async function run(page) {
   const credentials = getWebCredentials();
   const getNewTimeStamp = () => getFormattedTimestamp().replace(/\s/g, '_');
 
-  await loginWithPage(page, credentials, URLS.WEB_LOGIN.HOME);
+  await loginWebWithPage(page, credentials);
 
   // 문서 작성 - 표준 양식
   await page.goto(URLS.AUTODOC.STANDARD, {
@@ -38,7 +38,7 @@ export async function run(page) {
 
   // 문서 작성 - 표준 양식, 검색
   await page.waitForSelector(SELECTORS.WEB.AUTODOC.INPUT_SEARCH);
-  await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('개인정보처리방침_삼성닷컴');
+  await page.locator(SELECTORS.WEB.AUTODOC.INPUT_SEARCH).fill('개인정보처리방침');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);
   await Promise.all([
     page.waitForURL('**/autodoc**'),

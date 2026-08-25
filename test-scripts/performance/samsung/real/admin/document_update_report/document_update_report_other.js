@@ -96,7 +96,7 @@ export default async function() {
 
         // 문서 업데이트 리포트 - 타사문서, 기업 선택
         const docUpdateOthCompanySelectStart = Date.now();
-        await page.waitForLoadState('load');
+        await page.waitForSelector('button[data-appearance="outline"][data-size="md"]');
         const companies = await page.$$('button[data-appearance="outline"][data-size="md"]');
         await companies[Math.floor(Math.random() * companies.length)].click();
         const docUpdateOthCompanySelectDuration = Date.now() - docUpdateOthCompanySelectStart;

@@ -71,10 +71,10 @@ export async function run(page) {
   await page.locator(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.SELECT_EVENT).click();
   const aiChatOption = page.locator('[role="option"]').filter({ hasText: 'AI 채팅' });
   await aiChatOption.click();
-  await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.SELECT_STATUS);
-  await page.locator(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.SELECT_STATUS).click();
-  const statusOption = page.locator('[role="option"]').filter({ hasText: '전체' });
-  await statusOption.click();
+  // await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.SELECT_STATUS);
+  // await page.locator(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.SELECT_STATUS).click();
+  // const statusOption = page.locator('[role="option"]').filter({ hasText: '전체' });
+  // await statusOption.click();
   await page.waitForSelector(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.INPUT_SEARCH);
   await page.locator(SELECTORS.ADMIN.USER_ACTIVITY_TABLE.INPUT_SEARCH).fill('');
   await page.waitForSelector(SELECTORS.COMMON.SEARCH);

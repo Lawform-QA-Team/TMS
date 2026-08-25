@@ -10,8 +10,10 @@ export default function Page({ onSwitchToRegister }) {
     password: ''
   })
   const [error, setError] = useState('')
+  const [twoFactorState, setTwoFactorState] = useState(null) // { tempToken }
+  const [otpCode, setOtpCode] = useState('')
 
-  const { login, guestLogin } = useAuth()
+  const { login, guestLogin, verify2fa } = useAuth()
 
   const handleChange = (e) => {
     setFormData({
@@ -26,13 +28,31 @@ export default function Page({ onSwitchToRegister }) {
     setError('')
 
     const result = await login(formData.username, formData.password)
-    
+
+    if (result.success) {
+      setError('')
+    } else if (result.requires_2fa) {
+      setTwoFactorState({ tempToken: result.temp_token })
+    } else {
+      setError(result.error)
+    }
+
+    setIsLoading(false)
+  }
+
+  async function handleOtpSubmit(e) {
+    e.preventDefault()
+    setIsLoading(true)
+    setError('')
+
+    const result = await verify2fa(twoFactorState.tempToken, otpCode)
+
     if (result.success) {
       setError('')
     } else {
       setError(result.error)
     }
-    
+
     setIsLoading(false)
   }
 
@@ -49,6 +69,65 @@ export default function Page({ onSwitchToRegister }) {
     }
     
     setIsLoading(false)
+  }
+
+  // 2FA OTP 입력 화면
+  if (twoFactorState) {
+    return (
+      <main className="login-page">
+        <div className="login-wrapper">
+          <header className="login-header">
+            <div className="login-logo">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+              </svg>
+            </div>
+            <h1>2단계 인증</h1>
+          </header>
+
+          <div className="login-card">
+            <form onSubmit={handleOtpSubmit} className="login-form">
+              {error && <div className="regi-error">❌ {error}</div>}
+              <p style={{ color: '#6c757d', fontSize: '0.9em', marginBottom: '8px' }}>
+                인증 앱(Google Authenticator 등)의 6자리 코드를 입력하세요.
+              </p>
+              <div>
+                <label htmlFor="otp" className="form-label">OTP 코드</label>
+                <div className="input-wrapper">
+                  <input
+                    id="otp"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]{6}"
+                    maxLength={6}
+                    placeholder="6자리 코드 입력"
+                    className="input-field input-field--loginid"
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                    autoFocus
+                    disabled={isLoading}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="name-row">
+                <button
+                  type="button"
+                  className="guest-btn"
+                  onClick={() => { setTwoFactorState(null); setOtpCode(''); setError(''); }}
+                  disabled={isLoading}
+                >
+                  취소
+                </button>
+                <button type="submit" disabled={isLoading || otpCode.length !== 6} className="submit-btn">
+                  {isLoading ? <><span className="spinner" />{'확인 중...'}</> : '확인'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </main>
+    )
   }
 
   return (

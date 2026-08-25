@@ -45,41 +45,28 @@ sudo apt-get install k6
 ```
 test-scripts/performance/
 ├── _ENV.js                    # 환경 설정
-├── advice/                    # 법률 자문 관련 테스트
-│   ├── advice_draft.js       # 자문 초안 테스트
-│   ├── advice_lagel.js       # 자문 법률 검토 테스트
-│   └── advice_process.js     # 자문 프로세스 테스트
-├── clm/                      # CLM 관련 테스트
-│   ├── multi/                # 계열사 테스트
-│   │   ├── clm_draft_multi.js
-│   │   ├── clm_esign_multi.js
-│   │   └── clm_final_multi.js
-│   └── nomerl/               # 단일 그룹 테스트
-│       ├── clm_draft.js
-│       ├── clm_esign.js
-│       └── clm_final.js
-├── litigation/               # 송무 관련 테스트
-│   ├── litigation_draft.js   # 송무 초안 테스트
-│   └── litigation_schedule.js # 송무 일정 테스트
-├── dashboard/                # 대시보드 테스트
-│   └── dashboard_setting.js  # 대시보드 설정 테스트
-├── login/                    # 로그인 테스트
-│   └── login_to_dashboard.js # 로그인 후 대시보드 이동 테스트
-└── python/                   # Python 기반 K6 GUI
-    ├── k6_gui.py            # K6 GUI 실행
-    └── k6_options.py        # K6 옵션 설정
+├── lawform/                   # 법률 서식 관련 테스트
+│   ├── advice/                # 자문 관련 테스트
+│   ├── clm/                   # CLM 관련 테스트
+│   ├── litigation/            # 송무 관련 테스트
+│   └── dashboard/             # 대시보드 테스트
+├── samsung/                   # 삼성 관련 테스트
+├── HSAD/                      # HSAD 관련 테스트
+└── python/                    # Python 기반 K6 GUI
+    ├── k6_gui.py             # K6 GUI 실행
+    └── k6_options.py         # K6 옵션 설정
 ```
 
 #### 성능 테스트 실행
 ```bash
 # 기본 성능 테스트
-k6 run test-scripts/performance/clm/nomerl/clm_draft.js
+k6 run test-scripts/performance/lawform/clm/clm_draft.js
 
 # 환경 변수와 함께 실행
-k6 run -e BASE_URL=http://localhost:3000 test-scripts/performance/clm/nomerl/clm_draft.js
+k6 run -e BASE_URL=http://localhost:3000 test-scripts/performance/lawform/clm/clm_draft.js
 
 # 부하 테스트 (100명 동시 사용자, 30초)
-k6 run --vus 100 --duration 30s test-scripts/performance/clm/nomerl/clm_draft.js
+k6 run --vus 100 --duration 30s test-scripts/performance/lawform/clm/clm_draft.js
 ```
 
 #### 성능 테스트 결과 분석
@@ -426,6 +413,6 @@ jobs:
 
 ---
 
-**마지막 업데이트**: 2025년 8월 13일
-**가이드 버전**: 2.0.1
+**마지막 업데이트**: 2026년 5월 11일
+**가이드 버전**: 2.7.0
 **상태**: 모든 테스트 유형 지원 및 문서화 완료
