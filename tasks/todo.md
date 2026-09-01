@@ -4,6 +4,8 @@
 - [x] `BASE_URL` + `LOGIN_ID`/`LOGIN_PASSWORD` 환경변수로 로그인만 검증
 - [x] k6 inspect / 환경변수 누락 시 setup() 실패 확인
 - [x] BASE_URL 끝 `/api` 중복 시 `/api/api/login/email` 404 → origin 정규화
+- [x] `esign-load-test.js` 기준 1인 API 검증 (`esign-env-check.js`) — 로그인 + 조회 3건, write 제외
+- [x] 로그인 토큰을 최상위 `token`에서도 추출 (alpha 응답이 `data.token`이 아님)
 
 ---
 
