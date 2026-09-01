@@ -11,7 +11,7 @@
 
 const { test, expect, request } = require("@playwright/test");
 
-const BASE_URL = process.env.TARGET_BASE_URL || "https://staging.example.com";
+const BASE_URL = process.env.TARGET_BASE_URL || "https://alpha.api.lfdev.io";
 
 // 테스트 계정 - 반드시 별도 격리된 테스트 테넌트/데이터로 구성할 것 (운영 데이터 절대 사용 금지)
 const ACCOUNTS = {
@@ -28,18 +28,19 @@ const ACCOUNTS = {
     password: process.env.TENANT_A_ADMIN_PASSWORD,
   },
 };
-
 /**
  * 로그인 후 인증 토큰(Bearer)을 반환하는 헬퍼
  * 실제 로그인 API 스펙에 맞게 endpoint/payload/응답 파싱 부분 수정 필요
  */
 async function login(apiContext, account) {
-  const res = await apiContext.post("/api/auth/login", {
+  const res = await apiContext.post("/api/login/email", {
     data: { email: account.email, password: account.password },
   });
   expect(res.ok(), `로그인 실패: ${account.email}`).toBeTruthy();
   const body = await res.json();
-  return body.accessToken || body.token;
+  return body.data.accessToken;
+  console.log(body);
+  console.log(body.data.accessToken);
 }
 
 /**
@@ -68,28 +69,28 @@ test.describe("IDOR - 리소스 접근 통제", () => {
   });
 
   test("자신의 리소스는 정상 조회되어야 함 (baseline)", async () => {
-    const myResources = await tenantAUserCtx.get("/api/orders?mine=true");
+    const myResources = await tenantAUserCtx.get("/api/clm?");
     expect(myResources.ok()).toBeTruthy();
   });
 
   test("타인 소유 리소스 ID를 순차 대입 시 접근이 차단되어야 함", async () => {
     // 실제 존재하는 타 사용자 리소스 ID 범위로 조정 (테스트 데이터 시딩 필요)
-    const suspiciousIds = [1, 2, 3, 100, 101, 999];
+    const suspiciousIds = [375099];
 
     for (const id of suspiciousIds) {
-      const res = await tenantAUserCtx.get(`/api/orders/${id}`);
+      const res = await tenantAUserCtx.get(`/api/clm/${id}`);
 
       // 존재하지 않는 리소스는 404, 존재하지만 타인 소유면 403이어야 함
       // 200(OK)으로 타인 데이터가 조회된다면 IDOR 취약점
       expect(
         [403, 404].includes(res.status()),
-        `IDOR 의심: /api/orders/${id} 응답 코드 ${res.status()}`,
+        `IDOR 의심: /api/clm/${id} 응답 코드 ${res.status()}`,
       ).toBeTruthy();
     }
   });
 
   test("URL 파라미터 조작으로 타 사용자 프로필 접근이 차단되어야 함", async () => {
-    const res = await tenantAUserCtx.get("/api/users/2/profile");
+    const res = await tenantAUserCtx.get("/api/profile");
     expect([403, 404]).toContain(res.status());
   });
 });
@@ -104,11 +105,11 @@ test.describe("멀티테넌시 격리 검증", () => {
     tenantBUserCtx = await createAuthedContext(ACCOUNTS.tenantB_user);
 
     // 테넌트A 명의로 리소스 생성 후 ID 확보 (실제 생성 API로 교체)
-    const createRes = await tenantAUserCtx.post("/api/orders", {
+    const createRes = await tenantAUserCtx.post("/api/clm", {
       data: { item: "security-test-item", quantity: 1 },
     });
     const created = await createRes.json();
-    tenantASeededResourceId = created.id;
+    tenantASeededResourceId = created.data.id;
   });
 
   test.afterAll(async () => {
@@ -118,7 +119,7 @@ test.describe("멀티테넌시 격리 검증", () => {
 
   test("테넌트B 사용자가 테넌트A 리소스에 직접 접근 불가해야 함", async () => {
     const res = await tenantBUserCtx.get(
-      `/api/orders/${tenantASeededResourceId}`,
+      `/api/clm/${tenantASeededResourceId}`,
     );
     expect(
       [403, 404].includes(res.status()),
@@ -128,7 +129,7 @@ test.describe("멀티테넌시 격리 검증", () => {
 
   test("테넌트B 사용자가 테넌트A 리소스를 수정할 수 없어야 함", async () => {
     const res = await tenantBUserCtx.patch(
-      `/api/orders/${tenantASeededResourceId}`,
+      `/api/clm/${tenantASeededResourceId}`,
       {
         data: { quantity: 999 },
       },
@@ -138,7 +139,7 @@ test.describe("멀티테넌시 격리 검증", () => {
 
   test("테넌트B 사용자가 테넌트A 리소스를 삭제할 수 없어야 함", async () => {
     const res = await tenantBUserCtx.delete(
-      `/api/orders/${tenantASeededResourceId}`,
+      `/api/clm/${tenantASeededResourceId}`,
     );
     expect([403, 404]).toContain(res.status());
   });
