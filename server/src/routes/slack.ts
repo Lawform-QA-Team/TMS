@@ -4,6 +4,7 @@ import { logger } from '../lib/logger.js'
 import { env } from '../env.js'
 import { updateApprovalMessage } from '../lib/slackNotifier.js'
 import { getJiraQueue } from '../lib/jiraPipeline.js'
+import { normalizeTicket } from '../lib/ticketNormalizer.js'
 
 export const slackRouter = new Hono()
 
@@ -17,14 +18,17 @@ slackRouter.post('/interaction', async (c) => {
     // Slack은 application/x-www-form-urlencoded + payload 필드로 전송
     const form = await c.req.parseBody()
     const payloadStr = form['payload'] as string | undefined
-    if (!payloadStr) return c.json({ error: 'payload 없음' }, 400)
+    if (!payloadStr) return c.json({ ok: true })
 
     const payload = JSON.parse(payloadStr) as SlackInteractionPayload
+    logger.info({ type: payload.type, action_id: payload.actions?.[0]?.action_id, user: payload.user?.name, container: payload.container }, 'Slack interaction 수신')
+
     const action = payload.actions?.[0]
     if (!action) return c.json({ ok: true })
 
     const { action_id, value } = action
     if (!['qaplan_approve', 'qaplan_reject'].includes(action_id)) {
+      logger.info({ action_id }, 'Slack interaction — 미처리 action_id 무시')
       return c.json({ ok: true })
     }
 
@@ -60,7 +64,35 @@ slackRouter.post('/interaction', async (c) => {
       })
       logger.info({ pipelineId, qaPlanId }, 'QA Plan 승인 → testcases 생성 job 등록')
     } else {
-      logger.info({ pipelineId, qaPlanId, actorName }, 'QA Plan 거절')
+      logger.info({ pipelineId, qaPlanId, actorName }, 'QA Plan 거절 → QA Plan 재생성 시작')
+      // 기존 QAPlan 삭제 후 재생성
+      await db.qAPlan.deleteMany({ where: { pipelineId } })
+      const ticket = await db.collectedTicket.findUnique({ where: { pipelineId } })
+      if (ticket) {
+        const normalized = normalizeTicket(
+          {
+            key: ticket.ticketKey,
+            fields: {
+              summary: ticket.summary,
+              description: ticket.descriptionRaw ? JSON.parse(ticket.descriptionRaw) : ticket.descriptionText,
+              issuetype: { name: ticket.issueType },
+              priority: { name: ticket.priority },
+              project: { key: ticket.projectKey },
+              status: { name: 'collected' },
+              labels: ticket.labels ? JSON.parse(ticket.labels) : [],
+            },
+          } as never,
+          ticket.sourceType as 'webhook' | 'cron',
+        )
+        normalized.pipelineId = pipelineId
+        await getJiraQueue().add('collect-complete', {
+          type: 'collect-complete',
+          ticketKey: ticket.ticketKey,
+          pipelineId,
+          payload: normalized,
+        })
+        logger.info({ pipelineId }, 'QA Plan 재생성 job 등록')
+      }
     }
 
     // Slack 메시지 업데이트 (버튼 제거)

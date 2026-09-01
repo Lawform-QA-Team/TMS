@@ -139,19 +139,44 @@ export async function resolveEpicContext(qaTaskKey: string): Promise<EpicContext
       return s.startsWith('[기획]') || s.startsWith('[Planning]') || s.startsWith('[기획/디자인]')
     })
 
-    if (!planningTask) {
-      logger.debug({ epicKey, childKeys: children.map(c => c.key) }, '[기획] Task를 찾을 수 없음')
-      return { ...EMPTY_CONTEXT, epicKey, epicSummary, epicDescription }
+    // 6. Epic Remote Links에서 Figma URL 추출 (기획 Task 유무와 무관하게 항상 확인)
+    const figmaUrls: string[] = extractFigmaUrls(epicDescription)
+    try {
+      const epicRemoteLinks = await jiraClient.getRemoteLinks(epicKey)
+      for (const link of epicRemoteLinks) {
+        const url = link.object?.url ?? ''
+        if (/figma\.com\/(file|design|proto)\//.test(url)) {
+          figmaUrls.push(url)
+        }
+      }
+    } catch (e) {
+      logger.debug({ e, issueKey: epicKey }, 'Epic Remote links 조회 실패 (무시)')
     }
 
-    // 6. 기획 Task 상세 조회 (description 포함)
+    if (!planningTask) {
+      logger.debug({ epicKey, childKeys: children.map(c => c.key) }, '[기획] Task를 찾을 수 없음 — Epic 링크만 사용')
+      const uniqueFigmaUrls = [...new Set(figmaUrls)]
+      let figmaContent = ''
+      if (env.FIGMA_API_TOKEN && uniqueFigmaUrls.length > 0) {
+        const texts: string[] = []
+        for (const url of uniqueFigmaUrls.slice(0, 3)) {
+          const fileKey = extractFigmaFileKey(url)
+          if (fileKey) {
+            const text = await fetchFigmaText(fileKey)
+            if (text) texts.push(text)
+          }
+        }
+        figmaContent = texts.join('\n\n')
+      }
+      return { ...EMPTY_CONTEXT, epicKey, epicSummary, epicDescription, figmaUrls: uniqueFigmaUrls, figmaContent }
+    }
+
+    // 7. 기획 Task 상세 조회 (description 포함)
     const planningDetail = await jiraClient.getIssue(planningTask.key)
     const planningContent = adfToPlainText(planningDetail.fields.description)
 
-    // 7. Figma URL 추출: description 텍스트
-    const figmaUrls = extractFigmaUrls(planningContent)
-
-    // 8. Figma URL 추출: Jira Remote Links (웹 링크 첨부)
+    // 8. Figma URL 추출: 기획 Task description + Remote Links
+    figmaUrls.push(...extractFigmaUrls(planningContent))
     try {
       const remoteLinks = await jiraClient.getRemoteLinks(planningTask.key)
       for (const link of remoteLinks) {

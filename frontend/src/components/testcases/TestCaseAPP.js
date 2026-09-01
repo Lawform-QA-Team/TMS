@@ -694,7 +694,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
     setLoadingComments(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${config.apiUrl}/api/collaboration/comments`, {
+      const response = await axios.get(`${config.apiUrl}/collaboration/comments`, {
         params: {
           entity_type: 'test_case',
           entity_id: testCaseId
@@ -703,7 +703,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
           'Authorization': `Bearer ${token}`
         }
       });
-      setComments(response.data || []);
+      setComments(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
       console.error('댓글 조회 오류:', err);
       setComments([]);
@@ -853,7 +853,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
     
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`${config.apiUrl}/api/collaboration/comments`, {
+      await axios.post(`${config.apiUrl}/collaboration/comments`, {
         entity_type: 'test_case',
         entity_id: selectedTestCase.id,
         content: newComment.trim()
@@ -898,7 +898,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
     
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`${config.apiUrl}/api/collaboration/comments/${commentId}`, {
+      await axios.put(`${config.apiUrl}/collaboration/comments/${commentId}`, {
         content: editingCommentContent.trim()
       }, {
         headers: {
@@ -926,7 +926,7 @@ const TestCaseAPP = ({ setActiveTab }) => {
     
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`${config.apiUrl}/api/collaboration/comments/${commentId}`, {
+      await axios.delete(`${config.apiUrl}/collaboration/comments/${commentId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -1007,13 +1007,25 @@ const TestCaseAPP = ({ setActiveTab }) => {
       const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.setAttribute('download', `testcases_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      link.setAttribute('download', `testcases_${new Date().toISOString().slice(0, 10)}.csv`);
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(blobUrl);
     } catch (err) {
-      alert('파일 다운로드 중 오류가 발생했습니다: ' + err.message);
+      let message = err.message;
+      if (err.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const parsed = JSON.parse(text);
+          message = parsed.error || parsed.message || message;
+        } catch {
+          // Blob 응답이 JSON이 아니면 axios 메시지를 그대로 사용합니다.
+        }
+      } else if (err.response?.data?.error || err.response?.data?.message) {
+        message = err.response.data.error || err.response.data.message;
+      }
+      alert('파일 다운로드 중 오류가 발생했습니다: ' + message);
     }
   };
 
@@ -1426,6 +1438,26 @@ const TestCaseAPP = ({ setActiveTab }) => {
                       <th>사전조건</th>
                       <td colSpan="3" className="pre-condition">
                         {selectedTestCase.pre_condition || '없음'}
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>테스트 단계</th>
+                      <td colSpan="3" className="test-steps">
+                        {(() => {
+                          const raw = selectedTestCase.test_steps;
+                          if (!raw) return '없음';
+                          try {
+                            const steps = JSON.parse(raw);
+                            if (Array.isArray(steps) && steps.length > 0) {
+                              return (
+                                <ol className="test-steps-list">
+                                  {steps.map((step, i) => <li key={i}>{step}</li>)}
+                                </ol>
+                              );
+                            }
+                          } catch {}
+                          return raw;
+                        })()}
                       </td>
                     </tr>
                     <tr>

@@ -283,7 +283,6 @@ async function processJob(job: Job<JiraPipelineJobData>): Promise<void> {
         }
       }
       const { saved } = await generateTestCases(data.qaPlanId, data.pipelineId, epicContext)
-      const { saved } = await generateTestCases(data.qaPlanId, data.pipelineId)
       await sendTestCasesComplete(data.pipelineId, saved)
       // Phase 4: 페이지 분석으로 자동 진행
       await getJiraQueue().add('testcases-complete', {

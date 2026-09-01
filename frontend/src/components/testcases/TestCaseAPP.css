@@ -1504,12 +1504,24 @@
 .info-table .pre-condition,
 .info-table .expected-result,
 .info-table .remark,
-.info-table .automation-code {
+.info-table .automation-code,
+.info-table .test-steps {
   font-family: 'Courier New', monospace;
   background: #f8f9fa;
   padding: 8px 12px;
   border-radius: 4px;
   word-break: break-all;
+}
+
+.test-steps-list {
+  margin: 0;
+  padding-left: 20px;
+  font-family: inherit;
+}
+
+.test-steps-list li {
+  margin-bottom: 4px;
+  line-height: 1.5;
 }
 
 .info-table .expected-result-content {

@@ -46,7 +46,6 @@ function buildEpicContextSection(ticket: NormalizedTicket): string {
 function buildPrompt(ticket: NormalizedTicket): string {
   const epicSection = buildEpicContextSection(ticket)
   const hasEpicContext = !!ticket.epicContext?.epicKey
-function buildPrompt(ticket: NormalizedTicket): string {
   return `다음 Jira 티켓에 대한 QA 계획을 작성해주세요.
 
 티켓 정보:
