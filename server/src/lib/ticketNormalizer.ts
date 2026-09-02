@@ -95,5 +95,6 @@ export function isQATarget(fields: JiraIssueFields): boolean {
   if (labels.includes('qa-requested')) return true
   if (fields.status?.name === 'Ready for QA') return true
   const issueType = fields.issuetype?.name ?? ''
-  return ['Story', 'Bug', 'Task', 'QA Task'].includes(issueType)
+  if (issueType === 'Task') return (fields.summary ?? '').toUpperCase().includes('QA')
+  return ['Story', 'Bug', 'QA Task'].includes(issueType)
 }
