@@ -126,7 +126,7 @@ customReportsRouter.post(
       template: z.string().optional(),
       output_format: z.string().default('html'),
       filters: z.record(z.unknown()).optional(),
-      project_id: z.number().optional(),
+      project_id: z.number().nullable().optional(),
       is_public: z.boolean().default(false),
     }),
   ),
