@@ -2,6 +2,29 @@
 
 ---
 
+## 2026-08-25
+
+### k6 BASE_URL에 `/api`를 붙이면 경로가 중복된다
+
+**현상**: `BASE_URL=https://alpha.api.lfdev.io/api` 로 실행 시 `Cannot POST /api/api/login/email` 404
+
+**원인**: 스크립트가 이미 `${BASE_URL}/api/login/email` 을 붙이는데, 호출자가 origin 뒤에 `/api` 까지 넣음
+
+**교훈**:
+- `BASE_URL`은 origin만 (`https://alpha.api.lfdev.io`)
+- 사용자가 `/api` 를 붙여도 동작하도록 trailing `/api` 를 정규화할 것
+- 실패 로그에 실제 요청 path를 남겨 중복을 바로 보이게 할 것
+
+### 로그인 토큰 위치는 `data.token`이 아닐 수 있다
+
+**현상**: 로그인 HTTP 200인데 `로그인 토큰 존재` check 실패. 응답은 `{"token":"eyJ..."}`
+
+**원인**: 스크립트가 `res.json()?.data?.token` 만 봄. 실제 응답은 최상위 `token`
+
+**교훈**: 로그인 토큰은 `token` / `data.token` / `accessToken` 후보를 모두 탐색할 것. 실패 로그에 JWT 원문을 찍지 말 것
+
+---
+
 ## 워크플로우 필수 순서
 
 **커밋 전 반드시 .md 업데이트 먼저:**
@@ -37,7 +60,7 @@
 | 입력 방식 | `locator().fill()` / `locator().first().fill()` | 동일하게 유지 (빈 필드만 `type()` 허용) |
 | 로그인 | `getWebCredentials()` + `loginWithPage(page, creds, url)` | `getCredentials()` + `loginWithPage(page, creds)` |
 | 메트릭 | 없음 | `Trend`, `Date.now()` 기반 duration 변수 저장 후 재사용 |
-| 리포트 | 없음 | `handleSummary()` — HTML + Slack |
+| 리포트 | 없음 | `handleSummary()` — HTML + metrics JSON 기록 (Slack은 run.sh에서 단일 발송) |
 | 구조 | `export async function run(page)` | `export default async function()` + `browser.newContext()` + `try/finally` |
 
 **파일 매핑**:
@@ -104,6 +127,30 @@ playwright/.../web/qna/qna.js                            ↔  performance/.../we
 
 ---
 
+### k6 - waitForSelector + click 패턴의 race condition
+
+**현상**: `waitForSelector` 성공 후 `page.click()` 시 "element is not attached to the DOM" 에러 발생
+
+**원인**: `waitForSelector`가 요소를 찾은 직후 SPA 테이블이 검색 결과로 re-render됨. `page.click()` 호출 시점에는 이미 해당 DOM 노드가 detach된 상태.
+
+**수정**: `page.locator(selector).click()` 사용 — locator는 클릭 시점에 요소를 재쿼리하므로 race condition 방지
+
+```javascript
+// 나쁜 패턴
+await page.waitForSelector(selector);
+await page.click(selector); // detach 가능
+
+// 좋은 패턴
+await page.waitForSelector(selector);  // 출현 확인
+await page.locator(selector).click();  // 클릭 시점에 재쿼리
+```
+
+**교훈**:
+- 검색/필터 후 테이블 클릭은 반드시 `locator().click()` 사용
+- `waitForSelector`는 출현 확인용, 클릭은 `locator().click()`으로 분리
+
+---
+
 ### k6 - page.$$() 사용 전 반드시 waitForSelector 선행
 
 **현상**: `Cannot read property 'click' of undefined or null` — `$$()` 결과 배열이 비어있음
@@ -157,19 +204,40 @@ status = pty.spawn(cmd, read)
 
 ---
 
-### k6 browser - CDP 에러는 JS try/catch를 우회함
+### k6 browser - CDP 에러는 JS try/catch를 우회함 + 이중 감지 구조
 
 **현상**: `try/catch`와 `scriptErrors` 배열을 추가했음에도 ERRO 발생 시 `scriptErrors`가 비어있어 Slack에 성공으로 발송됨
 
 **원인**: k6 browser 모듈에서 발생하는 일부 에러(`page.$$()` 빈 배열 클릭 등)는 CDP(Chrome DevTools Protocol) 레이어에서 k6 런타임으로 올라오는 "Uncaught (in promise)"로 처리됨. 이 에러는 JS의 `try/catch`를 우회하기 때문에 catch 블록이 실행되지 않음
 
-**이중 감지 구조로 해결**:
-1. **JS 레벨** (`scriptErrors`): 일반 JS 예외는 `try/catch`로 수집 → `handleSummary`에서 스레드 발송
-2. **Shell 레벨** (`run.sh`): k6 출력에서 `ERRO` 라인 감지 → CDP 에러 포함 전체 커버 → 별도 경고 Slack 발송 (주황색 구분)
+추가 원인: `checks: ['rate==1.0']` threshold가 있어도 `check()` 호출이 없으면 0 pass / 0 fail → vacuously true → 실패 판정 안 됨
+
+**3단계 감지 구조**:
+1. **JS try/catch** (`scriptErrors`): 일반 JS 예외 수집 → `handleSummary`에서 스레드 발송
+2. **page.on('pageerror')** (`pageErrors`): 브라우저 페이지 레벨 JS 오류 수집 → `check()`로 threshold 실패 유발
+   ```js
+   page.on('pageerror', (err) => {
+       pageErrors.push({ message: `[PageError] ${err.message || String(err)}`, time: new Date().toISOString() });
+   });
+   // try 블록 끝에:
+   check(null, { '런타임 오류 없음': () => pageErrors.length === 0 });
+   ```
+3. **Shell 레벨** (`run.sh`): k6 출력 ERRO 라인 감지 → 실패로 격상 (color #ff0000, 상태 실패, ❌)
+
+**handleSummary에서 pageErrors 병합**:
+```js
+const allErrors = [...scriptErrors, ...pageErrors];
+output[metricsFile] = JSON.stringify({
+    payload: buildK6SummaryMessage(data, 'Test Name', allErrors.length > 0),
+    scriptErrors: allErrors,
+});
+```
 
 **교훈**:
-- k6 browser 에러는 JS try/catch만으로는 완전히 감지할 수 없음
-- `run.sh` 레벨의 ERRO 감지를 반드시 함께 운영할 것
+- `checks` threshold만 선언하고 `check()`를 호출하지 않으면 항상 통과됨 — 반드시 `check()` 호출 필요
+- k6 browser 에러는 JS try/catch만으로는 완전히 감지 불가 → `page.on('pageerror')` 필수
+- run.sh 레벨 ERRO 감지는 CDP 레이어 오류까지 커버하는 최후 안전망
+- ERRO 존재 시 주황 경고가 아닌 빨간 실패로 처리해야 상태가 명확함
 
 ---
 
@@ -226,6 +294,30 @@ status = pty.spawn(cmd, read)
 
 ---
 
+### k6 Slack - 이중 발송 구조 (handleSummary + run.sh 충돌)
+
+**현상**: 실제 ERRO 발생 시 Slack에 성공 메시지(handleSummary)와 경고 메시지(run.sh)가 동시 전송되어 충돌
+
+**원인**: CDP 레벨 에러(ERRO 로그)는 JS `try/catch`를 우회 → `scriptErrors`에 수집 안 됨 → handleSummary는 성공으로 판단. run.sh는 ERRO 감지 → 경고 발송. 두 발신자가 독립적으로 동작.
+
+**해결**:
+- `handleSummary`에서 Slack 발송 완전 제거
+- `handleSummary`는 메트릭 JSON을 `__ENV._K6_METRICS_FILE`로 지정된 임시 파일에 기록
+- `run.sh`가 k6 종료 후 JSON(메트릭+scriptErrors) + ERRO 라인을 합쳐 **한 번만** Slack 발송
+- ERRO 존재 시 payload 색상을 주황(`#ff9900`)으로 변경 + CDP 오류 블록 추가
+
+**아키텍처**:
+```
+k6 실행 (run.sh) →
+  handleSummary: metrics JSON → _K6_METRICS_FILE 기록 (Slack 전송 없음)
+  PTY: ERRO 라인 → _K6_TMPFILE 기록
+run.sh (Python): JSON + ERRO 합쳐 Bot API로 단일 발송
+```
+
+**교훈**:
+- k6 내부(handleSummary)와 외부(run.sh) 두 곳에서 Slack을 발송하면 반드시 충돌 발생
+- run.sh를 통해 실행되는 경우 항상 외부(run.sh)에서 단일 발송하는 구조가 옳음
+- `_K6_METRICS_FILE` env var를 통해 k6 → shell 간 데이터 전달
 ### React ESLint 경고 수정 패턴
 
 **현상**: 빌드 경고가 여러 파일에 분산되어 누적됨

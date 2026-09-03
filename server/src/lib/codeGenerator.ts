@@ -101,7 +101,7 @@ export async function generateCode(
   if (!qaPlan) throw new Error(`QAPlan 없음: ${qaPlanId}`)
 
   const ticket = qaPlan.collectedTicket
-  const baseUrl = env.TEST_APP_BASE_URL ?? 'http://localhost:3000'
+  const baseUrl = env.TEST_APP_BASE_URL ?? 'http://localhost:3017'
 
   const testCases: TCForCodegen[] = qaPlan.autoQaTestCases.map((tc) => ({
     title: tc.title,

@@ -95,7 +95,7 @@ export async function analyzePages(
     gherkin: tc.gherkin ?? '',
   }))
 
-  const baseUrl = env.TEST_APP_BASE_URL ?? 'http://localhost:3000'
+  const baseUrl = env.TEST_APP_BASE_URL ?? 'http://localhost:3017'
 
   let pages: AnalyzedPage[]
 
