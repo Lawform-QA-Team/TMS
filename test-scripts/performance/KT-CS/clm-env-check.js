@@ -212,7 +212,10 @@ export default function (data) {
       `${BASE_URL}/api/v3/clms/${clmId}/update/draft`,
       JSON.stringify({
         name: 'env-check-test',
-        clm_payments: [],
+        id: clmId,
+        is_update_progress: true,
+        progress_status: 1,
+        clmPayments: [],
       }),
       { ...authed, tags: { name: 'PUT /api/v3/clms/:id/update/draft' } }
     );
