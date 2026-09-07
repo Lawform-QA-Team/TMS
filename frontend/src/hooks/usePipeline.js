@@ -106,3 +106,12 @@ export async function cancelPipeline(pipelineId, token) {
   });
   return res.json();
 }
+
+export async function approvePipeline(pipelineId, action, token) {
+  const res = await fetch(`${API_BASE}/pipeline/${pipelineId}/approve`, {
+    method: 'POST',
+    headers: { ...buildAuthHeader(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action }),
+  });
+  return res.json();
+}

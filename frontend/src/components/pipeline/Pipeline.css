@@ -227,6 +227,39 @@
   margin-top: 16px;
 }
 
+.pipeline-actions {
+  white-space: nowrap;
+}
+
+.pipeline-approve-btn,
+.pipeline-reject-btn {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  border: none;
+  font-weight: 500;
+}
+
+.pipeline-approve-btn {
+  background: #22c55e;
+  color: #fff;
+  margin-right: 4px;
+}
+
+.pipeline-approve-btn:hover {
+  background: #16a34a;
+}
+
+.pipeline-reject-btn {
+  background: #ef4444;
+  color: #fff;
+}
+
+.pipeline-reject-btn:hover {
+  background: #dc2626;
+}
+
 .pipeline-page-btn {
   padding: 6px 14px;
   border: 1px solid #d1d5db;
