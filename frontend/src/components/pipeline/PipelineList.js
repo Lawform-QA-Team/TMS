@@ -148,7 +148,7 @@ export default function PipelineList({ onSelect }) {
                         반려
                       </button>
                       <button
-                        className="pipeline-cancel-btn"
+                        className="pipeline-qaplan-cancel-btn"
                         onClick={(e) => handleApprove(e, t.pipeline_id, 'cancel')}
                       >
                         취소

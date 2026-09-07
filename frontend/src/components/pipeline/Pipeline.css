@@ -232,7 +232,8 @@
 }
 
 .pipeline-approve-btn,
-.pipeline-reject-btn {
+.pipeline-reject-btn,
+.pipeline-qaplan-cancel-btn {
   padding: 3px 10px;
   border-radius: 4px;
   font-size: 0.75rem;
@@ -254,19 +255,19 @@
 .pipeline-reject-btn {
   background: #ef4444;
   color: #fff;
+  margin-right: 4px;
 }
 
 .pipeline-reject-btn:hover {
   background: #dc2626;
 }
 
-.pipeline-cancel-btn {
+.pipeline-qaplan-cancel-btn {
   background: #6b7280;
   color: #fff;
-  margin-left: 4px;
 }
 
-.pipeline-cancel-btn:hover {
+.pipeline-qaplan-cancel-btn:hover {
   background: #4b5563;
 }
 
