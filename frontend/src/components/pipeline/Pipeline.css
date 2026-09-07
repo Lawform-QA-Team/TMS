@@ -260,6 +260,16 @@
   background: #dc2626;
 }
 
+.pipeline-cancel-btn {
+  background: #6b7280;
+  color: #fff;
+  margin-left: 4px;
+}
+
+.pipeline-cancel-btn:hover {
+  background: #4b5563;
+}
+
 .pipeline-page-btn {
   padding: 6px 14px;
   border: 1px solid #d1d5db;

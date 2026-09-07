@@ -278,13 +278,13 @@ pipelineRouter.get('/:pipelineId', async (c) => {
 pipelineRouter.post('/:pipelineId/approve', requireAuth, async (c) => {
   const pipelineId = c.req.param('pipelineId')
   try {
-    const body = await c.req.json() as { action: 'approve' | 'reject' }
-    const approved = body.action === 'approve'
+    const body = await c.req.json() as { action: 'approve' | 'reject' | 'cancel' }
+    const { action } = body
 
     const ticket = await db.collectedTicket.findUnique({ where: { pipelineId } })
     if (!ticket) return c.json({ success: false, error: '파이프라인을 찾을 수 없습니다.' }, 404)
     if (ticket.pipelineStatus !== 'qaplan') {
-      return c.json({ success: false, error: `qaplan 상태에서만 승인/반려할 수 있습니다. 현재: ${ticket.pipelineStatus}` }, 400)
+      return c.json({ success: false, error: `qaplan 상태에서만 처리할 수 있습니다. 현재: ${ticket.pipelineStatus}` }, 400)
     }
 
     const qaPlan = await db.qAPlan.findFirst({ where: { pipelineId } })
@@ -292,6 +292,21 @@ pipelineRouter.post('/:pipelineId/approve', requireAuth, async (c) => {
 
     const caller = c.get('user')
     const actorName = caller.username ?? caller.email ?? '알 수 없음'
+
+    if (action === 'cancel') {
+      await db.qAPlan.update({
+        where: { id: qaPlan.id },
+        data: { approvalStatus: 'cancelled', updatedAt: new Date() },
+      })
+      await db.collectedTicket.update({
+        where: { pipelineId },
+        data: { pipelineStatus: 'cancelled', updatedAt: new Date() },
+      })
+      logger.info({ pipelineId, actorName }, 'QA Plan 취소 (페이지)')
+      return c.json({ success: true, message: '취소되었습니다.' })
+    }
+
+    const approved = action === 'approve'
 
     await db.qAPlan.update({
       where: { id: qaPlan.id },

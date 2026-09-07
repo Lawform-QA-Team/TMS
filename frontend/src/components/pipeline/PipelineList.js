@@ -38,7 +38,7 @@ export default function PipelineList({ onSelect }) {
 
   async function handleApprove(e, pipelineId, action) {
     e.stopPropagation();
-    const label = action === 'approve' ? '승인' : '반려';
+    const label = action === 'approve' ? '승인' : action === 'reject' ? '반려' : '취소';
     if (!window.confirm(`이 QA Plan을 ${label}하시겠습니까?`)) return;
     const res = await approvePipeline(pipelineId, action, token);
     if (res.success) {
@@ -146,6 +146,12 @@ export default function PipelineList({ onSelect }) {
                         onClick={(e) => handleApprove(e, t.pipeline_id, 'reject')}
                       >
                         반려
+                      </button>
+                      <button
+                        className="pipeline-cancel-btn"
+                        onClick={(e) => handleApprove(e, t.pipeline_id, 'cancel')}
+                      >
+                        취소
                       </button>
                     </>
                   )}
