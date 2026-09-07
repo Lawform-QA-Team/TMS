@@ -274,7 +274,7 @@ workflowsRouter.post(
           next_steps: z.array(z.string()).optional(),
         }),
       ),
-      project_id: z.number().optional(),
+      project_id: z.number().nullable().optional(),
       description: z.string().optional(),
     }),
   ),

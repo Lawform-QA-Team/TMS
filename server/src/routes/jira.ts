@@ -167,9 +167,9 @@ jiraRouter.post(
       reporter_email: z.string().optional(),
       labels: z.array(z.string()).optional(),
       environment: z.string().optional(),
-      test_case_id: z.number().optional(),
-      automation_test_id: z.number().optional(),
-      performance_test_id: z.number().optional(),
+      test_case_id: z.number().nullable().optional(),
+      automation_test_id: z.number().nullable().optional(),
+      performance_test_id: z.number().nullable().optional(),
     }),
   ),
   async (c) => {

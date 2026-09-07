@@ -91,6 +91,12 @@ export async function sendQAPlanApprovalRequest(
             action_id: 'qaplan_reject',
             value: `${ticket.pipelineId}:${qaPlanId}`,
           },
+          {
+            type: 'button',
+            text: { type: 'plain_text', text: '취소' },
+            action_id: 'qaplan_cancel',
+            value: `${ticket.pipelineId}:${qaPlanId}`,
+          },
         ],
       },
     ],
@@ -288,22 +294,19 @@ export async function updateApprovalMessage(
   channel: string,
   ts: string,
   ticketKey: string,
-  approved: boolean,
+  result: 'approved' | 'rejected' | 'cancelled',
   actorName: string,
 ): Promise<void> {
+  const text =
+    result === 'approved'
+      ? `:white_check_mark: *${ticketKey}* QA Plan *승인* — ${actorName}`
+      : result === 'rejected'
+        ? `:x: *${ticketKey}* QA Plan *거절* — ${actorName}`
+        : `:prohibited: *${ticketKey}* QA Plan *취소* — ${actorName}`
+
   await postSlack('chat.update', {
     channel,
     ts,
-    blocks: [
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: approved
-            ? `:white_check_mark: *${ticketKey}* QA Plan *승인* — ${actorName}`
-            : `:x: *${ticketKey}* QA Plan *거절* — ${actorName}`,
-        },
-      },
-    ],
+    blocks: [{ type: 'section', text: { type: 'mrkdwn', text } }],
   })
 }

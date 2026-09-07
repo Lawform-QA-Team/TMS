@@ -115,7 +115,7 @@ performanceRouter.post(
       script_path: z.string().optional(),
       environment: z.string().default('prod'),
       parameters: z.record(z.unknown()).optional(),
-      assignee_id: z.number().optional(),
+      assignee_id: z.number().nullable().optional(),
     }),
   ),
   async (c) => {

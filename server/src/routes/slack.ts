@@ -27,7 +27,7 @@ slackRouter.post('/interaction', async (c) => {
     if (!action) return c.json({ ok: true })
 
     const { action_id, value } = action
-    if (!['qaplan_approve', 'qaplan_reject'].includes(action_id)) {
+    if (!['qaplan_approve', 'qaplan_reject', 'qaplan_cancel'].includes(action_id)) {
       logger.info({ action_id }, 'Slack interaction — 미처리 action_id 무시')
       return c.json({ ok: true })
     }
@@ -36,8 +36,30 @@ slackRouter.post('/interaction', async (c) => {
     const qaPlanId = Number(qaPlanIdStr)
     if (!pipelineId || !qaPlanId) return c.json({ error: '잘못된 value' }, 400)
 
-    const approved = action_id === 'qaplan_approve'
     const actorName = payload.user?.name ?? payload.user?.username ?? '알 수 없음'
+
+    if (action_id === 'qaplan_cancel') {
+      // 취소: 파이프라인 전체 종료
+      await db.qAPlan.update({
+        where: { id: qaPlanId },
+        data: { approvalStatus: 'cancelled', updatedAt: new Date() },
+      })
+      await db.collectedTicket.update({
+        where: { pipelineId },
+        data: { pipelineStatus: 'cancelled', updatedAt: new Date() },
+      })
+      logger.info({ pipelineId, qaPlanId, actorName }, 'QA Plan 취소')
+
+      const channel = payload.container?.channel_id ?? env.SLACK_CHANNEL_ID ?? ''
+      const ts = payload.container?.message_ts ?? ''
+      if (channel && ts) {
+        const ticket = await db.collectedTicket.findUnique({ where: { pipelineId } })
+        await updateApprovalMessage(channel, ts, ticket?.ticketKey ?? pipelineId, 'cancelled', actorName)
+      }
+      return c.json({ ok: true })
+    }
+
+    const approved = action_id === 'qaplan_approve'
 
     // QAPlan 상태 업데이트
     await db.qAPlan.update({
@@ -100,7 +122,7 @@ slackRouter.post('/interaction', async (c) => {
     const ts = payload.container?.message_ts ?? ''
     if (channel && ts) {
       const ticket = await db.collectedTicket.findUnique({ where: { pipelineId } })
-      await updateApprovalMessage(channel, ts, ticket?.ticketKey ?? pipelineId, approved, actorName)
+      await updateApprovalMessage(channel, ts, ticket?.ticketKey ?? pipelineId, approved ? 'approved' : 'rejected', actorName)
     }
 
     return c.json({ ok: true })

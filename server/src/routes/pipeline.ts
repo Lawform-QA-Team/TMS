@@ -274,6 +274,82 @@ pipelineRouter.get('/:pipelineId', async (c) => {
   }
 })
 
+// POST /pipeline/:pipelineId/approve — 페이지 내 QA Plan 승인/반려
+pipelineRouter.post('/:pipelineId/approve', requireAuth, async (c) => {
+  const pipelineId = c.req.param('pipelineId')
+  try {
+    const body = await c.req.json() as { action: 'approve' | 'reject' | 'cancel' }
+    const { action } = body
+
+    const ticket = await db.collectedTicket.findUnique({ where: { pipelineId } })
+    if (!ticket) return c.json({ success: false, error: '파이프라인을 찾을 수 없습니다.' }, 404)
+    if (ticket.pipelineStatus !== 'qaplan') {
+      return c.json({ success: false, error: `qaplan 상태에서만 처리할 수 있습니다. 현재: ${ticket.pipelineStatus}` }, 400)
+    }
+
+    const qaPlan = await db.qAPlan.findFirst({ where: { pipelineId } })
+    if (!qaPlan) return c.json({ success: false, error: 'QA Plan을 찾을 수 없습니다.' }, 404)
+
+    const caller = c.get('user')
+    const actorName = caller.username ?? caller.email ?? '알 수 없음'
+
+    if (action === 'cancel') {
+      await db.qAPlan.update({
+        where: { id: qaPlan.id },
+        data: { approvalStatus: 'cancelled', updatedAt: new Date() },
+      })
+      await db.collectedTicket.update({
+        where: { pipelineId },
+        data: { pipelineStatus: 'cancelled', updatedAt: new Date() },
+      })
+      logger.info({ pipelineId, actorName }, 'QA Plan 취소 (페이지)')
+      return c.json({ success: true, message: '취소되었습니다.' })
+    }
+
+    const approved = action === 'approve'
+
+    await db.qAPlan.update({
+      where: { id: qaPlan.id },
+      data: { approvalStatus: approved ? 'approved' : 'rejected', updatedAt: new Date() },
+    })
+
+    await db.collectedTicket.update({
+      where: { pipelineId },
+      data: { pipelineStatus: approved ? 'testcases' : 'collected', updatedAt: new Date() },
+    })
+
+    if (approved) {
+      await getJiraQueue().add('qaplan-approved', { type: 'qaplan-approved', pipelineId, qaPlanId: qaPlan.id })
+      logger.info({ pipelineId, qaPlanId: qaPlan.id, actorName }, 'QA Plan 승인 (페이지) → testcases 생성 job 등록')
+    } else {
+      await db.qAPlan.deleteMany({ where: { pipelineId } })
+      const normalized = normalizeTicket(
+        {
+          key: ticket.ticketKey,
+          fields: {
+            summary: ticket.summary,
+            description: ticket.descriptionRaw ? JSON.parse(ticket.descriptionRaw) : ticket.descriptionText,
+            issuetype: { name: ticket.issueType },
+            priority: { name: ticket.priority },
+            project: { key: ticket.projectKey },
+            status: { name: 'collected' },
+            labels: ticket.labels ? JSON.parse(ticket.labels) : [],
+          },
+        } as never,
+        ticket.sourceType as 'webhook' | 'cron',
+      )
+      normalized.pipelineId = pipelineId
+      await getJiraQueue().add('collect-complete', { type: 'collect-complete', ticketKey: ticket.ticketKey, pipelineId, payload: normalized })
+      logger.info({ pipelineId, actorName }, 'QA Plan 반려 (페이지) → QA Plan 재생성 job 등록')
+    }
+
+    return c.json({ success: true, message: approved ? '승인되었습니다.' : '반려되었습니다.' })
+  } catch (e) {
+    logger.error({ e }, 'Pipeline 승인/반려 오류')
+    return c.json({ success: false, error: String(e) }, 500)
+  }
+})
+
 // POST /pipeline/:pipelineId/cancel
 pipelineRouter.post('/:pipelineId/cancel', requireAuth, async (c) => {
   const pipelineId = c.req.param('pipelineId')

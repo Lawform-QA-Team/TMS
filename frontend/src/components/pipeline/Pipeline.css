@@ -227,6 +227,80 @@
   margin-top: 16px;
 }
 
+.pipeline-issue-type-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.pipeline-issue-type-badge.issue-type-bug {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.pipeline-issue-type-badge.issue-type-task {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.pipeline-issue-type-badge.issue-type-story {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.pipeline-issue-type-badge.issue-type-qa-task {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.pipeline-actions {
+  white-space: nowrap;
+}
+
+.pipeline-approve-btn,
+.pipeline-reject-btn,
+.pipeline-qaplan-cancel-btn {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  border: none;
+  font-weight: 500;
+}
+
+.pipeline-approve-btn {
+  background: #22c55e;
+  color: #fff;
+  margin-right: 4px;
+}
+
+.pipeline-approve-btn:hover {
+  background: #16a34a;
+}
+
+.pipeline-reject-btn {
+  background: #ef4444;
+  color: #fff;
+  margin-right: 4px;
+}
+
+.pipeline-reject-btn:hover {
+  background: #dc2626;
+}
+
+.pipeline-qaplan-cancel-btn {
+  background: #6b7280;
+  color: #fff;
+}
+
+.pipeline-qaplan-cancel-btn:hover {
+  background: #4b5563;
+}
+
 .pipeline-page-btn {
   padding: 6px 14px;
   border: 1px solid #d1d5db;

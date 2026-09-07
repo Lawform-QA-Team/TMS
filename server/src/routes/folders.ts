@@ -176,11 +176,11 @@ foldersRouter.post(
     'json',
     z.object({
       folder_name: z.string().min(1, '폴더명은 필수입니다'),
-      parent_folder_id: z.number().optional(),
+      parent_folder_id: z.number().nullable().optional(),
       folder_type: z.enum(['environment', 'deployment_date', 'feature']).default('environment'),
       environment: z.string().optional(),
       deployment_date: z.string().optional(),
-      project_id: z.number().optional(),
+      project_id: z.number().nullable().optional(),
     }),
   ),
   async (c) => {
@@ -269,7 +269,7 @@ foldersRouter.put(
       folder_type: z.enum(['environment', 'deployment_date', 'feature']).optional(),
       environment: z.string().optional(),
       deployment_date: z.string().optional(),
-      project_id: z.number().optional(),
+      project_id: z.number().nullable().optional(),
     }),
   ),
   async (c) => {

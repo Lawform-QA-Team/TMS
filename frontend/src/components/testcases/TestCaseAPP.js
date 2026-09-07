@@ -972,6 +972,11 @@ const TestCaseAPP = ({ setActiveTab }) => {
     try {
       // 현재 적용된 필터 정보를 쿼리 파라미터로 전달
       const params = new URLSearchParams();
+
+      // 체크박스로 선택된 항목이 있으면 해당 IDs만 다운로드
+      if (selectedTestCases.length > 0) {
+        params.append('ids', selectedTestCases.join(','));
+      }
       
       if (searchTerm && searchTerm.trim()) {
         params.append('search', searchTerm.trim());

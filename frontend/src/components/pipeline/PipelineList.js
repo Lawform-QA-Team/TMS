@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { usePipelineList } from '@tms/hooks/usePipeline';
+import { usePipelineList, approvePipeline } from '@tms/hooks/usePipeline';
+import { useAuth } from '@tms/contexts/AuthContext';
 import './Pipeline.css';
 
 const STAGES = ['collected', 'qaplan', 'testcases', 'pageanalysis', 'codegen', 'testrun', 'report', 'bugs'];
@@ -31,8 +32,22 @@ const STATUS_LABELS = {
 };
 
 export default function PipelineList({ onSelect }) {
+  const { token } = useAuth();
   const [filters, setFilters] = useState({ pipelineStatus: '', priority: '', page: 1, per_page: 20 });
-  const { tickets, pagination, loading, error } = usePipelineList(filters);
+  const { tickets, pagination, loading, error, refresh } = usePipelineList(filters);
+
+  async function handleApprove(e, pipelineId, action) {
+    e.stopPropagation();
+    const label = action === 'approve' ? '승인' : action === 'reject' ? '반려' : '취소';
+    if (!window.confirm(`이 QA Plan을 ${label}하시겠습니까?`)) return;
+    const res = await approvePipeline(pipelineId, action, token);
+    if (res.success) {
+      alert(res.message);
+      refresh();
+    } else {
+      alert(res.error ?? `${label} 처리 중 오류가 발생했습니다.`);
+    }
+  }
 
   function handleFilter(key, val) {
     setFilters((prev) => ({ ...prev, [key]: val, page: 1 }));
@@ -87,16 +102,18 @@ export default function PipelineList({ onSelect }) {
           <thead>
             <tr>
               <th>티켓</th>
+              <th>유형</th>
               <th>요약</th>
               <th>출처</th>
               <th>우선순위</th>
               <th>상태</th>
               <th>수집일시</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
             {tickets.length === 0 && (
-              <tr><td colSpan={6} className="pipeline-empty">수집된 티켓이 없습니다.</td></tr>
+              <tr><td colSpan={8} className="pipeline-empty">수집된 티켓이 없습니다.</td></tr>
             )}
             {tickets.map((t) => (
               <tr
@@ -105,6 +122,7 @@ export default function PipelineList({ onSelect }) {
                 onClick={() => onSelect?.(t.pipeline_id)}
               >
                 <td className="pipeline-ticket-key">{t.ticket_key}</td>
+                <td><span className={`pipeline-issue-type-badge issue-type-${(t.issue_type ?? '').toLowerCase().replace(/\s+/g, '-')}`}>{t.issue_type}</span></td>
                 <td className="pipeline-summary">{t.summary}</td>
                 <td><span className="pipeline-source-badge">{t.source_type}</span></td>
                 <td><span className={`pipeline-priority-badge priority-${t.priority?.toLowerCase()}`}>{t.priority}</span></td>
@@ -114,6 +132,30 @@ export default function PipelineList({ onSelect }) {
                   </span>
                 </td>
                 <td className="pipeline-date">{new Date(t.collected_at).toLocaleString('ko-KR')}</td>
+                <td className="pipeline-actions" onClick={(e) => e.stopPropagation()}>
+                  {t.pipeline_status === 'qaplan' && (
+                    <>
+                      <button
+                        className="pipeline-approve-btn"
+                        onClick={(e) => handleApprove(e, t.pipeline_id, 'approve')}
+                      >
+                        승인
+                      </button>
+                      <button
+                        className="pipeline-reject-btn"
+                        onClick={(e) => handleApprove(e, t.pipeline_id, 'reject')}
+                      >
+                        반려
+                      </button>
+                      <button
+                        className="pipeline-qaplan-cancel-btn"
+                        onClick={(e) => handleApprove(e, t.pipeline_id, 'cancel')}
+                      >
+                        취소
+                      </button>
+                    </>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
