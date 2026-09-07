@@ -87,6 +87,7 @@ export default function PipelineList({ onSelect }) {
           <thead>
             <tr>
               <th>티켓</th>
+              <th>유형</th>
               <th>요약</th>
               <th>출처</th>
               <th>우선순위</th>
@@ -96,7 +97,7 @@ export default function PipelineList({ onSelect }) {
           </thead>
           <tbody>
             {tickets.length === 0 && (
-              <tr><td colSpan={6} className="pipeline-empty">수집된 티켓이 없습니다.</td></tr>
+              <tr><td colSpan={7} className="pipeline-empty">수집된 티켓이 없습니다.</td></tr>
             )}
             {tickets.map((t) => (
               <tr
@@ -105,6 +106,7 @@ export default function PipelineList({ onSelect }) {
                 onClick={() => onSelect?.(t.pipeline_id)}
               >
                 <td className="pipeline-ticket-key">{t.ticket_key}</td>
+                <td className="pipeline-issue-type">{t.issue_type}</td>
                 <td className="pipeline-summary">{t.summary}</td>
                 <td><span className="pipeline-source-badge">{t.source_type}</span></td>
                 <td><span className={`pipeline-priority-badge priority-${t.priority?.toLowerCase()}`}>{t.priority}</span></td>
