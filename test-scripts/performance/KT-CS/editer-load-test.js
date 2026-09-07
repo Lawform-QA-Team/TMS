@@ -73,7 +73,12 @@ function randomBetween(min, max) {
 // ------------------------------------------------------------------
 // SharedArray: 모든 VU가 메모리를 공유해서 읽음 (9,500건이라도 VU별 중복 로드 방지)
 const accounts = new SharedArray('accounts', function () {
-  const csv = open(ACCOUNTS_CSV);
+  // Windows(Excel)에서 저장한 CSV는 UTF-8 BOM(﻿)이 앞에 붙어서 나오는데,
+  // papaparse는 이걸 제거하지 않아 첫 헤더가 "﻿email"이 되어 account.email이 undefined가 됨 → 반드시 먼저 제거
+  const csv = open(ACCOUNTS_CSV)
+    .replace(/^﻿/, '')
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n');
   const parsed = papaparse.parse(csv, { header: true, skipEmptyLines: true });
   if (!parsed.data.length) {
     throw new Error(

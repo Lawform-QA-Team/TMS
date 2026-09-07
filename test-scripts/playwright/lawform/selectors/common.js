@@ -752,7 +752,7 @@ export const COMMON = {
     BUTTON_CLOSE: '[data-tid="8b74d335"]',
     BUTTON_11: '[data-tid="7bd87348"]',
   },
-  [ID]: {
+  ID: {
     BUTTON_EDIT: '[data-tid="7ca4b8e5"]',
     BUTTON_DELETE: '[data-tid="d823c40c"]',
     BUTTON_LIST: '[data-tid="7aaa74ef"]',
@@ -760,7 +760,7 @@ export const COMMON = {
     BUTTON: '[data-tid="b7b27ca9"]',
     BUTTON_1: '[data-tid="d99b8723"]',
   },
-  [TOKEN]: {
+  TOKEN: {
     BUTTON_SIGN_UP: '[data-tid="695404da"]',
   },
 };

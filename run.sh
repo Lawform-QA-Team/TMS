@@ -4,10 +4,12 @@ source test-scripts/performance/.env
 set +a
 
 SCRIPT="$1"
-TMPFILE=$(mktemp /tmp/k6_XXXXXX)  # macOS mktemp: X는 반드시 맨 끝
+TMPFILE=$(mktemp /tmp/k6_XXXXXX)       # macOS mktemp: X는 반드시 맨 끝
+METRICSFILE=$(mktemp /tmp/k6_met_XXXXXX)  # handleSummary가 기록할 메트릭 JSON
 
 export _K6_SCRIPT="$SCRIPT"
 export _K6_TMPFILE="$TMPFILE"
+export _K6_METRICS_FILE="$METRICSFILE"
 export _K6_OUT="xk6-influxdb=${K6_INFLUXDB_ADDR}"
 
 # Python pty.fork()로 k6 실행:
@@ -73,6 +75,13 @@ else:
             os.close(master_fd)
         except OSError:
             pass
+        # OSError break 시 exit_code=1(초기값) 상태일 수 있음 → k6 실제 종료 코드 획득
+        if exit_code not in (130,):
+            try:
+                _, final_status = os.waitpid(pid, 0)
+                exit_code = os.WEXITSTATUS(final_status) if os.WIFEXITED(final_status) else exit_code
+            except ChildProcessError:
+                pass  # 이미 waitpid로 수집된 경우
 
     # ANSI 제거 후 \r을 \n으로 변환, ERRO 라인만 추출해 파일에 저장
     clean = ANSI_RE.sub(b'', bytes(captured))
@@ -86,57 +95,134 @@ else:
 PYEOF
 K6_EXIT_CODE=$?
 
-ERRO_LINES=$(cat "$TMPFILE")
+SCRIPT_NAME=$(basename "$SCRIPT" .js)
+export _K6_SCRIPT_NAME="$SCRIPT_NAME"
+export _K6_EXIT_CODE="$K6_EXIT_CODE"
 
-if ([ "$K6_EXIT_CODE" -ne 0 ] && [ "$K6_EXIT_CODE" -ne 130 ]) || [ -n "$ERRO_LINES" ]; then
-    if [ -n "${SLACK_BOT_TOKEN:-}" ] && [ -n "${SLACK_CHANNEL_ID:-}" ]; then
-        SCRIPT_NAME=$(basename "$SCRIPT" .js)
-        export _K6_SCRIPT_NAME="$SCRIPT_NAME"
-        export _K6_EXIT_CODE="$K6_EXIT_CODE"
-        export _K6_ERRO_LINES="$ERRO_LINES"
+# Slack 통합 발송: handleSummary가 기록한 메트릭 JSON + ERRO 라인 합쳐 한 번만 발송
+if [ -n "${SLACK_BOT_TOKEN:-}" ] && [ -n "${SLACK_CHANNEL_ID:-}" ] && [ "$K6_EXIT_CODE" -ne 130 ]; then
+    python3 << 'PYEOF'
+import json, os, sys, urllib.request, urllib.error
 
-        PAYLOAD=$(python3 << 'PYEOF'
-import json, os
+script_name = os.environ.get('_K6_SCRIPT_NAME', 'unknown')
+exit_code   = int(os.environ.get('_K6_EXIT_CODE', '0'))
+token       = os.environ.get('SLACK_BOT_TOKEN', '')
+channel     = os.environ.get('SLACK_CHANNEL_ID', '')
+tmpfile     = os.environ.get('_K6_TMPFILE', '')
+metrics_file = os.environ.get('_K6_METRICS_FILE', '')
 
-script_name = os.environ['_K6_SCRIPT_NAME']
-exit_code = int(os.environ['_K6_EXIT_CODE'])
-erro_raw = os.environ.get('_K6_ERRO_LINES', '')
-erro_lines = [l for l in erro_raw.splitlines() if l.startswith('ERRO')]
-erro_detail = '\n'.join(erro_lines[:15]) if erro_lines else '(ERRO 로그 없음 - 종료 코드 비정상)'
+# ERRO 라인 읽기
+erro_lines = []
+try:
+    with open(tmpfile) as f:
+        erro_lines = [l for l in f.read().splitlines() if l.startswith('ERRO')]
+except Exception:
+    pass
 
-blocks = [
-    {
-        'type': 'header',
-        'text': {'type': 'plain_text', 'text': f':warning: k6 런타임 오류: {script_name}', 'emoji': True},
-    },
-    {
-        'type': 'section',
-        'fields': [
-            {'type': 'mrkdwn', 'text': f'*종료 코드:*\n{exit_code}'},
-            {'type': 'mrkdwn', 'text': f'*오류 수:*\n{len(erro_lines)}건'},
-        ],
-    },
-    {
-        'type': 'section',
-        'text': {'type': 'mrkdwn', 'text': f'*오류 상세:*\n```{erro_detail}```'},
-    },
-]
+# handleSummary가 기록한 메트릭 JSON 읽기
+summary = None
+if metrics_file:
+    try:
+        with open(metrics_file) as f:
+            content = f.read().strip()
+            if content:
+                summary = json.loads(content)
+    except Exception:
+        pass
 
-payload = {
-    'channel': os.environ.get('SLACK_CHANNEL_ID', ''),
-    'text': f'[k6] {script_name}: 런타임 오류',
-    'attachments': [{'color': '#ff9900', 'blocks': blocks}],
-}
-print(json.dumps(payload, ensure_ascii=False))
+# 메인 payload 결정
+script_errors = []
+if summary:
+    payload      = summary.get('payload', {})
+    script_errors = summary.get('scriptErrors', [])
+else:
+    # handleSummary 미호출 (비정상 종료)
+    payload = {
+        'text': f'[k6] {script_name}: 실행 실패',
+        'attachments': [{'color': '#ff0000', 'blocks': [
+            {'type': 'header', 'text': {'type': 'plain_text', 'text': f'\u274c k6 실행 실패: {script_name}', 'emoji': True}},
+            {'type': 'section', 'text': {'type': 'mrkdwn', 'text': f'*비정상 종료 (exit code: {exit_code})*\nhandleSummary 미호출'}},
+        ]}],
+    }
+
+# ERRO 발생 시 실패로 처리 + ERRO 블록 추가
+if erro_lines:
+    payload['text'] = payload.get('text', '').replace(': 성공', ': 실패')
+    for att in payload.get('attachments', []):
+        att['color'] = '#ff0000'
+        for block in att.get('blocks', []):
+            if block.get('type') == 'header':
+                t = block.get('text', {})
+                t['text'] = t.get('text', '').replace('✅', '❌')
+            if block.get('type') == 'section':
+                for field in block.get('fields', []):
+                    if field.get('text', '').startswith('*상태:*'):
+                        field['text'] = '*상태:*\n실패'
+        att['blocks'] = [
+            b for b in att.get('blocks', [])
+            if not (b.get('type') == 'section' and
+                    b.get('text', {}).get('text', '') == '*대상 페이지 성능 측정 완료!*')
+        ]
+    erro_text = '\n'.join(erro_lines[:15])
+    if payload.get('attachments'):
+        payload['attachments'][0].setdefault('blocks', []).extend([
+            {'type': 'divider'},
+            {'type': 'section', 'text': {
+                'type': 'mrkdwn',
+                'text': f'*\u26a0\ufe0f CDP 런타임 오류 ({len(erro_lines)}건):*\n```{erro_text}```',
+            }},
+        ])
+
+def post_slack(payload_dict, thread_ts=None):
+    body = {'channel': channel, **payload_dict}
+    if thread_ts:
+        body['thread_ts'] = thread_ts
+    req = urllib.request.Request(
+        'https://slack.com/api/chat.postMessage',
+        data=json.dumps(body, ensure_ascii=False).encode(),
+        headers={
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {token}',
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            result = json.loads(resp.read())
+            if not result.get('ok'):
+                print(f'[Slack] 발송 실패: {result.get("error")}', file=sys.stderr)
+                return None
+            return result.get('ts')
+    except Exception as e:
+        print(f'[Slack] 요청 실패: {e}', file=sys.stderr)
+        return None
+
+# 메인 메시지 발송
+ts = post_slack(payload)
+
+# script_errors 스레드 발송
+if ts and script_errors:
+    err_blocks = [
+        {'type': 'header', 'text': {'type': 'plain_text', 'text': f'\u274c 오류 상세 ({len(script_errors)}건)', 'emoji': True}},
+    ]
+    for err in script_errors:
+        if err.get('message'):
+            err_blocks.append({'type': 'section', 'text': {
+                'type': 'mrkdwn',
+                'text': f'*에러 메시지:*\n```{str(err["message"])[:2900]}```',
+            }})
+        if err.get('stack'):
+            err_blocks.append({'type': 'section', 'text': {
+                'type': 'mrkdwn',
+                'text': f'*스택:*\n```{str(err["stack"])[:2900]}```',
+            }})
+        if err.get('time'):
+            err_blocks.append({'type': 'context', 'elements': [
+                {'type': 'mrkdwn', 'text': f'발생 시각: {err["time"]}'},
+            ]})
+        err_blocks.append({'type': 'divider'})
+    post_slack({'text': '오류 상세', 'attachments': [{'color': '#ff0000', 'blocks': err_blocks}]}, ts)
 PYEOF
-)
-        curl -s -X POST \
-            -H 'Content-type: application/json' \
-            -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
-            --data "$PAYLOAD" \
-            "https://slack.com/api/chat.postMessage" > /dev/null
-    fi
 fi
 
-rm -f "$TMPFILE"
+rm -f "$TMPFILE" "$METRICSFILE"
 exit $K6_EXIT_CODE

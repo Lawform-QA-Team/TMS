@@ -105,8 +105,8 @@ export const SETTING_URLS = {
 // 로그인 셀렉터
 export const SELECTORS = {
     LOGIN: {
-        EMAIL_INPUT: 'input[id="email"]',
-        PASSWORD_INPUT: 'input[id="password"]',
+        EMAIL_INPUT: 'input[type="email"]',
+        PASSWORD_INPUT: 'input[type="password"]',
         SUBMIT_BUTTON: 'button[type="submit"]'
     },
     DASHBOARD: {

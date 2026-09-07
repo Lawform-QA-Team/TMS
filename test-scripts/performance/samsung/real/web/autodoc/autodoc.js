@@ -4,7 +4,7 @@ import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
-import { postSlackMessage, buildK6SummaryMessage, buildK6ErrorThreadBlocks } from '../../../../common/slack_helper.js';
+import { buildK6SummaryMessage } from '../../../../common/slack_helper.js';
 import { Trend } from 'k6/metrics';
 
 export const webAutodocPageLoad = new Trend('web_autodoc_page_load', true);
@@ -51,10 +51,12 @@ export default async function() {
 
     try {
         await loginWithPage(page, credentials);
+        console.log('now page', page);
 
         // 문서 작성 - 표준 양식
         const webAutodocPageLoadStart = Date.now();
         await page.goto(URLS.AUTODOC.STANDARD);
+        console.log('URLS.AUTODOC.STANDARD', webAutodocPageLoadStart);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AUTODOC.png` });
         const webAutodocPageLoadDuration = Date.now() - webAutodocPageLoadStart;
@@ -355,19 +357,15 @@ export default async function() {
 
 export function handleSummary(data) {
     const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
-
-    // Slack Bot API 발송
-    const token = __ENV.SLACK_BOT_TOKEN;
-    const channel = __ENV.SLACK_CHANNEL_ID;
-    if (token && channel) {
-        const payload = buildK6SummaryMessage(data, 'Web Autodoc', scriptErrors.length > 0);
-        const ts = postSlackMessage(token, channel, payload);
-        if (ts && scriptErrors.length > 0) {
-            postSlackMessage(token, channel, buildK6ErrorThreadBlocks(scriptErrors), ts);
-        }
-    }
-
-    return {
+    const metricsFile = __ENV._K6_METRICS_FILE;
+    const output = {
         [`Result/web_autodoc_${timestamp}.html`]: htmlReport(data),
     };
+    if (metricsFile) {
+        output[metricsFile] = JSON.stringify({
+            payload: buildK6SummaryMessage(data, 'Web Autodoc', scriptErrors.length > 0),
+            scriptErrors,
+        });
+    }
+    return output;
 }

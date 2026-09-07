@@ -6,7 +6,7 @@ import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
 import { selectDateRangeInRdpCalendar } from '../../../../common/datepicker_helper.js';
-import { postSlackMessage, buildK6SummaryMessage, buildK6ErrorThreadBlocks } from '../../../../common/slack_helper.js';
+import { buildK6SummaryMessage } from '../../../../common/slack_helper.js';
 import { Trend } from 'k6/metrics';
 
 export const webSearchSearch = new Trend('web_search_search', true);
@@ -108,19 +108,15 @@ export default async function() {
  
 export function handleSummary(data) {
     const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
-
-    // Slack Bot API 발송
-    const token = __ENV.SLACK_BOT_TOKEN;
-    const channel = __ENV.SLACK_CHANNEL_ID;
-    if (token && channel) {
-        const payload = buildK6SummaryMessage(data, 'Web Search', scriptErrors.length > 0);
-        const ts = postSlackMessage(token, channel, payload);
-        if (ts && scriptErrors.length > 0) {
-            postSlackMessage(token, channel, buildK6ErrorThreadBlocks(scriptErrors), ts);
-        }
-    }
-
-    return {
+    const metricsFile = __ENV._K6_METRICS_FILE;
+    const output = {
         [`Result/web_search_${timestamp}.html`]: htmlReport(data),
     };
+    if (metricsFile) {
+        output[metricsFile] = JSON.stringify({
+            payload: buildK6SummaryMessage(data, 'Web Search', scriptErrors.length > 0),
+            scriptErrors,
+        });
+    }
+    return output;
 }

@@ -3,9 +3,10 @@ import { URLS } from '../../url_base_sam.js';
 import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
+import { check } from 'k6';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
 import { selectComboboxOption } from '../../../../common/combobox_helper.js';
-import { postSlackMessage, buildK6SummaryMessage, buildK6ErrorThreadBlocks } from '../../../../common/slack_helper.js';
+import { buildK6SummaryMessage } from '../../../../common/slack_helper.js';
 import { Trend } from 'k6/metrics';
 
 export const adminMembersSvcPageLoad = new Trend('admin_members_svc_page_load', true);
@@ -48,6 +49,7 @@ export default async function() {
         // 사용자 관리 - 서비스
         const adminMembersSvcPageLoadStart = Date.now();
         await page.goto(URLS.MEMBER.SERVICE);
+        await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.INPUT_SEARCH);
         let timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE.png` });
         const adminMembersSvcPageLoadDuration = Date.now() - adminMembersSvcPageLoadStart;
@@ -70,6 +72,7 @@ export default async function() {
         await selectComboboxOption(page, SELECTORS.ADMIN.MEMBERS_TABLE.SELECT_APPROVAL_STATUS)
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
+        await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.TABLE_LIST);
         const adminMembersSvcSearchDuration = Date.now() - adminMembersSvcSearchStart;
         adminMembersSvcSearch.add(adminMembersSvcSearchDuration);
         console.log(`Admin members service search duration: ${adminMembersSvcSearchDuration}ms`);
@@ -84,7 +87,10 @@ export default async function() {
         await page.waitForSelector(SELECTORS.COMMON.SEARCH);
         await page.click(SELECTORS.COMMON.SEARCH);
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.TABLE_LIST);
-        await page.click(`${SELECTORS.COMMON.TABLE} button`);
+        await page.waitForSelector(`${SELECTORS.COMMON.TABLE} button`);
+        const tableBtn = await page.$(`${SELECTORS.COMMON.TABLE} button`);
+        await tableBtn.click();
+        await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO);
         const adminMembersSvcTableClickDuration = Date.now() - adminMembersSvcTableClickStart;
         adminMembersSvcTableClick.add(adminMembersSvcTableClickDuration);
         console.log(`Admin members service table click duration: ${adminMembersSvcTableClickDuration}ms`);
@@ -93,17 +99,17 @@ export default async function() {
 
         // 사용자 관리 - 서비스, 정보 수정
         const adminMembersSvcEditSaveStart = Date.now();
-        await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO);
         const radios = await page.$$(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO);
         await radios[2].click();
         await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO_1);
         await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.RADIO_1);
+        await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_BACKOFFICE_edit.png` });
 
         // 사용자 관리 - 서비스, 정보 저장
-        await page.waitForSelector(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
         await page.click(SELECTORS.ADMIN.USER_DETAIL_PANEL.BUTTON_SAVE);
+        await page.waitForLoadState('networkidle');
         const adminMembersSvcEditSaveDuration = Date.now() - adminMembersSvcEditSaveStart;
         adminMembersSvcEditSave.add(adminMembersSvcEditSaveDuration);
         console.log(`Admin members service edit save duration: ${adminMembersSvcEditSaveDuration}ms`);
@@ -115,9 +121,9 @@ export default async function() {
         await page.goto(URLS.MEMBER.SERVICE);
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS_TABLE.BUTTON_HANDOVER_CLICK);
         await page.click(SELECTORS.ADMIN.MEMBERS_TABLE.BUTTON_HANDOVER_CLICK);
+        await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_GO_TO_LIST);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover.png` });
-        await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_GO_TO_LIST);
         await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_GO_TO_LIST);
 
         // 사용자 관리 - 서비스, 인수인계 인계자 진입
@@ -125,6 +131,7 @@ export default async function() {
         await page.click(SELECTORS.ADMIN.MEMBERS_TABLE.BUTTON_HANDOVER_CLICK);
         await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
         await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEROR);
+        await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferor.png` });
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CLOSE);
@@ -145,24 +152,26 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT, 'hkqa');
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_SEARCH);
         await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_SEARCH);
+        await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.TABLE_LIST);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferor_search.png` });
 
         // 사용자 관리 - 서비스, 인수인계 인계자 테이블 클릭
         await page.waitForSelector(SELECTORS.COMMON.TABLE);
-        await page.click(SELECTORS.COMMON.TABLE);
+        await page.locator(SELECTORS.COMMON.TABLE).click();
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferor_table.png` });
 
         // 사용자 관리 - 서비스, 인수인계 인계자 선택
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CONFIRM);
         await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CONFIRM);
+        await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferor_submit.png` });
 
         // 사용자 관리 - 서비스, 인수인계 인수자 진입
-        await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
         await page.click(SELECTORS.ADMIN.MEMBERS.BUTTON_SELECT_TRANSFEREE);
+        await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferee.png` });
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_CLOSE);
@@ -183,12 +192,13 @@ export default async function() {
         await page.type(SELECTORS.ADMIN.USER_SELECT_MODAL.INPUT, 'q1m');
         await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_SEARCH);
         await page.click(SELECTORS.ADMIN.USER_SELECT_MODAL.BUTTON_SEARCH);
+        await page.waitForSelector(SELECTORS.ADMIN.USER_SELECT_MODAL.TABLE_LIST);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferee_search.png` });
 
         // 사용자 관리 - 서비스, 인수인계 인수자 테이블 클릭
         await page.waitForSelector(SELECTORS.COMMON.TABLE);
-        await page.click(SELECTORS.COMMON.TABLE);
+        await page.locator(SELECTORS.COMMON.TABLE).click();
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferee_table.png` });
 
@@ -200,6 +210,10 @@ export default async function() {
         console.log(`Admin members service handover duration: ${adminMembersSvcHandoverDuration}ms`);
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_MEMBER_SERVICE_handover_transferee_submit.png` });
+
+        check(null, {
+            '런타임 오류 없음': () => scriptErrors.length === 0,
+        });
 
         // 사용자 관리 - 서비스, 인수인계 저장
         // await page.waitForSelector(SELECTORS.ADMIN.MEMBERS.BUTTON_SAVE);
@@ -218,19 +232,15 @@ export default async function() {
 
 export function handleSummary(data) {
     const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
-
-    // Slack Bot API 발송
-    const token = __ENV.SLACK_BOT_TOKEN;
-    const channel = __ENV.SLACK_CHANNEL_ID;
-    if (token && channel) {
-        const payload = buildK6SummaryMessage(data, 'Members Service', scriptErrors.length > 0);
-        const ts = postSlackMessage(token, channel, payload);
-        if (ts && scriptErrors.length > 0) {
-            postSlackMessage(token, channel, buildK6ErrorThreadBlocks(scriptErrors), ts);
-        }
-    }
-
-    return {
+    const metricsFile = __ENV._K6_METRICS_FILE;
+    const output = {
         [`Result/members_service_${timestamp}.html`]: htmlReport(data),
     };
+    if (metricsFile) {
+        output[metricsFile] = JSON.stringify({
+            payload: buildK6SummaryMessage(data, 'Members Service', scriptErrors.length > 0),
+            scriptErrors: scriptErrors,
+        });
+    }
+    return output;
 }

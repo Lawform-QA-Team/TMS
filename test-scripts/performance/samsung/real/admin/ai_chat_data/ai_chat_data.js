@@ -4,7 +4,7 @@ import { SELECTORS } from '../../selector_sam.js';
 import { getFormattedTimestamp } from '../../../../common/utils.js';
 import { browser } from 'k6/browser';
 import { getCredentials, loginWithPage } from '../login/login_helper.js';
-import { postSlackMessage, buildK6SummaryMessage, buildK6ErrorThreadBlocks } from '../../../../common/slack_helper.js';
+import { buildK6SummaryMessage } from '../../../../common/slack_helper.js';
 import { Trend } from 'k6/metrics';
 
 export const aiChatPageLoad = new Trend('admin_ai_chat_page_load', true);
@@ -73,11 +73,12 @@ export default async function() {
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_data_search.png` });
         await page.goto(URLS.AI_CHAT.CHATLOG);
+        await page.waitForLoadState('domcontentloaded');
 
         // AI 채팅 데이터 관리 - 채팅 로그 데이터 테이블 클릭
         const aiChatTableClickStart = Date.now();
         await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.TABLE_LIST);
-        await page.click(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`);
+        await page.locator(`${SELECTORS.COMMON.TABLE} div.cursor-pointer`).click();
         const aiChatTableClickDuration = Date.now() - aiChatTableClickStart;
         aiChatTableClick.add(aiChatTableClickDuration);
         console.log(`aiChatTableClick duration: ${aiChatTableClickDuration}ms`);
@@ -119,10 +120,11 @@ export default async function() {
         const aiChatRegisterSaveDuration = Date.now() - aiChatRegisterSaveStart;
         aiChatRegisterSave.add(aiChatRegisterSaveDuration);
         console.log(`aiChatRegisterSave duration: ${aiChatRegisterSaveDuration}ms`);
+        await page.waitForLoadState('domcontentloaded');
         timestamp = getNewTimeStamp();
         await page.screenshot({ path: `screenshots/${timestamp}_AI_CHAT_LOG_data_submit_save.png` });
         await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.BUTTON_LIST);
-        await page.click(SELECTORS.ADMIN.AI_CHAT_LOG.BUTTON_LIST);
+        await page.locator(SELECTORS.ADMIN.AI_CHAT_LOG.BUTTON_LIST).click();
 
         // AI 채팅 데이터 관리 - 채팅 로그 데이터 체크 박스
         await page.waitForSelector(SELECTORS.ADMIN.AI_CHAT_LOG.CHECKBOX);
@@ -156,19 +158,15 @@ export default async function() {
 
 export function handleSummary(data) {
     const timestamp = getFormattedTimestamp().replace(/\s/g, '_');
-
-    // Slack Bot API 발송
-    const token = __ENV.SLACK_BOT_TOKEN;
-    const channel = __ENV.SLACK_CHANNEL_ID;
-    if (token && channel) {
-        const payload = buildK6SummaryMessage(data, 'AI Chat Data', scriptErrors.length > 0);
-        const ts = postSlackMessage(token, channel, payload);
-        if (ts && scriptErrors.length > 0) {
-            postSlackMessage(token, channel, buildK6ErrorThreadBlocks(scriptErrors), ts);
-        }
-    }
-
-    return {
+    const metricsFile = __ENV._K6_METRICS_FILE;
+    const output = {
         [`Result/ai_chat_data_${timestamp}.html`]: htmlReport(data),
     };
+    if (metricsFile) {
+        output[metricsFile] = JSON.stringify({
+            payload: buildK6SummaryMessage(data, 'AI Chat Data', scriptErrors.length > 0),
+            scriptErrors,
+        });
+    }
+    return output;
 }

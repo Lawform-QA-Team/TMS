@@ -19,7 +19,7 @@ export const SEAL = {
     INPUT_YYYY_MM_DD: '[data-tid="bc443156"]',
     INPUT_SEARCH_CONTACT: '[data-tid="81e4692f"]',
   },
-  [CLM_ID]: {
+  CLM_ID: {
     BUTTON_EDIT: '[data-tid="dd772036"]',
     BUTTON_ACTIVITY_LOG: '[data-tid="207ecf51"]',
   },

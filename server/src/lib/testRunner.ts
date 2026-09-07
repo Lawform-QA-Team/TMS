@@ -96,7 +96,7 @@ async function actualRun(pipelineId: string): Promise<{
   const generated = await db.generatedCode.findUnique({ where: { pipelineId } })
   if (!generated) throw new Error(`GeneratedCode 없음: ${pipelineId}`)
 
-  const baseUrl = env.TEST_APP_BASE_URL ?? 'http://localhost:3000'
+  const baseUrl = env.TEST_APP_BASE_URL ?? 'http://localhost:3017'
   const tmpDir = await mkdtemp(join(tmpdir(), 'tms-testrun-'))
 
   try {
