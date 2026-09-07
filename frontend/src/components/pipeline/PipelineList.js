@@ -122,7 +122,7 @@ export default function PipelineList({ onSelect }) {
                 onClick={() => onSelect?.(t.pipeline_id)}
               >
                 <td className="pipeline-ticket-key">{t.ticket_key}</td>
-                <td className="pipeline-issue-type">{t.issue_type}</td>
+                <td><span className={`pipeline-issue-type-badge issue-type-${(t.issue_type ?? '').toLowerCase().replace(/\s+/g, '-')}`}>{t.issue_type}</span></td>
                 <td className="pipeline-summary">{t.summary}</td>
                 <td><span className="pipeline-source-badge">{t.source_type}</span></td>
                 <td><span className={`pipeline-priority-badge priority-${t.priority?.toLowerCase()}`}>{t.priority}</span></td>

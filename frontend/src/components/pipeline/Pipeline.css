@@ -227,6 +227,36 @@
   margin-top: 16px;
 }
 
+.pipeline-issue-type-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.pipeline-issue-type-badge.issue-type-bug {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.pipeline-issue-type-badge.issue-type-task {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.pipeline-issue-type-badge.issue-type-story {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.pipeline-issue-type-badge.issue-type-qa-task {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
 .pipeline-actions {
   white-space: nowrap;
 }
