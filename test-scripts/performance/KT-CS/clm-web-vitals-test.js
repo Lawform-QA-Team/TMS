@@ -22,10 +22,13 @@
  *   2. CLM 목록 페이지 접속 (02_clm_list)
  *   3. CLM 상세 페이지 접속 (03_clm_detail)
  *
- * Web Vitals(FCP/TTFB/LCP/FID/INP/CLS)는 k6 browser 모듈이 페이지 이동마다
+ * Web Vitals(FCP/TTFB/LCP/INP/CLS)는 k6 browser 모듈이 페이지 이동마다
  * 자동으로 browser_web_vital_* 메트릭으로 수집합니다 — 별도 계측 코드 불필요.
  * (k6 v0.52+ 필요. 로컬 PC에 Chrome/Chromium이 설치되어 있어야 하며,
  * 경로를 못 찾으면 K6_BROWSER_EXECUTABLE_PATH 환경변수로 지정)
+ * ⚠️ FID는 이 k6 버전에서 metric 자체가 제공되지 않아(구글이 Core Web Vital에서
+ * INP로 대체) thresholds에서 제외했습니다 — 콘솔/JSON 리포트에 browser_web_vital_fid가
+ * 실제로 찍히면 그때 threshold를 추가하면 됩니다.
  *
  * ⚠️ 확인 필요 (실행 전 반드시 개발팀/프론트엔드 확인) ⚠️
  *   - 로그인 폼 input/button의 실제 selector (name, id 등) — 아래 SELECTORS는 가정값
@@ -50,8 +53,8 @@
  */
 
 import { browser } from 'k6/browser';
-import { check, group, sleep } from 'k6';
-import { Rate, Counter } from 'k6/metrics';
+import { check, sleep } from 'k6';
+import { Rate, Counter, Trend } from 'k6/metrics';
 import { SharedArray } from 'k6/data';
 import exec from 'k6/execution';
 import papaparse from 'https://jslib.k6.io/papaparse/5.1.1/index.js';
@@ -66,7 +69,7 @@ import {
 // ------------------------------------------------------------------
 // 설정
 // ------------------------------------------------------------------
-const FRONTEND_BASE_URL = __ENV.FRONTEND_BASE_URL || 'http://10.1.2.17';
+const FRONTEND_BASE_URL = __ENV.FRONTEND_BASE_URL || 'https://cm.ktcs.co.kr';
 const LOGIN_PATH = __ENV.LOGIN_PATH || '/login';
 // TODO: 실제 CLM 목록/상세 프론트엔드 경로 확인 필요 (아래는 가정값)
 const CLM_LIST_PATH = __ENV.CLM_LIST_PATH || '/clms';
@@ -116,6 +119,11 @@ const accounts = new SharedArray('accounts', function () {
 // ------------------------------------------------------------------
 const flowSuccessRate = new Rate('kt_clm_web_vitals_flow_success');
 const flowErrors = new Counter('kt_clm_web_vitals_flow_errors');
+// k6 group()은 async 콜백을 지원하지 않아(GoError) 페이지 네비게이션 구간은
+// group_duration 대신 아래 Trend로 직접 시간을 재서 단계별 응답시간을 확인한다.
+const loginDuration = new Trend('kt_clm_web_vitals_login_duration', true);
+const clmListDuration = new Trend('kt_clm_web_vitals_list_duration', true);
+const clmDetailDuration = new Trend('kt_clm_web_vitals_detail_duration', true);
 
 // handleSummary용 에러 로그 (VU 간 공유 안 됨 — 정확한 집계는 flowErrors 사용)
 const scriptErrors = [];
@@ -151,12 +159,13 @@ export const options = {
     browser_web_vital_fcp: ['p(95)<1800'],
     browser_web_vital_lcp: ['p(95)<2500'],
     browser_web_vital_cls: ['p(95)<0.1'],
-    // FID는 구글이 INP로 대체 권고 중이지만 요청대로 유지 — 신규 브라우저는 값이 안 잡힐 수 있음
-    browser_web_vital_fid: ['p(95)<100'],
+    // FID는 이 k6 버전에는 metric 자체가 없음(구글이 Core Web Vital에서 INP로 대체하면서
+    // k6 browser 모듈도 FID 수집을 제거함) — threshold에 없는 metric명을 쓰면 파싱 단계에서
+    // 바로 에러가 나서 제외. 콘솔/JSON 리포트에 browser_web_vital_fid가 찍히면 그때 다시 추가할 것.
     browser_web_vital_inp: ['p(95)<200'],
-    'group_duration{group:::01_login}': ['p(95)<5000'],
-    'group_duration{group:::02_clm_list}': ['p(95)<3000'],
-    'group_duration{group:::03_clm_detail}': ['p(95)<3000'],
+    kt_clm_web_vitals_login_duration: ['p(95)<5000'],
+    kt_clm_web_vitals_list_duration: ['p(95)<3000'],
+    kt_clm_web_vitals_detail_duration: ['p(95)<3000'],
   },
 };
 
@@ -180,60 +189,64 @@ export default async function () {
 
   try {
     // 1. 로그인 --------------------------------------------------
-    await group('01_login', async function () {
-      await page.goto(`${FRONTEND_BASE_URL}${LOGIN_PATH}`, { waitUntil: 'load' });
+    // k6 group()은 async 콜백을 지원하지 않아(GoError) 페이지 이동/폼 조작을
+    // group()으로 감쌀 수 없다 — 대신 직접 시간을 재서 Trend로 기록한다.
+    let start = Date.now();
+    await page.goto(`${FRONTEND_BASE_URL}${LOGIN_PATH}`, { waitUntil: 'load' });
 
-      await page.locator(SELECTORS.email).fill(account.email);
-      await page.locator(SELECTORS.password).fill(account.password);
+    await page.locator(SELECTORS.email).fill(account.email);
+    await page.locator(SELECTORS.password).fill(account.password);
 
-      await Promise.all([
-        page.waitForNavigation({ waitUntil: 'load' }),
-        page.locator(SELECTORS.submit).click(),
-      ]);
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'load' }),
+      page.locator(SELECTORS.submit).click(),
+    ]);
+    loginDuration.add(Date.now() - start);
 
-      // TODO: 실제 로그인 성공 판별 조건으로 교체 필요 — 지금은 로그인 페이지에서
-      // 벗어났는지(URL 변경)만으로 가정 판별
-      const success = check(page, {
-        '로그인 페이지 이탈': (p) => !p.url().includes(LOGIN_PATH),
-      });
-      if (!success) {
-        ok = false;
-        flowErrors.add(1, { step: 'login' });
-        logError('login', account, `url=${page.url()}`);
-      }
+    // TODO: 실제 로그인 성공 판별 조건으로 교체 필요 — 지금은 로그인 페이지에서
+    // 벗어났는지(URL 변경)만으로 가정 판별
+    let success = check(page, {
+      '로그인 페이지 이탈': (p) => !p.url().includes(LOGIN_PATH),
     });
+    if (!success) {
+      ok = false;
+      flowErrors.add(1, { step: 'login' });
+      logError('login', account, `url=${page.url()}`);
+    }
 
     if (!ok) return;
     sleep(randomBetween(...THINK_TIME));
 
     // 2. CLM 목록 --------------------------------------------------
-    await group('02_clm_list', async function () {
-      const res = await page.goto(`${FRONTEND_BASE_URL}${CLM_LIST_PATH}`, {
-        waitUntil: 'load',
-      });
-      const success = check(res, { 'CLM 목록 정상 응답': (r) => r.status() === 200 });
-      if (!success) {
-        ok = false;
-        flowErrors.add(1, { step: 'clm_list' });
-        logError('clm_list', account, `status=${res.status()}`);
-      }
+    start = Date.now();
+    let res = await page.goto(`${FRONTEND_BASE_URL}${CLM_LIST_PATH}`, {
+      waitUntil: 'load',
     });
+    clmListDuration.add(Date.now() - start);
+
+    success = check(res, { 'CLM 목록 정상 응답': (r) => r.status() === 200 });
+    if (!success) {
+      ok = false;
+      flowErrors.add(1, { step: 'clm_list' });
+      logError('clm_list', account, `status=${res.status()}`);
+    }
 
     if (!ok) return;
     sleep(randomBetween(...THINK_TIME));
 
     // 3. CLM 상세 --------------------------------------------------
-    await group('03_clm_detail', async function () {
-      const res = await page.goto(`${FRONTEND_BASE_URL}${CLM_DETAIL_PATH}`, {
-        waitUntil: 'load',
-      });
-      const success = check(res, { 'CLM 상세 정상 응답': (r) => r.status() === 200 });
-      if (!success) {
-        ok = false;
-        flowErrors.add(1, { step: 'clm_detail' });
-        logError('clm_detail', account, `status=${res.status()}`);
-      }
+    start = Date.now();
+    res = await page.goto(`${FRONTEND_BASE_URL}${CLM_DETAIL_PATH}`, {
+      waitUntil: 'load',
     });
+    clmDetailDuration.add(Date.now() - start);
+
+    success = check(res, { 'CLM 상세 정상 응답': (r) => r.status() === 200 });
+    if (!success) {
+      ok = false;
+      flowErrors.add(1, { step: 'clm_detail' });
+      logError('clm_detail', account, `status=${res.status()}`);
+    }
 
     sleep(randomBetween(...THINK_TIME));
   } finally {

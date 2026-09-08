@@ -147,7 +147,6 @@ export default function (data) {
     let bodyPreview = '';
     try {
       const body = res.json();
-      console.log(body)
       clmId = body.id || null;
       idPresent = !!clmId;
       bodyPreview = JSON.stringify(body).slice(0, 300);
