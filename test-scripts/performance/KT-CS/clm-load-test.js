@@ -43,7 +43,7 @@ import {
 // ------------------------------------------------------------------
 // 설정
 // ------------------------------------------------------------------
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
+const BASE_URL = __ENV.BASE_URL || 'https://cm.ktcs.co.kr';
 const ACCOUNTS_CSV = __ENV.ACCOUNTS_CSV || './data/accounts.csv';
 const PEAK_VUS = Number(__ENV.PEAK_VUS || 9500);
 
@@ -119,6 +119,11 @@ const scriptErrors = [];
 // k6 옵션
 // ------------------------------------------------------------------
 export const options = {
+  // L7 스위치가 커넥션 단위로 로드밸런싱하는데, k6 기본 keep-alive 커넥션 재사용 때문에
+  // 하나의 커넥션이 붙은 백엔드로 요청이 계속 몰리는 문제 방지 → 매 요청마다 새 커넥션 생성
+  noConnectionReuse: true,
+  noVUConnectionReuse: true,
+  insecureSkipTLSVerify: true,
   scenarios: {
     // 조회 중심 트래픽 (80%)
     read_flow: {
