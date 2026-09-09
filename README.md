@@ -280,42 +280,58 @@ TC 자동 생성 → 페이지 분석 → 코드 생성 → 테스트 실행 →
 
 ## 배포
 
-### Vercel (프론트엔드)
+`main` 브랜치에 push하면 GitHub Actions가 자동으로 배포합니다.
 
-```bash
-cd frontend
-npm run vercel-build
+### 인프라 구성 (AWS ap-northeast-2)
+
+| 구성 요소 | AWS 서비스 | 세부 정보 |
+|-----------|-----------|---------|
+| 백엔드 | ECS Fargate | 클러스터: `ecs-tms-cluster`, 서비스: `tms-server-service` |
+| 컨테이너 이미지 | ECR | 리포지토리: `tms-server` |
+| 프론트엔드 | S3 + CloudFront | 정적 파일 배포 |
+
+### CI/CD 파이프라인
+
+#### 백엔드 자동 배포 (`.github/workflows/deploy-server.yml`)
+
+`server/` 경로 변경 시 트리거:
+
+```
+1. Docker 이미지 빌드
+2. ECR(tms-server) push
+3. ECS 태스크 정의 업데이트 (환경변수 주입)
+4. ECS 서비스 배포 (tms-server-service)
 ```
 
-`vercel.json`이 있는 경우 Vercel CLI 또는 GitHub 연동으로 자동 배포됩니다.
+#### 프론트엔드 자동 배포 (`.github/workflows/deploy-frontend.yml`)
 
-### Docker (운영 서버)
+`frontend/` 경로 변경 시 트리거:
 
-```bash
-# 운영용 Ubuntu 환경 실행
-docker-compose -f docker-compose.ubuntu.yml up -d
+```
+1. npm run build (REACT_APP_API_URL 환경변수 주입)
+2. S3 버킷 sync
+3. CloudFront 캐시 무효화
 ```
 
-운영 환경 구성:
-- `ubuntu-server`: SSH(22), MySQL(3308→3306), HTTP(80) 포트 오픈
-- `mysql-local`: 로컬 백업용 MySQL (포트 3307)
+### GitHub Secrets 설정
 
-### 수동 배포 (Linux 서버)
-
-```bash
-# 백엔드
-cd server
-npm install
-npm run db:generate
-npm run db:migrate:deploy
-npm run build
-npm run start
-
-# 프론트엔드 (정적 파일 빌드 후 Nginx 등에 서빙)
-cd frontend
-npm install
-npm run build
-```
+| Secret | 설명 |
+|--------|------|
+| `AWS_ACCESS_KEY_ID` | AWS IAM 액세스 키 |
+| `AWS_SECRET_ACCESS_KEY` | AWS IAM 시크릿 키 |
+| `REACT_APP_API_URL` | 프론트엔드 API URL (CloudFront/ECS 엔드포인트) |
+| `REACT_APP_UPLOAD_URL` | 파일 업로드 URL |
+| `S3_BUCKET` | 프론트엔드 정적 파일 S3 버킷명 |
+| `CLOUDFRONT_DISTRIBUTION_ID` | CloudFront 배포 ID |
+| `JIRA_SERVER_URL` | Jira 인스턴스 URL |
+| `JIRA_USERNAME` | Jira 계정 이메일 |
+| `JIRA_API_TOKEN` | Jira API 토큰 |
+| `SLACK_BOT_TOKEN` | Slack Bot Token |
+| `SLACK_CHANNEL_ID` | Slack 알림 채널 ID |
+| `ANTHROPIC_API_KEY` | Claude API 키 |
+| `DATABASE_URL` | RDS MySQL 연결 URL |
+| `REDIS_URL` | ElastiCache Redis 연결 URL |
+| `JWT_SECRET_KEY` | JWT 서명 키 |
 
 ---
 
