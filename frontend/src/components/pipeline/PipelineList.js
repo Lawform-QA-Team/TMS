@@ -33,7 +33,7 @@ const STATUS_LABELS = {
 
 export default function PipelineList({ onSelect }) {
   const { token } = useAuth();
-  const [filters, setFilters] = useState({ pipelineStatus: '', priority: '', page: 1, per_page: 20 });
+  const [filters, setFilters] = useState({ pipelineStatus: '', priority: '', issueType: '', page: 1, per_page: 20 });
   const { tickets, pagination, loading, error, refresh } = usePipelineList(filters);
 
   async function handleApprove(e, pipelineId, action) {
@@ -78,6 +78,17 @@ export default function PipelineList({ onSelect }) {
           <option value="P2">P2</option>
           <option value="P3">P3</option>
           <option value="P4">P4</option>
+        </select>
+        <select
+          value={filters.issueType}
+          onChange={(e) => handleFilter('issueType', e.target.value)}
+          className="pipeline-filter-select"
+        >
+          <option value="">전체 유형</option>
+          <option value="Bug">Bug</option>
+          <option value="Task">Task</option>
+          <option value="Story">Story</option>
+          <option value="QA Task">QA Task</option>
         </select>
       </div>
 

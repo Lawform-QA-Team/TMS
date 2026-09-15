@@ -117,10 +117,12 @@ pipelineRouter.get('/', async (c) => {
     const perPage = Number(c.req.query('per_page') ?? 20)
     const pipelineStatus = c.req.query('pipelineStatus')
     const priority = c.req.query('priority')
+    const issueType = c.req.query('issueType')
 
     const where: Record<string, unknown> = {}
     if (pipelineStatus) where.pipelineStatus = pipelineStatus
     if (priority) where.priority = priority
+    if (issueType) where.issueType = issueType
 
     const [total, tickets] = await Promise.all([
       db.collectedTicket.count({ where }),
