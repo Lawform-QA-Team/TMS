@@ -6,6 +6,8 @@ import { getJiraQueue } from '../lib/jiraPipeline.js'
 import { getRedis } from '../lib/redis.js'
 import { normalizeTicket } from '../lib/ticketNormalizer.js'
 import { env } from '../env.js'
+import fs from 'fs'
+import path from 'path'
 
 export const pipelineRouter = new Hono()
 
@@ -427,6 +429,71 @@ pipelineRouter.post('/:pipelineId/retry', async (c) => {
     return c.json({ success: true, message: 'QA Plan 재생성 및 Slack 메시지 재발송 시작' })
   } catch (e) {
     logger.error({ e }, 'Pipeline retry 오류')
+    return c.json({ success: false, error: String(e) }, 500)
+  }
+})
+
+// POST /pipeline/:pipelineId/export — 생성된 코드를 자동화 테스트로 등록
+pipelineRouter.post('/:pipelineId/export', requireAuth, async (c) => {
+  const pipelineId = c.req.param('pipelineId')
+  const userId = Number(c.get('user').sub)
+  try {
+    const [ticket, generatedCode] = await Promise.all([
+      db.collectedTicket.findUnique({ where: { pipelineId } }),
+      db.generatedCode.findUnique({ where: { pipelineId } }),
+    ])
+
+    if (!ticket) return c.json({ success: false, error: '파이프라인을 찾을 수 없습니다.' }, 404)
+    if (!generatedCode) return c.json({ success: false, error: '생성된 코드가 없습니다. 코드 생성 단계가 완료되어야 합니다.' }, 400)
+
+    // 파일 저장: test-scripts/playwright/pipeline/{fileName}
+    const scriptsRoot = path.join(process.cwd(), '..', 'test-scripts')
+    const pipelineDir = path.join(scriptsRoot, 'playwright', 'pipeline')
+    fs.mkdirSync(pipelineDir, { recursive: true })
+
+    const fileName = generatedCode.fileName ?? `${ticket.ticketKey.toLowerCase().replace(/[^a-z0-9]/g, '-')}.spec.ts`
+    const filePath = path.join(pipelineDir, fileName)
+    fs.writeFileSync(filePath, generatedCode.code, 'utf-8')
+
+    // 상대 경로 (scriptsRoot 기준)
+    const relativeScriptPath = path.join('playwright', 'pipeline', fileName)
+
+    // AutomationTest 등록 (이미 등록된 경우 scriptPath/description 업데이트)
+    const existing = await db.automationTest.findFirst({
+      where: { name: { contains: ticket.ticketKey } },
+    })
+
+    let automationTest
+    if (existing) {
+      automationTest = await db.automationTest.update({
+        where: { id: existing.id },
+        data: {
+          description: `[파이프라인 자동 생성] ${ticket.summary}`,
+          scriptPath: relativeScriptPath,
+          updatedAt: new Date(),
+        },
+      })
+    } else {
+      automationTest = await db.automationTest.create({
+        data: {
+          name: `[${ticket.ticketKey}] ${ticket.summary}`.slice(0, 200),
+          description: `[파이프라인 자동 생성] ${ticket.summary}`,
+          testType: 'playwright',
+          scriptPath: relativeScriptPath,
+          environment: 'dev',
+          creatorId: userId,
+        },
+      })
+    }
+
+    logger.info({ pipelineId, automationTestId: automationTest.id, filePath }, '자동화 테스트 등록 완료')
+    return c.json({
+      success: true,
+      message: '자동화 테스트로 등록되었습니다.',
+      data: { automation_test_id: automationTest.id, script_path: relativeScriptPath },
+    })
+  } catch (e) {
+    logger.error({ e }, 'Pipeline export 오류')
     return c.json({ success: false, error: String(e) }, 500)
   }
 })

@@ -117,3 +117,11 @@ export async function approvePipeline(pipelineId, action, token) {
   });
   return res.json();
 }
+
+export async function exportPipelineToAutomation(pipelineId, token) {
+  const res = await fetch(`${API_BASE}/pipeline/${pipelineId}/export`, {
+    method: 'POST',
+    headers: { ...buildAuthHeader(token), 'Content-Type': 'application/json' },
+  });
+  return res.json();
+}

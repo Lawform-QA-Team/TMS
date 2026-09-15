@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { usePipelineDetail, cancelPipeline } from '@tms/hooks/usePipeline';
+import { usePipelineDetail, cancelPipeline, exportPipelineToAutomation } from '@tms/hooks/usePipeline';
 import { useAuth } from '@tms/contexts/AuthContext';
 import './Pipeline.css';
 
@@ -42,6 +42,13 @@ export default function PipelineDetail({ pipelineId, onClose }) {
     const res = await cancelPipeline(pipelineId, token);
     if (res.success) refresh();
     else alert(res.error ?? '취소 실패');
+  }
+
+  async function handleExport() {
+    if (!window.confirm('생성된 코드를 자동화 테스트 목록에 등록하시겠습니까?')) return;
+    const res = await exportPipelineToAutomation(pipelineId, token);
+    if (res.success) alert(res.message);
+    else alert(res.error ?? '등록 실패');
   }
 
   if (!pipelineId) return null;
@@ -335,6 +342,13 @@ export default function PipelineDetail({ pipelineId, onClose }) {
                 onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(generatedCode.code); }}
               >
                 복사
+              </button>
+              <button
+                className="pipeline-copy-btn"
+                style={{ background: '#dbeafe', color: '#1d4ed8' }}
+                onClick={(e) => { e.stopPropagation(); handleExport(); }}
+              >
+                자동화 테스트 등록
               </button>
               <span className="pipeline-accordion-chevron">{collapsed.codegen ? '▶' : '▼'}</span>
             </span>
