@@ -501,25 +501,14 @@ jiraRouter.post('/webhook', async (c) => {
         return c.json({ message: `프로젝트 ${projectKey}는 모니터링 대상이 아닙니다.` })
       }
 
-      const queue = getJiraQueue()
-      await queue.add('create-tc', {
-        type: 'create-tc-from-jira',
-        issueKey,
-        summary,
-        description,
-        issueType,
-        priority,
-        projectKey,
-        environment: 'dev',
-      })
-
-      // 파이프라인 수집 (fire-and-forget)
+      // isQATarget인 경우만 파이프라인 수집 → QA Plan 승인 후 TC 생성
       if (isQATarget(fields)) {
         jiraCollectorService.collect(issue, 'webhook')
           .catch((e) => logger.warn({ e }, 'JiraCollector 실패 (비치명)'))
+        return c.json({ message: 'QA 파이프라인 수집 큐에 등록되었습니다.', issue_key: issueKey })
       }
 
-      return c.json({ message: '파이프라인 큐에 등록되었습니다.', issue_key: issueKey })
+      return c.json({ message: 'QA 대상이 아닌 티켓입니다.', issue_key: issueKey })
     }
 
     if (event?.includes('updated') || event === 'jira:issue_updated') {
