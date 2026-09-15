@@ -155,7 +155,7 @@ pipelineRouter.get('/', async (c) => {
 pipelineRouter.get('/:pipelineId', async (c) => {
   const pipelineId = c.req.param('pipelineId')
   try {
-    const [ticket, pageAnalyses, generatedCode, testRunResult, pipelineReport, bugs] = await Promise.all([
+    const [ticket, pageAnalyses, generatedCodes, testRunResult, pipelineReport, bugs] = await Promise.all([
       db.collectedTicket.findUnique({
         where: { pipelineId },
         include: {
@@ -168,7 +168,7 @@ pipelineRouter.get('/:pipelineId', async (c) => {
         },
       }),
       db.pageAnalysis.findMany({ where: { pipelineId } }),
-      db.generatedCode.findUnique({ where: { pipelineId } }),
+      db.generatedCode.findMany({ where: { pipelineId } }),
       db.testRunResult.findUnique({ where: { pipelineId } }),
       db.pipelineReport.findUnique({ where: { pipelineId } }),
       db.pipelineBug.findMany({ where: { pipelineId }, orderBy: { createdAt: 'asc' } }),
@@ -206,15 +206,30 @@ pipelineRouter.get('/:pipelineId', async (c) => {
       flows: (() => { try { return p.flows ? JSON.parse(p.flows) : [] } catch { return [] } })(),
     }))
 
-    const generatedCodeData = generatedCode
+    const playwrightCode = generatedCodes.find((c) => c.framework === 'playwright')
+    const k6Code = generatedCodes.find((c) => c.framework === 'k6')
+
+    const generatedCodeData = playwrightCode
       ? {
-          id: generatedCode.id,
-          pipeline_id: generatedCode.pipelineId,
-          language: generatedCode.language,
-          framework: generatedCode.framework,
-          file_name: generatedCode.fileName,
-          code: generatedCode.code,
-          created_at: generatedCode.createdAt.toISOString(),
+          id: playwrightCode.id,
+          pipeline_id: playwrightCode.pipelineId,
+          language: playwrightCode.language,
+          framework: playwrightCode.framework,
+          file_name: playwrightCode.fileName,
+          code: playwrightCode.code,
+          created_at: playwrightCode.createdAt.toISOString(),
+        }
+      : null
+
+    const k6CodeData = k6Code
+      ? {
+          id: k6Code.id,
+          pipeline_id: k6Code.pipelineId,
+          language: k6Code.language,
+          framework: k6Code.framework,
+          file_name: k6Code.fileName,
+          code: k6Code.code,
+          created_at: k6Code.createdAt.toISOString(),
         }
       : null
 
@@ -269,6 +284,7 @@ pipelineRouter.get('/:pipelineId', async (c) => {
         qaPlan,
         pageAnalyses: pages,
         generatedCode: generatedCodeData,
+        k6Code: k6CodeData,
         testRunResult: testRunData,
         report: reportData,
         bugs: bugsData,
@@ -440,7 +456,7 @@ pipelineRouter.post('/:pipelineId/export', requireAuth, async (c) => {
   try {
     const [ticket, generatedCode] = await Promise.all([
       db.collectedTicket.findUnique({ where: { pipelineId } }),
-      db.generatedCode.findUnique({ where: { pipelineId } }),
+      db.generatedCode.findFirst({ where: { pipelineId, framework: 'playwright' } }),
     ])
 
     if (!ticket) return c.json({ success: false, error: '파이프라인을 찾을 수 없습니다.' }, 404)
@@ -494,6 +510,70 @@ pipelineRouter.post('/:pipelineId/export', requireAuth, async (c) => {
     })
   } catch (e) {
     logger.error({ e }, 'Pipeline export 오류')
+    return c.json({ success: false, error: String(e) }, 500)
+  }
+})
+
+// POST /pipeline/:pipelineId/export-k6 — 생성된 K6 코드를 성능 테스트로 등록
+pipelineRouter.post('/:pipelineId/export-k6', requireAuth, async (c) => {
+  const pipelineId = c.req.param('pipelineId')
+  const userId = Number(c.get('user').sub)
+  try {
+    const [ticket, k6Code] = await Promise.all([
+      db.collectedTicket.findUnique({ where: { pipelineId } }),
+      db.generatedCode.findFirst({ where: { pipelineId, framework: 'k6' } }),
+    ])
+
+    if (!ticket) return c.json({ success: false, error: '파이프라인을 찾을 수 없습니다.' }, 404)
+    if (!k6Code) return c.json({ success: false, error: '생성된 K6 코드가 없습니다. 코드 생성 단계가 완료되어야 합니다.' }, 400)
+
+    // 파일 저장: test-scripts/k6/pipeline/{fileName}
+    const scriptsRoot = path.join(process.cwd(), '..', 'test-scripts')
+    const k6Dir = path.join(scriptsRoot, 'k6', 'pipeline')
+    fs.mkdirSync(k6Dir, { recursive: true })
+
+    const fileName = k6Code.fileName ?? `${ticket.ticketKey.toLowerCase().replace(/[^a-z0-9]/g, '-')}.k6.js`
+    const filePath = path.join(k6Dir, fileName)
+    fs.writeFileSync(filePath, k6Code.code, 'utf-8')
+
+    const relativeScriptPath = path.join('k6', 'pipeline', fileName)
+
+    // PerformanceTest 등록 (이미 등록된 경우 업데이트)
+    const existing = await db.performanceTest.findFirst({
+      where: { name: { contains: ticket.ticketKey } },
+    })
+
+    let performanceTest
+    if (existing) {
+      performanceTest = await db.performanceTest.update({
+        where: { id: existing.id },
+        data: {
+          description: `[파이프라인 자동 생성] ${ticket.summary}`,
+          scriptPath: relativeScriptPath,
+          updatedAt: new Date(),
+        },
+      })
+    } else {
+      performanceTest = await db.performanceTest.create({
+        data: {
+          name: `[${ticket.ticketKey}] ${ticket.summary}`.slice(0, 200),
+          description: `[파이프라인 자동 생성] ${ticket.summary}`,
+          testType: 'k6',
+          scriptPath: relativeScriptPath,
+          environment: 'dev',
+          creatorId: userId,
+        },
+      })
+    }
+
+    logger.info({ pipelineId, performanceTestId: performanceTest.id, filePath }, '성능 테스트 등록 완료')
+    return c.json({
+      success: true,
+      message: '성능 테스트로 등록되었습니다.',
+      data: { performance_test_id: performanceTest.id, script_path: relativeScriptPath },
+    })
+  } catch (e) {
+    logger.error({ e }, 'Pipeline K6 export 오류')
     return c.json({ success: false, error: String(e) }, 500)
   }
 })

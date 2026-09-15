@@ -144,9 +144,9 @@ export async function generateCode(
     code = sanitizeCode(content.text)
   }
 
-  // DB 저장 (upsert)
+  // DB 저장 (pipelineId + framework 복합 unique)
   await db.generatedCode.upsert({
-    where: { pipelineId },
+    where: { pipelineId_framework: { pipelineId, framework: 'playwright' } },
     create: {
       pipelineId,
       language: 'typescript',

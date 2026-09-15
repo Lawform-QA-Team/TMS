@@ -125,3 +125,11 @@ export async function exportPipelineToAutomation(pipelineId, token) {
   });
   return res.json();
 }
+
+export async function exportPipelineToPerformance(pipelineId, token) {
+  const res = await fetch(`${API_BASE}/pipeline/${pipelineId}/export-k6`, {
+    method: 'POST',
+    headers: { ...buildAuthHeader(token), 'Content-Type': 'application/json' },
+  });
+  return res.json();
+}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { usePipelineDetail, cancelPipeline, exportPipelineToAutomation } from '@tms/hooks/usePipeline';
+import { usePipelineDetail, cancelPipeline, exportPipelineToAutomation, exportPipelineToPerformance } from '@tms/hooks/usePipeline';
 import { useAuth } from '@tms/contexts/AuthContext';
 import './Pipeline.css';
 
@@ -29,6 +29,7 @@ export default function PipelineDetail({ pipelineId, onClose }) {
     testcases: false,
     pageanalysis: true,
     codegen: true,
+    k6codegen: true,
     testrun: false,
     report: false,
     bugs: false,
@@ -51,12 +52,19 @@ export default function PipelineDetail({ pipelineId, onClose }) {
     else alert(res.error ?? '등록 실패');
   }
 
+  async function handleExportK6() {
+    if (!window.confirm('생성된 K6 코드를 성능 테스트 목록에 등록하시겠습니까?')) return;
+    const res = await exportPipelineToPerformance(pipelineId, token);
+    if (res.success) alert(res.message);
+    else alert(res.error ?? '등록 실패');
+  }
+
   if (!pipelineId) return null;
   if (loading) return <div className="pipeline-loading">로딩 중...</div>;
   if (error) return <div className="pipeline-error">오류: {error}</div>;
   if (!data) return null;
 
-  const { ticket, stages, qaPlan, pageAnalyses, generatedCode, testRunResult, report, bugs } = data;
+  const { ticket, stages, qaPlan, pageAnalyses, generatedCode, k6Code, testRunResult, report, bugs } = data;
   const plan = qaPlan?.plan_content ? (() => { try { return JSON.parse(qaPlan.plan_content); } catch { return null; } })() : null;
 
   return (
@@ -355,6 +363,38 @@ export default function PipelineDetail({ pipelineId, onClose }) {
           </div>
           {!collapsed.codegen && (
             <pre className="pipeline-code-viewer">{generatedCode.code}</pre>
+          )}
+        </div>
+      )}
+
+      {k6Code && (
+        <div className="pipeline-tc-list">
+          <div className="pipeline-accordion-header" onClick={() => toggle('k6codegen')}>
+            <span>
+              생성된 성능 테스트 코드
+              <span style={{ color: '#6b7280', fontWeight: 400, marginLeft: 8 }}>
+                {k6Code.file_name}
+              </span>
+            </span>
+            <span className="pipeline-accordion-right">
+              <button
+                className="pipeline-copy-btn"
+                onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(k6Code.code); }}
+              >
+                복사
+              </button>
+              <button
+                className="pipeline-copy-btn"
+                style={{ background: '#fef3c7', color: '#92400e' }}
+                onClick={(e) => { e.stopPropagation(); handleExportK6(); }}
+              >
+                성능 테스트 등록
+              </button>
+              <span className="pipeline-accordion-chevron">{collapsed.k6codegen ? '▶' : '▼'}</span>
+            </span>
+          </div>
+          {!collapsed.k6codegen && (
+            <pre className="pipeline-code-viewer">{k6Code.code}</pre>
           )}
         </div>
       )}
