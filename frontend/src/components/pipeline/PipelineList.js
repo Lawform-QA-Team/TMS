@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { usePipelineList, approvePipeline } from '@tms/hooks/usePipeline';
 import { useAuth } from '@tms/contexts/AuthContext';
 import './Pipeline.css';
@@ -92,20 +92,7 @@ export default function PipelineList({ onSelect }) {
         </select>
       </div>
 
-      <div className="pipeline-stage-indicator">
-        {STAGES.map((s, i) => (
-          <React.Fragment key={s}>
-            <span
-              className={`pipeline-stage-dot ${filters.pipelineStatus === s ? 'active' : ''}`}
-              title={STATUS_LABELS[s]}
-              onClick={() => handleFilter('pipelineStatus', filters.pipelineStatus === s ? '' : s)}
-            />
-            {i < STAGES.length - 1 && <span className="pipeline-stage-connector" />}
-          </React.Fragment>
-        ))}
-      </div>
-
-      {loading && <div className="pipeline-loading">로딩 중...</div>}
+{loading && <div className="pipeline-loading">로딩 중...</div>}
       {error && <div className="pipeline-error">오류: {error}</div>}
 
       {!loading && !error && (
