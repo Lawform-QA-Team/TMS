@@ -118,11 +118,13 @@ pipelineRouter.get('/', async (c) => {
     const pipelineStatus = c.req.query('pipelineStatus')
     const priority = c.req.query('priority')
     const issueType = c.req.query('issueType')
+    const search = c.req.query('search')
 
     const where: Record<string, unknown> = {}
     if (pipelineStatus) where.pipelineStatus = pipelineStatus
     if (priority) where.priority = priority
     if (issueType) where.issueType = issueType
+    if (search) where.summary = { contains: search }
 
     const [total, tickets] = await Promise.all([
       db.collectedTicket.count({ where }),

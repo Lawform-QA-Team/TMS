@@ -22,6 +22,7 @@ export function usePipelineList(filters = {}) {
       if (filters.pipelineStatus) params.set('pipelineStatus', filters.pipelineStatus);
       if (filters.priority) params.set('priority', filters.priority);
       if (filters.issueType) params.set('issueType', filters.issueType);
+      if (filters.search) params.set('search', filters.search);
       if (filters.page) params.set('page', String(filters.page));
       if (filters.per_page) params.set('per_page', String(filters.per_page));
 
@@ -36,7 +37,7 @@ export function usePipelineList(filters = {}) {
     } finally {
       setLoading(false);
     }
-  }, [token, filters.pipelineStatus, filters.priority, filters.issueType, filters.page, filters.per_page]);
+  }, [token, filters.pipelineStatus, filters.priority, filters.issueType, filters.search, filters.page, filters.per_page]);
 
   useEffect(() => { fetchList(); }, [fetchList]);
 
