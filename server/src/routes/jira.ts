@@ -420,6 +420,45 @@ jiraRouter.post('/external/sync', requireAuth, async (c) => {
   try {
     const data = await c.req.json().catch(() => ({}))
     const issueKey: string | undefined = data.issue_key
+    const issueType: string | undefined = data.issue_type
+
+    // 특정 타입만 외부에서 검색하여 가져오기 (예: Bug)
+    if (issueType && !issueKey) {
+      if (!env.JIRA_SERVER_URL) {
+        return c.json({ success: false, error: 'Jira 서버 URL이 설정되지 않았습니다.' }, 400)
+      }
+      const jql = `issuetype = "${issueType}" ORDER BY created DESC`
+      const result = await jiraClient.searchIssues(jql, 0, 100)
+      let importedCount = 0
+      for (const issue of result.issues) {
+        const f = issue.fields
+        try {
+          await db.jiraIssue.upsert({
+            where: { issueKey: issue.key },
+            create: {
+              issueKey: issue.key,
+              projectKey: f.project?.key ?? env.JIRA_PROJECT_KEY,
+              issueType: f.issuetype?.name ?? issueType,
+              status: f.status?.name ?? 'To Do',
+              priority: f.priority?.name ?? 'Medium',
+              summary: f.summary,
+              description: typeof f.description === 'string' ? f.description : '',
+              assigneeEmail: f.assignee?.displayName ?? null,
+              labels: f.labels ? JSON.stringify(f.labels) : null,
+            },
+            update: {
+              status: f.status?.name ?? 'To Do',
+              priority: f.priority?.name ?? 'Medium',
+              summary: f.summary,
+              updatedAt: new Date(),
+            },
+          })
+          importedCount++
+        } catch { /* 개별 실패 무시 */ }
+      }
+      logger.info({ issueType, importedCount }, '외부 Jira 타입별 동기화 완료')
+      return c.json({ success: true, message: `${importedCount}개의 ${issueType} 이슈를 가져왔습니다.`, imported_count: importedCount })
+    }
 
     if (issueKey) {
       const jiraIssue = await jiraClient.getIssue(issueKey)
