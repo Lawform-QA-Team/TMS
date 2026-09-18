@@ -1015,3 +1015,68 @@ model K6Timeseries {
   @@index([timestamp])
   @@map("K6Timeseries")
 }
+
+model ApiEndpoint {
+  id             Int      @id @default(autoincrement())
+  method         String   @db.VarChar(10)
+  path           String   @db.VarChar(500)
+  description    String?
+  tags           String[] // PostgreSQL 배열
+  requestBody    Json?    @map("request_body")
+  responseSchema Json?    @map("response_schema")
+  authRequired   Boolean  @default(true) @map("auth_required")
+  projectKey     String   @map("project_key") @db.VarChar(50)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([projectKey])
+  @@map("ApiEndpoints")
+}
+
+model SelectorRegistry {
+  id          Int      @id @default(autoincrement())
+  pageName    String   @map("page_name") @db.VarChar(200)
+  elementName String   @map("element_name") @db.VarChar(200)
+  dataTid     String   @map("data_tid") @db.VarChar(200)
+  selector    String   @db.VarChar(300)
+  elementType String   @map("element_type") @db.VarChar(50)
+  description String?
+  projectKey  String   @map("project_key") @db.VarChar(50)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([projectKey])
+  @@map("SelectorRegistry")
+}
+
+model ActionRegistry {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(200)
+  description String?
+  category    String   @db.VarChar(100)
+  code        String
+  parameters  String?
+  selectorIds String?  @map("selector_ids")
+  projectKey  String   @map("project_key") @db.VarChar(50)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([projectKey])
+  @@index([category])
+  @@map("ActionRegistry")
+}
+
+model ScenarioRegistry {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(200)
+  description String?
+  category    String   @db.VarChar(100)
+  steps       String
+  projectKey  String   @map("project_key") @db.VarChar(50)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([projectKey])
+  @@index([category])
+  @@map("ScenarioRegistry")
+}

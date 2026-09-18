@@ -31,6 +31,10 @@ import { queueRouter } from './queue.js'
 import { pipelineRouter } from './pipeline.js'
 import { slackRouter } from './slack.js'
 import { monitoringRouter } from './monitoring.js'
+import { apiEndpointsRouter } from './apiEndpoints.js'
+import { selectorRegistryRouter } from './selectorRegistry.js'
+import { actionRegistryRouter } from './actionRegistry.js'
+import { scenarioRegistryRouter } from './scenarioRegistry.js'
 
 export function registerRoutes(app: Hono): void {
   // Phase 2: 인증 & 사용자
@@ -83,4 +87,10 @@ export function registerRoutes(app: Hono): void {
 
   // Phase 9: 모니터링 (Playwright + K6)
   app.route('/monitoring', monitoringRouter)
+
+  // Phase 10: API Registry + Selector Registry + Action Registry + Scenario Registry
+  app.route('/api-endpoints', apiEndpointsRouter)
+  app.route('/selector-registry', selectorRegistryRouter)
+  app.route('/action-registry', actionRegistryRouter)
+  app.route('/scenario-registry', scenarioRegistryRouter)
 }

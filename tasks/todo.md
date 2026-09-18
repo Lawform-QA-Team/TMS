@@ -354,3 +354,29 @@ ERRO 로그가 있어도 Slack에 "성공"으로 발송되는 문제:
 - [x] routes/index.ts — slackRouter 등록
 - [x] 프론트엔드 PipelineDetail — qaplan 단계 + planContent 표시
 - [x] 검증 — webhook → Claude API → QAPlan DB 저장 → pipelineStatus=qaplan 확인
+
+---
+
+# Task: QAT-103 API Registry + Selector Registry 구현
+
+## 구현 체크리스트
+
+- [x] Step 1: schema.prisma + schema.prod.prisma — ApiEndpoint, SelectorRegistry 모델 추가
+- [x] Step 2: MySQL에 직접 테이블 생성 (node_modules 없어서 prisma db push 불가)
+- [x] Step 3: server/src/routes/apiEndpoints.ts 생성 (CRUD)
+- [x] Step 4: server/src/routes/selectorRegistry.ts 생성 (CRUD + selector 자동생성)
+- [x] Step 5: server/src/routes/index.ts 라우터 등록
+- [x] Step 6: server/src/lib/codeGenerator.ts — SelectorRegistry 참조 추가
+- [x] Step 7: server/src/lib/codeGenerator.ts — generateK6Code() 추가
+- [x] Step 8: frontend/src/components/settings/ApiRegistryManager.js 생성
+- [x] Step 9: frontend/src/components/settings/SelectorRegistryManager.js 생성
+- [x] Step 10: frontend/src/components/settings/Settings.js 탭 2개 추가
+
+## 검증
+- [x] TypeScript 타입 체크 통과 (tsc --noEmit)
+- [x] 서버 시작 성공 (헬스체크 {"status":"healthy"})
+- [x] ApiEndpoints, SelectorRegistry 테이블 DB 생성 확인
+- [x] Prisma Client 재생성 완료
+- [ ] GET/POST /api-endpoints 동작 (로그인 계정 필요)
+- [ ] GET/POST /selector-registry 동작 (로그인 계정 필요)
+- [ ] 프론트 설정 탭 표시 + CRUD 동작
