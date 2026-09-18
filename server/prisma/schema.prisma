@@ -1070,3 +1070,68 @@ model K6Timeseries {
   @@index([timestamp])
   @@map("K6Timeseries")
 }
+
+model ApiEndpoint {
+  id             Int      @id @default(autoincrement())
+  method         String   @db.VarChar(10)   // GET | POST | PUT | DELETE | PATCH
+  path           String   @db.VarChar(500)  // /api/v1/tickets/:id
+  description    String?  @db.Text
+  tags           String?  @db.Text          // JSON string []
+  requestBody    Json?    @map("request_body")
+  responseSchema Json?    @map("response_schema")
+  authRequired   Boolean  @default(true) @map("auth_required")
+  projectKey     String   @map("project_key") @db.VarChar(50)
+  createdAt      DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@index([projectKey])
+  @@map("ApiEndpoints")
+}
+
+model SelectorRegistry {
+  id          Int      @id @default(autoincrement())
+  pageName    String   @map("page_name") @db.VarChar(200)
+  elementName String   @map("element_name") @db.VarChar(200)
+  dataTid     String   @map("data_tid") @db.VarChar(200)
+  selector    String   @db.VarChar(300)   // [data-tid="login-btn"]
+  elementType String   @map("element_type") @db.VarChar(50)  // button | input | link | text
+  description String?  @db.Text
+  projectKey  String   @map("project_key") @db.VarChar(50)
+  createdAt   DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@index([projectKey])
+  @@map("SelectorRegistry")
+}
+
+model ActionRegistry {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(200)    // 함수명 (예: clickNewReviewRequest)
+  description String?  @db.Text
+  category    String   @db.VarChar(100)    // clm | common | advice | ...
+  code        String   @db.LongText        // 실제 JS 함수 코드
+  parameters  String?  @db.Text            // JSON: [{name, type, default?}]
+  selectorIds String?  @map("selector_ids") @db.Text  // JSON: [selectorRegistry.id, ...]
+  projectKey  String   @map("project_key") @db.VarChar(50)
+  createdAt   DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@index([projectKey])
+  @@index([category])
+  @@map("ActionRegistry")
+}
+
+model ScenarioRegistry {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(200)    // 시나리오명
+  description String?  @db.Text
+  category    String   @db.VarChar(100)    // clm | common | advice | ...
+  steps       String   @db.LongText        // JSON: [{order, actionId, params{}}]
+  projectKey  String   @map("project_key") @db.VarChar(50)
+  createdAt   DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@index([projectKey])
+  @@index([category])
+  @@map("ScenarioRegistry")
+}
