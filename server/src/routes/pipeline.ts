@@ -206,32 +206,13 @@ pipelineRouter.get('/:pipelineId', async (c) => {
       flows: (() => { try { return p.flows ? JSON.parse(p.flows) : [] } catch { return [] } })(),
     }))
 
-    const playwrightCode = generatedCodes.find((c) => c.framework === 'playwright')
-    const k6Code = generatedCodes.find((c) => c.framework === 'k6')
-
-    const generatedCodeData = playwrightCode
-      ? {
-          id: playwrightCode.id,
-          pipeline_id: playwrightCode.pipelineId,
-          language: playwrightCode.language,
-          framework: playwrightCode.framework,
-          file_name: playwrightCode.fileName,
-          code: playwrightCode.code,
-          created_at: playwrightCode.createdAt.toISOString(),
-        }
+    const toCodeData = (c: typeof generatedCodes[0] | undefined) => c
+      ? { id: c.id, pipeline_id: c.pipelineId, language: c.language, framework: c.framework, file_name: c.fileName, code: c.code, created_at: c.createdAt.toISOString() }
       : null
 
-    const k6CodeData = k6Code
-      ? {
-          id: k6Code.id,
-          pipeline_id: k6Code.pipelineId,
-          language: k6Code.language,
-          framework: k6Code.framework,
-          file_name: k6Code.fileName,
-          code: k6Code.code,
-          created_at: k6Code.createdAt.toISOString(),
-        }
-      : null
+    const generatedCodeData = toCodeData(generatedCodes.find((c) => c.framework === 'playwright'))
+    const k6LoadCodeData = toCodeData(generatedCodes.find((c) => c.framework === 'k6-load'))
+    const k6BrowserCodeData = toCodeData(generatedCodes.find((c) => c.framework === 'k6-browser'))
 
     const testRunData = testRunResult
       ? {
@@ -284,7 +265,8 @@ pipelineRouter.get('/:pipelineId', async (c) => {
         qaPlan,
         pageAnalyses: pages,
         generatedCode: generatedCodeData,
-        k6Code: k6CodeData,
+        k6LoadCode: k6LoadCodeData,
+        k6BrowserCode: k6BrowserCodeData,
         testRunResult: testRunData,
         report: reportData,
         bugs: bugsData,
@@ -514,14 +496,16 @@ pipelineRouter.post('/:pipelineId/export', requireAuth, async (c) => {
   }
 })
 
-// POST /pipeline/:pipelineId/export-k6 — 생성된 K6 코드를 성능 테스트로 등록
+// POST /pipeline/:pipelineId/export-k6?type=load|browser — 생성된 K6 코드를 성능 테스트로 등록
 pipelineRouter.post('/:pipelineId/export-k6', requireAuth, async (c) => {
   const pipelineId = c.req.param('pipelineId')
   const userId = Number(c.get('user').sub)
+  const k6Type = (c.req.query('type') ?? 'load') as 'load' | 'browser'
+  const framework = k6Type === 'browser' ? 'k6-browser' : 'k6-load'
   try {
     const [ticket, k6Code] = await Promise.all([
       db.collectedTicket.findUnique({ where: { pipelineId } }),
-      db.generatedCode.findFirst({ where: { pipelineId, framework: 'k6' } }),
+      db.generatedCode.findFirst({ where: { pipelineId, framework } }),
     ])
 
     if (!ticket) return c.json({ success: false, error: '파이프라인을 찾을 수 없습니다.' }, 404)
@@ -532,7 +516,8 @@ pipelineRouter.post('/:pipelineId/export-k6', requireAuth, async (c) => {
     const k6Dir = path.join(scriptsRoot, 'k6', 'pipeline')
     fs.mkdirSync(k6Dir, { recursive: true })
 
-    const fileName = k6Code.fileName ?? `${ticket.ticketKey.toLowerCase().replace(/[^a-z0-9]/g, '-')}.k6.js`
+    const defaultSuffix = k6Type === 'browser' ? '-browser.k6.js' : '-load.k6.js'
+    const fileName = k6Code.fileName ?? `${ticket.ticketKey.toLowerCase().replace(/[^a-z0-9]/g, '-')}${defaultSuffix}`
     const filePath = path.join(k6Dir, fileName)
     fs.writeFileSync(filePath, k6Code.code, 'utf-8')
 

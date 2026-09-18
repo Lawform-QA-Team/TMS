@@ -59,7 +59,7 @@ async function simulateRun(pipelineId: string): Promise<{
   durationMs: number
   results: TestResult[]
 }> {
-  const generated = await db.generatedCode.findUnique({ where: { pipelineId } })
+  const generated = await db.generatedCode.findUnique({ where: { pipelineId_framework: { pipelineId, framework: 'playwright' } } })
   if (!generated) throw new Error(`GeneratedCode 없음: ${pipelineId}`)
 
   const titles = parseTestTitles(generated.code)
@@ -93,7 +93,7 @@ async function actualRun(pipelineId: string): Promise<{
   results: TestResult[]
   errorMessage?: string
 }> {
-  const generated = await db.generatedCode.findUnique({ where: { pipelineId } })
+  const generated = await db.generatedCode.findUnique({ where: { pipelineId_framework: { pipelineId, framework: 'playwright' } } })
   if (!generated) throw new Error(`GeneratedCode 없음: ${pipelineId}`)
 
   const baseUrl = env.TEST_APP_BASE_URL ?? 'http://localhost:3017'

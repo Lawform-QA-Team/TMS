@@ -22,7 +22,7 @@ import { sendQAPlanApprovalRequest, sendTestCasesComplete, sendPageAnalysisCompl
 import { generateTestCases } from './testCaseGenerator.js'
 import { analyzePages } from './pageAnalyzer.js'
 import { generateCode } from './codeGenerator.js'
-import { generateK6Code } from './k6CodeGenerator.js'
+import { generateK6LoadTest, generateK6BrowserTest } from './k6CodeGenerator.js'
 import { runTests } from './testRunner.js'
 import { generateReport } from './reportGenerator.js'
 import { registerBugs } from './bugRegistrar.js'
@@ -325,9 +325,14 @@ async function processJob(job: Job<JiraPipelineJobData>): Promise<void> {
   else if (data.type === 'pageanalysis-complete') {
     logger.info({ pipelineId: data.pipelineId, qaPlanId: data.qaPlanId }, '페이지 분석 완료 → 코드 생성 시작')
     try {
-      const [{ fileName, linesOfCode }, { fileName: k6FileName, linesOfCode: k6Lines }] = await Promise.all([
+      const [
+        { fileName, linesOfCode },
+        { fileName: k6LoadFileName, linesOfCode: k6LoadLines },
+        { fileName: k6BrowserFileName, linesOfCode: k6BrowserLines },
+      ] = await Promise.all([
         generateCode(data.pipelineId, data.qaPlanId),
-        generateK6Code(data.pipelineId, data.qaPlanId),
+        generateK6LoadTest(data.pipelineId, data.qaPlanId),
+        generateK6BrowserTest(data.pipelineId, data.qaPlanId),
       ])
       await sendCodegenComplete(data.pipelineId, fileName, linesOfCode)
       // Phase 6: 코드 생성 완료 → 테스트 실행 자동 진행
@@ -335,7 +340,10 @@ async function processJob(job: Job<JiraPipelineJobData>): Promise<void> {
         type: 'codegen-complete',
         pipelineId: data.pipelineId,
       })
-      logger.info({ pipelineId: data.pipelineId, fileName, linesOfCode, k6FileName, k6Lines }, '코드 생성 완료 → 테스트 실행 큐 등록')
+      logger.info(
+        { pipelineId: data.pipelineId, fileName, linesOfCode, k6LoadFileName, k6LoadLines, k6BrowserFileName, k6BrowserLines },
+        '코드 생성 완료 (playwright + k6-load + k6-browser) → 테스트 실행 큐 등록',
+      )
     } catch (e) {
       logger.error({ e, pipelineId: data.pipelineId }, '코드 생성 오류')
       await db.collectedTicket.update({
