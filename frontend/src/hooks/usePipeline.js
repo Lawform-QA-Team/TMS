@@ -101,6 +101,14 @@ export function usePipelineStats() {
   return { stats, loading, error, refresh: fetchStats };
 }
 
+export async function retryPipeline(pipelineId, token) {
+  const res = await fetch(`${API_BASE}/pipeline/${pipelineId}/retry`, {
+    method: 'POST',
+    headers: { ...buildAuthHeader(token), 'Content-Type': 'application/json' },
+  });
+  return res.json();
+}
+
 export async function cancelPipeline(pipelineId, token) {
   const res = await fetch(`${API_BASE}/pipeline/${pipelineId}/cancel`, {
     method: 'POST',

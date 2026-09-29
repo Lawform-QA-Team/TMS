@@ -375,10 +375,7 @@ pipelineRouter.post('/:pipelineId/cancel', requireAuth, async (c) => {
 })
 
 // POST /pipeline/:pipelineId/retry — QA Plan 생성부터 재시도 (Slack 메시지 재발송)
-// ?secret=JIRA_WEBHOOK_SECRET 으로 간단 인증
-pipelineRouter.post('/:pipelineId/retry', async (c) => {
-  const secret = c.req.query('secret')
-  if (secret !== env.JIRA_WEBHOOK_SECRET) return c.json({ success: false, error: '인증 실패' }, 401)
+pipelineRouter.post('/:pipelineId/retry', requireAuth, async (c) => {
   const pipelineId = c.req.param('pipelineId')
   try {
     const ticket = await db.collectedTicket.findUnique({ where: { pipelineId } })

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { usePipelineDetail, cancelPipeline, exportPipelineToAutomation, exportPipelineToPerformance } from '@tms/hooks/usePipeline';
+import { usePipelineDetail, cancelPipeline, retryPipeline, exportPipelineToAutomation, exportPipelineToPerformance } from '@tms/hooks/usePipeline';
 import { useAuth } from '@tms/contexts/AuthContext';
 import './Pipeline.css';
 
@@ -37,6 +37,13 @@ export default function PipelineDetail({ pipelineId, onClose }) {
   });
   function toggle(key) {
     setCollapsed(prev => ({ ...prev, [key]: !prev[key] }));
+  }
+
+  async function handleRetry() {
+    if (!window.confirm('QA Plan을 다시 생성하시겠습니까? (기존 QA Plan은 삭제됩니다)')) return;
+    const res = await retryPipeline(pipelineId, token);
+    if (res.success) { alert(res.message); refresh(); }
+    else alert(res.error ?? '재처리 실패');
   }
 
   async function handleCancel() {
@@ -443,6 +450,13 @@ export default function PipelineDetail({ pipelineId, onClose }) {
 
       {ticket.pipeline_status === 'collected' && (
         <div className="pipeline-detail-actions">
+          <button
+            className="pipeline-copy-btn"
+            style={{ background: '#dbeafe', color: '#1d4ed8', padding: '8px 16px', fontSize: '0.875rem' }}
+            onClick={handleRetry}
+          >
+            QA Plan 재생성
+          </button>
           <button className="pipeline-cancel-btn" onClick={handleCancel}>
             파이프라인 취소
           </button>
