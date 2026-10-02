@@ -21,6 +21,8 @@ export function usePipelineList(filters = {}) {
       const params = new URLSearchParams();
       if (filters.pipelineStatus) params.set('pipelineStatus', filters.pipelineStatus);
       if (filters.priority) params.set('priority', filters.priority);
+      if (filters.issueType) params.set('issueType', filters.issueType);
+      if (filters.search) params.set('search', filters.search);
       if (filters.page) params.set('page', String(filters.page));
       if (filters.per_page) params.set('per_page', String(filters.per_page));
 
@@ -35,7 +37,7 @@ export function usePipelineList(filters = {}) {
     } finally {
       setLoading(false);
     }
-  }, [token, filters.pipelineStatus, filters.priority, filters.page, filters.per_page]);
+  }, [token, filters.pipelineStatus, filters.priority, filters.issueType, filters.search, filters.page, filters.per_page]);
 
   useEffect(() => { fetchList(); }, [fetchList]);
 
@@ -99,6 +101,14 @@ export function usePipelineStats() {
   return { stats, loading, error, refresh: fetchStats };
 }
 
+export async function retryPipeline(pipelineId, token) {
+  const res = await fetch(`${API_BASE}/pipeline/${pipelineId}/retry`, {
+    method: 'POST',
+    headers: { ...buildAuthHeader(token), 'Content-Type': 'application/json' },
+  });
+  return res.json();
+}
+
 export async function cancelPipeline(pipelineId, token) {
   const res = await fetch(`${API_BASE}/pipeline/${pipelineId}/cancel`, {
     method: 'POST',
@@ -112,6 +122,22 @@ export async function approvePipeline(pipelineId, action, token) {
     method: 'POST',
     headers: { ...buildAuthHeader(token), 'Content-Type': 'application/json' },
     body: JSON.stringify({ action }),
+  });
+  return res.json();
+}
+
+export async function exportPipelineToAutomation(pipelineId, token) {
+  const res = await fetch(`${API_BASE}/pipeline/${pipelineId}/export`, {
+    method: 'POST',
+    headers: { ...buildAuthHeader(token), 'Content-Type': 'application/json' },
+  });
+  return res.json();
+}
+
+export async function exportPipelineToPerformance(pipelineId, token, type = 'load') {
+  const res = await fetch(`${API_BASE}/pipeline/${pipelineId}/export-k6?type=${type}`, {
+    method: 'POST',
+    headers: { ...buildAuthHeader(token), 'Content-Type': 'application/json' },
   });
   return res.json();
 }

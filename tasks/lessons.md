@@ -685,6 +685,26 @@ user = User(username=f'admin_{suffix}', email=f'admin_{suffix}@test.com', ...)
 `db.playwrightRun is undefined` 같은 런타임 에러가 발생한다.
 **반드시 서버를 재빌드 + 재시작**해야 새 모델이 인식된다.
 
+## 2026-09-18: MySQL 환경에서 prisma db push 대신 직접 SQL 사용
+
+**현상**: server/ node_modules가 없어서 `prisma db push` 실행 불가
+
+**해결**: MySQL에 직접 접속해서 테이블 생성 후, `npm install` → `prisma generate`로 Prisma Client 재생성
+
+**교훈**: node_modules가 없을 때 DB 변경이 필요하면 MySQL 직접 접속으로 먼저 테이블 생성, 그 다음 npm install + prisma generate
+
+---
+
+## 2026-09-18: tags String[] → MySQL에서는 JSON Text로 저장
+
+**현상**: MySQL은 `String[]` 배열 타입 미지원
+
+**해결**: MySQL schema.prisma에서는 `tags String? @db.Text` (JSON string), PostgreSQL schema.prod.prisma에서는 `tags String[]` 사용
+
+**교훈**: MySQL/PostgreSQL 스키마 분기 시 배열 타입은 각각 다르게 처리
+
+---
+
 ## 2025-08-07: 기존 iframe → 자체 차트 교체 시 파일명 유지 패턴
 
 App.js의 import를 건드리지 않으려면 기존 파일명(`GrafanaDashboard.js`)을 유지하고 내용만 교체.

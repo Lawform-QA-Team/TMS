@@ -3,6 +3,10 @@ import ProjectFolderManager from '@tms/components/settings/ProjectFolderManager'
 import AccountManager from '@tms/components/settings/AccountManager';
 import PromptSettings from '@tms/components/settings/PromptSettings';
 import GoogleSheetsImport from '@tms/components/settings/GoogleSheetsImport';
+import ApiRegistryManager from '@tms/components/settings/ApiRegistryManager';
+import SelectorRegistryManager from '@tms/components/settings/SelectorRegistryManager';
+import ActionRegistryManager from '@tms/components/settings/ActionRegistryManager';
+import ScenarioRegistryManager from '@tms/components/settings/ScenarioRegistryManager';
 import { useAuth } from '@tms/contexts/AuthContext';
 import '@tms/components/settings/Settings.css';
 
@@ -26,6 +30,22 @@ const Settings = () => {
     return user && ['admin', 'user'].includes(user.role);
   };
 
+  const canAccessApiRegistry = () => {
+    return user && ['admin'].includes(user.role);
+  };
+
+  const canAccessSelectorRegistry = () => {
+    return user && ['admin'].includes(user.role);
+  };
+
+  const canAccessActionRegistry = () => {
+    return user && ['admin'].includes(user.role);
+  };
+
+  const canAccessScenarioRegistry = () => {
+    return user && ['admin'].includes(user.role);
+  };
+
   const renderContent = () => {
     switch (activeMenu) {
       case 'project-folders':
@@ -36,6 +56,14 @@ const Settings = () => {
         return canAccessAccounts() ? <AccountManager /> : <div>접근 권한이 없습니다.</div>;
       case 'import':
         return canAccessImport() ? <GoogleSheetsImport /> : <div>접근 권한이 없습니다.</div>;
+      case 'api-registry':
+        return canAccessApiRegistry() ? <ApiRegistryManager /> : <div>접근 권한이 없습니다.</div>;
+      case 'selector-registry':
+        return canAccessSelectorRegistry() ? <SelectorRegistryManager /> : <div>접근 권한이 없습니다.</div>;
+      case 'action-registry':
+        return canAccessActionRegistry() ? <ActionRegistryManager /> : <div>접근 권한이 없습니다.</div>;
+      case 'scenario-registry':
+        return canAccessScenarioRegistry() ? <ScenarioRegistryManager /> : <div>접근 권한이 없습니다.</div>;
       default:
         return canAccessAccounts() ? <AccountManager /> : <div>접근 권한이 없습니다.</div>;
     }
@@ -102,6 +130,46 @@ const Settings = () => {
                     onClick={() => setActiveMenu('import')}
                   >
                     데이터 가져오기
+                  </button>
+                </li>
+              )}
+              {canAccessApiRegistry() && (
+                <li>
+                  <button
+                    className={`snb-item ${activeMenu === 'api-registry' ? 'active' : ''}`}
+                    onClick={() => setActiveMenu('api-registry')}
+                  >
+                    API Registry
+                  </button>
+                </li>
+              )}
+              {canAccessSelectorRegistry() && (
+                <li>
+                  <button
+                    className={`snb-item ${activeMenu === 'selector-registry' ? 'active' : ''}`}
+                    onClick={() => setActiveMenu('selector-registry')}
+                  >
+                    Selector Registry
+                  </button>
+                </li>
+              )}
+              {canAccessActionRegistry() && (
+                <li>
+                  <button
+                    className={`snb-item ${activeMenu === 'action-registry' ? 'active' : ''}`}
+                    onClick={() => setActiveMenu('action-registry')}
+                  >
+                    Action Registry
+                  </button>
+                </li>
+              )}
+              {canAccessScenarioRegistry() && (
+                <li>
+                  <button
+                    className={`snb-item ${activeMenu === 'scenario-registry' ? 'active' : ''}`}
+                    onClick={() => setActiveMenu('scenario-registry')}
+                  >
+                    Scenario Registry
                   </button>
                 </li>
               )}

@@ -90,11 +90,12 @@ function traverseChildren(content: unknown, parts: string[]): void {
   }
 }
 
+// QA Pipeline 대상 티켓 분류 기준
 export function isQATarget(fields: JiraIssueFields): boolean {
   const labels = Array.isArray(fields.labels) ? fields.labels : []
-  if (labels.includes('qa-requested')) return true
-  if (fields.status?.name === 'Ready for QA') return true
+  if (labels.includes('qa-requested')) return true // labels에 qa-requested가 있거나
+  if (fields.status?.name === 'Ready for QA') return true // 상태값이 Ready for QA 이거나 (실제 사용하지 않는 상태값)
   const issueType = fields.issuetype?.name ?? ''
-  if (issueType === 'Task') return (fields.summary ?? '').toUpperCase().includes('QA')
-  return issueType === 'Bug'
+  if (issueType === 'Task') return (fields.summary ?? '').toUpperCase().includes('QA') // type = task 이고 summary 에 QA 라는 단어가 있거나
+  return issueType === 'Bug' // tyep = bug 인 경우
 }

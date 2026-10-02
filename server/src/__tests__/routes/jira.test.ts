@@ -70,6 +70,12 @@ vi.mock('../../lib/jiraPipeline.js', () => ({
   getJiraQueue: vi.fn().mockReturnValue({ add: mockQueueAdd }),
 }))
 
+// JiraCollectorService 모킹
+const mockCollect = vi.fn().mockResolvedValue(undefined)
+vi.mock('../../lib/jiraCollectorService.js', () => ({
+  jiraCollectorService: { collect: (...a: unknown[]) => mockCollect(...a) },
+}))
+
 // Jira 클라이언트 모킹
 const mockHealthCheck = vi.fn().mockResolvedValue({ status: 'healthy', server_url: 'http://jira.test' })
 vi.mock('../../lib/jiraClient.js', () => ({
@@ -188,23 +194,32 @@ describe('jira router', () => {
       },
     }
 
-    it('jira:issue_created → create-tc-from-jira 큐 등록', async () => {
+    it('jira:issue_created — QA 대상 아닌 티켓(Story)은 큐 등록 없이 200', async () => {
       const res = await app.request('/webhook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...basePayload, webhookEvent: 'jira:issue_created' }),
       })
       expect(res.status).toBe(200)
-      expect(mockQueueAdd).toHaveBeenCalledWith('create-tc', expect.objectContaining({ type: 'create-tc-from-jira', issueKey: 'TEST-10' }))
+      expect(mockQueueAdd).not.toHaveBeenCalledWith('create-tc', expect.anything())
     })
 
-    it('"created" 포함 이벤트 → create-tc-from-jira 큐 등록', async () => {
-      await app.request('/webhook', {
+    it('jira:issue_created — QA 대상 티켓(Bug)은 파이프라인 수집 호출', async () => {
+      const bugPayload = {
+        ...basePayload,
+        webhookEvent: 'jira:issue_created',
+        issue: {
+          ...basePayload.issue,
+          fields: { ...basePayload.issue.fields, issuetype: { name: 'Bug' } },
+        },
+      }
+      const res = await app.request('/webhook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...basePayload, webhookEvent: 'issue_created' }),
+        body: JSON.stringify(bugPayload),
       })
-      expect(mockQueueAdd).toHaveBeenCalledWith('create-tc', expect.objectContaining({ type: 'create-tc-from-jira' }))
+      expect(res.status).toBe(200)
+      expect(mockCollect).toHaveBeenCalled()
     })
 
     it('jira:issue_updated → sync-jira-status 큐 등록', async () => {

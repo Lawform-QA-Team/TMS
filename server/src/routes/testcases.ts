@@ -232,14 +232,38 @@ testcasesRouter.post(
   ),
   async (c) => {
     const { testcase_ids, result_status } = c.req.valid('json')
+    const userId = Number(c.get('user').sub)
     try {
-      const updated = await db.testCase.updateMany({
-        where: { id: { in: testcase_ids } },
-        data: { resultStatus: result_status },
+      // 변경 대상 TC의 기존 상태 조회 (상태가 실제로 다른 것만)
+      const targets = await db.testCase.findMany({
+        where: { id: { in: testcase_ids }, NOT: { resultStatus: result_status } },
+        select: { id: true, resultStatus: true },
       })
+
+      const now = new Date()
+      await db.$transaction([
+        db.testCase.updateMany({
+          where: { id: { in: testcase_ids } },
+          data: { resultStatus: result_status },
+        }),
+        ...targets.map((tc) =>
+          db.testCaseHistory.create({
+            data: {
+              testCaseId: tc.id,
+              fieldName: 'result_status',
+              oldValue: tc.resultStatus,
+              newValue: result_status,
+              changedBy: userId,
+              changeType: 'update',
+              changedAt: now,
+            },
+          }),
+        ),
+      ])
+
       return c.json({
-        message: `${updated.count}개의 테스트 케이스 상태가 업데이트되었습니다`,
-        updated_count: updated.count,
+        message: `${testcase_ids.length}개의 테스트 케이스 상태가 업데이트되었습니다`,
+        updated_count: testcase_ids.length,
       })
     } catch (e) {
       return c.json({ error: String(e) }, 500)

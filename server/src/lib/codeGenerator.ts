@@ -28,7 +28,7 @@ interface PageForCodegen {
   }>
 }
 
-const SYSTEM_PROMPT = `당신은 시니어 QA 자동화 엔지니어입니다.
+const PLAYWRIGHT_SYSTEM_PROMPT = `당신은 시니어 QA 자동화 엔지니어입니다.
 테스트 케이스와 페이지 분석 결과를 바탕으로 Playwright TypeScript 테스트 코드를 작성합니다.
 코드만 반환하고 설명이나 마크다운 코드블록은 포함하지 마세요.`
 
@@ -39,6 +39,7 @@ function buildCodegenPrompt(
   testCases: TCForCodegen[],
   pages: PageForCodegen[],
   baseUrl: string,
+  registeredSelectors?: Array<{ pageName: string; elementName: string; selector: string; elementType: string }>,
 ): string {
   const pageContext = pages.slice(0, 5).map((p) =>
     `페이지: ${p.pageName} (${p.urlPattern})
@@ -53,12 +54,17 @@ function buildCodegenPrompt(
   기대결과: ${tc.expectedResult}`
   ).join('\n\n')
 
+  const selectorContext = registeredSelectors && registeredSelectors.length > 0
+    ? `\n등록된 data-tid 기반 selector (반드시 이 selector를 우선 사용할 것):
+${registeredSelectors.map((s) => `- [${s.pageName}] ${s.elementName} (${s.elementType}): ${s.selector}`).join('\n')}\n`
+    : ''
+
   return `다음 티켓의 테스트 케이스를 Playwright TypeScript 코드로 작성하세요.
 
 티켓: ${ticketKey} — ${summary}
 파이프라인 ID: ${pipelineId}
 기본 URL: ${baseUrl}
-
+${selectorContext}
 페이지 분석:
 ${pageContext}
 
@@ -69,7 +75,7 @@ ${tcContext}
 1. import { test, expect } from '@playwright/test'; 사용
 2. test.describe('${ticketKey}', () => { ... }) 로 묶기
 3. 각 TC마다 하나의 test() 블록
-4. 페이지 분석의 selector를 최대한 활용 (page.locator(), getByRole() 등)
+4. 등록된 selector가 있으면 반드시 해당 selector를 우선 사용 (page.locator('[data-tid="..."]'))
 5. 각 test() 마다 page.goto() 호출
 6. 의미 있는 expect() assertion 포함
 7. 코드만 반환 (설명, 마크다운 없이)`
@@ -86,7 +92,7 @@ export async function generateCode(
   pipelineId: string,
   qaPlanId: number,
 ): Promise<{ fileName: string; linesOfCode: number }> {
-  // TC + 페이지 분석 조회
+  // TC + 페이지 분석 + SelectorRegistry 조회
   const [qaPlan, pages] = await Promise.all([
     db.qAPlan.findUnique({
       where: { id: qaPlanId },
@@ -120,6 +126,12 @@ export async function generateCode(
     flows: (() => { try { return JSON.parse(p.flows ?? '[]') } catch { return [] } })() as PageForCodegen['flows'],
   }))
 
+  // SelectorRegistry 조회 (projectKey 기반)
+  const registeredSelectors = await db.selectorRegistry.findMany({
+    where: { projectKey: ticket.projectKey },
+    select: { pageName: true, elementName: true, selector: true, elementType: true },
+  })
+
   const fileName = `${ticket.ticketKey.toLowerCase().replace(/[^a-z0-9]/g, '-')}.spec.ts`
 
   let code: string
@@ -132,10 +144,10 @@ export async function generateCode(
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 8192,
-      system: SYSTEM_PROMPT,
+      system: PLAYWRIGHT_SYSTEM_PROMPT,
       messages: [{
         role: 'user',
-        content: buildCodegenPrompt(ticket.ticketKey, ticket.summary, pipelineId, testCases, pageData, baseUrl),
+        content: buildCodegenPrompt(ticket.ticketKey, ticket.summary, pipelineId, testCases, pageData, baseUrl, registeredSelectors),
       }],
     })
 
@@ -144,9 +156,9 @@ export async function generateCode(
     code = sanitizeCode(content.text)
   }
 
-  // DB 저장 (upsert)
+  // DB 저장 (pipelineId + framework 복합 unique)
   await db.generatedCode.upsert({
-    where: { pipelineId },
+    where: { pipelineId_framework: { pipelineId, framework: 'playwright' } },
     create: {
       pipelineId,
       language: 'typescript',

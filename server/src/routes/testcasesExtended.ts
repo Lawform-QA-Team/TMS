@@ -208,27 +208,44 @@ testcasesExtendedRouter.post('/upload', requireAuth, async (c) => {
 // ──────────────────────────────────────────────
 // PUT /testcases/:id/status
 // ──────────────────────────────────────────────
-testcasesExtendedRouter.put('/:id/status', async (c) => {
+testcasesExtendedRouter.put('/:id/status', requireAuth, async (c) => {
   const id = Number(c.req.param('id'))
+  const userId = Number(c.get('user').sub)
   try {
     const testcase = await db.testCase.findUnique({ where: { id } })
     if (!testcase) return c.json({ error: '테스트 케이스를 찾을 수 없습니다' }, 404)
 
     const data = await c.req.json()
     const newStatus = data.status
+    const now = new Date()
 
-    await db.testCase.update({ where: { id }, data: { resultStatus: newStatus } })
-
-    // TestResult에도 기록
-    await db.testResult.create({
-      data: {
-        testCaseId: id,
-        result: newStatus,
-        executionTime: data.execution_time ?? 0,
-        notes: data.result_data ?? '',
-        environment: testcase.environment ?? 'dev',
-      },
-    })
+    await db.$transaction([
+      db.testCase.update({ where: { id }, data: { resultStatus: newStatus } }),
+      // TestResult 기록
+      db.testResult.create({
+        data: {
+          testCaseId: id,
+          result: newStatus,
+          executionTime: data.execution_time ?? 0,
+          notes: data.result_data ?? '',
+          environment: testcase.environment ?? 'dev',
+        },
+      }),
+      // History 기록 (상태가 다를 때만)
+      ...(testcase.resultStatus !== newStatus
+        ? [db.testCaseHistory.create({
+            data: {
+              testCaseId: id,
+              fieldName: 'result_status',
+              oldValue: testcase.resultStatus,
+              newValue: newStatus,
+              changedBy: userId,
+              changeType: 'update',
+              changedAt: now,
+            },
+          })]
+        : []),
+    ])
 
     return c.json({ status: 'success', message: 'Test case status updated successfully' })
   } catch (e) {

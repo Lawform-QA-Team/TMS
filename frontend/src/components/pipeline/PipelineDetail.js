@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { usePipelineDetail, cancelPipeline } from '@tms/hooks/usePipeline';
+import { usePipelineDetail, cancelPipeline, retryPipeline, exportPipelineToAutomation, exportPipelineToPerformance } from '@tms/hooks/usePipeline';
 import { useAuth } from '@tms/contexts/AuthContext';
 import './Pipeline.css';
 
@@ -29,12 +29,21 @@ export default function PipelineDetail({ pipelineId, onClose }) {
     testcases: false,
     pageanalysis: true,
     codegen: true,
+    k6load: true,
+    k6browser: true,
     testrun: false,
     report: false,
     bugs: false,
   });
   function toggle(key) {
     setCollapsed(prev => ({ ...prev, [key]: !prev[key] }));
+  }
+
+  async function handleRetry() {
+    if (!window.confirm('QA Plan을 다시 생성하시겠습니까? (기존 QA Plan은 삭제됩니다)')) return;
+    const res = await retryPipeline(pipelineId, token);
+    if (res.success) { alert(res.message); refresh(); }
+    else alert(res.error ?? '재처리 실패');
   }
 
   async function handleCancel() {
@@ -44,12 +53,33 @@ export default function PipelineDetail({ pipelineId, onClose }) {
     else alert(res.error ?? '취소 실패');
   }
 
+  async function handleExport() {
+    if (!window.confirm('생성된 코드를 자동화 테스트 목록에 등록하시겠습니까?')) return;
+    const res = await exportPipelineToAutomation(pipelineId, token);
+    if (res.success) alert(res.message);
+    else alert(res.error ?? '등록 실패');
+  }
+
+  async function handleExportK6Load() {
+    if (!window.confirm('K6 부하 테스트 코드를 성능 테스트 목록에 등록하시겠습니까?')) return;
+    const res = await exportPipelineToPerformance(pipelineId, token, 'load');
+    if (res.success) alert(res.message);
+    else alert(res.error ?? '등록 실패');
+  }
+
+  async function handleExportK6Browser() {
+    if (!window.confirm('K6 브라우저 테스트 코드를 성능 테스트 목록에 등록하시겠습니까?')) return;
+    const res = await exportPipelineToPerformance(pipelineId, token, 'browser');
+    if (res.success) alert(res.message);
+    else alert(res.error ?? '등록 실패');
+  }
+
   if (!pipelineId) return null;
   if (loading) return <div className="pipeline-loading">로딩 중...</div>;
   if (error) return <div className="pipeline-error">오류: {error}</div>;
   if (!data) return null;
 
-  const { ticket, stages, qaPlan, pageAnalyses, generatedCode, testRunResult, report, bugs } = data;
+  const { ticket, stages, qaPlan, pageAnalyses, generatedCode, k6LoadCode, k6BrowserCode, testRunResult, report, bugs } = data;
   const plan = qaPlan?.plan_content ? (() => { try { return JSON.parse(qaPlan.plan_content); } catch { return null; } })() : null;
 
   return (
@@ -336,6 +366,13 @@ export default function PipelineDetail({ pipelineId, onClose }) {
               >
                 복사
               </button>
+              <button
+                className="pipeline-copy-btn"
+                style={{ background: '#dbeafe', color: '#1d4ed8' }}
+                onClick={(e) => { e.stopPropagation(); handleExport(); }}
+              >
+                자동화 테스트 등록
+              </button>
               <span className="pipeline-accordion-chevron">{collapsed.codegen ? '▶' : '▼'}</span>
             </span>
           </div>
@@ -345,8 +382,81 @@ export default function PipelineDetail({ pipelineId, onClose }) {
         </div>
       )}
 
+      {k6LoadCode && (
+        <div className="pipeline-tc-list">
+          <div className="pipeline-accordion-header" onClick={() => toggle('k6load')}>
+            <span>
+              K6 부하 테스트 코드
+              <span style={{ color: '#6b7280', fontWeight: 400, marginLeft: 8 }}>
+                {k6LoadCode.file_name}
+              </span>
+              <span className="pipeline-badge badge-indigo" style={{ marginLeft: 8, fontSize: '0.7rem' }}>k6/http</span>
+            </span>
+            <span className="pipeline-accordion-right">
+              <button
+                className="pipeline-copy-btn"
+                onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(k6LoadCode.code); }}
+              >
+                복사
+              </button>
+              <button
+                className="pipeline-copy-btn"
+                style={{ background: '#fef3c7', color: '#92400e' }}
+                onClick={(e) => { e.stopPropagation(); handleExportK6Load(); }}
+              >
+                성능 테스트 등록
+              </button>
+              <span className="pipeline-accordion-chevron">{collapsed.k6load ? '▶' : '▼'}</span>
+            </span>
+          </div>
+          {!collapsed.k6load && (
+            <pre className="pipeline-code-viewer">{k6LoadCode.code}</pre>
+          )}
+        </div>
+      )}
+
+      {k6BrowserCode && (
+        <div className="pipeline-tc-list">
+          <div className="pipeline-accordion-header" onClick={() => toggle('k6browser')}>
+            <span>
+              K6 브라우저 성능 테스트 코드
+              <span style={{ color: '#6b7280', fontWeight: 400, marginLeft: 8 }}>
+                {k6BrowserCode.file_name}
+              </span>
+              <span className="pipeline-badge badge-green" style={{ marginLeft: 8, fontSize: '0.7rem' }}>k6/browser</span>
+            </span>
+            <span className="pipeline-accordion-right">
+              <button
+                className="pipeline-copy-btn"
+                onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(k6BrowserCode.code); }}
+              >
+                복사
+              </button>
+              <button
+                className="pipeline-copy-btn"
+                style={{ background: '#dcfce7', color: '#166534' }}
+                onClick={(e) => { e.stopPropagation(); handleExportK6Browser(); }}
+              >
+                성능 테스트 등록
+              </button>
+              <span className="pipeline-accordion-chevron">{collapsed.k6browser ? '▶' : '▼'}</span>
+            </span>
+          </div>
+          {!collapsed.k6browser && (
+            <pre className="pipeline-code-viewer">{k6BrowserCode.code}</pre>
+          )}
+        </div>
+      )}
+
       {ticket.pipeline_status === 'collected' && (
         <div className="pipeline-detail-actions">
+          <button
+            className="pipeline-copy-btn"
+            style={{ background: '#dbeafe', color: '#1d4ed8', padding: '8px 16px', fontSize: '0.875rem' }}
+            onClick={handleRetry}
+          >
+            QA Plan 재생성
+          </button>
           <button className="pipeline-cancel-btn" onClick={handleCancel}>
             파이프라인 취소
           </button>

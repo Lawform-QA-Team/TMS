@@ -99,6 +99,25 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
     }
   };
 
+  // 외부 Jira에서 Bug 타입 이슈만 가져오기
+  const syncBugsFromJira = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await axios.post(
+        `${config.apiUrl}/jira/external/sync`,
+        { issue_type: 'Bug' },
+        { headers: authHeader }
+      );
+      alert(res.data.message ?? 'Bug 이슈 동기화가 완료되었습니다.');
+      await fetchJiraIssues();
+    } catch (err) {
+      console.error('Bug 동기화 오류:', err);
+      setError('Bug 이슈를 가져오는 중 오류가 발생했습니다.');
+      setLoading(false);
+    }
+  };
+
   // 이슈 상태 업데이트
   const updateIssueStatus = async (issueKey, newStatus) => {
     try {
@@ -451,6 +470,17 @@ const JiraIssuesList = ({ modalMode = true, testCaseId = null }) => {
               title="Jira Cloud에서 최신 이슈를 가져옵니다"
             >
               ⬇️ Jira에서 가져오기
+            </button>
+          )}
+          {user && ['admin', 'user'].includes(user.role) && (
+            <button
+              className="btn btn-danger"
+              onClick={syncBugsFromJira}
+              disabled={loading}
+              style={{ marginLeft: '10px' }}
+              title="외부 Jira에서 Bug 타입 이슈를 가져옵니다"
+            >
+              🐛 Bug 동기화
             </button>
           )}
           {user && ['admin', 'user'].includes(user.role) && (

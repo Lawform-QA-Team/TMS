@@ -6,6 +6,8 @@ import { getJiraQueue } from '../lib/jiraPipeline.js'
 import { getRedis } from '../lib/redis.js'
 import { normalizeTicket } from '../lib/ticketNormalizer.js'
 import { env } from '../env.js'
+import fs from 'fs'
+import path from 'path'
 
 export const pipelineRouter = new Hono()
 
@@ -117,10 +119,14 @@ pipelineRouter.get('/', async (c) => {
     const perPage = Number(c.req.query('per_page') ?? 20)
     const pipelineStatus = c.req.query('pipelineStatus')
     const priority = c.req.query('priority')
+    const issueType = c.req.query('issueType')
+    const search = c.req.query('search')
 
     const where: Record<string, unknown> = {}
     if (pipelineStatus) where.pipelineStatus = pipelineStatus
     if (priority) where.priority = priority
+    if (issueType) where.issueType = issueType
+    if (search) where.summary = { contains: search }
 
     const [total, tickets] = await Promise.all([
       db.collectedTicket.count({ where }),
@@ -149,7 +155,7 @@ pipelineRouter.get('/', async (c) => {
 pipelineRouter.get('/:pipelineId', async (c) => {
   const pipelineId = c.req.param('pipelineId')
   try {
-    const [ticket, pageAnalyses, generatedCode, testRunResult, pipelineReport, bugs] = await Promise.all([
+    const [ticket, pageAnalyses, generatedCodes, testRunResult, pipelineReport, bugs] = await Promise.all([
       db.collectedTicket.findUnique({
         where: { pipelineId },
         include: {
@@ -162,7 +168,7 @@ pipelineRouter.get('/:pipelineId', async (c) => {
         },
       }),
       db.pageAnalysis.findMany({ where: { pipelineId } }),
-      db.generatedCode.findUnique({ where: { pipelineId } }),
+      db.generatedCode.findMany({ where: { pipelineId } }),
       db.testRunResult.findUnique({ where: { pipelineId } }),
       db.pipelineReport.findUnique({ where: { pipelineId } }),
       db.pipelineBug.findMany({ where: { pipelineId }, orderBy: { createdAt: 'asc' } }),
@@ -200,17 +206,13 @@ pipelineRouter.get('/:pipelineId', async (c) => {
       flows: (() => { try { return p.flows ? JSON.parse(p.flows) : [] } catch { return [] } })(),
     }))
 
-    const generatedCodeData = generatedCode
-      ? {
-          id: generatedCode.id,
-          pipeline_id: generatedCode.pipelineId,
-          language: generatedCode.language,
-          framework: generatedCode.framework,
-          file_name: generatedCode.fileName,
-          code: generatedCode.code,
-          created_at: generatedCode.createdAt.toISOString(),
-        }
+    const toCodeData = (c: typeof generatedCodes[0] | undefined) => c
+      ? { id: c.id, pipeline_id: c.pipelineId, language: c.language, framework: c.framework, file_name: c.fileName, code: c.code, created_at: c.createdAt.toISOString() }
       : null
+
+    const generatedCodeData = toCodeData(generatedCodes.find((c) => c.framework === 'playwright'))
+    const k6LoadCodeData = toCodeData(generatedCodes.find((c) => c.framework === 'k6-load'))
+    const k6BrowserCodeData = toCodeData(generatedCodes.find((c) => c.framework === 'k6-browser'))
 
     const testRunData = testRunResult
       ? {
@@ -263,6 +265,8 @@ pipelineRouter.get('/:pipelineId', async (c) => {
         qaPlan,
         pageAnalyses: pages,
         generatedCode: generatedCodeData,
+        k6LoadCode: k6LoadCodeData,
+        k6BrowserCode: k6BrowserCodeData,
         testRunResult: testRunData,
         report: reportData,
         bugs: bugsData,
@@ -371,10 +375,7 @@ pipelineRouter.post('/:pipelineId/cancel', requireAuth, async (c) => {
 })
 
 // POST /pipeline/:pipelineId/retry — QA Plan 생성부터 재시도 (Slack 메시지 재발송)
-// ?secret=JIRA_WEBHOOK_SECRET 으로 간단 인증
-pipelineRouter.post('/:pipelineId/retry', async (c) => {
-  const secret = c.req.query('secret')
-  if (secret !== env.JIRA_WEBHOOK_SECRET) return c.json({ success: false, error: '인증 실패' }, 401)
+pipelineRouter.post('/:pipelineId/retry', requireAuth, async (c) => {
   const pipelineId = c.req.param('pipelineId')
   try {
     const ticket = await db.collectedTicket.findUnique({ where: { pipelineId } })
@@ -423,6 +424,138 @@ pipelineRouter.post('/:pipelineId/retry', async (c) => {
     return c.json({ success: true, message: 'QA Plan 재생성 및 Slack 메시지 재발송 시작' })
   } catch (e) {
     logger.error({ e }, 'Pipeline retry 오류')
+    return c.json({ success: false, error: String(e) }, 500)
+  }
+})
+
+// POST /pipeline/:pipelineId/export — 생성된 코드를 자동화 테스트로 등록
+pipelineRouter.post('/:pipelineId/export', requireAuth, async (c) => {
+  const pipelineId = c.req.param('pipelineId')
+  const userId = Number(c.get('user').sub)
+  try {
+    const [ticket, generatedCode] = await Promise.all([
+      db.collectedTicket.findUnique({ where: { pipelineId } }),
+      db.generatedCode.findFirst({ where: { pipelineId, framework: 'playwright' } }),
+    ])
+
+    if (!ticket) return c.json({ success: false, error: '파이프라인을 찾을 수 없습니다.' }, 404)
+    if (!generatedCode) return c.json({ success: false, error: '생성된 코드가 없습니다. 코드 생성 단계가 완료되어야 합니다.' }, 400)
+
+    // 파일 저장: test-scripts/playwright/pipeline/{fileName}
+    const scriptsRoot = path.join(process.cwd(), '..', 'test-scripts')
+    const pipelineDir = path.join(scriptsRoot, 'playwright', 'pipeline')
+    fs.mkdirSync(pipelineDir, { recursive: true })
+
+    const fileName = generatedCode.fileName ?? `${ticket.ticketKey.toLowerCase().replace(/[^a-z0-9]/g, '-')}.spec.ts`
+    const filePath = path.join(pipelineDir, fileName)
+    fs.writeFileSync(filePath, generatedCode.code, 'utf-8')
+
+    // 상대 경로 (scriptsRoot 기준)
+    const relativeScriptPath = path.join('playwright', 'pipeline', fileName)
+
+    // AutomationTest 등록 (이미 등록된 경우 scriptPath/description 업데이트)
+    const existing = await db.automationTest.findFirst({
+      where: { name: { contains: ticket.ticketKey } },
+    })
+
+    let automationTest
+    if (existing) {
+      automationTest = await db.automationTest.update({
+        where: { id: existing.id },
+        data: {
+          description: `[파이프라인 자동 생성] ${ticket.summary}`,
+          scriptPath: relativeScriptPath,
+          updatedAt: new Date(),
+        },
+      })
+    } else {
+      automationTest = await db.automationTest.create({
+        data: {
+          name: `[${ticket.ticketKey}] ${ticket.summary}`.slice(0, 200),
+          description: `[파이프라인 자동 생성] ${ticket.summary}`,
+          testType: 'playwright',
+          scriptPath: relativeScriptPath,
+          environment: 'dev',
+          creatorId: userId,
+        },
+      })
+    }
+
+    logger.info({ pipelineId, automationTestId: automationTest.id, filePath }, '자동화 테스트 등록 완료')
+    return c.json({
+      success: true,
+      message: '자동화 테스트로 등록되었습니다.',
+      data: { automation_test_id: automationTest.id, script_path: relativeScriptPath },
+    })
+  } catch (e) {
+    logger.error({ e }, 'Pipeline export 오류')
+    return c.json({ success: false, error: String(e) }, 500)
+  }
+})
+
+// POST /pipeline/:pipelineId/export-k6?type=load|browser — 생성된 K6 코드를 성능 테스트로 등록
+pipelineRouter.post('/:pipelineId/export-k6', requireAuth, async (c) => {
+  const pipelineId = c.req.param('pipelineId')
+  const userId = Number(c.get('user').sub)
+  const k6Type = (c.req.query('type') ?? 'load') as 'load' | 'browser'
+  const framework = k6Type === 'browser' ? 'k6-browser' : 'k6-load'
+  try {
+    const [ticket, k6Code] = await Promise.all([
+      db.collectedTicket.findUnique({ where: { pipelineId } }),
+      db.generatedCode.findFirst({ where: { pipelineId, framework } }),
+    ])
+
+    if (!ticket) return c.json({ success: false, error: '파이프라인을 찾을 수 없습니다.' }, 404)
+    if (!k6Code) return c.json({ success: false, error: '생성된 K6 코드가 없습니다. 코드 생성 단계가 완료되어야 합니다.' }, 400)
+
+    // 파일 저장: test-scripts/k6/pipeline/{fileName}
+    const scriptsRoot = path.join(process.cwd(), '..', 'test-scripts')
+    const k6Dir = path.join(scriptsRoot, 'k6', 'pipeline')
+    fs.mkdirSync(k6Dir, { recursive: true })
+
+    const defaultSuffix = k6Type === 'browser' ? '-browser.k6.js' : '-load.k6.js'
+    const fileName = k6Code.fileName ?? `${ticket.ticketKey.toLowerCase().replace(/[^a-z0-9]/g, '-')}${defaultSuffix}`
+    const filePath = path.join(k6Dir, fileName)
+    fs.writeFileSync(filePath, k6Code.code, 'utf-8')
+
+    const relativeScriptPath = path.join('k6', 'pipeline', fileName)
+
+    // PerformanceTest 등록 (이미 등록된 경우 업데이트)
+    const existing = await db.performanceTest.findFirst({
+      where: { name: { contains: ticket.ticketKey } },
+    })
+
+    let performanceTest
+    if (existing) {
+      performanceTest = await db.performanceTest.update({
+        where: { id: existing.id },
+        data: {
+          description: `[파이프라인 자동 생성] ${ticket.summary}`,
+          scriptPath: relativeScriptPath,
+          updatedAt: new Date(),
+        },
+      })
+    } else {
+      performanceTest = await db.performanceTest.create({
+        data: {
+          name: `[${ticket.ticketKey}] ${ticket.summary}`.slice(0, 200),
+          description: `[파이프라인 자동 생성] ${ticket.summary}`,
+          testType: 'k6',
+          scriptPath: relativeScriptPath,
+          environment: 'dev',
+          creatorId: userId,
+        },
+      })
+    }
+
+    logger.info({ pipelineId, performanceTestId: performanceTest.id, filePath }, '성능 테스트 등록 완료')
+    return c.json({
+      success: true,
+      message: '성능 테스트로 등록되었습니다.',
+      data: { performance_test_id: performanceTest.id, script_path: relativeScriptPath },
+    })
+  } catch (e) {
+    logger.error({ e }, 'Pipeline K6 export 오류')
     return c.json({ success: false, error: String(e) }, 500)
   }
 })
