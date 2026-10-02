@@ -4,13 +4,13 @@
  * 시나리오 구성 (2개 executor, 동시 실행):
  *
  *   [read_flow]  — 전체 VU의 80%
- *     1. POST /api/login/email                  — 로그인
+ *     1. POST /api/v3/login/email               — 로그인
  *     2. GET  /api/v2/esign/                    — 전자서명 목록 조회
  *     3. GET  /api/v2/esign/pending/signer/     — 본인 서명 대기 목록
  *     4. GET  /api/v2/esign/statistics          — 통계 조회
  *
  *   [write_flow] — 전체 VU의 20%
- *     1. POST /api/login/email                  — 로그인
+ *     1. POST /api/v3/login/email               — 로그인
  *     2. POST /api/v2/esign/                    — 전자서명 생성
  *     3. GET  /api/v2/esign/:id                 — 생성된 건 단건 조회
  *     4. POST /api/v2/esign/register/complete   — 최종 전송 등록 완료
@@ -177,9 +177,9 @@ function login(account) {
   });
 
   const start = Date.now();
-  const res = http.post(`${BASE_URL}/api/login/email`, payload, {
+  const res = http.post(`${BASE_URL}/api/v3/login/email`, payload, {
     headers: { 'Content-Type': 'application/json' },
-    tags: { name: 'POST /api/login/email' },
+    tags: { name: 'POST /api/v3/login/email' },
   });
   loginDuration.add(Date.now() - start);
 

@@ -2,7 +2,7 @@
  * KT-CS 로그인 → 편집기(Polaris) 부하 테스트
  * ------------------------------------------------------------
  * 시나리오 (단일 흐름, VU당 순차 실행):
- *   1. POST /api/login/email                       — 로그인 (DB 쿼리 5~8회 병목)
+ *   1. POST /api/v3/login/email                       — 로그인 (DB 쿼리 5~8회 병목)
  *   2. POST /api/polaris/cfs/get                    — 편집기 데이터 로드
  *   3. PUT  /api/polaris/cfs/update/editmode (Y)     — 편집 모드 진입
  *   4. PUT  /api/polaris/cfs/save                    — 저장 (multipart)
@@ -80,6 +80,11 @@ const accounts = new SharedArray('accounts', function () {
     .replace(/\r\n/g, '\n')
     .replace(/\r/g, '\n');
   const parsed = papaparse.parse(csv, { header: true, skipEmptyLines: true });
+    console.log(`[accounts] 총 ${parsed.data.length}개 계정 로드됨`);
+  if (parsed.data.length > 0) {
+    console.log(`[accounts] 첫 번째 행: ${JSON.stringify(parsed.data[0])}`);
+    console.log(`[accounts] 두 번째 행: ${JSON.stringify(parsed.data[1])}`);
+  }
   if (!parsed.data.length) {
     throw new Error(
       `계정 CSV(${ACCOUNTS_CSV})가 비어있습니다. email,password[,cfs_id] 헤더로 준비해주세요.`
@@ -112,6 +117,9 @@ const scriptErrors = [];
 // k6 옵션 — 단계적 램프업 (100 → 500 → 1,000 → 3,000 → 9,500), 회의록 실행계획 기준
 // ------------------------------------------------------------------
 export const options = {
+  noConnectionReuse: true,
+  noVUconnectionReuse: true,
+  insecureSkipTLSVerify: true,
   scenarios: {
     login_to_editor_flow: {
       executor: 'ramping-vus',
@@ -194,7 +202,7 @@ export default function () {
     });
 
     const loginStart = Date.now();
-    const res = http.post(`${BASE_URL}/api/login/email`, payload, commonParams);
+    const res = http.post(`${BASE_URL}/api/v3/login/email`, payload, commonParams);
     const duration = Date.now() - loginStart;
     loginDuration.add(duration);
     console.log(`[VU${__VU}] login ${res.status} ${duration}ms`);

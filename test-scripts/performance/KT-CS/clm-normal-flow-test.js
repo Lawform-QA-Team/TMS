@@ -12,7 +12,7 @@
  *   3. think time을 훨씬 길게 잡는다 — 같은 방문(iteration) 안의 화면 전환 사이는
  *      ACTION_THINK_TIME(기본 5~15초), 한 번의 방문을 마치고 다음 방문까지는
  *      SESSION_IDLE_TIME(기본 30~90초)로 실제 업무 중 텀을 흉내낸다.
- *      (⚠️ 실제 사용 로그/애널리틱스로 검증된 값이 아니라 임시 가정값입니다.
+ *      (실제 사용 로그/애널리틱스로 검증된 값이 아니라 임시 가정값입니다.
  *      실측 데이터가 있으면 아래 환경변수로 조정하세요.)
  *
  * 시나리오 구성(read_flow 80% / write_flow 20%, 계정 풀 분리 방식)은
@@ -100,7 +100,7 @@ const accounts = new SharedArray('accounts', function () {
 // read_flow / write_flow가 같은 계정으로 동시에 로그인하면 세션·토큰이 서로
 // 무효화될 수 있어, 위 VU 분배(read:write = 4:1)와 동일한 비율로 계정 풀도 분리한다.
 //
-// ⚠️ accounts.slice(...)로 실제 배열을 만들면 안 됨 — k6 SharedArray는 인덱스 하나
+// accounts.slice(...)로 실제 배열을 만들면 안 됨 — k6 SharedArray는 인덱스 하나
 // (accounts[idx])에 접근할 때만 그 원소 하나를 파싱/freeze 하도록 설계되어 저렴하지만,
 // .slice(0, N)은 내부적으로 N개 인덱스를 전부 Get()해서 파싱한다. 이 코드는 스크립트
 // top-level이라 VU 초기화마다 실행되므로, VU가 많을 땐 .slice()가 메모리 고갈을 일으킨다
