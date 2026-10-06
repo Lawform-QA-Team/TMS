@@ -89,6 +89,40 @@ apiEndpointsRouter.put('/:id', requireAuth, requireAdmin, async (c) => {
   }
 })
 
+// POST /api-endpoints/bulk
+apiEndpointsRouter.post('/bulk', requireAuth, requireAdmin, async (c) => {
+  try {
+    const body = await c.req.json()
+    const { items } = body
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return c.json({ error: 'items 배열이 필요합니다.' }, 400)
+    }
+
+    for (const item of items) {
+      if (!item.method || !item.path || !item.projectKey) {
+        return c.json({ error: 'method, path, projectKey는 필수입니다.' }, 400)
+      }
+    }
+
+    const created = await db.apiEndpoint.createMany({
+      data: items.map((item: any) => ({
+        method: item.method.toUpperCase(),
+        path: item.path,
+        description: item.description ?? null,
+        tags: item.tags ? JSON.stringify(item.tags) : null,
+        authRequired: item.authRequired !== false,
+        projectKey: item.projectKey,
+      })),
+      skipDuplicates: false,
+    })
+
+    return c.json({ count: created.count }, 201)
+  } catch (err) {
+    return c.json({ error: String(err) }, 500)
+  }
+})
+
 // DELETE /api-endpoints/:id
 apiEndpointsRouter.delete('/:id', requireAuth, requireAdmin, async (c) => {
   try {
