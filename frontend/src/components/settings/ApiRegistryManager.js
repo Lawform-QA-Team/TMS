@@ -68,6 +68,8 @@ const ApiRegistryManager = () => {
   const [editTarget, setEditTarget] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [filterProject, setFilterProject] = useState('');
+  const [filterMethod, setFilterMethod] = useState('');
+  const [searchText, setSearchText] = useState('');
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [bulkText, setBulkText] = useState('');
   const [bulkProjectKey, setBulkProjectKey] = useState('LAWFORM');
@@ -190,11 +192,35 @@ const ApiRegistryManager = () => {
 
   const isAdmin = user?.role === 'admin';
 
+  const filteredEndpoints = endpoints.filter((ep) => {
+    if (filterMethod && ep.method !== filterMethod) return false;
+    if (searchText) {
+      const q = searchText.toLowerCase();
+      if (!ep.path.toLowerCase().includes(q) && !(ep.description || '').toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+
   return (
     <div className="account-container">
       <div className="account-header">
         <h2>API Registry</h2>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input
+            type="text"
+            placeholder="검색 (path, 설명)"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: 4, width: 180 }}
+          />
+          <select
+            value={filterMethod}
+            onChange={(e) => setFilterMethod(e.target.value)}
+            style={{ padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: 4 }}
+          >
+            <option value="">전체 Method</option>
+            {METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
           <input
             type="text"
             placeholder="프로젝트 키 필터"
@@ -232,14 +258,14 @@ const ApiRegistryManager = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {endpoints.length === 0 ? (
+                  {filteredEndpoints.length === 0 ? (
                     <tr>
                       <td colSpan={isAdmin ? 7 : 6} style={{ textAlign: 'center', color: '#9ca3af' }}>
-                        등록된 API가 없습니다.
+                        {endpoints.length === 0 ? '등록된 API가 없습니다.' : '검색 결과가 없습니다.'}
                       </td>
                     </tr>
                   ) : (
-                    endpoints.map((ep) => (
+                    filteredEndpoints.map((ep) => (
                       <tr key={ep.id}>
                         <td>
                           <span style={{
