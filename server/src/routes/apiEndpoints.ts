@@ -16,7 +16,7 @@ apiEndpointsRouter.get('/', requireAuth, async (c) => {
     return c.json(
       endpoints.map((e) => ({
         ...e,
-        tags: (() => { try { return e.tags ? JSON.parse(e.tags as string) : [] } catch { return [] } })(),
+        tags: Array.isArray(e.tags) ? e.tags : (e.tags ? JSON.parse(e.tags as string) : []),
       }))
     )
   } catch (err) {
@@ -39,7 +39,7 @@ apiEndpointsRouter.post('/', requireAuth, requireAdmin, async (c) => {
         method: method.toUpperCase(),
         path,
         description: description ?? null,
-        tags: tags ? JSON.stringify(tags) : null,
+        tags: tags ?? [],
         requestBody: requestBody ?? undefined,
         responseSchema: responseSchema ?? undefined,
         authRequired: authRequired !== false,
@@ -49,7 +49,7 @@ apiEndpointsRouter.post('/', requireAuth, requireAdmin, async (c) => {
 
     return c.json({
       ...endpoint,
-      tags: (() => { try { return endpoint.tags ? JSON.parse(endpoint.tags as string) : [] } catch { return [] } })(),
+      tags: Array.isArray(endpoint.tags) ? endpoint.tags : (endpoint.tags ? JSON.parse(endpoint.tags as string) : []),
     }, 201)
   } catch (err) {
     return c.json({ error: String(err) }, 500)
@@ -72,7 +72,7 @@ apiEndpointsRouter.put('/:id', requireAuth, requireAdmin, async (c) => {
         ...(method && { method: method.toUpperCase() }),
         ...(path && { path }),
         description: description ?? existing.description,
-        tags: tags !== undefined ? JSON.stringify(tags) : existing.tags,
+        tags: tags !== undefined ? tags : existing.tags,
         requestBody: requestBody ?? existing.requestBody,
         responseSchema: responseSchema ?? existing.responseSchema,
         authRequired: authRequired !== undefined ? authRequired : existing.authRequired,
@@ -82,7 +82,7 @@ apiEndpointsRouter.put('/:id', requireAuth, requireAdmin, async (c) => {
 
     return c.json({
       ...endpoint,
-      tags: (() => { try { return endpoint.tags ? JSON.parse(endpoint.tags as string) : [] } catch { return [] } })(),
+      tags: Array.isArray(endpoint.tags) ? endpoint.tags : (endpoint.tags ? JSON.parse(endpoint.tags as string) : []),
     })
   } catch (err) {
     return c.json({ error: String(err) }, 500)
@@ -110,7 +110,7 @@ apiEndpointsRouter.post('/bulk', requireAuth, requireAdmin, async (c) => {
         method: item.method.toUpperCase(),
         path: item.path,
         description: item.description ?? null,
-        tags: item.tags ? JSON.stringify(item.tags) : null,
+        tags: item.tags ?? [],
         authRequired: item.authRequired !== false,
         projectKey: item.projectKey,
       })),
