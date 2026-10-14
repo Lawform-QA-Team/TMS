@@ -5,6 +5,7 @@ import { logger } from '../lib/logger.js'
 import { getJiraQueue } from '../lib/jiraPipeline.js'
 import { getRedis } from '../lib/redis.js'
 import { normalizeTicket } from '../lib/ticketNormalizer.js'
+import { resolveEpicContext } from '../lib/epicContextResolver.js'
 import { env } from '../env.js'
 import fs from 'fs'
 import path from 'path'
@@ -343,6 +344,9 @@ pipelineRouter.post('/:pipelineId/approve', requireAuth, async (c) => {
         ticket.sourceType as 'webhook' | 'cron',
       )
       normalized.pipelineId = pipelineId
+      if (normalized.labels.includes('qa-requested')) {
+        normalized.epicContext = await resolveEpicContext(ticket.ticketKey)
+      }
       await getJiraQueue().add('collect-complete', { type: 'collect-complete', ticketKey: ticket.ticketKey, pipelineId, payload: normalized })
       logger.info({ pipelineId, actorName }, 'QA Plan 반려 (페이지) → QA Plan 재생성 job 등록')
     }
@@ -412,6 +416,9 @@ pipelineRouter.post('/:pipelineId/retry', requireAuth, async (c) => {
     )
     // pipelineId는 기존 것 유지
     normalized.pipelineId = pipelineId
+    if (normalized.labels.includes('qa-requested')) {
+      normalized.epicContext = await resolveEpicContext(ticket.ticketKey)
+    }
 
     await getJiraQueue().add('collect-complete', {
       type: 'collect-complete',
