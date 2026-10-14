@@ -37,6 +37,27 @@ export async function sendQAPlanApprovalRequest(
   const scopeText = plan.scope.slice(0, 3).map((s) => `• ${s}`).join('\n')
   const risksText = plan.risks.slice(0, 3).map((r) => `• ${r}`).join('\n')
 
+  const epic = ticket.epicContext
+  const epicBlocks = epic?.epicKey
+    ? [
+        {
+          type: 'section',
+          fields: [
+            { type: 'mrkdwn', text: `*Epic*\n${epic.epicKey}${epic.epicSummary ? ` — ${epic.epicSummary}` : ''}` },
+            { type: 'mrkdwn', text: `*기획 티켓*\n${epic.planningTaskKey ?? '없음'}` },
+            {
+              type: 'mrkdwn',
+              text: `*Figma URL*\n${epic.figmaUrls.length > 0 ? epic.figmaUrls.map((u) => `• ${u}`).join('\n') : '없음'}`,
+            },
+            {
+              type: 'mrkdwn',
+              text: `*Figma 내용 추출*\n${epic.figmaContent ? `✅ (${epic.figmaContent.length}자)` : '❌ 미추출'}`,
+            },
+          ],
+        },
+      ]
+    : []
+
   const result = await postSlack('chat.postMessage', {
     channel,
     blocks: [
@@ -53,6 +74,7 @@ export async function sendQAPlanApprovalRequest(
           { type: 'mrkdwn', text: `*예상 TC 수*\n${plan.estimatedTcCount}개` },
         ],
       },
+      ...epicBlocks,
       {
         type: 'section',
         text: { type: 'mrkdwn', text: `*제목*\n${ticket.summary}` },
