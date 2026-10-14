@@ -5,6 +5,7 @@ import { env } from '../env.js'
 import { updateApprovalMessage } from '../lib/slackNotifier.js'
 import { getJiraQueue } from '../lib/jiraPipeline.js'
 import { normalizeTicket } from '../lib/ticketNormalizer.js'
+import { resolveEpicContext } from '../lib/epicContextResolver.js'
 
 export const slackRouter = new Hono()
 
@@ -107,6 +108,9 @@ slackRouter.post('/interaction', async (c) => {
           ticket.sourceType as 'webhook' | 'cron',
         )
         normalized.pipelineId = pipelineId
+        if (normalized.labels.includes('qa-requested')) {
+          normalized.epicContext = await resolveEpicContext(ticket.ticketKey)
+        }
         await getJiraQueue().add('collect-complete', {
           type: 'collect-complete',
           ticketKey: ticket.ticketKey,
